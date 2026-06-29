@@ -50,12 +50,14 @@ import argparse
 import hashlib
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Repo root = two levels up from tools/generators/<this file>.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_BOOK = REPO_ROOT / "architecture" / "EIOS_Architecture_Book.md"
 DEFAULT_OUT = REPO_ROOT / "specification"
+GENERATOR_VERSION = "1.0"
 
 ROMAN_VALUES = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
 
@@ -116,6 +118,47 @@ def chapter_file_name(chapter_id: str, slug: str) -> str:
     title, so retitling a chapter never renames its generated file.
     """
     return f"{chapter_id}_{slug}.md"
+
+
+def slug_display(slug: str) -> str:
+    """`world-model` -> `World Model` (table-of-contents display name)."""
+    return " ".join(word.capitalize() for word in slug.replace("-", " ").split())
+
+
+def build_header(
+    book_rel: str,
+    version: str,
+    source_hash: str,
+    generated_at: str,
+    *,
+    chapter: str | None = None,
+    slug: str | None = None,
+    kind: str | None = None,
+) -> str:
+    """YAML front matter common to every generated file.
+
+    These are compiled artifacts: `generated: true` and `do_not_edit: true` mark
+    them as machine-produced and off-limits to manual editing.
+    """
+    lines = [
+        "---",
+        "generated: true",
+        "do_not_edit: true",
+        f"canonical_source: {book_rel}",
+    ]
+    if chapter is not None:
+        lines.append(f"chapter: {chapter}")
+        lines.append(f"slug: {slug}")
+    if kind is not None:
+        lines.append(f"kind: {kind}")
+    lines += [
+        f"book_version: {version}",
+        f"generator_version: {GENERATOR_VERSION}",
+        f"source_hash: {source_hash}",
+        f"generated_at: {generated_at}",
+        "---",
+    ]
+    return "\n".join(lines) + "\n\n"
 
 
 def parse_book_version(text: str) -> str:
@@ -181,6 +224,7 @@ def parse_parts(text: str) -> list[dict]:
             {
                 "id": begin.group("id"),
                 "number": number,
+                "roman": heading.group("roman"),
                 "title": heading.group("title").strip(),
                 "dir": part_dir_name(number, heading.group("title").strip()),
                 "chapters": chapters,
@@ -190,17 +234,15 @@ def parse_parts(text: str) -> list[dict]:
 
 
 def render_chapter(
-    chapter: dict, book_rel: str, book_version: str, source_hash: str
+    chapter: dict, book_rel: str, version: str, source_hash: str, generated_at: str
 ) -> str:
-    header = (
-        "---\n"
-        "generated: true\n"
-        f"generated_from: {book_rel}\n"
-        f"chapter_id: {chapter['id']}\n"
-        f"book_version: {book_version}\n"
-        f"source_hash: {source_hash}\n"
-        "manual_edits: prohibited\n"
-        "---\n\n"
+    header = build_header(
+        book_rel,
+        version,
+        source_hash,
+        generated_at,
+        chapter=chapter["id"],
+        slug=chapter["slug"],
     )
     title_line = f"# {chapter['id']} — {chapter['title']}\n\n"
     body = chapter["body"].strip("\n")
@@ -208,55 +250,44 @@ def render_chapter(
 
 
 def render_glossary(
-    body: str, book_rel: str, book_version: str, source_hash: str
+    body: str, book_rel: str, version: str, source_hash: str, generated_at: str
 ) -> str:
-    header = (
-        "---\n"
-        "generated: true\n"
-        f"generated_from: {book_rel}\n"
-        "kind: glossary\n"
-        f"book_version: {book_version}\n"
-        f"source_hash: {source_hash}\n"
-        "manual_edits: prohibited\n"
-        "---\n\n"
-    )
+    header = build_header(book_rel, version, source_hash, generated_at, kind="glossary")
     return header + "# Glossary\n\n" + body.strip("\n") + "\n"
 
 
 def render_summary(
-    parts: list[dict], book_rel: str, book_version: str, source_hash: str
+    parts: list[dict], book_rel: str, version: str, source_hash: str, generated_at: str
 ) -> str:
+    header = build_header(book_rel, version, source_hash, generated_at, kind="summary")
     lines = [
-        "---",
-        "generated: true",
-        f"generated_from: {book_rel}",
-        "kind: summary",
-        f"book_version: {book_version}",
-        f"source_hash: {source_hash}",
-        "manual_edits: prohibited",
-        "---",
+        "# Economic Intelligence Operating System",
         "",
-        "# EIOS Unified Specification",
+        "## Architecture Book",
         "",
-        f"Generated from `{book_rel}` (book version {book_version}).",
+        f"Version {version}",
+        "",
+        f"Compiled from `{book_rel}`.",
         "",
         "## Glossary",
         "",
         "- [Glossary](00_Glossary/Glossary.md) — the normative architectural dictionary",
         "",
+        "## Table of Contents",
+        "",
     ]
     for part in parts:
-        lines.append(f"## Part {part['number']} — {title_case(part['title'])}")
+        lines.append(f"### Part {part['roman']} — {title_case(part['title'])}")
         lines.append("")
         if not part["chapters"]:
-            lines.append("_No chapters defined in the book yet._")
+            lines.append("_Planned — no chapters yet._")
             lines.append("")
             continue
         for ch in part["chapters"]:
             rel = f"{part['dir']}/{chapter_file_name(ch['id'], ch['slug'])}"
-            lines.append(f"- [{ch['id']} — {ch['title']}]({rel})")
+            lines.append(f"- [{ch['id']} — {slug_display(ch['slug'])}]({rel})")
         lines.append("")
-    return "\n".join(lines).rstrip("\n") + "\n"
+    return header + "\n".join(lines).rstrip("\n") + "\n"
 
 
 def plan_outputs(
@@ -266,20 +297,24 @@ def plan_outputs(
     book_rel: str,
     version: str,
     source_hash: str,
+    generated_at: str,
 ):
     """Return list of (path, content) tuples without touching disk."""
     outputs = [
-        (out_dir / "SUMMARY.md", render_summary(parts, book_rel, version, source_hash)),
+        (
+            out_dir / "SUMMARY.md",
+            render_summary(parts, book_rel, version, source_hash, generated_at),
+        ),
         (
             out_dir / "00_Glossary" / "Glossary.md",
-            render_glossary(glossary_body, book_rel, version, source_hash),
+            render_glossary(glossary_body, book_rel, version, source_hash, generated_at),
         ),
     ]
     for part in parts:
         for ch in part["chapters"]:
             path = out_dir / part["dir"] / chapter_file_name(ch["id"], ch["slug"])
             outputs.append(
-                (path, render_chapter(ch, book_rel, version, source_hash))
+                (path, render_chapter(ch, book_rel, version, source_hash, generated_at))
             )
     return outputs
 
@@ -292,6 +327,15 @@ def main(argv: list[str]) -> int:
         "--check",
         action="store_true",
         help="Parse and report planned files without writing anything.",
+    )
+    parser.add_argument(
+        "--generated-at",
+        default=None,
+        help=(
+            "ISO-8601 build timestamp embedded in every generated file. Defaults "
+            "to the Book file's mtime (UTC). For reproducible/CI builds, pass the "
+            "Book's git commit date so output is stable until the source changes."
+        ),
     )
     args = parser.parse_args(argv)
 
@@ -314,7 +358,23 @@ def main(argv: list[str]) -> int:
     # current Architecture Book (e.g. `shasum -a 256 <book>`).
     source_hash = hashlib.sha256(raw).hexdigest()
     book_rel = args.book.resolve().relative_to(REPO_ROOT).as_posix()
-    outputs = plan_outputs(parts, glossary_body, args.out, book_rel, version, source_hash)
+
+    # generated_at is deterministic so re-running the generator on an unchanged
+    # Book produces byte-identical output (drift-gate friendly). Default to the
+    # Book's mtime; callers should pass the Book's git commit date for CI.
+    if args.generated_at:
+        generated_at = args.generated_at
+    else:
+        mtime = args.book.stat().st_mtime
+        generated_at = (
+            datetime.fromtimestamp(mtime, tz=timezone.utc)
+            .replace(microsecond=0)
+            .isoformat()
+        )
+
+    outputs = plan_outputs(
+        parts, glossary_body, args.out, book_rel, version, source_hash, generated_at
+    )
 
     chapter_count = sum(len(p["chapters"]) for p in parts)
     print(
