@@ -51,6 +51,8 @@ Book front/back matter (book title, `## Preface`, `## Book Status`, `## Glossary
 - **No manual revision tables.** Git, patch IDs (`AB-xxxx`), the generator YAML header, the book version, and `source_hash` are the revision history. Do not add per-chapter "Revision History" sections.
 - **Chapter Class.** Each chapter declares `**Chapter Class:**` as its first body line: one of `Constitutional`, `Foundational`, `Operational`, `Engineering`, `Reference`. `EIOS-000` is `Constitutional` and is frozen (see ADR-0006) — change it only via a new ADR with review and explicit approval, never a manuscript patch.
 - **Glossary is normative, single-source, and generated.** Architectural terms are defined exactly once in the Book's `## Glossary` front matter; the generator emits it to `specification/00_Glossary/Glossary.md`, and chapters reference those definitions rather than redefining them.
+- **Generated files are compiled artifacts.** Everything under `specification/` is produced by `tools/generators/generate_specification.py` and begins with `generated: true` / `do_not_edit: true`. Never hand-edit them; change the Book and regenerate. `generated_at` is deterministic — pass the Book's git commit date (`--generated-at "$(git log -1 --format=%cI -- architecture/EIOS_Architecture_Book.md)"`) so output is byte-stable and a `git diff --exit-code` after regeneration works as a drift gate.
+- **Regenerate promptly.** Regenerate `specification/` after each completed Foundational chapter (or small related batch), not only at large milestones, so the compiled spec never drifts from the Book.
 
 ## The `archive/` directory
 
