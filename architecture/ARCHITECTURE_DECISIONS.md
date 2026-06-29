@@ -108,6 +108,33 @@ Consequences:
 
 ---
 
+## ADR-0006
+Title: Freeze the Constitution
+Status: Accepted
+
+Context:
+EIOS-000 — Constitution of EIOS defines the platform's constitutional invariants
+(CI-001 … CI-016). It is marked Constitution Status: Stable. Constitutional law
+must be more stable than ordinary architectural content.
+
+Decision:
+- The Constitution (chapter EIOS-000) is a frozen artifact.
+- Constitutional changes SHALL NOT be made by ordinary manuscript patch.
+- A constitutional change requires all of:
+  - a new ADR that explicitly supersedes the affected invariant,
+  - architecture review,
+  - explicit human approval.
+
+Consequences:
+- The CI-NNN constitutional invariants are durable across the lifetime of the
+  platform; subsystems may rely on them without fear of silent change.
+- Manuscript patches (AB-xxxx) may add or modify non-constitutional chapters but
+  may not alter EIOS-000.
+- This decision is consistent with ADR-0004 (architectural changes require ADRs)
+  and raises the bar specifically for constitutional change.
+
+---
+
 ## Next ADR Number
 
-ADR-0006
+ADR-0007
