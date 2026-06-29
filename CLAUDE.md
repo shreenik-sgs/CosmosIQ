@@ -30,6 +30,20 @@ Non-negotiable rules derived from these:
 
 Existing spec files are intentionally terse stubs (often one or two sentences stating what the document defines). When expanding the specification, match this concise, definitional style.
 
+### Heading hierarchy (permanent — never deviate)
+
+Within the Architecture Book and the content it generates, headings map to structure exactly as follows:
+
+| Level | Meaning |
+|-------|---------|
+| `#` | PART |
+| `##` | CHAPTER |
+| `###` | Major Section |
+| `####` | Definition / Principle / Requirement |
+| `#####` | Example |
+
+Book front/back matter (book title, `## Preface`, `## Book Status`, `# GENERATION CONTRACT`) sits outside this hierarchy. Constitutional invariants live in their own `CI-NNN` namespace (defined in `EIOS-000`); do not reuse or renumber the `FI-NNN` invariants already defined inside other chapters. Every chapter ends with a `### Cross References` section; non-root chapters declare `Conforms To: EIOS-000`.
+
 ## The `archive/` directory
 
 `archive/` holds the original v1 source material — `GPSR_*`, `GPMA_*`, `Volume_0_*`, etc. — in paired `.md` + `.docx` form. These are the **legacy/reference drafts being distilled** into the new numbered `specification/` Parts. They are historical input, **not authoritative**. Mine them for content when authoring specs, but the canonical version is whatever lands in `specification/`.
