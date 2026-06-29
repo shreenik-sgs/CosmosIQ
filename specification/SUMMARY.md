@@ -1,8 +1,8 @@
 # EIOS Unified Platform Specification
 
 ## Parts
-1. Foundation
-2. Systems Science
+1. Foundation ✅
+2. Systems Science ✅
 3. World Model
 4. Canonical Models
 5. Kernel
@@ -12,6 +12,3 @@
 9. Engineering
 10. Operations
 11. Reference
-
-## Current Status
-Foundation is established.
