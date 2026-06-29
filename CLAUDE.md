@@ -50,7 +50,7 @@ Book front/back matter (book title, `## Preface`, `## Book Status`, `## Glossary
 - **Canonical slugs drive filenames.** Every chapter carries a `<!-- SLUG: kebab-case -->` directive between its `## CHAPTER` heading and its `BEGIN:CHAPTER` marker. The generator builds `EIOS-NNN_<slug>.md` from the slug, never from the display title — so retitling a chapter never renames its file. The generator errors if a chapter has no slug.
 - **No manual revision tables.** Git, patch IDs (`AB-xxxx`), the generator YAML header, the book version, and `source_hash` are the revision history. Do not add per-chapter "Revision History" sections.
 - **Chapter Class.** Each chapter declares `**Chapter Class:**` as its first body line: one of `Constitutional`, `Foundational`, `Operational`, `Engineering`, `Reference`. `EIOS-000` is `Constitutional` and is frozen (see ADR-0006) — change it only via a new ADR with review and explicit approval, never a manuscript patch.
-- **Glossary is normative and single-source.** Architectural terms are defined exactly once in `## Glossary`; chapters reference those definitions rather than redefining them.
+- **Glossary is normative, single-source, and generated.** Architectural terms are defined exactly once in the Book's `## Glossary` front matter; the generator emits it to `specification/00_Glossary/Glossary.md`, and chapters reference those definitions rather than redefining them.
 
 ## The `archive/` directory
 

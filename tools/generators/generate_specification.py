@@ -21,13 +21,17 @@ Markers consumed
 Output contract
 ---------------
   * Part  -> directory  specification/<NN>_<Title_Case>/
-  * Chapter -> file      specification/<NN>_<Title_Case>/<CHAPTER-ID>_<Title>.md
+  * Chapter -> file      specification/<NN>_<Title_Case>/<CHAPTER-ID>_<slug>.md
+    (the filename comes from the chapter's canonical <!-- SLUG: ... --> directive,
+    never from its display title).
+  * The front-matter `## Glossary` -> specification/00_Glossary/Glossary.md, the
+    single normative architectural dictionary.
   * Every generated file begins with a YAML front-matter header marking it
     generated and prohibiting manual edits (ADR-0005): generated, generated_from,
-    chapter_id (or kind: summary), book_version, source_hash, manual_edits.
+    chapter_id (or kind: summary | glossary), book_version, source_hash, manual_edits.
     source_hash is the SHA-256 of the canonical Architecture Book.
-  * BEGIN/END markers are NOT carried into generated files (decision 3).
-  * specification/SUMMARY.md is regenerated as an index.
+  * BEGIN/END markers and SLUG directives are NOT carried into generated files.
+  * specification/SUMMARY.md is regenerated as an index and links the Glossary.
 
 Usage
 -----
@@ -74,6 +78,11 @@ CHAPTER_BLOCK_RE = re.compile(
 # chapter heading and the BEGIN marker so it never leaks into generated content.
 SLUG_RE = re.compile(r"<!--\s*SLUG:\s*(?P<slug>[a-z0-9][a-z0-9-]*)\s*-->")
 METADATA_RE = re.compile(r"<!--\s*BOOK-METADATA(?P<body>.*?)-->", re.DOTALL)
+# Front-matter Glossary: from the `## Glossary` heading to the next `---` rule.
+GLOSSARY_RE = re.compile(
+    r"^##\s+Glossary\s*$\n(?P<body>.*?)\n---\s*$",
+    re.MULTILINE | re.DOTALL,
+)
 
 
 class GenerationError(Exception):
@@ -118,6 +127,17 @@ def parse_book_version(text: str) -> str:
         if line.startswith("version:"):
             return line.split(":", 1)[1].strip()
     raise GenerationError("BOOK-METADATA block has no `version:` field.")
+
+
+def parse_glossary(text: str) -> str:
+    """Return the front-matter Glossary body (intro + table), without its heading."""
+    match = GLOSSARY_RE.search(text)
+    if not match:
+        raise GenerationError(
+            "Front-matter `## Glossary` section not found. The Glossary is the "
+            "canonical architectural dictionary and SHALL be present."
+        )
+    return match.group("body").strip("\n")
 
 
 def parse_parts(text: str) -> list[dict]:
@@ -187,6 +207,22 @@ def render_chapter(
     return header + title_line + body + "\n"
 
 
+def render_glossary(
+    body: str, book_rel: str, book_version: str, source_hash: str
+) -> str:
+    header = (
+        "---\n"
+        "generated: true\n"
+        f"generated_from: {book_rel}\n"
+        "kind: glossary\n"
+        f"book_version: {book_version}\n"
+        f"source_hash: {source_hash}\n"
+        "manual_edits: prohibited\n"
+        "---\n\n"
+    )
+    return header + "# Glossary\n\n" + body.strip("\n") + "\n"
+
+
 def render_summary(
     parts: list[dict], book_rel: str, book_version: str, source_hash: str
 ) -> str:
@@ -204,6 +240,10 @@ def render_summary(
         "",
         f"Generated from `{book_rel}` (book version {book_version}).",
         "",
+        "## Glossary",
+        "",
+        "- [Glossary](00_Glossary/Glossary.md) — the normative architectural dictionary",
+        "",
     ]
     for part in parts:
         lines.append(f"## Part {part['number']} — {title_case(part['title'])}")
@@ -220,11 +260,20 @@ def render_summary(
 
 
 def plan_outputs(
-    parts: list[dict], out_dir: Path, book_rel: str, version: str, source_hash: str
+    parts: list[dict],
+    glossary_body: str,
+    out_dir: Path,
+    book_rel: str,
+    version: str,
+    source_hash: str,
 ):
     """Return list of (path, content) tuples without touching disk."""
     outputs = [
-        (out_dir / "SUMMARY.md", render_summary(parts, book_rel, version, source_hash))
+        (out_dir / "SUMMARY.md", render_summary(parts, book_rel, version, source_hash)),
+        (
+            out_dir / "00_Glossary" / "Glossary.md",
+            render_glossary(glossary_body, book_rel, version, source_hash),
+        ),
     ]
     for part in parts:
         for ch in part["chapters"]:
@@ -254,6 +303,7 @@ def main(argv: list[str]) -> int:
     text = raw.decode("utf-8")
     try:
         version = parse_book_version(text)
+        glossary_body = parse_glossary(text)
         parts = parse_parts(text)
     except GenerationError as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -264,14 +314,18 @@ def main(argv: list[str]) -> int:
     # current Architecture Book (e.g. `shasum -a 256 <book>`).
     source_hash = hashlib.sha256(raw).hexdigest()
     book_rel = args.book.resolve().relative_to(REPO_ROOT).as_posix()
-    outputs = plan_outputs(parts, args.out, book_rel, version, source_hash)
+    outputs = plan_outputs(parts, glossary_body, args.out, book_rel, version, source_hash)
 
     chapter_count = sum(len(p["chapters"]) for p in parts)
     print(
         f"Book version {version}: {len(parts)} part(s), {chapter_count} chapter(s)."
     )
     for path, _ in outputs:
-        rel = path.resolve().relative_to(REPO_ROOT).as_posix()
+        resolved = path.resolve()
+        try:
+            rel = resolved.relative_to(REPO_ROOT).as_posix()
+        except ValueError:
+            rel = resolved.as_posix()
         print(f"  {'plan' if args.check else 'write'}: {rel}")
 
     if args.check:
