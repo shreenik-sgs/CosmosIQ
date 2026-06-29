@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 0.7 |
+| Version | 0.8 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -42,7 +42,7 @@ Each architectural term is defined exactly once, here. Chapters reference these 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 0.7
+version: 0.8
 authoritative: true
 target_generator: Claude Code
 -->
@@ -1529,6 +1529,46 @@ This chapter is referenced by:
 <!-- END:CHAPTER:EIOS-003 -->
 
 <!-- END:PART:FOUNDATION -->
+
+---
+
+# PART II — COGNITIVE ARCHITECTURE
+
+<!-- BEGIN:PART:COGNITIVE_ARCHITECTURE -->
+
+_This Part is reserved. No chapters are defined yet._
+
+<!-- END:PART:COGNITIVE_ARCHITECTURE -->
+
+---
+
+# PART III — PLATFORM ARCHITECTURE
+
+<!-- BEGIN:PART:PLATFORM_ARCHITECTURE -->
+
+_This Part is reserved. No chapters are defined yet._
+
+<!-- END:PART:PLATFORM_ARCHITECTURE -->
+
+---
+
+# PART IV — APPLICATIONS
+
+<!-- BEGIN:PART:APPLICATIONS -->
+
+_This Part is reserved. No chapters are defined yet._
+
+<!-- END:PART:APPLICATIONS -->
+
+---
+
+# PART V — ENGINEERING REFERENCE
+
+<!-- BEGIN:PART:ENGINEERING_REFERENCE -->
+
+_This Part is reserved. No chapters are defined yet._
+
+<!-- END:PART:ENGINEERING_REFERENCE -->
 
 ---
 
