@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-000
 slug: constitution
-book_version: 0.8
+book_version: 1.0
 generator_version: 1.0
-source_hash: a23f62cc991a348bd34526c1fdc27e2df343bbaecccdfe5dc9e8d80320180cec
-generated_at: 2026-06-29T18:21:18-05:00
+source_hash: 6dbb4a838ab1974aa04d7a30365fb3688ead42daef2b8e03b208107157e2664c
+generated_at: 2026-06-29T18:41:14-05:00
 ---
 
 # EIOS-000 — Constitution of EIOS
