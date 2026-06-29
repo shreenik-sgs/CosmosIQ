@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 0.9 |
+| Version | 1.0 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -42,7 +42,7 @@ Each architectural term is defined exactly once, here. Chapters reference these 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 0.9
+version: 1.0
 authoritative: true
 target_generator: Claude Code
 -->
@@ -1771,6 +1771,238 @@ Confusing these concepts results in architectural coupling and loss of explainab
 
 ---
 
+### Scientific Judgment
+
+Scientific Judgment is the process by which EIOS evaluates competing explanations and determines the current best explanation for observed reality.
+
+Judgment does not establish truth.
+
+Judgment continuously estimates which explanation is presently most consistent with available evidence, historical replay, and accumulated experience.
+
+Scientific Judgment integrates:
+
+* Research Questions
+* Mental Models
+* Competing Hypotheses
+* Evidence
+* Causal Models
+* Historical Replay
+* Experience
+* Confidence Evolution
+
+Judgment SHALL remain provisional.
+
+Every judgment remains subject to future revision.
+
+---
+
+### Goal-Directed Scientific Inquiry
+
+Scientific Curiosity SHALL always operate in pursuit of explicit goals.
+
+Goals provide direction.
+
+Curiosity provides discovery.
+
+Inquiry provides investigation.
+
+Examples include:
+
+* Discover emerging technologies.
+* Detect future supply-chain bottlenecks.
+* Explain unexpected market behavior.
+* Identify structural economic transitions.
+* Discover future investment opportunities.
+* Detect changes in competitive advantage.
+* Understand capital allocation shifts.
+
+Goals SHALL remain independent from implementation.
+
+Future applications may introduce additional goals without modifying the cognitive architecture.
+
+---
+
+### Reasoning Modes
+
+Scientific cognition SHALL support multiple reasoning modes.
+
+The architecture SHALL remain independent of any specific implementation.
+
+Canonical reasoning modes include:
+
+* Deductive Reasoning
+* Inductive Reasoning
+* Abductive Reasoning
+* Analogical Reasoning
+* Systems Reasoning
+* Causal Reasoning
+* Temporal Reasoning
+* Counterfactual Reasoning
+* Probabilistic Reasoning
+* Constraint-Based Reasoning
+
+Different investigations may employ different combinations of reasoning modes.
+
+The architecture SHALL permit extension through future reasoning paradigms.
+
+---
+
+### Scientific Judgment Lifecycle
+
+Every significant investigation SHALL progress through the following lifecycle.
+
+```text
+Scientific Inquiry
+        ↓
+Candidate Hypotheses
+        ↓
+Evidence Evaluation
+        ↓
+Causal Analysis
+        ↓
+Prediction
+        ↓
+Historical Replay
+        ↓
+Scientific Judgment
+        ↓
+Knowledge Evolution
+        ↓
+World Model Refinement
+```
+
+The lifecycle is iterative.
+
+Completion of one investigation frequently generates additional investigations.
+
+---
+
+### Explainability
+
+Every production conclusion SHALL possess a complete reasoning record.
+
+Explainability consists of four independent traces.
+
+#### Evidence Trace
+
+Records:
+
+* originating observations
+* evidence
+* provenance
+* confidence evolution
+
+#### Reasoning Trace
+
+Records:
+
+* Research Questions
+* Mental Models
+* reasoning modes
+* hypotheses
+* causal analysis
+
+#### Replay Trace
+
+Records:
+
+* historical datasets
+* replay configuration
+* prediction accuracy
+* failure analysis
+
+#### Decision Trace
+
+Records:
+
+* final judgment
+* alternatives considered
+* rejected explanations
+* confidence
+* assumptions
+* remaining uncertainty
+
+Together these traces SHALL provide complete scientific transparency.
+
+---
+
+### Cognitive Integrity
+
+Scientific cognition SHALL preserve its integrity under all operating conditions.
+
+The platform SHALL NEVER:
+
+* conceal uncertainty
+* manufacture confidence
+* discard contradictory evidence
+* bypass provenance
+* bypass historical replay
+* collapse competing hypotheses prematurely
+* overwrite historical knowledge
+
+Scientific integrity takes precedence over computational convenience.
+
+---
+
+### Scientific Humility
+
+Scientific understanding is never complete.
+
+Every validated explanation remains provisional.
+
+Every accepted hypothesis remains subject to revision.
+
+Every mental model remains incomplete.
+
+The architecture therefore prefers:
+
+"I do not yet know."
+
+over
+
+"I know."
+
+This principle encourages continuous inquiry rather than premature certainty.
+
+---
+
+### Meta-Cognition
+
+Scientific cognition SHALL continuously evaluate its own reasoning.
+
+Meta-cognition asks:
+
+* Were the correct Research Questions investigated?
+* Were the appropriate Mental Models selected?
+* Were alternative hypotheses considered?
+* Was replay sufficient?
+* Were causal explanations complete?
+* Should confidence change?
+* Should future investigations receive higher priority?
+
+Meta-cognition continuously improves future scientific investigations.
+
+---
+
+### Knowledge Evolution
+
+Scientific Understanding evolves continuously.
+
+Knowledge evolution includes:
+
+* refinement
+* expansion
+* correction
+* consolidation
+* specialization
+* abstraction
+
+Evolution SHALL preserve complete historical lineage.
+
+Earlier understanding SHALL remain replayable.
+
+---
+
 ### Architectural Rules
 
 - **AR-0401** — Scientific cognition SHALL begin with Computational Curiosity.
@@ -1780,6 +2012,14 @@ Confusing these concepts results in architectural coupling and loss of explainab
 - **AR-0405** — Multiple Mental Models SHALL be supported simultaneously.
 - **AR-0406** — Curiosity SHALL continuously search for anomalies and unanswered questions.
 - **AR-0407** — Scientific Inquiry SHALL improve the World Model rather than bypass it.
+- **AR-0408** — Scientific Judgment SHALL remain provisional.
+- **AR-0409** — Scientific Curiosity SHALL operate in pursuit of explicit goals.
+- **AR-0410** — Multiple reasoning modes SHALL be supported.
+- **AR-0411** — Every production conclusion SHALL possess complete explainability.
+- **AR-0412** — Scientific Integrity SHALL take precedence over computational convenience.
+- **AR-0413** — Meta-cognition SHALL continuously improve future reasoning.
+- **AR-0414** — Knowledge Evolution SHALL preserve historical lineage.
+- **AR-0415** — Scientific Understanding SHALL continuously refine the World Model.
 
 ---
 
@@ -1792,6 +2032,14 @@ Confusing these concepts results in architectural coupling and loss of explainab
 - **REQ-SC-005** — Multi-Model Cognition
 - **REQ-SC-006** — World Model Synchronization
 - **REQ-SC-007** — Architectural Separation
+- **REQ-SC-008** — Scientific Judgment
+- **REQ-SC-009** — Goal-Directed Inquiry
+- **REQ-SC-010** — Multi-Modal Reasoning
+- **REQ-SC-011** — Explainability Framework
+- **REQ-SC-012** — Cognitive Integrity
+- **REQ-SC-013** — Meta-Cognition
+- **REQ-SC-014** — Knowledge Evolution
+- **REQ-SC-015** — World Model Refinement
 
 ---
 
@@ -1799,24 +2047,25 @@ Confusing these concepts results in architectural coupling and loss of explainab
 
 This chapter is referenced by:
 
-* EIOS-004B — Scientific Reasoning and Knowledge Evolution
 * EIOS-005 — Models and Model Management
 * EIOS-006 — Experience Layer
 * GEN-001 — Genesis Discovery Engine
 * GEN-002 — Technology Radar
 * GEN-003 — Supply Chain Intelligence
 * PROM-001 — Investment Thesis Engine
+* PROM-002 — Portfolio Intelligence
 * Personal CIO
 * Replay Engine
 * Simulation Engine
+* Agent Orchestrator
 
 ---
 
 ### Cross References
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003
-- **Defines:** Computational Curiosity; Mental Models; Scientific Inquiry; Cognitive Context; Multi-Model Cognition
-- **Referenced By:** All reasoning, discovery, forecasting, simulation, replay, and autonomous agent subsystems
+- **Defines:** Computational Curiosity; Mental Models; Scientific Inquiry; Cognitive Context; Multi-Model Cognition; Scientific Judgment; Goal-Directed Inquiry; Explainability; Cognitive Integrity; Meta-Cognition; Knowledge Evolution
+- **Referenced By:** All reasoning, discovery, forecasting, simulation, replay, autonomous agent, and investment subsystems
 
 <!-- END:CHAPTER:EIOS-004 -->
 
