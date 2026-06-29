@@ -1,15 +1,24 @@
 # EIOS Architecture Book
-Version: 0.2
-Status: Canonical Source
+
+## Preface
 
 > This manuscript is the single architectural source of truth for EIOS.
 > Claude Code SHALL derive the contents of the `specification/` directory from this manuscript.
+
+## Book Status
+
+| Field | Value |
+|-------|-------|
+| Version | 0.3 |
+| Status | Canonical Source |
+| Authoritative | Yes |
+| Target Generator | Claude Code |
 
 ---
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 0.2
+version: 0.3
 authoritative: true
 target_generator: Claude Code
 -->
@@ -18,32 +27,294 @@ target_generator: Claude Code
 
 <!-- BEGIN:PART:FOUNDATION -->
 
-## CHAPTER EIOS-001 — Mission
+## CHAPTER EIOS-001 — Purpose
 
 <!-- BEGIN:CHAPTER:EIOS-001 -->
 
-### Purpose
+### 1.1 Introduction
 
-The Economic Intelligence Operating System (EIOS) exists to continuously observe reality, discover durable economic knowledge, maintain a living model of the world, and transform validated scientific understanding into explainable investment intelligence.
+The Economic Intelligence Operating System (EIOS) is founded on a simple observation:
 
-### Mission
+> Financial markets are not primary phenomena.
+> They are emergent phenomena.
 
-Traditional investment systems begin with companies.
+Every movement in a security price is the consequence of changes occurring elsewhere. Those changes begin in the physical world, propagate through scientific discovery, technological innovation, industrial production, logistics, regulation, demographics, capital allocation, corporate strategy, and only then become visible in financial markets.
 
-EIOS begins with reality.
+Traditional investment systems reverse this causal chain. They begin with securities, search for historical statistical relationships, and attempt to extrapolate future returns.
 
-Reality evolves through interacting systems. Those interactions reshape technology, supply chains, industries, profit pools, corporate performance, and eventually financial markets.
+EIOS rejects this methodology.
 
-Investment recommendations are therefore outputs of scientific reasoning rather than inputs to the reasoning process.
+The objective of EIOS is not to predict prices directly.
 
-### Architectural Invariants
+Its objective is to continuously construct the most accurate representation of economic reality possible and allow investment conclusions to emerge naturally from that representation.
 
-- Reality precedes models.
-- Systems precede companies.
-- Causality precedes correlation.
-- Knowledge precedes recommendations.
-- Explainability is mandatory.
-- Historical replay is required before production.
+Investment intelligence is therefore an emergent property of scientific reasoning rather than an optimization objective.
+
+---
+
+### 1.2 Why Existing Investment Systems Fail
+
+Modern investment systems generally fall into one of five categories.
+
+#### Statistical Systems
+
+These systems search historical price series for recurring mathematical patterns.
+
+They assume that sufficiently complex statistical models can discover persistent predictive relationships.
+
+Their principal weakness is that correlation is frequently mistaken for causation.
+
+When the underlying economic system changes, statistical relationships often disappear.
+
+---
+
+#### Fundamental Research Systems
+
+These systems analyze companies individually.
+
+Revenue growth.
+
+Margins.
+
+Cash flow.
+
+Competitive positioning.
+
+While these approaches produce valuable insights, they begin too late in the causal chain.
+
+By the time a company's financial statements improve, the underlying technological or economic transformation has often been underway for years.
+
+---
+
+#### Quantitative Factor Systems
+
+These systems identify common characteristics among historical outperformers.
+
+Value.
+
+Momentum.
+
+Quality.
+
+Low volatility.
+
+Size.
+
+The factors themselves are descriptive rather than explanatory.
+
+They describe what happened.
+
+They do not explain why.
+
+---
+
+#### Artificial Intelligence Chat Systems
+
+Large Language Models summarize information remarkably well.
+
+They answer questions.
+
+Generate reports.
+
+Explain concepts.
+
+However, they generally lack persistent scientific memory, explicit causal models, continuously evolving world representations, and rigorous provenance.
+
+Consequently, they are excellent assistants but poor scientific reasoning engines.
+
+---
+
+#### Human Experts
+
+Domain experts possess deep intuition acquired through years of experience.
+
+Their principal limitation is scale.
+
+No individual can simultaneously monitor global technology development, supply chains, macroeconomics, geopolitics, regulation, venture funding, corporate execution, scientific publications, and financial markets in real time.
+
+---
+
+### 1.3 Design Objective
+
+EIOS does not attempt to outperform these systems by doing the same work faster.
+
+Instead it changes the starting point.
+
+Instead of beginning with:
+
+Companies
+
+EIOS begins with:
+
+Reality.
+
+The design objective can therefore be stated formally.
+
+**Objective 1**
+
+Construct and continuously maintain an internally consistent computational model of observable economic reality.
+
+**Objective 2**
+
+Continuously discover durable causal relationships within that model.
+
+**Objective 3**
+
+Generate investment intelligence only after sufficient supporting evidence exists.
+
+---
+
+### 1.4 First Architectural Principle
+
+#### Reality Before Representation
+
+Reality exists independently of EIOS.
+
+The purpose of EIOS is not to create reality.
+
+It is to approximate reality with increasing accuracy.
+
+Every internal model maintained by EIOS therefore represents a hypothesis regarding the external world.
+
+Models are never treated as facts.
+
+They are continuously revised as new evidence becomes available.
+
+This principle establishes an important invariant.
+
+**Architectural Invariant FI-001**
+
+No internal representation may be considered authoritative merely because it exists inside EIOS.
+
+Authority derives only from supporting evidence.
+
+---
+
+### 1.5 Second Architectural Principle
+
+#### Knowledge is Constructed
+
+Information is not knowledge.
+
+Raw observations become knowledge only after they satisfy explicit validation criteria.
+
+For this reason EIOS distinguishes between:
+
+* Observation
+* Evidence
+* Information
+* Knowledge
+* Scientific Principle
+* Economic Law
+
+Each represents a progressively stronger level of confidence.
+
+The transformation between these stages constitutes one of the core responsibilities of the operating system.
+
+---
+
+### 1.6 The Knowledge Pipeline
+
+Every conclusion generated by EIOS shall be traceable through the following reasoning pipeline.
+
+Observation
+
+↓
+
+Evidence
+
+↓
+
+Validated Fact
+
+↓
+
+Knowledge Object
+
+↓
+
+Relationship
+
+↓
+
+Knowledge Graph
+
+↓
+
+World Model
+
+↓
+
+Scientific Hypothesis
+
+↓
+
+Economic Principle
+
+↓
+
+Economic Law
+
+↓
+
+Investment Thesis
+
+↓
+
+Portfolio Decision
+
+Each transition requires additional evidence.
+
+No transition may bypass intermediate stages.
+
+This guarantees explainability and replayability.
+
+---
+
+### 1.7 Third Architectural Principle
+
+#### Historical Replay
+
+Reality is not static, and neither is knowledge. Every conclusion EIOS reaches is reached on the basis of what was known at a particular moment.
+
+For a conclusion to be trustworthy it must be reproducible. It must be possible to reconstruct the world as it was known at the time, replay the exact evidence, models, and parameters that produced the conclusion, and obtain the same result.
+
+This requirement is constitutional. It is not a testing convenience and it is not a diagnostic afterthought. Historical replay is a precondition of production.
+
+**Architectural Invariant FI-002**
+
+No reasoning output may be promoted to production unless it can be regenerated end to end by replaying, against a point-in-time reconstruction of the world as it was then known, the exact evidence, models, and parameters that produced it.
+
+A conclusion that cannot be replayed is treated as non-existent for all production purposes.
+
+---
+
+### 1.8 Architectural Consequences
+
+The principles established in this chapter have far-reaching implications for every subsystem.
+
+Genesis will not search directly for stocks.
+
+Instead, it will discover transformations occurring in technology, infrastructure, demographics, energy, manufacturing, regulation, capital formation, and other real-world systems.
+
+Prometheus will not rank securities based solely on statistical characteristics.
+
+Instead, it will evaluate the implications of validated economic knowledge for publicly traded entities.
+
+The Personal CIO will not merely recommend transactions.
+
+It will explain the complete causal chain leading from observed reality to each recommendation, quantify uncertainty at every stage, identify assumptions, and update conclusions as new evidence becomes available.
+
+These responsibilities are consequences of the architectural principles established here rather than independent product features.
+
+---
+
+### Cross References
+
+- **Defines:** FI-001, FI-002
+- **Related Chapters:** _(none yet)_
+- **Referenced By:** _(none yet)_
+- **See Also:** _(none yet)_
 
 <!-- END:CHAPTER:EIOS-001 -->
 
