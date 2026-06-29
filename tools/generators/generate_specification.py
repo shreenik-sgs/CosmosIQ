@@ -65,11 +65,14 @@ PART_HEADING_RE = re.compile(
 PART_BEGIN_RE = re.compile(r"<!--\s*BEGIN:PART:(?P<id>[A-Z0-9_]+)\s*-->")
 CHAPTER_BLOCK_RE = re.compile(
     r"^##\s+CHAPTER\s+(?P<id>[A-Z]+-\d+)\s+" + DASH + r"\s+(?P<title>.+?)\s*$"
-    r".*?<!--\s*BEGIN:CHAPTER:(?P=id)\s*-->"
+    r"(?P<preamble>.*?)<!--\s*BEGIN:CHAPTER:(?P=id)\s*-->"
     r"(?P<body>.*?)"
     r"<!--\s*END:CHAPTER:(?P=id)\s*-->",
     re.MULTILINE | re.DOTALL,
 )
+# Canonical slug directive, e.g. <!-- SLUG: world-model -->. It lives between the
+# chapter heading and the BEGIN marker so it never leaks into generated content.
+SLUG_RE = re.compile(r"<!--\s*SLUG:\s*(?P<slug>[a-z0-9][a-z0-9-]*)\s*-->")
 METADATA_RE = re.compile(r"<!--\s*BOOK-METADATA(?P<body>.*?)-->", re.DOTALL)
 
 
@@ -97,9 +100,12 @@ def part_dir_name(number: int, title: str) -> str:
     return f"{number:02d}_{title_case(title).replace(' ', '_')}"
 
 
-def chapter_file_name(chapter_id: str, title: str) -> str:
-    """`EIOS-001`, `Mission` -> `EIOS-001_Mission.md`. Title case preserved."""
-    slug = "_".join(title.split())
+def chapter_file_name(chapter_id: str, slug: str) -> str:
+    """`EIOS-003`, `world-model` -> `EIOS-003_world-model.md`.
+
+    Filenames are built from the chapter's canonical slug, never from its display
+    title, so retitling a chapter never renames its generated file.
+    """
     return f"{chapter_id}_{slug}.md"
 
 
@@ -135,10 +141,18 @@ def parse_parts(text: str) -> list[dict]:
         number = roman_to_int(heading.group("roman"))
         chapters = []
         for cm in CHAPTER_BLOCK_RE.finditer(segment):
+            slug_match = SLUG_RE.search(cm.group("preamble"))
+            if not slug_match:
+                raise GenerationError(
+                    f"Chapter {cm.group('id')} is missing a `<!-- SLUG: ... -->` "
+                    "directive. Filenames are derived from canonical slugs, never "
+                    "from display titles."
+                )
             chapters.append(
                 {
                     "id": cm.group("id"),
                     "title": cm.group("title").strip(),
+                    "slug": slug_match.group("slug"),
                     "body": cm.group("body").strip("\n"),
                 }
             )
@@ -199,7 +213,7 @@ def render_summary(
             lines.append("")
             continue
         for ch in part["chapters"]:
-            rel = f"{part['dir']}/{chapter_file_name(ch['id'], ch['title'])}"
+            rel = f"{part['dir']}/{chapter_file_name(ch['id'], ch['slug'])}"
             lines.append(f"- [{ch['id']} — {ch['title']}]({rel})")
         lines.append("")
     return "\n".join(lines).rstrip("\n") + "\n"
@@ -214,7 +228,7 @@ def plan_outputs(
     ]
     for part in parts:
         for ch in part["chapters"]:
-            path = out_dir / part["dir"] / chapter_file_name(ch["id"], ch["title"])
+            path = out_dir / part["dir"] / chapter_file_name(ch["id"], ch["slug"])
             outputs.append(
                 (path, render_chapter(ch, book_rel, version, source_hash))
             )
