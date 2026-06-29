@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 1.1 |
+| Version | 1.2 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -42,7 +42,7 @@ Each architectural term is defined exactly once, here. Chapters reference these 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 1.1
+version: 1.2
 authoritative: true
 target_generator: Claude Code
 -->
@@ -2342,6 +2342,290 @@ This separation SHALL remain consistent across all architecture.
 
 ---
 
+### System Dynamics
+
+Systems evolve through continuous interaction among participants, constraints, resources, and feedback.
+
+The objective of EIOS is not merely to observe state changes.
+
+Its objective is to understand how changes propagate through interconnected systems.
+
+System Dynamics therefore becomes a first-class architectural capability.
+
+---
+
+### Propagation
+
+Propagation describes how a change in one part of a system influences other parts over time.
+
+Propagation SHALL be represented explicitly.
+
+Every significant observation SHALL be evaluated for potential downstream effects.
+
+Propagation SHALL preserve:
+
+* origin
+* direction
+* magnitude
+* confidence
+* temporal delay
+* attenuation
+* amplification
+
+---
+
+### Propagation Domains
+
+Propagation occurs across multiple dimensions simultaneously.
+
+The architecture SHALL support at least:
+
+* Material Propagation
+* Technology Propagation
+* Capital Propagation
+* Information Propagation
+* Risk Propagation
+* Policy Propagation
+* Demand Propagation
+* Supply Propagation
+* Innovation Propagation
+
+Additional propagation domains MAY be introduced without modifying the architecture.
+
+---
+
+### Propagation Chains
+
+A propagation chain represents an ordered sequence of cause-and-effect relationships.
+
+Illustrative example:
+
+```text
+Scientific Discovery
+        ↓
+Technology
+        ↓
+Manufacturing
+        ↓
+Infrastructure
+        ↓
+Commercial Adoption
+        ↓
+Capital Investment
+        ↓
+Economic Activity
+```
+
+Propagation chains SHALL support arbitrary depth.
+
+No architectural limit SHALL exist on traversal depth.
+
+---
+
+### Cascading Effects
+
+A single event frequently generates multiple propagation chains simultaneously.
+
+Example:
+
+Advanced packaging shortage
+
+↓
+
+GPU availability
+
+↓
+
+Cloud infrastructure
+
+↓
+
+Enterprise AI adoption
+
+↓
+
+Power demand
+
+↓
+
+Utility investment
+
+↓
+
+Grid modernization
+
+↓
+
+Copper demand
+
+↓
+
+Mining expansion
+
+↓
+
+Transportation demand
+
+↓
+
+Industrial automation
+
+The architecture SHALL preserve complete propagation lineage.
+
+---
+
+### First-, Second-, and Higher-Order Effects
+
+The architecture SHALL distinguish propagation depth.
+
+First-order effects represent direct consequences.
+
+Second-order effects represent indirect consequences.
+
+Third-order and higher effects represent emergent consequences.
+
+Higher-order effects frequently produce the greatest strategic opportunities.
+
+EIOS SHALL therefore support unrestricted propagation depth.
+
+---
+
+### Leverage Points
+
+A Leverage Point is a location within a system where relatively small changes produce disproportionately large downstream effects.
+
+Leverage Points SHALL be treated as first-class analytical constructs.
+
+Illustrative examples include:
+
+* Foundational technologies
+* Critical manufacturing processes
+* Infrastructure constraints
+* Regulatory inflection points
+* Scientific breakthroughs
+* Capital allocation shifts
+
+Leverage Points SHALL be continuously reevaluated as systems evolve.
+
+---
+
+### Constraints
+
+Every complex system contains constraints.
+
+Constraints regulate propagation.
+
+Illustrative constraints include:
+
+* manufacturing capacity
+* physical resources
+* energy availability
+* transportation
+* regulation
+* labor
+* financing
+* information latency
+
+Constraints SHALL be explicitly represented rather than inferred.
+
+---
+
+### Bottlenecks
+
+A Bottleneck is a constraint that limits system throughput.
+
+Bottlenecks differ from ordinary constraints.
+
+Removing a bottleneck frequently reorganizes the behavior of an entire system.
+
+Bottleneck analysis SHALL therefore receive elevated analytical priority.
+
+Every identified bottleneck SHALL include:
+
+* constrained resource
+* affected systems
+* propagation impact
+* alternative paths
+* expected duration
+* confidence
+
+---
+
+### Chokepoints
+
+A Chokepoint represents a structural concentration through which a disproportionate fraction of system activity must pass.
+
+Illustrative examples include:
+
+* unique manufacturing capabilities
+* scarce materials
+* strategic infrastructure
+* critical logistics corridors
+* specialized intellectual property
+
+Chokepoints frequently become sources of strategic advantage or systemic risk.
+
+---
+
+### Network Effects
+
+Network effects emerge when the value of participation increases with the size or quality of the network.
+
+The architecture SHALL distinguish:
+
+* direct network effects
+* indirect network effects
+* ecosystem network effects
+
+Network effects frequently reinforce propagation.
+
+---
+
+### Phase Transitions
+
+Complex systems occasionally undergo qualitative transformation rather than incremental change.
+
+Examples include:
+
+* technology adoption
+* market formation
+* ecosystem emergence
+* regulatory transformation
+* infrastructure replacement
+
+Phase transitions SHALL be represented as structural changes rather than ordinary state transitions.
+
+---
+
+### Systemic Risk
+
+Systemic Risk arises when failures propagate beyond local boundaries.
+
+The architecture SHALL distinguish:
+
+* localized failures
+* cascading failures
+* systemic failures
+
+Risk analysis SHALL consider propagation rather than isolated events.
+
+---
+
+### Systemic Opportunity
+
+Systemic Opportunity arises when positive propagation produces sustained structural advantage.
+
+Opportunity analysis SHALL consider:
+
+* propagation reach
+* persistence
+* scalability
+* leverage
+* resilience
+* competitive defensibility
+
+---
+
 ### Architectural Rules
 
 - **AR-0501** — Systems SHALL be the primary unit of analysis.
@@ -2352,6 +2636,14 @@ This separation SHALL remain consistent across all architecture.
 - **AR-0506** — Both reinforcing and balancing feedback SHALL be represented.
 - **AR-0507** — Adaptation SHALL preserve historical lineage.
 - **AR-0508** — Resilience and fragility SHALL be evaluated independently.
+- **AR-0509** — Propagation SHALL be explicitly modeled.
+- **AR-0510** — Propagation chains SHALL support arbitrary depth.
+- **AR-0511** — Higher-order effects SHALL remain distinguishable from first-order effects.
+- **AR-0512** — Leverage Points SHALL be continuously evaluated.
+- **AR-0513** — Constraints and Bottlenecks SHALL be represented explicitly.
+- **AR-0514** — Chokepoints SHALL receive elevated analytical priority.
+- **AR-0515** — Systemic Risk SHALL consider propagation rather than isolated failures.
+- **AR-0516** — Systemic Opportunity SHALL be evaluated alongside Systemic Risk.
 
 ---
 
@@ -2366,6 +2658,17 @@ This separation SHALL remain consistent across all architecture.
 - **REQ-ST-007** — Adaptation Tracking
 - **REQ-ST-008** — Resilience Analysis
 - **REQ-ST-009** — Fragility Analysis
+- **REQ-ST-010** — Propagation Framework
+- **REQ-ST-011** — Propagation Chain Analysis
+- **REQ-ST-012** — Higher-Order Effect Analysis
+- **REQ-ST-013** — Leverage Point Analysis
+- **REQ-ST-014** — Constraint Representation
+- **REQ-ST-015** — Bottleneck Analysis
+- **REQ-ST-016** — Chokepoint Analysis
+- **REQ-ST-017** — Network Effect Modeling
+- **REQ-ST-018** — Phase Transition Detection
+- **REQ-ST-019** — Systemic Risk Analysis
+- **REQ-ST-020** — Systemic Opportunity Analysis
 
 ---
 
@@ -2373,13 +2676,15 @@ This separation SHALL remain consistent across all architecture.
 
 Referenced by:
 
-* EIOS-005B — Dynamics, Emergence, and Leverage
 * EIOS-006 — Economic Systems Intelligence
 * EIOS-007 — Models and Model Management
 * EIOS-008 — Experience Layer
 * EIOS-009 — Scientific Discovery
 * GEN-001 — Genesis Discovery Engine
+* GEN-002 — Technology Discovery
+* GEN-003 — Supply Chain Intelligence
 * PROM-001 — Investment Thesis Engine
+* PROM-002 — Portfolio Intelligence
 * Personal CIO
 
 ---
@@ -2387,8 +2692,8 @@ Referenced by:
 ### Cross References
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004
-- **Defines:** Systems; Complex Adaptive Systems; System Hierarchies; System Boundaries; Interdependence; Emergence; Feedback Loops; Adaptation; Resilience; Fragility
-- **Referenced By:** All economic, technological, scientific, geopolitical, investment, simulation, and orchestration subsystems
+- **Defines:** Systems; Complex Adaptive Systems; System Hierarchies; System Boundaries; Interdependence; Emergence; Feedback Loops; Adaptation; Resilience; Fragility; Propagation; Propagation Chains; Higher-Order Effects; Leverage Points; Constraints; Bottlenecks; Chokepoints; Phase Transitions; Systemic Risk; Systemic Opportunity
+- **Referenced By:** All discovery, economic, technological, scientific, geopolitical, investment, portfolio, simulation, scenario-analysis, replay, and orchestration subsystems
 
 <!-- END:CHAPTER:EIOS-005 -->
 
