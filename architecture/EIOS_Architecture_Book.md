@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 0.4 |
+| Version | 0.5 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -18,7 +18,7 @@
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 0.4
+version: 0.5
 authoritative: true
 target_generator: Claude Code
 -->
@@ -291,13 +291,13 @@ It does not replace accountability.
 
 Architectural decisions, constitutional changes, and production governance remain human responsibilities.
 
-#### CI-013 — Systems Precede Companies
+#### CI-013 — Economic Systems Are Primary
 
-Economic systems are primary; companies are participants within them.
+Economic systems are primary.
 
-A company's prospects are determined first by the systems it operates within—technologies, value chains, supply chains, regulatory regimes, and demographics—and only then by its own execution.
+Organizations, governments, markets, technologies, and companies are participants within those systems.
 
-No subsystem may analyze a company in isolation from the systems that govern it.
+No subsystem shall analyze an individual participant independently of the larger systems in which it operates.
 
 #### CI-014 — Knowledge Objects Carry Provenance
 
@@ -306,6 +306,22 @@ Every Knowledge Object shall record its provenance.
 The origin of every observation, the evidence supporting every fact, and the reasoning producing every conclusion shall be retained and inspectable.
 
 Knowledge without provenance is inadmissible.
+
+#### CI-015 — Models Are Provisional
+
+Reality is continuously evolving.
+
+Therefore every model maintained by EIOS SHALL be considered provisional.
+
+Continuous observation and model revision are constitutional responsibilities of the platform.
+
+#### CI-016 — No Single Reasoning Engine Is Authoritative
+
+No single reasoning engine is authoritative.
+
+Scientific conclusions emerge through the synthesis of independent evidence, competing hypotheses, replay, causal analysis, and experience.
+
+No individual algorithm, model, AI agent, or heuristic may be considered the authoritative source of truth.
 
 ---
 
@@ -325,8 +341,10 @@ Knowledge without provenance is inadmissible.
 | CI-010 | The World Model is the primary product. |
 | CI-011 | Investment intelligence is an emergent property. |
 | CI-012 | Human oversight. |
-| CI-013 | Systems precede companies. |
+| CI-013 | Economic systems are primary; participants are analyzed within them. |
 | CI-014 | Knowledge Objects carry provenance. |
+| CI-015 | Models are provisional; reality evolves continuously. |
+| CI-016 | No single reasoning engine is authoritative. |
 
 ---
 
@@ -340,9 +358,19 @@ Such conflicts SHALL be resolved by an Architecture Decision Record before imple
 
 ---
 
+### 8. Constitution Status
+
+Status: Stable.
+
+The Constitution is frozen as of CI-016.
+
+Future modifications to the Constitution SHALL be made through an Architecture Decision Record that explicitly supersedes the affected invariant. The Constitution SHALL NOT be amended by manuscript patch. Amending the Constitution is a governance action equivalent to amending a charter.
+
+---
+
 ### Cross References
 
-- **Defines:** CI-001 … CI-014
+- **Defines:** CI-001 … CI-016
 - **Referenced By:** ALL chapters
 - **Conforms To:** _(not applicable — this chapter is the root constitution)_
 - **See Also:** _(none yet)_
