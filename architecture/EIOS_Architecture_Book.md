@@ -291,6 +291,22 @@ It does not replace accountability.
 
 Architectural decisions, constitutional changes, and production governance remain human responsibilities.
 
+#### CI-013 — Systems Precede Companies
+
+Economic systems are primary; companies are participants within them.
+
+A company's prospects are determined first by the systems it operates within—technologies, value chains, supply chains, regulatory regimes, and demographics—and only then by its own execution.
+
+No subsystem may analyze a company in isolation from the systems that govern it.
+
+#### CI-014 — Knowledge Objects Carry Provenance
+
+Every Knowledge Object shall record its provenance.
+
+The origin of every observation, the evidence supporting every fact, and the reasoning producing every conclusion shall be retained and inspectable.
+
+Knowledge without provenance is inadmissible.
+
 ---
 
 ### 6. Constitutional Invariant Register
@@ -309,6 +325,8 @@ Architectural decisions, constitutional changes, and production governance remai
 | CI-010 | The World Model is the primary product. |
 | CI-011 | Investment intelligence is an emergent property. |
 | CI-012 | Human oversight. |
+| CI-013 | Systems precede companies. |
+| CI-014 | Knowledge Objects carry provenance. |
 
 ---
 
@@ -324,7 +342,7 @@ Such conflicts SHALL be resolved by an Architecture Decision Record before imple
 
 ### Cross References
 
-- **Defines:** CI-001 … CI-012
+- **Defines:** CI-001 … CI-014
 - **Referenced By:** ALL chapters
 - **Conforms To:** _(not applicable — this chapter is the root constitution)_
 - **See Also:** _(none yet)_
