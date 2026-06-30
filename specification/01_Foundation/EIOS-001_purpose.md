@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-001
 slug: purpose
-book_version: 1.4
+book_version: 1.5
 generator_version: 1.0
-source_hash: 21928941072a01b877fa37af705de5a60f7d01fe730764b8770083b3ef19ddb4
-generated_at: 2026-06-29T19:20:22-05:00
+source_hash: 8e03db052c6fb48c5a82e19e92942bb94c8630cca41a4c68083a4d3944df0d25
+generated_at: 2026-06-29T19:36:51-05:00
 ---
 
 # EIOS-001 — Purpose
@@ -256,19 +256,21 @@ This guarantees explainability and replayability.
 
 ### 1.7 Third Architectural Principle
 
-#### Historical Replay
+#### Replay-Driven Scientific Validation
 
 Reality is not static, and neither is knowledge. Every conclusion EIOS reaches is reached on the basis of what was known at a particular moment.
 
 For a conclusion to be trustworthy it must be reproducible. It must be possible to reconstruct the world as it was known at the time, replay the exact evidence, models, and parameters that produced the conclusion, and obtain the same result.
 
-This requirement is constitutional. It is not a testing convenience and it is not a diagnostic afterthought. Historical replay is a precondition of production.
+Replay-driven validation is how the Purpose layer realizes Constitutional Invariant CI-008 (Historical Replay Before Production). The Constitution establishes the invariant; this principle explains why it matters and how reasoning honors it. It is not a testing convenience and it is not a diagnostic afterthought; it is a precondition of production.
 
-**Architectural Invariant FI-002**
+**Foundational Principle FI-002 — Replay-Driven Scientific Validation**
 
 No reasoning output may be promoted to production unless it can be regenerated end to end by replaying, against a point-in-time reconstruction of the world as it was then known, the exact evidence, models, and parameters that produced it.
 
 A conclusion that cannot be replayed is treated as non-existent for all production purposes.
+
+This principle implements CI-008 and SHALL NOT be read as an independent or competing definition of replay.
 
 ---
 

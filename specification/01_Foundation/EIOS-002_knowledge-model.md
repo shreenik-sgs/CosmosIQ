@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-002
 slug: knowledge-model
-book_version: 1.4
+book_version: 1.5
 generator_version: 1.0
-source_hash: 21928941072a01b877fa37af705de5a60f7d01fe730764b8770083b3ef19ddb4
-generated_at: 2026-06-29T19:20:22-05:00
+source_hash: 8e03db052c6fb48c5a82e19e92942bb94c8630cca41a4c68083a4d3944df0d25
+generated_at: 2026-06-29T19:36:51-05:00
 ---
 
 # EIOS-002 — Reality, Observation, Evidence, and Knowledge
@@ -445,4 +445,4 @@ This preserves architectural consistency as the platform evolves.
 - **Conforms To:** EIOS-000
 - **Builds Upon:** EIOS-001
 - **Defines:** Knowledge Objects; Evidence Model; Provenance Model; Confidence Model; Knowledge Graph
-- **Referenced By:** EIOS-003 — World Model; EIOS-004 — Scientific Reasoning; EIOS-005 — Experience Layer; GEN-001 — Genesis; PROM-001 — Prometheus; PCIO-001 — Personal CIO
+- **Referenced By:** EIOS-003 — World Model; EIOS-004 — Computational Scientific Cognition; EIOS-008 — Experience Layer; GEN-001 — Genesis Discovery Engine; PROM-001 — Investment Thesis Engine; Personal CIO

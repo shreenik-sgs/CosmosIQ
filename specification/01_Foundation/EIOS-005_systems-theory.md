@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-005
 slug: systems-theory
-book_version: 1.4
+book_version: 1.5
 generator_version: 1.0
-source_hash: 21928941072a01b877fa37af705de5a60f7d01fe730764b8770083b3ef19ddb4
-generated_at: 2026-06-29T19:20:22-05:00
+source_hash: 8e03db052c6fb48c5a82e19e92942bb94c8630cca41a4c68083a4d3944df0d25
+generated_at: 2026-06-29T19:36:51-05:00
 ---
 
 # EIOS-005 — Systems Theory and Complex Adaptive Systems
@@ -628,8 +628,8 @@ Referenced by:
 * EIOS-008 — Experience Layer
 * EIOS-009 — Scientific Discovery
 * GEN-001 — Genesis Discovery Engine
-* GEN-002 — Technology Discovery
-* GEN-003 — Supply Chain Intelligence
+* GEN-002 — Technology Intelligence Engine
+* GEN-003 — Economic Intelligence Engine
 * PROM-001 — Investment Thesis Engine
 * PROM-002 — Portfolio Intelligence
 * Personal CIO

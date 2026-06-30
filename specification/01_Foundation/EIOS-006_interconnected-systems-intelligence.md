@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-006
 slug: interconnected-systems-intelligence
-book_version: 1.4
+book_version: 1.5
 generator_version: 1.0
-source_hash: 21928941072a01b877fa37af705de5a60f7d01fe730764b8770083b3ef19ddb4
-generated_at: 2026-06-29T19:20:22-05:00
+source_hash: 8e03db052c6fb48c5a82e19e92942bb94c8630cca41a4c68083a4d3944df0d25
+generated_at: 2026-06-29T19:36:51-05:00
 ---
 
 # EIOS-006 — Interconnected Systems Intelligence
@@ -372,6 +372,8 @@ It SHALL remain distinct from:
 
 Applications such as Prometheus MAY construct specialized Decision Graphs while remaining consistent with the Intelligence Graph.
 
+Decision Graphs are transient, goal-specific projections. They are never canonical representations of reality; truth resides in the World Model, never in a Decision Graph.
+
 ---
 
 ### Architectural Rules
@@ -414,10 +416,10 @@ Referenced by:
 * EIOS-008 — Experience Layer
 * EIOS-009 — Scientific Discovery
 * GEN-001 — Genesis Discovery Engine
-* GEN-002 — Technology Discovery
-* GEN-003 — Opportunity Discovery
+* GEN-002 — Technology Intelligence Engine
+* GEN-003 — Economic Intelligence Engine
 * PROM-001 — Investment Thesis Engine
-* PROM-002 — Capital Allocation
+* PROM-002 — Portfolio Intelligence
 * Personal CIO
 
 ---
