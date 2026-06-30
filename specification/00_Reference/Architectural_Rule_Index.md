@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 2.1
+book_version: 2.2
 generator_version: 1.1
-source_hash: cec553cb61572d631e613f88755c64eb054695127d5aa62c951a904e93ffe724
-generated_at: 2026-06-29T21:07:44-05:00
+source_hash: 988e1f64e3989279d6f99fe7336297f800420b40ff411b7923846e5a5860e696
+generated_at: 2026-06-29T21:11:29-05:00
 ---
 
 # Architectural Rule Index
@@ -117,5 +117,15 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0738 | EIOS-007 — Models and Model Management | Meta-Reasoning SHALL govern model selection. |
 | AR-0739 | EIOS-007 — Models and Model Management | Collective learning SHALL evaluate model portfolios. |
 | AR-0740 | EIOS-007 — Models and Model Management | Model Portfolio optimization SHALL remain evidence-driven. |
+| AR-0741 | EIOS-007 — Models and Model Management | Operational Models SHALL remain continuously challengeable. |
+| AR-0742 | EIOS-007 — Models and Model Management | Model Portfolios SHALL undergo independent validation. |
+| AR-0743 | EIOS-007 — Models and Model Management | Historical Replay SHALL prohibit future-information leakage. |
+| AR-0744 | EIOS-007 — Models and Model Management | Counterfactual Replay SHALL preserve reproducibility. |
+| AR-0745 | EIOS-007 — Models and Model Management | Comparative evaluation SHALL preserve historical benchmarks. |
+| AR-0746 | EIOS-007 — Models and Model Management | Evolution SHALL remain evidence-driven. |
+| AR-0747 | EIOS-007 — Models and Model Management | Controlled replacement SHALL preserve lineage. |
+| AR-0748 | EIOS-007 — Models and Model Management | Retired models SHALL remain scientifically accessible. |
+| AR-0749 | EIOS-007 — Models and Model Management | Adaptive learning SHALL incorporate successful and failed reasoning strategies. |
+| AR-0750 | EIOS-007 — Models and Model Management | Scientific Memory SHALL preserve the complete evolution of organizational knowledge. |
 
-_101 rules._
+_111 rules._

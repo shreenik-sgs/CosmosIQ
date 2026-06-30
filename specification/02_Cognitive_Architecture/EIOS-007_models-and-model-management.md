@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-007
 slug: models-and-model-management
-book_version: 2.1
+book_version: 2.2
 generator_version: 1.1
-source_hash: cec553cb61572d631e613f88755c64eb054695127d5aa62c951a904e93ffe724
-generated_at: 2026-06-29T21:07:44-05:00
+source_hash: 988e1f64e3989279d6f99fe7336297f800420b40ff411b7923846e5a5860e696
+generated_at: 2026-06-29T21:11:29-05:00
 ---
 
 # EIOS-007 — Models & Model Management
@@ -1087,6 +1087,270 @@ Collective learning SHALL continuously improve portfolio construction.
 
 ---
 
+### Continuous Scientific Evolution
+
+Scientific knowledge advances through continuous challenge, validation, refinement, and replacement.
+
+EIOS SHALL therefore treat every operational model and every Model Portfolio as continuously evolving scientific assets.
+
+No model is permanently correct.
+
+No reasoning strategy is permanently optimal.
+
+Continuous improvement is a permanent architectural capability.
+
+---
+
+### Scientific Validation
+
+Validation determines whether a model adequately explains observed reality.
+
+Validation SHALL consider:
+
+* explanatory capability
+* predictive performance
+* causal consistency
+* replay performance
+* robustness
+* reproducibility
+
+Validation SHALL remain transparent and reproducible.
+
+---
+
+### Portfolio Validation
+
+Model Portfolios SHALL be validated as complete reasoning strategies.
+
+Portfolio validation SHALL evaluate:
+
+* collective explanatory capability
+* portfolio robustness
+* reasoning consistency
+* historical performance
+* computational efficiency
+* adaptability
+
+A portfolio MAY outperform every individual model that composes it.
+
+---
+
+### Historical Replay
+
+Historical Replay reconstructs historical reasoning using only information available at that historical point in time.
+
+Replay SHALL reconstruct:
+
+* observations
+* evidence
+* assumptions
+* model versions
+* portfolio composition
+* orchestration strategy
+* reasoning traces
+* conclusions
+
+Replay SHALL prohibit future information leakage.
+
+---
+
+### Counterfactual Replay
+
+The architecture SHALL support counterfactual replay.
+
+Illustrative questions include:
+
+* What if this evidence had been unavailable?
+* What if another portfolio had been selected?
+* What if competing models had been promoted?
+
+Counterfactual replay supports scientific learning rather than historical prediction.
+
+---
+
+### Comparative Evaluation
+
+Competing models SHALL be evaluated continuously.
+
+Evaluation SHALL compare:
+
+* explanatory quality
+* predictive performance
+* robustness
+* confidence
+* computational cost
+* adaptability
+
+Comparative evaluation SHALL preserve historical results.
+
+---
+
+### Portfolio Benchmarking
+
+Model Portfolios SHALL be benchmarked against alternative reasoning strategies.
+
+Benchmarking SHALL measure:
+
+* accuracy
+* stability
+* consistency
+* adaptability
+* efficiency
+
+Benchmarking SHALL support continuous optimization.
+
+---
+
+### Scientific Challenges
+
+Every Accepted Model SHALL remain open to challenge.
+
+Challenges MAY arise from:
+
+* contradictory evidence
+* superior models
+* superior portfolios
+* scientific discovery
+* environmental change
+
+Challenges SHALL strengthen scientific integrity.
+
+---
+
+### Evolution Triggers
+
+Model evolution MAY be initiated by:
+
+* new observations
+* new evidence
+* model drift
+* contradiction detection
+* technological change
+* regulatory change
+* scientific discovery
+* portfolio underperformance
+
+Evolution SHALL remain evidence-driven.
+
+---
+
+### Controlled Replacement
+
+Models SHALL be replaced through controlled scientific processes.
+
+Replacement SHALL preserve:
+
+* lineage
+* historical performance
+* validation history
+* replay capability
+* supersession relationships
+
+Replacement SHALL never destroy scientific history.
+
+---
+
+### Knowledge Preservation
+
+Retired models remain valuable scientific knowledge.
+
+Retired models SHALL remain available for:
+
+* replay
+* comparison
+* historical analysis
+* education
+* scientific audit
+
+Knowledge SHALL never be discarded solely because a model has been superseded.
+
+---
+
+### Adaptive Learning
+
+The architecture SHALL continuously improve through accumulated experience.
+
+Adaptive learning SHALL consider:
+
+* validated models
+* successful Model Portfolios
+* failed models
+* failed portfolios
+* historical lessons
+* evolving evidence
+
+Adaptive learning forms the bridge to the Experience Layer.
+
+---
+
+### Scientific Memory
+
+Scientific Memory represents the accumulated body of validated models, reasoning strategies, validation history, and lessons learned.
+
+Scientific Memory SHALL become a primary input to future discovery.
+
+Scientific Memory SHALL continuously expand without rewriting history.
+
+---
+
+### Continuous Improvement Loop
+
+The canonical improvement cycle is:
+
+Observation
+
+↓
+
+Research Question
+
+↓
+
+Hypothesis
+
+↓
+
+Candidate Model
+
+↓
+
+Validation
+
+↓
+
+Operational Model
+
+↓
+
+Model Portfolio
+
+↓
+
+Historical Replay
+
+↓
+
+Comparative Evaluation
+
+↓
+
+Experience
+
+↓
+
+Scientific Memory
+
+↓
+
+Improved Discovery
+
+↓
+
+New Observation
+
+This loop constitutes the permanent learning engine of EIOS.
+
+---
+
 ### Architectural Rules
 
 - **AR-0701** — Every model SHALL possess a unique identity.
@@ -1129,6 +1393,16 @@ Collective learning SHALL continuously improve portfolio construction.
 - **AR-0738** — Meta-Reasoning SHALL govern model selection.
 - **AR-0739** — Collective learning SHALL evaluate model portfolios.
 - **AR-0740** — Model Portfolio optimization SHALL remain evidence-driven.
+- **AR-0741** — Operational Models SHALL remain continuously challengeable.
+- **AR-0742** — Model Portfolios SHALL undergo independent validation.
+- **AR-0743** — Historical Replay SHALL prohibit future-information leakage.
+- **AR-0744** — Counterfactual Replay SHALL preserve reproducibility.
+- **AR-0745** — Comparative evaluation SHALL preserve historical benchmarks.
+- **AR-0746** — Evolution SHALL remain evidence-driven.
+- **AR-0747** — Controlled replacement SHALL preserve lineage.
+- **AR-0748** — Retired models SHALL remain scientifically accessible.
+- **AR-0749** — Adaptive learning SHALL incorporate successful and failed reasoning strategies.
+- **AR-0750** — Scientific Memory SHALL preserve the complete evolution of organizational knowledge.
 
 ---
 
@@ -1174,6 +1448,16 @@ Collective learning SHALL continuously improve portfolio construction.
 - **REQ-MD-038** — Meta-Models
 - **REQ-MD-039** — Collective Learning
 - **REQ-MD-040** — Portfolio Optimization
+- **REQ-MD-041** — Scientific Validation
+- **REQ-MD-042** — Portfolio Validation
+- **REQ-MD-043** — Historical Replay
+- **REQ-MD-044** — Counterfactual Replay
+- **REQ-MD-045** — Comparative Evaluation
+- **REQ-MD-046** — Portfolio Benchmarking
+- **REQ-MD-047** — Controlled Replacement
+- **REQ-MD-048** — Knowledge Preservation
+- **REQ-MD-049** — Adaptive Learning
+- **REQ-MD-050** — Scientific Memory
 
 ---
 
@@ -1196,5 +1480,5 @@ Referenced by:
 ### Cross References
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006
-- **Defines:** Model; Model Identity; Model Purpose; Model Assumptions; Validity Domain; Model Uncertainty; Explainability; Replayability; Model Interface; Model Execution; Model Taxonomy; Model Hierarchies; Model Inheritance; Model Specialization; Model Composition; Model Dependencies; Model Graph; Model Ecology; Model Lineage; Model Repository; Model Registry; Model Lifecycle; Candidate Model; Accepted Model; Operational Model; Model Drift; Model Maturity; Model Health; Model Fitness; Model Evolution; Collective Model Intelligence; Multi-Model Reasoning; Model Portfolio; Model Orchestration; Consensus Formation; Confidence Fusion; Meta-Reasoning; Meta-Models; Collective Learning
+- **Defines:** Model; Model Identity; Model Purpose; Model Assumptions; Validity Domain; Model Uncertainty; Explainability; Replayability; Model Interface; Model Execution; Model Taxonomy; Model Hierarchies; Model Inheritance; Model Specialization; Model Composition; Model Dependencies; Model Graph; Model Ecology; Model Lineage; Model Repository; Model Registry; Model Lifecycle; Candidate Model; Accepted Model; Operational Model; Model Drift; Model Maturity; Model Health; Model Fitness; Model Evolution; Collective Model Intelligence; Multi-Model Reasoning; Model Portfolio; Model Orchestration; Consensus Formation; Confidence Fusion; Meta-Reasoning; Meta-Models; Collective Learning; Scientific Validation; Portfolio Validation; Counterfactual Replay; Scientific Challenges; Scientific Memory; Continuous Scientific Evolution
 - **Referenced By:** All reasoning, simulation, prediction, optimization, scientific discovery, experience accumulation, investment intelligence, orchestration, and autonomous agent subsystems
