@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 9.1 |
+| Version | 9.2 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -162,7 +162,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 9.1
+version: 9.2
 authoritative: true
 target_generator: Claude Code
 -->
@@ -11388,6 +11388,18 @@ Execution performs operational validation, not investment reasoning. It MAY vali
 
 ---
 
+### The Actuator
+
+Execution may be realized through a human actuator or an automated actuator. The actuator is whoever, or whatever, performs the irreversible act of placing an order in the world; Execution governs that act without, in itself, fixing who performs it.
+
+In the current implementation, the human user is the actuator. The system prepares, validates, gates, records, reconciles, and audits the action; the user manually places the trade in the broker platform.
+
+The system SHALL NOT submit orders to a broker in the current implementation mode. The user's manual use of the broker platform lies outside the system's actuation mechanism; the system records and reconciles what the user did, and never acts in the user's place.
+
+A future automated actuator would have to pass through the same Actuation Gate and the same safeguards, and would require a separate implementation decision. Every safeguard of this layer applies identically regardless of actuator: the Actuation Gate becomes the user's checklist, the confirmation the user's explicit go, and the broker's authoritative record the statement the user reconciles against.
+
+---
+
 ### The Cognition-to-Actuation Boundary
 
 Execution SHALL consume the decisions handed to it and SHALL originate none of them.
@@ -11648,7 +11660,7 @@ Execution SHALL hand the operational truth of the world back to understanding; i
 
 Referenced by:
 
-* broker adapters and venue integration modules (implementation)
+* the manual-execution implementation — trade tickets, checklists, fill records, reconciliation, and audit (implementation); broker adapters and venue integration are deferred indefinitely and not part of the current roadmap
 * portfolio management and operational subsystems
 * the cognitive layers, which consume returned Observations as evidence
 
@@ -11669,7 +11681,7 @@ Provides:
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007; EIOS-008; EIOS-009; EIOS-010; EIOS-011; EIOS-012; EIOS-013; EIOS-014; GEN-001; PROM-001; PROM-002; CIO-001
 - **Builds Upon:** Personal CIO (CIO-001); Personalized Action Queue (CIO-001); Personal CIO Decision Record (CIO-001); Investment Action (PROM-002); Prometheus Decision Record (PROM-001); Security and Instrument Mapping (PROM-001); Capital Allocation Recommendation (PROM-001); Timing-to-Action Assessment (PROM-001); Decision (EIOS-002); Observation (EIOS-002)
 - **Defines:** Execution; Order; Operational Object; Order Lifecycle; Execution Plan; Order Intent; Order Preview; Actuation Gate; User Confirmation Record; Executed Order Record; Fill Record; Position Reconciliation; Exception and Failure Record; Kill Switch
-- **Referenced By:** broker adapters and venue integration modules (implementation), portfolio management and operational subsystems, and the cognitive layers via returned Observations
+- **Referenced By:** the manual-execution implementation (broker adapters and venue integration deferred indefinitely, not in the current roadmap), portfolio management and operational subsystems, and the cognitive layers via returned Observations
 
 <!-- END:CHAPTER:EXEC-001 -->
 
@@ -11971,7 +11983,7 @@ The operational history SHALL be preserved complete and SHALL never be rewritten
 
 Referenced by:
 
-* broker adapters and venue integration modules (implementation)
+* the manual-execution implementation — trade tickets, checklists, fill records, reconciliation, and audit (implementation); broker adapters and venue integration are deferred indefinitely and not part of the current roadmap
 * operational and reconciliation subsystems
 * the cognitive layers, via returned Observations
 
@@ -11994,7 +12006,7 @@ Provides:
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007; EIOS-008; EIOS-009; EIOS-010; EIOS-011; EIOS-012; EIOS-013; EIOS-014; GEN-001; PROM-001; PROM-002; CIO-001; EXEC-001
 - **Builds Upon:** Execution (EXEC-001); Order (EXEC-001); Actuation Gate (EXEC-001); Order Preview (EXEC-001); User Confirmation Record (EXEC-001); Investment Action (PROM-002); Decision (EIOS-002); Observation (EIOS-002)
 - **Defines:** Operational Integrity; At-Most-Once Actuation; the Indeterminate Order State; Stale-Action Revalidation; Confirmation-to-Preview Binding; the Single Actuation Chokepoint; Full-Chain Reconciliation; Cancel / Replace / Modify operations; Multi-Fill Completion; Order Expiration; Emergency Controls
-- **Referenced By:** broker adapters and venue integration modules (implementation), operational and reconciliation subsystems, and the cognitive layers via returned Observations
+- **Referenced By:** the manual-execution implementation (broker adapters and venue integration deferred indefinitely, not in the current roadmap), operational and reconciliation subsystems, and the cognitive layers via returned Observations
 
 <!-- END:CHAPTER:EXEC-002 -->
 
