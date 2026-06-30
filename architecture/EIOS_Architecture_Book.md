@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 1.9 |
+| Version | 2.0 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -59,6 +59,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Intelligence Graph | A dynamic analytical projection assembled from interconnected networks to answer a class of questions; derived from the World Model, not a replacement for it. | EIOS-006 | World Model, Decision Graph | Foundational |
 | Decision Graph | A transient, goal-specific projection of feasible choices, consequences, trade-offs, and recommendations, derived exclusively from the Intelligence Graph; never a canonical representation of reality. | EIOS-006 | Intelligence Graph | Foundational |
 | Model Graph | The first-class graph of relationships among models — inheritance, specialization, composition, dependency, validation, refinement; the primary primitive for reasoning about models. The Model Registry is an index over it. | EIOS-007 | Model, Intelligence Graph | Cognitive Architecture |
+| Model Repository | The store of model definitions, implementations, artifacts, and historical versions; distinct from the Model Registry (the index) and the Model Graph (the relationships). | EIOS-007 | Model Graph, Model Registry | Cognitive Architecture |
 | Genesis | Operational subsystem that discovers transformations in real-world systems rather than searching directly for securities. | EIOS-001 | Prometheus, Personal CIO | Operational |
 | Prometheus | Operational subsystem that evaluates the implications of validated knowledge for publicly traded entities. | EIOS-001 | Genesis, Personal CIO | Operational |
 | Personal CIO | Operational subsystem that explains causal chains, quantifies uncertainty, and retains human accountability for recommendations. | EIOS-001 | Genesis, Prometheus | Operational |
@@ -84,7 +85,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 1.9
+version: 2.0
 authoritative: true
 target_generator: Claude Code
 -->
@@ -3840,6 +3841,306 @@ The Model Registry is an index over the Model Graph rather than an independent p
 
 ---
 
+### Model Evolution Philosophy
+
+Models are living scientific knowledge.
+
+They evolve continuously as evidence accumulates.
+
+A model SHALL never be considered permanently complete.
+
+Every model exists in a continual process of observation, validation, refinement, and possible replacement.
+
+Scientific progress occurs through model evolution rather than model permanence.
+
+---
+
+### Model Lifecycle
+
+Every model SHALL progress through a defined lifecycle.
+
+Illustrative lifecycle:
+
+```text
+Observation
+      ↓
+Research Question
+      ↓
+Hypothesis
+      ↓
+Candidate Model
+      ↓
+Experimental Validation
+      ↓
+Accepted Model
+      ↓
+Operational Model
+      ↓
+Monitoring
+      ↓
+Evolution
+      ↓
+Supersession
+      ↓
+Retirement
+```
+
+The lifecycle SHALL preserve complete historical lineage.
+
+---
+
+### Model Creation
+
+Models SHALL originate from explicit research questions.
+
+Model creation SHALL NOT begin with implementation.
+
+Instead, every new model SHALL identify:
+
+* motivating observation
+* research question
+* supporting evidence
+* intended purpose
+* expected scope
+
+---
+
+### Research Questions
+
+Every model SHALL trace back to one or more Research Questions.
+
+Research Questions represent unanswered uncertainties regarding reality.
+
+Research Questions remain first-class architectural objects defined by the Knowledge Model.
+
+---
+
+### Hypothesis Formation
+
+Hypotheses represent candidate explanations for observed phenomena.
+
+Multiple competing hypotheses MAY coexist.
+
+The architecture SHALL encourage competing hypotheses until evidence justifies convergence.
+
+---
+
+### Candidate Models
+
+A Candidate Model is an unvalidated implementation of one or more hypotheses.
+
+Candidate Models:
+
+* SHALL remain isolated from operational reasoning
+* SHALL preserve complete provenance
+* SHALL support experimentation
+* SHALL support replay
+* SHALL retain explicit assumptions
+
+Candidate Models SHALL never replace accepted models without validation.
+
+---
+
+### Experimental Validation
+
+Validation determines whether a Candidate Model is sufficiently supported by evidence.
+
+Validation MAY include:
+
+* historical replay
+* simulation
+* out-of-sample testing
+* comparative evaluation
+* expert review
+* contradiction analysis
+
+Validation SHALL remain reproducible.
+
+---
+
+### Accepted Models
+
+Accepted Models satisfy the current validation criteria.
+
+Acceptance SHALL never imply permanent correctness.
+
+Acceptance indicates that the model currently provides the best available explanation.
+
+Competing Candidate Models MAY continue development.
+
+---
+
+### Operational Models
+
+Operational Models actively participate in reasoning throughout EIOS.
+
+Operational Models SHALL support:
+
+* explainability
+* replayability
+* confidence estimation
+* provenance inspection
+* continuous monitoring
+
+---
+
+### Model Monitoring
+
+Operational Models SHALL be continuously monitored.
+
+Illustrative monitoring dimensions include:
+
+* prediction accuracy
+* explanatory power
+* confidence stability
+* usage frequency
+* evidence freshness
+* contradiction frequency
+
+Monitoring SHALL produce historical metrics.
+
+---
+
+### Model Drift
+
+Models deteriorate as reality changes.
+
+Drift SHALL be treated as a natural property rather than a failure.
+
+Illustrative causes include:
+
+* technological evolution
+* regulatory change
+* behavioral change
+* scientific discovery
+* market structure change
+
+Drift SHALL trigger reassessment rather than immediate retirement.
+
+---
+
+### Model Revision
+
+Models MAY evolve incrementally.
+
+Revision SHALL preserve:
+
+* lineage
+* provenance
+* historical versions
+* validation history
+
+Revision SHALL remain replayable.
+
+---
+
+### Model Maturity
+
+Every model SHALL possess an explicit maturity level.
+
+Illustrative maturity scale:
+
+- **L0** — Concept
+- **L1** — Hypothesis
+- **L2** — Candidate
+- **L3** — Experimentally Validated
+- **L4** — Operational
+- **L5** — Trusted
+- **L6** — Foundational
+
+Maturity SHALL evolve independently from confidence.
+
+---
+
+### Model Confidence
+
+Model Confidence measures confidence in the explanatory capability of the model.
+
+Model Confidence SHALL remain independent of:
+
+* evidence confidence
+* observation confidence
+* prediction confidence
+
+Each SHALL be represented independently.
+
+---
+
+### Model Health
+
+Operational Models SHALL expose health metrics.
+
+Illustrative indicators include:
+
+* predictive accuracy
+* explanatory stability
+* drift rate
+* validation recency
+* operational usage
+* contradiction frequency
+
+Model Health SHALL support continuous monitoring.
+
+---
+
+### Model Fitness
+
+Model Fitness measures how effectively a model performs within its intended validity domain.
+
+Fitness SHALL consider:
+
+* explanatory performance
+* predictive performance
+* robustness
+* stability
+* reproducibility
+
+Fitness SHALL support comparison among competing models.
+
+---
+
+### Model Promotion
+
+Models MAY progress through operational stages.
+
+Illustrative stages include:
+
+Experimental
+
+↓
+
+Limited Deployment
+
+↓
+
+Operational
+
+↓
+
+Preferred
+
+↓
+
+Foundational
+
+Promotion SHALL require explicit validation.
+
+Operational reasoning MAY evaluate competing models simultaneously; evidence — not architectural preference — SHALL determine promotion.
+
+---
+
+### Repository, Registry, and Graph
+
+The architecture distinguishes three complementary responsibilities.
+
+- **Model Repository** — stores model definitions, implementations, artifacts, and historical versions.
+- **Model Registry** — provides canonical indexing, metadata, ownership, classification, lifecycle state, and discovery.
+- **Model Graph** — represents relationships among models including inheritance, composition, dependency, competition, validation, and lineage.
+
+These three architectural structures SHALL remain distinct.
+
+---
+
 ### Architectural Rules
 
 - **AR-0701** — Every model SHALL possess a unique identity.
@@ -3862,6 +4163,16 @@ The Model Registry is an index over the Model Graph rather than an independent p
 - **AR-0718** — Model lineage SHALL remain replayable.
 - **AR-0719** — The Model Registry SHALL maintain canonical metadata.
 - **AR-0720** — Competing models SHALL coexist when supported by evidence.
+- **AR-0721** — Every model SHALL originate from an explicit Research Question.
+- **AR-0722** — Candidate Models SHALL remain isolated from operational reasoning until validated.
+- **AR-0723** — Operational Models SHALL support continuous monitoring.
+- **AR-0724** — Model Drift SHALL initiate reassessment.
+- **AR-0725** — Model Maturity SHALL be explicitly represented.
+- **AR-0726** — Model Confidence SHALL remain independent from Evidence Confidence.
+- **AR-0727** — Model Health SHALL be continuously monitored.
+- **AR-0728** — Model Fitness SHALL support comparative evaluation.
+- **AR-0729** — Repository, Registry, and Model Graph SHALL remain architecturally distinct.
+- **AR-0730** — Scientific progress SHALL occur through model evolution rather than replacement.
 
 ---
 
@@ -3887,6 +4198,16 @@ The Model Registry is an index over the Model Graph rather than an independent p
 - **REQ-MD-018** — Model Lineage
 - **REQ-MD-019** — Model Provenance
 - **REQ-MD-020** — Model Registry
+- **REQ-MD-021** — Model Lifecycle
+- **REQ-MD-022** — Research Question Traceability
+- **REQ-MD-023** — Candidate Models
+- **REQ-MD-024** — Validation Workflow
+- **REQ-MD-025** — Operational Models
+- **REQ-MD-026** — Drift Monitoring
+- **REQ-MD-027** — Model Maturity
+- **REQ-MD-028** — Model Health
+- **REQ-MD-029** — Model Fitness
+- **REQ-MD-030** — Repository Registry Graph Separation
 
 ---
 
@@ -3900,6 +4221,7 @@ Referenced by:
 * GEN-002 — Technology Intelligence Engine
 * GEN-003 — Economic Intelligence Engine
 * PROM-001 — Investment Thesis Engine
+* PROM-002 — Portfolio Intelligence
 * Personal CIO
 
 ---
@@ -3907,7 +4229,7 @@ Referenced by:
 ### Cross References
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006
-- **Defines:** Model; Model Identity; Model Purpose; Model Assumptions; Validity Domain; Model Uncertainty; Explainability; Replayability; Model Interface; Model Execution; Model Taxonomy; Model Hierarchies; Model Inheritance; Model Specialization; Model Composition; Model Dependencies; Model Graph; Model Ecology; Model Lineage; Model Registry
+- **Defines:** Model; Model Identity; Model Purpose; Model Assumptions; Validity Domain; Model Uncertainty; Explainability; Replayability; Model Interface; Model Execution; Model Taxonomy; Model Hierarchies; Model Inheritance; Model Specialization; Model Composition; Model Dependencies; Model Graph; Model Ecology; Model Lineage; Model Repository; Model Registry; Model Lifecycle; Candidate Model; Accepted Model; Operational Model; Model Drift; Model Maturity; Model Health; Model Fitness; Model Evolution
 - **Referenced By:** All reasoning, simulation, prediction, optimization, scientific discovery, experience accumulation, investment intelligence, orchestration, and autonomous agent subsystems
 
 <!-- END:CHAPTER:EIOS-007 -->
