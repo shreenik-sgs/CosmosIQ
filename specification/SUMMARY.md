@@ -3,17 +3,17 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: summary
-book_version: 1.2
+book_version: 1.3
 generator_version: 1.0
-source_hash: 61e1ae39c465f4b92d66059d3a5f4715678b0d39a4a4da2ae33faa0102278576
-generated_at: 2026-06-29T18:57:42-05:00
+source_hash: 7bc276519d668cba0fa607824da910c7aa5141c92e3338810d2c9301b02ea4dc
+generated_at: 2026-06-29T19:07:50-05:00
 ---
 
 # Economic Intelligence Operating System
 
 ## Architecture Book
 
-Version 1.2
+Version 1.3
 
 Compiled from `architecture/EIOS_Architecture_Book.md`.
 
@@ -31,6 +31,7 @@ Compiled from `architecture/EIOS_Architecture_Book.md`.
 - [EIOS-003 — World Model](01_Foundation/EIOS-003_world-model.md)
 - [EIOS-004 — Scientific Cognition](01_Foundation/EIOS-004_scientific-cognition.md)
 - [EIOS-005 — Systems Theory](01_Foundation/EIOS-005_systems-theory.md)
+- [EIOS-006 — Interconnected Systems Intelligence](01_Foundation/EIOS-006_interconnected-systems-intelligence.md)
 
 ### Part II — Cognitive Architecture
 
