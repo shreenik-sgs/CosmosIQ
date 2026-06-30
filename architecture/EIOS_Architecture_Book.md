@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 5.0 |
+| Version | 5.1 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -82,6 +82,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Reality Sensing | The Reality Intelligence capability that ingests raw reality, detects weak signals, and admits them into the Cognitive Architecture exclusively as canonical Observations. | EIOS-010 | Observation, Intelligence Assessment | Reality Intelligence |
 | Intelligence Product | A composition that packages one or more Intelligence Assessments for consumers; carries no independent canonical identity — packaging is not cognition. | EIOS-010 | Intelligence Assessment, Intelligence Portfolio | Reality Intelligence |
 | Intelligence Portfolio | A composition: the coordinated set of active Intelligence Products feeding consumers; evolves entirely from its constituent Assessments and Products. | EIOS-010 | Intelligence Product, Intelligence Assessment | Reality Intelligence |
+| Technology Intelligence | The Reality Intelligence domain engine that continuously forms Intelligence Assessments about the technology domain — emergence, readiness, convergence, constraints, and evolution — grounded in the Scientific Worldview and the Experience Layer. Understanding only, never purpose. | EIOS-011 | Reality Intelligence, Intelligence Assessment | Reality Intelligence |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
@@ -115,7 +116,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 |-----------|---------|------------------|---------|
 | CI | Constitutional Invariant | EIOS-000 (frozen; ADR-0006) | CI-008 Historical Replay Before Production |
 | FI | Foundational Principle (implements constitutional invariants) | EIOS-001 | FI-002 Replay-Driven Scientific Validation |
-| AR | Architectural Rule | EIOS-002 … EIOS-010 | AR-0609 Intelligence Graph derives from World Model |
+| AR | Architectural Rule | EIOS-002 … EIOS-011 | AR-0609 Intelligence Graph derives from World Model |
 | REQ-KO | Requirement — Knowledge Objects | EIOS-002 | REQ-KO-002 Provenance Tracking |
 | REQ-WM | Requirement — World Model | EIOS-003 | REQ-WM-001 Canonical World Model |
 | REQ-SC | Requirement — Scientific Cognition | EIOS-004 | REQ-SC-008 Scientific Judgment |
@@ -125,12 +126,13 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 | REQ-EX | Requirement — Experience Layer | EIOS-008 | REQ-EX-007 Emergence Intelligence |
 | REQ-SD | Requirement — Scientific Discovery | EIOS-009 | REQ-SD-006 Question Graph |
 | REQ-RI | Requirement — Reality Intelligence | EIOS-010 | REQ-RI-007 Intelligence Assessment |
+| REQ-TI | Requirement — Technology Intelligence | EIOS-011 | REQ-TI-005 Technology Emergence Assessment |
 
 ---
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 5.0
+version: 5.1
 authoritative: true
 target_generator: Claude Code
 -->
@@ -8973,6 +8975,256 @@ Provides:
 - **Referenced By:** Genesis, Technology Intelligence, Economic Intelligence, Supply Network Intelligence, Capital Intelligence, Prometheus, Personal CIO, and autonomous intelligence subsystems
 
 <!-- END:CHAPTER:EIOS-010 -->
+
+## CHAPTER EIOS-011 — Technology Intelligence
+
+<!-- SLUG: technology-intelligence -->
+
+<!-- BEGIN:CHAPTER:EIOS-011 -->
+
+**Chapter Class:** Reality Intelligence
+
+### Purpose
+
+Technology Intelligence continuously forms understanding of the technology domain.
+
+Technology Intelligence is a domain intelligence engine within Reality Intelligence.
+
+It forms Intelligence Assessments about technologies, their emergence, readiness, convergence, constraints, and evolution.
+
+The objective is technology understanding, not technology prediction and not investment.
+
+---
+
+### Conformance
+
+This chapter SHALL conform to:
+
+* EIOS-000 — Constitution
+* EIOS-001 — Purpose
+* EIOS-002 — Knowledge Model
+* EIOS-003 — World Model
+* EIOS-004 — Computational Scientific Cognition
+* EIOS-005 — Systems Theory
+* EIOS-006 — Interconnected Systems Intelligence
+* EIOS-007 — Models & Model Management
+* EIOS-008 — Experience Layer
+* EIOS-009 — Scientific Discovery
+* EIOS-010 — Reality Intelligence
+
+This chapter additionally conforms to ADR-0008.
+
+---
+
+### Conformance to the Reality Intelligence Contract
+
+Technology Intelligence SHALL conform to Reality Intelligence (EIOS-010).
+
+Technology Intelligence SHALL produce Intelligence Assessments and SHALL NOT introduce new reasoning objects.
+
+Technology Intelligence SHALL reference the Intelligence Assessment canonical object defined by Reality Intelligence and SHALL NOT redefine it.
+
+Technology Intelligence inherits the lifecycle, evolution, replayability, change propagation, and graph behavior established by Reality Intelligence; this chapter defines only what is specific to the technology domain.
+
+---
+
+### Technology Domain Scope
+
+Technology Intelligence SHALL form Intelligence Assessments scoped to the technology domain.
+
+Illustrative assessed subjects include:
+
+* individual technologies
+* technology transitions
+* technology convergence
+* technology constraints and bottlenecks
+* technology evolution trajectories
+
+Each Technology Intelligence Assessment SHALL concern exactly one scoped subject.
+
+---
+
+### Grounding in Scientific Understanding
+
+Technology Intelligence assessments SHALL ground in the Scientific Worldview and the Experience Layer rather than recomputing scientific understanding.
+
+Grounding SHALL reference, where applicable:
+
+* emergence and readiness assessments (Emergence Readiness Score, Readiness Momentum, Constraint Release Index)
+* timing assessments (Time-to-Inflection)
+* convergence assessments (Convergence Alignment Score)
+* technology evolution analysis and the relevant Scientific Principles (e.g., experience and learning curves)
+* Historical Analogs
+
+Technology Intelligence SHALL NOT recompute or redefine these scientific artifacts.
+
+---
+
+### Technology Emergence Assessment
+
+Technology Intelligence SHALL assess which technologies are emerging.
+
+Technology Emergence Assessment SHALL ground in emergence and readiness assessments.
+
+Emergence assessments SHALL preserve uncertainty rather than asserting inevitability.
+
+---
+
+### Technology Readiness Assessment
+
+Technology Intelligence SHALL assess the readiness of technologies to transition.
+
+Technology Readiness Assessment SHALL ground in readiness, constraint-release, and timing assessments.
+
+Readiness assessments SHALL remain distinct from timing assessments.
+
+---
+
+### Technology Convergence Assessment
+
+Technology Intelligence SHALL assess convergence among independent technologies.
+
+Technology Convergence Assessment SHALL ground in convergence assessments.
+
+Convergence assessments SHALL preserve the contribution of each participating technology.
+
+---
+
+### Technology Constraint Assessment
+
+Technology Intelligence SHALL assess the constraints and bottlenecks governing technologies.
+
+Technology Constraint Assessment SHALL ground in the constraint and bottleneck understanding of Systems Theory and the Experience Layer.
+
+Constraint release SHALL be assessed as a driver of technology transitions.
+
+---
+
+### Technology Evolution Assessment
+
+Technology Intelligence SHALL assess the evolution trajectories of technologies.
+
+Technology Evolution Assessment SHALL ground in technology evolution analysis and the relevant Scientific Principles.
+
+Every trajectory assessment SHALL preserve explicit timing uncertainty.
+
+---
+
+### Cross-Domain Technology Influence
+
+Technology Intelligence Assessments MAY influence Intelligence Assessments in other domains through the Intelligence Graph.
+
+Cross-Domain Technology Influence SHALL preserve explicit justification.
+
+Technology Intelligence SHALL NOT reach into how other domains form their understanding.
+
+---
+
+### Technology Intelligence Products
+
+Technology Intelligence SHALL compose related Technology Intelligence Assessments into Technology Intelligence Products.
+
+Technology Intelligence Products are compositions; they SHALL NOT possess independent canonical identity.
+
+Their evolution SHALL derive entirely from their constituent Assessments.
+
+---
+
+### Continuous Technology Understanding
+
+Technology Intelligence SHALL maintain continuously evolving technology understanding.
+
+No technology understanding SHALL be considered permanently complete.
+
+Technology understanding SHALL evolve as reality and the Scientific Worldview evolve.
+
+---
+
+### Purpose-Free Technology Intelligence
+
+Technology Intelligence SHALL express understanding only.
+
+Technology Intelligence SHALL NOT assign value, opportunity, or investability.
+
+Those belong to Opportunity Generation.
+
+---
+
+### Handoff
+
+Technology Intelligence SHALL provide Technology Intelligence Assessments and Products to the Intelligence Portfolio and to Genesis.
+
+Technology Intelligence SHALL ground opportunity formation but SHALL NOT form opportunities.
+
+---
+
+### Architectural Rules
+
+- **AR-1101** — Technology Intelligence SHALL form Intelligence Assessments about the technology domain, conforming to the Reality Intelligence contract (EIOS-010).
+- **AR-1102** — Technology Intelligence SHALL reference the canonical Intelligence Assessment object and SHALL NOT redefine it, nor introduce new reasoning objects.
+- **AR-1103** — Technology Intelligence assessments SHALL ground in the Scientific Worldview and the Experience Layer's emergence, readiness, timing, convergence, and evolution assessments rather than recomputing them.
+- **AR-1104** — Technology Emergence Assessment SHALL ground in emergence and readiness assessments and SHALL preserve uncertainty.
+- **AR-1105** — Technology Readiness Assessment SHALL ground in readiness, constraint-release, and timing assessments, and SHALL keep readiness distinct from timing.
+- **AR-1106** — Technology Convergence Assessment SHALL ground in convergence assessments and SHALL preserve the contribution of each participating technology.
+- **AR-1107** — Technology Constraint Assessment SHALL ground in the constraint and bottleneck understanding of Systems Theory and the Experience Layer.
+- **AR-1108** — Technology Evolution Assessment SHALL ground in technology evolution analysis and the relevant Scientific Principles, and SHALL preserve timing uncertainty.
+- **AR-1109** — Technology Intelligence Assessments MAY influence assessments in other domains through the Intelligence Graph, preserving explicit justification, and SHALL NOT reach into how other domains form their understanding.
+- **AR-1110** — Technology Intelligence Products SHALL be compositions of Technology Intelligence Assessments without independent canonical identity.
+- **AR-1111** — Technology Intelligence SHALL express understanding only and SHALL NOT assign value, opportunity, or investability.
+- **AR-1112** — Technology Intelligence SHALL maintain continuously evolving technology understanding.
+- **AR-1113** — Technology Intelligence SHALL provide Technology Intelligence Assessments and Products to the Intelligence Portfolio and to Genesis, grounding but not forming opportunities.
+- **AR-1114** — Technology Intelligence SHALL remain implementation independent.
+
+---
+
+### Requirements Introduced
+
+- **REQ-TI-001** — Technology Intelligence
+- **REQ-TI-002** — Reality Intelligence Conformance
+- **REQ-TI-003** — Technology Domain Scope
+- **REQ-TI-004** — Grounding in Scientific Understanding
+- **REQ-TI-005** — Technology Emergence Assessment
+- **REQ-TI-006** — Technology Readiness Assessment
+- **REQ-TI-007** — Technology Convergence Assessment
+- **REQ-TI-008** — Technology Constraint Assessment
+- **REQ-TI-009** — Technology Evolution Assessment
+- **REQ-TI-010** — Cross-Domain Technology Influence
+- **REQ-TI-011** — Technology Intelligence Product
+- **REQ-TI-012** — Continuous Technology Understanding
+- **REQ-TI-013** — Purpose-Free Technology Intelligence
+- **REQ-TI-014** — Handoff to Genesis
+- **REQ-TI-015** — Implementation Independence
+
+---
+
+### Future Dependencies
+
+Referenced by:
+
+* Genesis
+* Prometheus
+* Economic Intelligence
+* Supply Network Intelligence
+* Capital Intelligence
+* Personal CIO
+
+Provides:
+
+* Technology Intelligence Assessments
+* Technology Intelligence Products
+* technology emergence, readiness, convergence, constraint, and evolution understanding
+* continuously evolving technology understanding
+
+---
+
+### Cross References
+
+- **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007; EIOS-008; EIOS-009; EIOS-010
+- **Builds Upon:** Reality Intelligence (EIOS-010); Intelligence Assessment (EIOS-010); Scientific Worldview (EIOS-009); Experience Layer (EIOS-008); Systems Theory (EIOS-005)
+- **Defines:** Technology Intelligence; Technology Domain Scope; Technology Emergence Assessment; Technology Readiness Assessment; Technology Convergence Assessment; Technology Constraint Assessment; Technology Evolution Assessment; Cross-Domain Technology Influence; Technology Intelligence Product
+- **Referenced By:** Genesis, Prometheus, Economic Intelligence, Supply Network Intelligence, Capital Intelligence, Personal CIO, and downstream intelligence subsystems
+
+<!-- END:CHAPTER:EIOS-011 -->
 
 <!-- END:PART:REALITY_INTELLIGENCE -->
 
