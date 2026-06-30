@@ -53,10 +53,12 @@ Questions with no committed answer yet.
 - **Question:** are Technology / Economic / Supply / Capital / Energy / Healthcare / Defense
   Intelligence all instances of a single reusable **Intelligence Discipline** abstraction rather
   than individually designed engines? See `ARB-012_Intelligence_Discipline_Architecture.md`.
-- **Status:** **Investigated** at v5.5 (`ARB-012_Investigation_Report.md`). Reframed as a
-  *canonical grammar of domain intelligence*; verdict compelling; a recommendation to define the
-  grammar (extending EIOS-010) is recorded but **not implemented** — gated on ADR-0009.
-- **Tags:** `Requires ADR` (ADR-0009 to define the grammar, if approved)
+- **Status:** **Governed — ADR-0009 Accepted.** Investigated and adversarially validated, then
+  elevated to governance as ADR-0009 (The Invariant Grammar of Domain Understanding). The
+  principle is binding. What remains open is **manuscript inscription of the grammar** (extending
+  EIOS-010) and the optional **retrofit of EIOS-011…014** to derive from it — a separate, deferred
+  architectural activity, not undertaken yet.
+- **Tags:** `Requires Part III` (manuscript inscription + retrofit, when scheduled)
 
 ### BL-003 — Are five portfolio abstractions sufficient?
 - **Origin:** ARB-001 architect note.

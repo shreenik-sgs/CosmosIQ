@@ -267,6 +267,93 @@ fixes the principles; the design brief carries the mechanics.
 
 ---
 
+## ADR-0009
+Title: The Invariant Grammar of Domain Understanding
+Status: Accepted
+
+Context:
+It is tempting to believe that each kind of thing demands its own kind of understanding — that
+to understand a technology is one craft, to understand an economy another, to understand a
+balance of power a third. This decision records the discovery that it is not so.
+
+When understanding was built, separately and without coordination, for domains as unlike one
+another as technology, economics, supply, and capital, the results came out the same. Not the
+same in what they concluded — they concerned different worlds — but the same in how they
+reasoned. Each grounded itself in what was already known; each assessed the state and movement
+of its subject; each related that subject to others; each held its conclusions open to revision;
+and each refused to mistake understanding for judgment. Only the subject differed.
+
+A harder test followed. A domain was chosen for its distance from the rest — the domain of
+intention itself, whose actors hold purposes, form alliances, and practice deception. If any
+subject would demand a new way of reasoning, this one would. It did not. The same reasoning
+understood it unchanged. Intention and deceit were not new ways of reasoning; they were only new
+things to reason about.
+
+What this reveals is not a convenience of construction. It is a fact about understanding. To
+understand a domain is not a craft peculiar to that domain. It is the turning of one invariant
+reasoning process toward a particular reality.
+
+Decision:
+Understanding SHALL follow one invariant reasoning grammar, whatever the domain being understood.
+How understanding is formed does not change with what is understood. A domain does not bring its
+own manner of reasoning. It brings only what it is about. A domain contributes new reality, not
+new reasoning.
+
+A domain contributes three things, and nothing more:
+  - its ontology — the subjects it concerns;
+  - its grounding — the validated understanding and accumulated experience it draws upon;
+  - its assessments — the particular judgments it forms.
+
+All else is the grammar, and is everywhere the same: to ground reasoning in what is known rather
+than to invent it; to assess the state and the trajectory of a subject; to relate each subject
+to the others; to gather particular judgments into a larger understanding; to hold that
+understanding always open to revision; to remain free of purpose; and to pass understanding
+onward without acting upon it.
+
+Two clarifications, each weighed against the hardest case, belong to this decision.
+
+First: grounding is a parameter of the domain, not a variation of the grammar. A domain may rest
+mostly upon established science, mostly upon the memory of history, or upon any mixture of the
+two. The proportion belongs to the domain; the act of grounding belongs to the grammar. A domain
+that reasons chiefly from historical likeness does not bend the rule but answers it, with what
+that domain has been given to know. How deeply a domain can be understood therefore follows from
+how much reality has so far disclosed about it — a limit of knowledge, never of method.
+
+Second: where a domain concerns intentional actors, it appears to share a family of judgments —
+of intent, of alliance, of power. This is set down as an observation awaiting confirmation, not
+as law. It SHALL NOT be raised into the grammar on the testimony of a single domain. The grammar
+already receives such judgments as a domain's own contribution; the architecture SHALL NOT
+generalize from one case what only many can establish.
+
+Relationship to prior decisions:
+- This deepens the decision that set understanding apart from judgment, and judgment from action
+  (ADR-0008). That decision made understanding its own act; this one states the law within that
+  act — that understanding, wherever it turns, takes a single form.
+- It keeps faith with the rule that each thing is defined once, and the rule that architecture
+  changes only by deliberate decision (ADR-0004). The grammar is such a structure and is held to
+  those rules; to inscribe it into the working specification is a separate act, reserved for
+  later.
+
+Consequences:
+- Understanding is one process turned upon many realities, not many processes.
+- A new domain is understood by naming what it concerns, what it draws upon, and what it judges —
+  never by inventing a new way to reason. To extend understanding to a new domain is to admit a
+  new reality, not to build a new engine.
+- Reasoning may not quietly diverge from the grammar. Where a domain seems to require a different
+  way of reasoning, that is cause to examine the grammar, not to fork it.
+- The grammar carries the deeper commitments forward and makes them harder to break: that
+  understanding serves no purpose of its own; that it rests upon a single kind of judgment; that
+  it is grounded rather than invented; and that it can always be retraced.
+- The understandings already built are, seen rightly, instances of this grammar. To bring them
+  into open accordance with it is a separate undertaking, to be taken up only if this decision is
+  carried into the working architecture, and not before.
+
+This decision fixes a principle, not its expression. Where the grammar is written, and how a
+domain declares what it concerns, what it draws upon, and what it judges, are left to be settled.
+The principle is this: understanding has one form, and a domain supplies only what it is about.
+
+---
+
 ## Next ADR Number
 
-ADR-0009
+ADR-0010

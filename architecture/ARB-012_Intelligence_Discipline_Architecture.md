@@ -1,8 +1,11 @@
 # ARB-012 — Intelligence Discipline Architecture (future review proposal)
 
-**Status:** **Investigated** (Book v5.5, 2026-06-30) — reframed as a "canonical grammar of domain
-intelligence"; see `ARB-012_Investigation_Report.md`. Verdict: evidence compelling; recommendation
-recorded; **not implemented** — pending a governance decision (ADR-0009). · **Recorded:** 2026-06-30
+**Status:** **Governed — ADR-0009 Accepted** (2026-06-30). Investigated and adversarially
+validated (`ARB-012_Investigation_Report.md`, `ARB-012_Adversarial_Validation.md`); reframed as a
+"canonical grammar of domain understanding" and elevated to governance as **ADR-0009 — The
+Invariant Grammar of Domain Understanding**. The principle is now binding; its *manuscript
+expression* and any *retrofit* of EIOS-011…014 remain a separate, deferred activity. · **Recorded:**
+2026-06-30
 
 **This is not an implementation task and not an immediate backlog item.** It captures a possible
 architectural pattern for review *after several domain intelligence chapters have been authored*.
