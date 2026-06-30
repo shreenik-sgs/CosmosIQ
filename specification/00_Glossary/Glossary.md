@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 9.0
+book_version: 9.1
 generator_version: 1.1
-source_hash: e416340f78f2a32bb6c5a9bb7b9685ae14ccb21632f09116c671e0aca45f57fd
-generated_at: 2026-06-30T11:09:16-05:00
+source_hash: a28bdb4f6807ec3fa5d2ddabd2b9b703f59aa80a9486aeb29f42599108cd9ce7
+generated_at: 2026-06-30T11:21:33-05:00
 ---
 
 # Glossary
@@ -91,6 +91,8 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Execution | The actuation layer (Part VII), governed by ADR-0010: it carries out approved Investment Actions in the world and does nothing else — operational validation, never investment reasoning. Operational reality returns upward as Observation, never as purpose; it is broker-agnostic. | EXEC-001 | Order, Actuation Gate | Execution |
 | Order | The canonical object of Execution and the first operational object of the architecture: the durable record of an actuated Investment Action and its state in the world — intent, preview, submitted, partially filled, filled, rejected, cancelled. An operational object, not a reasoning object or specialized Knowledge Object (ADR-0010); its justification lives upstream, its state is its own. | EXEC-001 | Investment Action, Observation | Execution |
 | Actuation Gate | The mandatory precondition for any real-world action: confirmation, order preview, reversibility/cancelability check, account and venue checks, market-hours check, slippage/fill-risk awareness, kill switch, and full audit. No actuation touches the world until it passes. | EXEC-001 | Order, Execution | Execution |
+| At-Most-Once Actuation | The invariant that every approved Investment Action is actuated at most once: no retry, replay, reconnect, crash recovery, or repeated request produces a duplicate order. Replay for audit reconstructs an Order, never re-submits one. | EXEC-002 | Order, Actuation Gate | Execution |
+| Indeterminate Order State | The explicit Order state entered when broker acknowledgment is missing, delayed, disconnected, timed out, or ambiguous. The system never assumes filled, unfilled, cancelled, or rejected; it is resolved only by reconciliation against the broker's authoritative record. | EXEC-002 | Order, Observation | Execution |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |

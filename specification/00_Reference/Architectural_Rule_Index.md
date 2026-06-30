@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 9.0
+book_version: 9.1
 generator_version: 1.1
-source_hash: e416340f78f2a32bb6c5a9bb7b9685ae14ccb21632f09116c671e0aca45f57fd
-generated_at: 2026-06-30T11:09:16-05:00
+source_hash: a28bdb4f6807ec3fa5d2ddabd2b9b703f59aa80a9486aeb29f42599108cd9ce7
+generated_at: 2026-06-30T11:21:33-05:00
 ---
 
 # Architectural Rule Index
@@ -440,5 +440,30 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-1919 | EXEC-001 — Execution Engine | Every Order, confirmation, fill, exception, and reconciliation SHALL be replayable and auditable, traceable to the Investment Action and its upstream grounding; operational history SHALL never be rewritten. |
 | AR-1920 | EXEC-001 — Execution Engine | Execution SHALL form no understanding, opportunity, thesis, allocation, personalization, or action, and SHALL carry no intelligence of its own. |
 | AR-1921 | EXEC-001 — Execution Engine | Execution SHALL remain implementation independent. |
+| AR-2001 | EXEC-002 — Execution Safety and Operational Integrity | Every approved Investment Action SHALL be actuated at most once; no retry, replay, reconnect, crash recovery, or repeated request SHALL produce a duplicate order. |
+| AR-2002 | EXEC-002 — Execution Safety and Operational Integrity | Actuation SHALL be made idempotent by a stable identity derived from the Investment Action and its confirmation, so a repeated request resolves to the same single Order. |
+| AR-2003 | EXEC-002 — Execution Safety and Operational Integrity | Replay for audit SHALL reconstruct an Order and SHALL NEVER re-submit one. |
+| AR-2004 | EXEC-002 — Execution Safety and Operational Integrity | When broker acknowledgment is missing, delayed, disconnected, timed out, or ambiguous, the Order SHALL enter an explicit indeterminate state. |
+| AR-2005 | EXEC-002 — Execution Safety and Operational Integrity | In the indeterminate state, Execution SHALL NOT assume the Order filled, unfilled, cancelled, or rejected; it SHALL be resolved only by reconciliation against the broker's authoritative record. |
+| AR-2006 | EXEC-002 — Execution Safety and Operational Integrity | No downstream effect SHALL depend on an indeterminate Order until its true state is established. |
+| AR-2007 | EXEC-002 — Execution Safety and Operational Integrity | Before actuation, Execution SHALL revalidate currency against the Investment Action version, the Personalized Action Queue item version, Order Preview freshness, User Confirmation freshness, market movement, account and venue constraints, available buying power/margin/cash, instrument tradability, market-hours status, and the kill-switch/disable-execution state. |
+| AR-2008 | EXEC-002 — Execution Safety and Operational Integrity | If anything material has changed at revalidation, the Order SHALL return to preview and confirmation rather than act; Execution SHALL NOT act on stale state. |
+| AR-2009 | EXEC-002 — Execution Safety and Operational Integrity | User Confirmation SHALL bind to the exact Order Preview shown; any change to instrument, side, quantity, order type, limit price, stop price, time-in-force, account, estimated cost, risk warning, or venue SHALL invalidate the confirmation and require a new preview and confirmation. |
+| AR-2010 | EXEC-002 — Execution Safety and Operational Integrity | A confirmation SHALL authorize only the previewed Order and never any Order that differs from it. |
+| AR-2011 | EXEC-002 — Execution Safety and Operational Integrity | The Actuation Gate SHALL be the sole path by which any Order reaches the world; no adapter, script, workflow, retry path, emergency path, or implementation shortcut SHALL bypass it. |
+| AR-2012 | EXEC-002 — Execution Safety and Operational Integrity | Execution SHALL reconcile the full chain — intended action, Order Intent, Order Preview, User Confirmation, submitted order, broker acknowledgment, fills, resulting position, expected position, and the Personal CIO and Prometheus records — surfacing any divergence as Observation. |
+| AR-2013 | EXEC-002 — Execution Safety and Operational Integrity | Any reconciliation divergence SHALL halt dependent actuation until it is resolved. |
+| AR-2014 | EXEC-002 — Execution Safety and Operational Integrity | Cancel, replace, and modify SHALL themselves be gated actuations subject to the Actuation Gate. |
+| AR-2015 | EXEC-002 — Execution Safety and Operational Integrity | Execution SHALL model cancel requested, cancel acknowledged, cancel rejected, the cancel/fill race, replace requested, replace acknowledged, replace rejected, the modified Order state, and recovery from a failed cancel or replace. |
+| AR-2016 | EXEC-002 — Execution Safety and Operational Integrity | A cancel that races a fill SHALL be resolved by reconciliation against the broker's authoritative record; Execution SHALL NEVER assume a cancel succeeded. |
+| AR-2017 | EXEC-002 — Execution Safety and Operational Integrity | Execution SHALL support partial and multiple fills against a single Order, aggregating fills with remaining quantity and average price, and recognizing completion only when the Order is fully filled, cancelled, expired, or rejected. |
+| AR-2018 | EXEC-002 — Execution Safety and Operational Integrity | Execution SHALL support partial cancellation and SHALL reconcile position after partial execution; each fill SHALL be an Observation and the aggregate a derived view. |
+| AR-2019 | EXEC-002 — Execution Safety and Operational Integrity | Execution SHALL support time-in-force expiration as an explicit Order state, distinct from cancellation, rejection, and failure. |
+| AR-2020 | EXEC-002 — Execution Safety and Operational Integrity | Execution SHALL provide a kill switch, cancel-all of open orders, a disable-execution mode, human override, an emergency audit trail, and a defined reconciled safe-recovery path; emergency controls SHALL be available independent of any single Order and their use recorded and reconciled. |
+| AR-2021 | EXEC-002 — Execution Safety and Operational Integrity | EXEC-002 SHALL introduce no new canonical object and no new object beyond the Order; its capabilities SHALL be expressed as Order states, operations, invariants, and views, reusing Decision and Observation. |
+| AR-2022 | EXEC-002 — Execution Safety and Operational Integrity | Execution SHALL perform operational validation, not investment reasoning; it SHALL NOT decide what to buy, sell, hold, add, trim, exit, avoid, wait, or rotate, and SHALL NOT change Prometheus or Personal CIO recommendations. |
+| AR-2023 | EXEC-002 — Execution Safety and Operational Integrity | Execution SHALL NOT bypass confirmation and SHALL NOT act on stale, ambiguous, unconfirmed, or unreconciled state. |
+| AR-2024 | EXEC-002 — Execution Safety and Operational Integrity | Every Order state, operation, revalidation, reconciliation, and emergency control SHALL be replayable and auditable; replay SHALL reconstruct, never re-actuate; operational history SHALL never be rewritten. |
+| AR-2025 | EXEC-002 — Execution Safety and Operational Integrity | Broker-specific adapter logic SHALL remain implementation, not architecture; Execution Safety SHALL remain implementation independent. |
 
-_424 rules._
+_449 rules._
