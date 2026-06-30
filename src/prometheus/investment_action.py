@@ -45,9 +45,26 @@ class InvestmentAction(Decision):
         return self.action_type in TRADE_ACTIONS
 
 
-def make_investment_action(thesis, action_type, actor, now):
+def make_investment_action(thesis, action_type, actor, now,
+                           instrument=None, intended_allocation=None, timing=None):
+    """Form a typed Decision from a thesis.
+
+    The Investment Thesis (Nivesha) carries NO allocation or position size -- that
+    is the cognition/actuation boundary -- so ``instrument`` / ``intended_allocation``
+    / ``timing`` are supplied EXPLICITLY here (a labelled TOY bridge that threads
+    the manual-execution slice; it adds no action alpha). For backward
+    compatibility they fall back to attributes on the thesis when present.
+    """
     if action_type not in ACTION_TYPES:
         raise ValueError("unknown action_type: {0}".format(action_type))
+    if instrument is None:
+        instrument = (getattr(thesis, "instrument", None)
+                      or getattr(thesis, "security_or_instrument_mapping", "")
+                      or "")
+    if intended_allocation is None:
+        intended_allocation = getattr(thesis, "intended_allocation", 0.0)
+    if timing is None:
+        timing = getattr(thesis, "timing", None) or "now"
     sources = (thesis.ref("InvestmentThesis"),)
     oid = stable_id("IAC", thesis.id, action_type)
     prov = make_provenance(actor=actor, created_at=iso_from_epoch(now), sources=sources)
@@ -55,10 +72,10 @@ def make_investment_action(thesis, action_type, actor, now):
         id=oid,
         version=1,
         provenance=prov,
-        content="{0} {1}".format(action_type, thesis.instrument),
+        content="{0} {1}".format(action_type, instrument),
         action_type=action_type,
-        instrument=thesis.instrument,
+        instrument=instrument,
         side=side_for_action(action_type),
-        intended_allocation=thesis.intended_allocation,
-        timing=thesis.timing,
+        intended_allocation=float(intended_allocation),
+        timing=timing,
     )

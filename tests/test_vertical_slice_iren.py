@@ -201,5 +201,44 @@ class TestVerticalSliceIREN(unittest.TestCase):
             self.assertNotIn(term, blob)
 
 
+    # --- IMPLEMENTATION-004B: the slice thesis is an alpha-grade gated thesis ---
+    def test_vertical_slice_iren_generates_alpha_grade_investment_thesis(self):
+        t = self.r.thesis
+        # The thesis is the GATED alpha thesis, not the toy placeholder.
+        self.assertEqual(t.investability_assessment, "thesis_worthy_action_ready")
+        self.assertTrue(t.action_ready)
+        # Security/instrument mapping follows the winner mapping (top winner ticker).
+        self.assertEqual(t.security_or_instrument_mapping, "IREN")
+        self.assertEqual(t.winner_mapping[0].ticker, "IREN")
+        # The gauntlet legs are all alpha-grade.
+        self.assertEqual(t.asymmetry_summary.asymmetry_label, "exceptional")
+        self.assertEqual(t.market_recognition_summary.recognition_stage, "hidden")
+        self.assertTrue(t.technical_inflection_summary.technical_confirmation)
+        self.assertEqual(t.technical_inflection_summary.ema_stack_status, "stacked_up")
+        self.assertTrue(t.repricing_trigger_summary.gate_passed)
+        self.assertNotEqual(t.red_team_summary.red_team_verdict, "fail")
+        self.assertGreaterEqual(t.thesis_confidence, 0.5)
+        # Provenance chain is preserved: Thesis -> OpportunityHypothesis -> ... -> Observations.
+        self.assertIn(self.r.hypothesis.id, {r.object_id for r in t.provenance.sources})
+        self.assertEqual(set(t.upstream_observation_ids),
+                         set(self.r.hypothesis.upstream_observation_ids))
+
+    def test_vertical_slice_thesis_has_no_trade_or_allocation_leakage(self):
+        t = self.r.thesis
+        blob = " ".join([
+            t.thesis_summary, t.investability_assessment,
+            t.security_or_instrument_mapping, t.thesis_time_horizon,
+            " ".join(t.key_drivers), " ".join(t.key_risks),
+            " ".join(t.invalidation_conditions), " ".join(t.monitoring_signals),
+        ]).lower()
+        for term in ("buy", "sell", " hold", "enter ", "exit ", "trim", " add ",
+                     "rotate", "allocat", "position size", "order", "ticket"):
+            self.assertNotIn(term, blob, msg="leaked forbidden term: {0}".format(term))
+        # The thesis object carries no allocation / position-size field.
+        fields = set(type(t).__dataclass_fields__.keys())
+        for f in ("intended_allocation", "position_size", "allocation"):
+            self.assertNotIn(f, fields)
+
+
 if __name__ == "__main__":
     unittest.main()

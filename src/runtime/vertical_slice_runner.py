@@ -23,7 +23,8 @@ from eios_core.provenance import make_provenance
 from reality_intelligence.source_observation import make_source_observation
 from reality_intelligence.intelligence_assessment import generate_intelligence_assessment
 from genesis.opportunity_hypothesis import generate_opportunity_hypothesis
-from prometheus.investment_thesis import make_investment_thesis
+from prometheus.investment_thesis import generate_investment_thesis
+from prometheus.diligence_inputs import CandidateInput, DiligenceInputs
 from prometheus.investment_action import make_investment_action
 from prometheus.position_lifecycle import position_state
 from personal_cio.personal_investment_profile import make_personal_investment_profile
@@ -126,7 +127,51 @@ def iren_source_observations(now):
             observed_change="down", source_reliability="moderate", as_of="2026-06",
             source_ref="sell-side note", actor="analyst", now=now,
         ),
+        make_source_observation(
+            source_type="contract_win", domain="ai-infrastructure", entity="IREN",
+            excerpt=("A multi-year contracted power-capacity reservation with a hyperscaler "
+                     "was signed and announced."),
+            catalyst_type="capacity_reservation", catalyst_status="confirmed",
+            expected_direction="positive", affected_value_chain_node="power/energy",
+            expected_timing_window="next 2 quarters", as_of="2026-06",
+            source_ref="company press release", actor="analyst", now=now,
+        ),
     )
+
+
+def iren_diligence_inputs(domain="ai-infrastructure"):
+    """The hand-fed (MANUAL MVP) DiligenceInputs for the IREN slice.
+
+    A single curated candidate: IREN as a Tier-1 secured-power capacity owner --
+    the value-chain capture node for the power/energy bottleneck. Its financials
+    show a revenue inflection with margin expansion and raised guidance; its
+    ownership/coverage are light (hidden/early recognition); its payoff is
+    favorable (contained downside, large upside); and its chart is a stacked-up,
+    breaking-out setup on expanding volume. Nothing here is fetched -- every field
+    is a researcher's structured note, supplied by hand.
+    """
+    iren = CandidateInput(
+        name="IREN", ticker="IREN",
+        value_chain_role="secured-power capacity owner", tier=1,
+        current_price=10.00, shares_outstanding=250_000_000.0,
+        revenue=300.0, prior_revenue=200.0,
+        gross_margin=0.55, prior_gross_margin=0.48,
+        operating_margin=0.22, ebitda=120.0, fcf=-40.0,
+        backlog=900.0, guidance="raise",
+        capex=300.0, cash=400.0, debt=150.0,
+        dilution_risk="low", shelf_registration=False, atm_facility=False,
+        convertible_debt=True,
+        institutional_ownership=0.18, analyst_coverage=4, short_interest=0.07,
+        float_shares=180_000_000.0,
+        valuation_multiple=8.0, valuation_reflects_story=False,
+        bear_price=8.00, base_price=14.00, bull_price=22.00, extreme_bull_price=35.00,
+        ema9=10.10, ema20=9.70, ema50=9.00, ema200=7.50, ema_slopes_up=True,
+        relative_strength=0.35, vwap=9.95,
+        breakout_level=9.80, invalidation_level=9.00, price_above_breakout=True,
+        base_duration_days=55, volatility_contracting=True,
+        volume_recent=1_800_000.0, volume_avg=1_100_000.0,
+    )
+    return DiligenceInputs(domain=domain, candidates=(iren,))
 
 
 def run_iren_slice(
@@ -169,15 +214,24 @@ def run_iren_slice(
         actor="genesis",
         now=t0,
     )
-    thesis = make_investment_thesis(
+    # Nivesha (Prometheus) runs the alpha diligence gauntlet over the hypothesis +
+    # hand-fed DiligenceInputs and produces a GATED thesis. The thesis carries the
+    # security/instrument mapping and a technical-timing flag, but NO allocation.
+    thesis = generate_investment_thesis(
         hypothesis,
-        instrument=instrument,
-        intended_allocation=intended_allocation,
+        iren_diligence_inputs(),
         actor="prometheus",
         now=t0,
-        rationale="enter a starter position",
     )
-    action = make_investment_action(thesis, "enter", actor="prometheus", now=t0)
+    # TOY bridge (no action alpha): the thesis carries no allocation, so the
+    # instrument / allocation / timing are supplied explicitly here to thread the
+    # manual-execution slice.
+    action = make_investment_action(
+        thesis, "enter", actor="prometheus", now=t0,
+        instrument=thesis.security_or_instrument_mapping or instrument,
+        intended_allocation=intended_allocation,
+        timing="emerging",
+    )
     profile = make_personal_investment_profile(account=account, actor="personal-cio", now=t0)
     personalized = make_personalized_action(action, profile, actor="personal-cio", now=t0, priority=1)
 
