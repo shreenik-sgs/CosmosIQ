@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-009
 slug: scientific-discovery
-book_version: 4.9
+book_version: 5.0
 generator_version: 1.1
-source_hash: 10a0d02dff3c41c75ea7a4cd1c1b319fa5bb2aa6ee6999f7944775cb35ced80e
-generated_at: 2026-06-30T00:22:25-05:00
+source_hash: a4f1b850cfe57ef581c128b4466fee638d941ace9cbb37aacb22928909a36ba1
+generated_at: 2026-06-30T01:50:20-05:00
 ---
 
 # EIOS-009 — Scientific Discovery
@@ -1823,7 +1823,7 @@ Every validated improvement SHALL strengthen future scientific reasoning through
 
 Referenced by:
 
-* EIOS-010 — World Intelligence
+* EIOS-010 — Reality Intelligence
 * GEN-001 — Genesis Discovery Engine
 * PROM-001 — Investment Thesis Engine
 * Personal CIO
@@ -1863,4 +1863,4 @@ Provides:
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007; EIOS-008
 - **Builds Upon:** Research Question (EIOS-002); Hypothesis (EIOS-002); Scientific Cognition; Computational Curiosity; Experience Layer; Models & Model Management (EIOS-007)
 - **Defines:** Scientific Discovery; Research Agenda; Question Prioritization; Question Dependencies; Question Decomposition; Question Graph; Knowledge Gaps; Discovery Readiness; Scientific Discovery Pipeline; Hypothesis Generation; Hypothesis Portfolio; Hypothesis Graph; Hypothesis Quality; Hypothesis Lineage; Competing Hypotheses; Composite Hypotheses; Research Program; Multi-Model Hypothesis Generation; Analogical Hypothesis Generation; Scientific Investigation; Investigation Planning; Evidence Acquisition; Evidence Evaluation; Evidence Synthesis; Evidence Graph; Investigation Portfolio; Investigation Orchestration; Comparative Investigation; Counterfactual Investigation; Scientific Validation; Comparative Validation; Falsification; Independent Verification; Belief Revision; Validation Graph; Validation Portfolio; Scientific Consensus; Scientific Robustness; Validation Drift; Scientific Theory Evolution; Theory Formation; Scientific Theory; Theory Graph; Theory Portfolio; Scientific Worldview; Cross-Domain Knowledge Integration; Cross-Domain Scientific Theory; Scientific Generalization; Scientific Specialization; Scientific Coherence; Scientific Knowledge Integration
-- **Referenced By:** World Intelligence, Genesis Discovery Engine, Technology Intelligence, Economic Intelligence, Supply Network Intelligence, Capital Intelligence, Personal CIO, and autonomous scientific agents
+- **Referenced By:** Reality Intelligence, Genesis Discovery Engine, Technology Intelligence, Economic Intelligence, Supply Network Intelligence, Capital Intelligence, Personal CIO, and autonomous scientific agents

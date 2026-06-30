@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 4.9
+book_version: 5.0
 generator_version: 1.1
-source_hash: 10a0d02dff3c41c75ea7a4cd1c1b319fa5bb2aa6ee6999f7944775cb35ced80e
-generated_at: 2026-06-30T00:22:25-05:00
+source_hash: a4f1b850cfe57ef581c128b4466fee638d941ace9cbb37aacb22928909a36ba1
+generated_at: 2026-06-30T01:50:20-05:00
 ---
 
 # Architectural Rule Index
@@ -257,5 +257,35 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0973 | EIOS-009 — Scientific Discovery | The Scientific Worldview SHALL remain evidence-based, explainable, replayable, continuously challengeable, and continuously revisable. |
 | AR-0974 | EIOS-009 — Scientific Discovery | Scientific Knowledge Integration SHALL continuously provide validated scientific understanding to the Experience Layer. |
 | AR-0975 | EIOS-009 — Scientific Discovery | Scientific Theory Evolution SHALL continuously improve the organization's Scientific Worldview as reality evolves. |
+| AR-1001 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL continuously form domain-specific understanding of reality from the validated Scientific Worldview, as a first-class intelligence layer rather than an application of the Cognitive Architecture. |
+| AR-1002 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL admit information into the Cognitive Architecture exclusively as canonical Observations. |
+| AR-1003 | EIOS-010 — Reality Intelligence | Weak signals SHALL be represented as Observations carrying salience; a weak signal SHALL NOT be a separate canonical object. |
+| AR-1004 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL read the Scientific Worldview through a version-pinned, read-only interface and SHALL NEVER mutate any Cognitive Architecture object. |
+| AR-1005 | EIOS-010 — Reality Intelligence | The Intelligence Assessment SHALL be the atomic unit of Domain Intelligence and the only new canonical object introduced by Reality Intelligence. |
+| AR-1006 | EIOS-010 — Reality Intelligence | The Intelligence Assessment SHALL be a specialized Knowledge Object conforming to the canonical structure defined by the Knowledge Model; it SHALL reference, and SHALL NOT redefine, existing canonical objects. |
+| AR-1007 | EIOS-010 — Reality Intelligence | Every Intelligence Assessment SHALL concern exactly one scoped subject; broader understanding SHALL be composed, not embedded. |
+| AR-1008 | EIOS-010 — Reality Intelligence | Every Intelligence Assessment SHALL bind the Scientific Worldview version against which it was formed. |
+| AR-1009 | EIOS-010 — Reality Intelligence | Every Intelligence Assessment SHALL preserve explicit grounding in supporting Observations, Evidence, Scientific Theories, readiness and timing assessments, and Historical Analogs. |
+| AR-1010 | EIOS-010 — Reality Intelligence | Every Intelligence Assessment SHALL preserve confidence and SHALL preserve contradicting evidence rather than eliminating it. |
+| AR-1011 | EIOS-010 — Reality Intelligence | Intelligence Assessments SHALL remain explainable; their reasoning SHALL be reconstructable from their grounding. |
+| AR-1012 | EIOS-010 — Reality Intelligence | Intelligence Assessments SHALL remain replayable; every version SHALL be reconstructable from its pinned worldview version and immutable inputs. |
+| AR-1013 | EIOS-010 — Reality Intelligence | Intelligence Assessment lifecycle state values and semantics SHALL be owned by Reality Intelligence, while the structural lifecycle field remains owned by the Knowledge Model. |
+| AR-1014 | EIOS-010 — Reality Intelligence | Every Intelligence Assessment state transition SHALL itself become a historical event. |
+| AR-1015 | EIOS-010 — Reality Intelligence | Confidence direction SHALL be represented as a derived Confidence Trajectory, distinct from the lifecycle state. |
+| AR-1016 | EIOS-010 — Reality Intelligence | Intelligence Assessments SHALL evolve through new immutable versions; prior versions SHALL be preserved and remain replayable. |
+| AR-1017 | EIOS-010 — Reality Intelligence | When the Scientific Worldview changes through belief revision or validation drift, dependent Intelligence Assessments SHALL be flagged through Change Propagation and re-evaluated; no Assessment SHALL silently retain a superseded understanding. |
+| AR-1018 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL represent the relationships among Intelligence Assessments using the Intelligence Graph (EIOS-006) and SHALL NOT introduce a parallel graph. |
+| AR-1019 | EIOS-010 — Reality Intelligence | The Intelligence Graph SHALL support cross-domain influence between Intelligence Assessments. |
+| AR-1020 | EIOS-010 — Reality Intelligence | Domain intelligence engines SHALL produce Intelligence Assessments and SHALL NOT introduce new reasoning objects. |
+| AR-1021 | EIOS-010 — Reality Intelligence | Intelligence Products SHALL be compositions of Intelligence Assessments and SHALL NOT possess independent canonical identity, lifecycle, provenance, lineage, or graph. |
+| AR-1022 | EIOS-010 — Reality Intelligence | Intelligence Portfolios SHALL be compositions whose evolution derives entirely from their constituent Assessments and Products. |
+| AR-1023 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL express understanding only and SHALL NOT assign value, opportunity, or investability. |
+| AR-1024 | EIOS-010 — Reality Intelligence | Domain intelligence SHALL NEVER flow downward into the Cognitive Architecture; only canonical Observations may flow downward. |
+| AR-1025 | EIOS-010 — Reality Intelligence | Data acquisition connectors SHALL remain outside the Cognitive Architecture, which SHALL receive external information only as canonical Observations and Evidence. |
+| AR-1026 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL provide Intelligence Assessments, Intelligence Products, and the Intelligence Portfolio to Genesis and other consumers. |
+| AR-1027 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL ground opportunity formation but SHALL NOT form opportunities; opportunity reasoning belongs to Genesis. |
+| AR-1028 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL conform to the separation of layers established in ADR-0008: understanding flows upward; purpose never flows downward. |
+| AR-1029 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL maintain continuously evolving domain understanding; no domain understanding SHALL be considered permanently complete. |
+| AR-1030 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL remain implementation independent. |
 
-_241 rules._
+_271 rules._

@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 4.9
+book_version: 5.0
 generator_version: 1.1
-source_hash: 10a0d02dff3c41c75ea7a4cd1c1b319fa5bb2aa6ee6999f7944775cb35ced80e
-generated_at: 2026-06-30T00:22:25-05:00
+source_hash: a4f1b850cfe57ef581c128b4466fee638d941ace9cbb37aacb22928909a36ba1
+generated_at: 2026-06-30T01:50:20-05:00
 ---
 
 # Glossary
@@ -66,6 +66,11 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Theory Graph | The first-class graph of Scientific Principles, Candidate Scientific Laws, and Scientific Theories and their relationships (derives-from, generalizes, specializes, supersedes, supports, contradicts); synchronized with the Model Graph and Experience Layer. | EIOS-009 | Scientific Theory, Model Graph | Cognitive Architecture |
 | Theory Portfolio | A coordinated collection of Scientific Theories describing related aspects of reality; preserves independent theory evolution. | EIOS-009 | Scientific Theory, Validation Portfolio | Cognitive Architecture |
 | Scientific Worldview | The organization's current, best-supported, continuously evolving scientific understanding of reality — the complete collection of validated Scientific Theories. Distinct from the World Model (representation) and the Experience Layer (memory); the primary output other cognitive subsystems consume. | EIOS-009 | Scientific Theory, World Model | Cognitive Architecture |
+| Reality Intelligence | The first-class layer (Part III) that continuously forms domain-specific understanding of reality from the validated Scientific Worldview; senses reality into the Cognitive Architecture and supplies domain intelligence upward. Understanding only — never purpose. | EIOS-010 | Intelligence Assessment, Scientific Worldview | Reality Intelligence |
+| Intelligence Assessment | The atomic unit of Domain Intelligence: a single, evidence-grounded, worldview-versioned judgment about the state or trajectory of one scoped aspect of a domain. A specialized Knowledge Object (EIOS-002), continuously re-evaluable and replayable. | EIOS-010 | Reality Intelligence, Scientific Worldview | Reality Intelligence |
+| Reality Sensing | The Reality Intelligence capability that ingests raw reality, detects weak signals, and admits them into the Cognitive Architecture exclusively as canonical Observations. | EIOS-010 | Observation, Intelligence Assessment | Reality Intelligence |
+| Intelligence Product | A composition that packages one or more Intelligence Assessments for consumers; carries no independent canonical identity — packaging is not cognition. | EIOS-010 | Intelligence Assessment, Intelligence Portfolio | Reality Intelligence |
+| Intelligence Portfolio | A composition: the coordinated set of active Intelligence Products feeding consumers; evolves entirely from its constituent Assessments and Products. | EIOS-010 | Intelligence Product, Intelligence Assessment | Reality Intelligence |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
