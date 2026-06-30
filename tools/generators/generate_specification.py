@@ -104,9 +104,16 @@ def roman_to_int(roman: str) -> int:
     return total
 
 
+ACRONYMS = {"CIO", "EIOS"}
+
+
 def title_case(title: str) -> str:
-    """`FOUNDATION` -> `Foundation`, `SYSTEMS SCIENCE` -> `Systems Science`."""
-    return " ".join(word.capitalize() for word in title.split())
+    """`FOUNDATION` -> `Foundation`, `SYSTEMS SCIENCE` -> `Systems Science`,
+    `PERSONAL CIO` -> `Personal CIO` (known acronyms preserved)."""
+    return " ".join(
+        word.upper() if word.upper() in ACRONYMS else word.capitalize()
+        for word in title.split()
+    )
 
 
 def part_dir_name(number: int, title: str) -> str:
@@ -125,12 +132,17 @@ def chapter_file_name(chapter_id: str, slug: str) -> str:
 
 def slug_display(slug: str) -> str:
     """`world-model` -> `World Model`; `models-and-model-management` -> `Models and
-    Model Management` (small words stay lowercase except in first position)."""
+    Model Management` (small words stay lowercase except in first position);
+    `personal-cio-engine` -> `Personal CIO Engine` (known acronyms preserved)."""
     small = {"and", "or", "of", "the", "to", "for", "a", "an", "in", "on", "vs"}
     words = slug.replace("-", " ").split()
-    return " ".join(
-        w if (i and w in small) else w.capitalize() for i, w in enumerate(words)
-    )
+
+    def render(i: int, w: str) -> str:
+        if w.upper() in ACRONYMS:
+            return w.upper()
+        return w if (i and w in small) else w.capitalize()
+
+    return " ".join(render(i, w) for i, w in enumerate(words))
 
 
 def build_header(
