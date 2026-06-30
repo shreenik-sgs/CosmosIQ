@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 2.5 |
+| Version | 2.6 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -89,7 +89,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 2.5
+version: 2.6
 authoritative: true
 target_generator: Claude Code
 -->
@@ -5378,6 +5378,8 @@ Momentum SHALL always be interpreted relative to the associated readiness dimens
 
 Momentum SHALL remain independent from absolute readiness.
 
+The architecture formalizes this as Readiness Momentum (RM): the overall direction of readiness evolution across the observed system. RM complements Emergence Readiness — readiness describes the current condition, while momentum describes the direction in which that condition is evolving. RM SHALL preserve explainability and is one of the canonical architectural assessments (see Assessment Independence).
+
 ---
 
 ### Constraint Evolution
@@ -5496,6 +5498,189 @@ Historical analogs SHALL NOT determine scientific conclusions.
 Similarity alone SHALL never constitute sufficient evidence.
 
 Scientific judgment SHALL remain responsible for integrating historical evidence with present observations.
+
+---
+
+### Emergence Indicators
+
+Emergence cannot be observed directly.
+
+Instead, emergence is inferred from observable indicators distributed throughout interconnected systems.
+
+Emergence Indicators represent measurable evidence that meaningful structural change may be occurring.
+
+Indicators SHALL remain independent from any specific computational implementation.
+
+Illustrative indicators include:
+
+* accelerating readiness
+* declining constraints
+* increasing convergence
+* technology maturation
+* infrastructure deployment
+* capital formation
+* regulatory progress
+* ecosystem expansion
+* adoption acceleration
+* dependency stabilization
+
+Future implementations MAY introduce additional indicators without modifying the architecture.
+
+---
+
+### Emergence Readiness
+
+Emergence Readiness represents the overall preparedness of a system to undergo meaningful structural transition.
+
+Emergence Readiness differs from individual readiness dimensions.
+
+Individual readiness evaluates isolated capabilities.
+
+Emergence Readiness evaluates the combined evolutionary condition of the entire system.
+
+The Experience Layer SHALL continuously reassess Emergence Readiness as underlying evidence evolves.
+
+---
+
+### Continuous Assessment
+
+Complex adaptive systems evolve continuously.
+
+Scientific understanding SHALL therefore evolve continuously.
+
+The Experience Layer SHALL continuously reassess:
+
+* observations
+* readiness
+* constraints
+* dependencies
+* convergence
+* transition trajectories
+* historical analogs
+
+Assessment SHALL occur whenever underlying scientific understanding changes.
+
+No architectural assumption shall require fixed assessment intervals.
+
+---
+
+### Scientific Explainability
+
+Every emergence assessment SHALL remain scientifically explainable.
+
+Explainability SHALL identify:
+
+* supporting observations
+* supporting evidence
+* supporting models
+* supporting reasoning
+* supporting historical analogs
+* conflicting evidence
+* uncertainty
+
+Scientific conclusions SHALL remain reproducible through inspection of their supporting evidence.
+
+Opaque reasoning SHALL NOT satisfy architectural explainability requirements.
+
+---
+
+### Emergence Readiness Score (ERS)
+
+The architecture defines the Emergence Readiness Score (ERS).
+
+ERS represents an architectural assessment of the degree to which a system appears prepared for significant transition.
+
+ERS is an architectural concept.
+
+The architecture intentionally does not prescribe computational algorithms for its estimation.
+
+Future implementations MAY employ different analytical techniques while preserving the architectural meaning of ERS.
+
+---
+
+### Constraint Release Index (CRI)
+
+The architecture defines the Constraint Release Index (CRI).
+
+CRI represents the degree to which historically significant constraints are being reduced or eliminated.
+
+Constraint Release frequently precedes major system transitions.
+
+CRI SHALL therefore remain independent from Emergence Readiness.
+
+Future implementations MAY estimate CRI using different analytical methods.
+
+---
+
+### Convergence Alignment Score (CAS)
+
+The architecture defines the Convergence Alignment Score (CAS).
+
+CAS represents the degree to which independently evolving readiness dimensions appear to be converging toward simultaneous maturity.
+
+CAS evaluates systemic alignment rather than individual readiness.
+
+CAS SHALL preserve visibility into the underlying readiness dimensions contributing to convergence.
+
+Aggregated convergence SHALL never obscure supporting evidence.
+
+---
+
+### Historical Analog Strength (HAS)
+
+The architecture defines Historical Analog Strength (HAS).
+
+HAS represents the degree of similarity between current system evolution and previously observed historical transitions.
+
+HAS SHALL support scientific interpretation.
+
+HAS SHALL NOT determine scientific conclusions.
+
+Similarity SHALL always remain advisory rather than authoritative.
+
+---
+
+### Time-to-Inflection (TTI)
+
+The architecture defines Time-to-Inflection (TTI).
+
+TTI represents an architectural estimate of the relative proximity of a system to significant structural transition.
+
+TTI SHALL always preserve uncertainty.
+
+TTI SHALL never be represented as a deterministic prediction.
+
+Future implementations MAY estimate TTI using different computational approaches while preserving architectural intent.
+
+---
+
+### Assessment Independence
+
+Architectural assessments SHALL remain independent.
+
+ERS, RM, CRI, CAS, HAS, and TTI each represent distinct aspects of system evolution.
+
+No architectural assessment SHALL be derived solely from another assessment.
+
+Each assessment SHALL preserve independent provenance and explainability.
+
+Composite assessments MAY be introduced by future implementations while preserving the independence of the canonical architectural assessments.
+
+---
+
+### Scientific Interpretation
+
+Emergence assessments SHALL support scientific reasoning rather than replace it.
+
+The Experience Layer provides evidence.
+
+Scientific Cognition interprets evidence.
+
+Model Management evaluates competing explanations.
+
+Scientific Discovery develops new understanding.
+
+Architectural assessments therefore inform scientific judgment without determining scientific conclusions.
 
 ---
 
