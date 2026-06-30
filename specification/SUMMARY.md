@@ -3,17 +3,17 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: summary
-book_version: 8.1
+book_version: 9.0
 generator_version: 1.1
-source_hash: a933047dda32c556bd4a519b5600ed6a49457c31ef284be5bf7cb3717961f534
-generated_at: 2026-06-30T10:39:40-05:00
+source_hash: e416340f78f2a32bb6c5a9bb7b9685ae14ccb21632f09116c671e0aca45f57fd
+generated_at: 2026-06-30T11:09:16-05:00
 ---
 
 # Economic Intelligence Operating System
 
 ## Architecture Book
 
-Version 8.1
+Version 9.0
 
 Compiled from `architecture/EIOS_Architecture_Book.md`.
 
@@ -60,3 +60,7 @@ Compiled from `architecture/EIOS_Architecture_Book.md`.
 ### Part VI — Personal CIO
 
 - [CIO-001 — Personal CIO Engine](06_Personal_CIO/CIO-001_personal-cio-engine.md)
+
+### Part VII — Execution
+
+- [EXEC-001 — Execution Engine](07_Execution/EXEC-001_execution-engine.md)

@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 8.1
+book_version: 9.0
 generator_version: 1.1
-source_hash: a933047dda32c556bd4a519b5600ed6a49457c31ef284be5bf7cb3717961f534
-generated_at: 2026-06-30T10:39:40-05:00
+source_hash: e416340f78f2a32bb6c5a9bb7b9685ae14ccb21632f09116c671e0aca45f57fd
+generated_at: 2026-06-30T11:09:16-05:00
 ---
 
 # Architectural Rule Index
@@ -419,5 +419,26 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-1717 | CIO-001 — Personal CIO Engine | Personal CIO presented outputs SHALL be replayable and auditable, with prior versions preserved. |
 | AR-1718 | CIO-001 — Personal CIO Engine | Personal CIO SHALL present and recommend and SHALL NOT execute trades, place orders, or operate live positions; execution belongs to consumers beyond this layer. |
 | AR-1719 | CIO-001 — Personal CIO Engine | Personal CIO SHALL remain implementation independent. |
+| AR-1901 | EXEC-001 — Execution Engine | Execution SHALL carry out approved Investment Actions in the world and do nothing else; it performs operational validation, not investment reasoning, and SHALL NOT discover, understand, identify opportunities, construct theses, allocate capital, personalize counsel, or decide actions. |
+| AR-1902 | EXEC-001 — Execution Engine | Execution SHALL consume the decisions handed to it — the Personalized Action Queue, Investment Actions, Personal CIO Decision Records, and Prometheus Decision Records — and SHALL originate none of them. |
+| AR-1903 | EXEC-001 — Execution Engine | Execution SHALL consume its inputs by version and SHALL read them without ever mutating them. |
+| AR-1904 | EXEC-001 — Execution Engine | The Order SHALL be the first operational object, distinct from the reasoning objects, and SHALL NOT be modeled as a specialized Knowledge Object (ADR-0010). |
+| AR-1905 | EXEC-001 — Execution Engine | Operational objects SHALL represent what is done; reasoning objects represent what is known or judged; the Observation SHALL bridge operational reality back into reasoning. |
+| AR-1906 | EXEC-001 — Execution Engine | An Order SHALL carry an operational lifecycle — intent, preview, submitted, partially filled, filled, rejected, cancelled — and every transition SHALL be recorded and replayable. |
+| AR-1907 | EXEC-001 — Execution Engine | No actuation SHALL touch the world until it has passed the Actuation Gate. |
+| AR-1908 | EXEC-001 — Execution Engine | The Actuation Gate SHALL require confirmation by the responsible authority, an order preview, a reversibility/cancelability check, account and venue constraint checks, a market-hours check, awareness of slippage and fill risk, kill-switch availability, and a complete audit record. |
+| AR-1909 | EXEC-001 — Execution Engine | A system that cannot confirm, preview, reverse, or halt an action SHALL NOT act. |
+| AR-1910 | EXEC-001 — Execution Engine | User confirmation SHALL be required before any irreversible action and SHALL be recorded as a User Confirmation Record, which SHALL be a Decision (EIOS-002); an unconfirmed action SHALL NOT be actuated. |
+| AR-1911 | EXEC-001 — Execution Engine | A Fill Record SHALL be an Observation (EIOS-002) of reality; Execution SHALL introduce no new object for it. |
+| AR-1912 | EXEC-001 — Execution Engine | Exception and Failure Records SHALL be Observations (EIOS-002); no failure SHALL be silently discarded. |
+| AR-1913 | EXEC-001 — Execution Engine | Operational reality — orders, fills, rejections, cancellations, exceptions, failures, reconciliation — MAY flow upward as evidence and SHALL NEVER flow upward as purpose. |
+| AR-1914 | EXEC-001 — Execution Engine | Execution SHALL reconcile intended against actual positions, surface any divergence, and feed the reconciled truth back as Observation. |
+| AR-1915 | EXEC-001 — Execution Engine | Execution SHALL provide a kill switch — the standing power to halt all actuation at once — available independent of any single action, and its use SHALL be recorded. |
+| AR-1916 | EXEC-001 — Execution Engine | The Order Preview SHALL present the intended order and its estimated impact, including slippage and fill risk, before any submission; the Execution Plan SHALL describe how to act without altering what was decided. |
+| AR-1917 | EXEC-001 — Execution Engine | Execution SHALL honor market-hours and venue constraints, queuing or declining actions that cannot be actuated within them. |
+| AR-1918 | EXEC-001 — Execution Engine | Broker-specific logic SHALL be implementation, not architecture; Execution SHALL define execution governance and operational state abstractly and SHALL remain broker-agnostic. |
+| AR-1919 | EXEC-001 — Execution Engine | Every Order, confirmation, fill, exception, and reconciliation SHALL be replayable and auditable, traceable to the Investment Action and its upstream grounding; operational history SHALL never be rewritten. |
+| AR-1920 | EXEC-001 — Execution Engine | Execution SHALL form no understanding, opportunity, thesis, allocation, personalization, or action, and SHALL carry no intelligence of its own. |
+| AR-1921 | EXEC-001 — Execution Engine | Execution SHALL remain implementation independent. |
 
-_403 rules._
+_424 rules._

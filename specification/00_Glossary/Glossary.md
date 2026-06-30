@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 8.1
+book_version: 9.0
 generator_version: 1.1
-source_hash: a933047dda32c556bd4a519b5600ed6a49457c31ef284be5bf7cb3717961f534
-generated_at: 2026-06-30T10:39:40-05:00
+source_hash: e416340f78f2a32bb6c5a9bb7b9685ae14ccb21632f09116c671e0aca45f57fd
+generated_at: 2026-06-30T11:09:16-05:00
 ---
 
 # Glossary
@@ -88,6 +88,9 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Personal CIO | The Personalization engine (Part VI): the consumer of Prometheus that adapts investment outputs to the individual user — objectives, constraints, preferences, and voice. It personalizes; it never reconstructs the portfolio or rewrites upstream reasoning. | CIO-001 | Personal Investment Profile, Prometheus | Personal CIO |
 | Personal Investment Profile | The canonical object of the personalization layer: the versioned model of the user for investment — objectives, risk tolerance, liquidity, tax, horizon, account structure, holdings, limits, preferences and exclusions, communication style, action prioritization. A specialized Knowledge Object (EIOS-002). | CIO-001 | Personal CIO | Personal CIO |
 | Personal CIO Decision Record | The auditable record of a Personal CIO recommendation to a user — a Decision (EIOS-002) preserving the profile version, grounding Prometheus outputs and versions, what was presented, and the rationale. | CIO-001 | Personal Investment Profile, Decision | Personal CIO |
+| Execution | The actuation layer (Part VII), governed by ADR-0010: it carries out approved Investment Actions in the world and does nothing else — operational validation, never investment reasoning. Operational reality returns upward as Observation, never as purpose; it is broker-agnostic. | EXEC-001 | Order, Actuation Gate | Execution |
+| Order | The canonical object of Execution and the first operational object of the architecture: the durable record of an actuated Investment Action and its state in the world — intent, preview, submitted, partially filled, filled, rejected, cancelled. An operational object, not a reasoning object or specialized Knowledge Object (ADR-0010); its justification lives upstream, its state is its own. | EXEC-001 | Investment Action, Observation | Execution |
+| Actuation Gate | The mandatory precondition for any real-world action: confirmation, order preview, reversibility/cancelability check, account and venue checks, market-hours check, slippage/fill-risk awareness, kill switch, and full audit. No actuation touches the world until it passes. | EXEC-001 | Order, Execution | Execution |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
