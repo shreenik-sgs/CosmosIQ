@@ -9,10 +9,16 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 1.6 |
+| Version | 1.7 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
+
+## Master Architecture Diagram
+
+![EIOS Master Architecture Diagram (bottom-up)](ArchitectureDiagram.png)
+
+A bottom-up view of the platform: the frozen Foundation (EIOS-000 … EIOS-006), the Platform Foundation and Cognitive Architecture layers, the Intelligence Services engines, and the Application layer (Genesis, Prometheus, Personal CIO). Maintained as a living reference artifact alongside the Book; it is not frozen.
 
 ## Glossary
 
@@ -75,7 +81,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 1.6
+version: 1.7
 authoritative: true
 target_generator: Claude Code
 -->
