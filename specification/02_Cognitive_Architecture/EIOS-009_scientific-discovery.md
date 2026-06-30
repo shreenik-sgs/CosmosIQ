@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-009
 slug: scientific-discovery
-book_version: 4.5
+book_version: 4.6
 generator_version: 1.1
-source_hash: 95e28fb733ea2ffd65d41a66fc334c602b01e6da2f74dbb7c8f95b1bb2a870f9
-generated_at: 2026-06-29T23:41:57-05:00
+source_hash: 4721184da43ce20daf99a06c276214f9250fb549b61a063b1dba282706769f81
+generated_at: 2026-06-29T23:45:56-05:00
 ---
 
 # EIOS-009 — Scientific Discovery
@@ -1321,6 +1321,191 @@ Scientific Discovery SHALL continuously reassess previously validated understand
 No scientific conclusion SHALL be considered permanently complete.
 
 Continuous reassessment SHALL remain one of the primary responsibilities of Scientific Discovery.
+
+---
+
+### Scientific Theory Evolution
+
+Scientific Discovery continuously transforms validated scientific understanding into increasingly general and reusable knowledge.
+
+Scientific Theory Evolution represents the continuous evolution of scientific understanding rather than the creation of permanent truths.
+
+Scientific understanding SHALL remain continuously revisable.
+
+---
+
+### Scientific Principles
+
+Scientific Principles represent validated explanations describing recurring mechanisms observed across multiple investigations.
+
+Scientific Principles emerge from accumulated validated evidence rather than isolated investigations.
+
+Scientific Principle is defined canonically in the Experience Layer (EIOS-008); this section describes how Scientific Discovery validates, generalizes, and evolves Scientific Principles.
+
+Every Scientific Principle SHALL preserve:
+
+* supporting Research Questions
+* supporting Hypotheses
+* supporting Evidence
+* supporting Investigations
+* supporting Validation Assessments
+
+Scientific Principles SHALL remain continuously replayable.
+
+---
+
+### Candidate Scientific Laws
+
+Some Scientific Principles demonstrate broad explanatory power across diverse situations.
+
+Scientific Discovery MAY promote such Principles to Candidate Scientific Laws.
+
+Candidate Scientific Laws represent the strongest currently available scientific explanations.
+
+Candidate Scientific Law is defined canonically in the Experience Layer (EIOS-008) — Experience proposes, Scientific Discovery validates; this section describes how Discovery validates and evolves them.
+
+Candidate Scientific Laws SHALL remain continuously challengeable.
+
+Promotion SHALL never imply permanent truth.
+
+---
+
+### Theory Formation
+
+Scientific Theories integrate multiple Scientific Principles into coherent explanatory frameworks.
+
+Theories SHALL preserve:
+
+* participating Principles
+* participating Models
+* participating Evidence
+* applicability
+* limitations
+* uncertainty
+
+Scientific Theories SHALL remain continuously evolvable.
+
+---
+
+### Principle Evolution
+
+Scientific Principles evolve continuously.
+
+Principles MAY be:
+
+* strengthened
+* generalized
+* specialized
+* refined
+* merged
+* superseded
+
+The complete evolution of every Scientific Principle SHALL remain replayable.
+
+---
+
+### Law Evolution
+
+Candidate Scientific Laws evolve as additional scientific understanding accumulates.
+
+Law Evolution SHALL preserve:
+
+* previous formulations
+* revised formulations
+* supporting evidence
+* supporting principles
+* scientific justification
+
+Every revision SHALL remain historically traceable.
+
+---
+
+### Theory Graph
+
+Scientific Discovery SHALL maintain a Theory Graph.
+
+Nodes represent:
+
+* Scientific Principles
+* Candidate Scientific Laws
+* Scientific Theories
+
+Edges represent:
+
+* derives-from
+* generalizes
+* specializes
+* supersedes
+* supports
+* contradicts
+
+The Theory Graph SHALL remain synchronized with the Model Graph and the Experience Layer.
+
+---
+
+### Knowledge Promotion
+
+Scientific Discovery SHALL promote validated scientific understanding according to clearly defined maturity.
+
+Illustrative promotion pathway:
+
+Observation
+
+↓
+
+Hypothesis
+
+↓
+
+Validated Explanation
+
+↓
+
+Scientific Principle
+
+↓
+
+Candidate Scientific Law
+
+↓
+
+Theory
+
+↓
+
+Experience Layer
+
+Promotion SHALL preserve complete scientific traceability.
+
+---
+
+### Theory Evolution
+
+Scientific Theories continuously evolve as reality changes.
+
+Theories SHALL remain:
+
+* explainable
+* replayable
+* challengeable
+* revisable
+
+Scientific Theory Evolution SHALL remain continuous.
+
+---
+
+### Scientific Knowledge Integration
+
+Scientific Discovery SHALL continuously integrate newly validated understanding into the broader body of organizational scientific knowledge.
+
+Integration SHALL preserve:
+
+* provenance
+* historical evolution
+* competing explanations
+* uncertainty
+
+Scientific Knowledge Integration SHALL provide the primary input to the Experience Layer.
 
 ---
 
