@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 2.2 |
+| Version | 2.3 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -42,7 +42,8 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Mental Model | A temporary, domain-specific reasoning context derived from and synchronized with the World Model; never an independent source of truth. | EIOS-004 | World Model, Scientific Cognition | Foundational |
 | Model | A bounded, purpose-specific representation of part of reality, built to support explanation, prediction, simulation, reasoning, or decision; never reality itself. | EIOS-007 | Mental Model, World Model | Cognitive Architecture |
 | Replay | Historical replay: scientific re-validation against a point-in-time reconstruction of the world; a precondition of production. | EIOS-000 (CI-008) | Confidence, FI-002 | Constitutional |
-| Experience Layer | The accumulated record of past reasoning outcomes that continuously modifies future reasoning. | EIOS-003 (detailed in EIOS-008) | Scientific Cognition, Confidence | Foundational |
+| Experience Layer | The institutional memory of scientific understanding — validated models, reasoning strategies, replay outcomes, lessons learned — that turns accumulated experience into reusable institutional intelligence. | EIOS-008 | Scientific Memory, Institutional Intelligence | Cognitive Architecture |
+| Institutional Intelligence | The collective scientific capability accumulated through continuous experience; unlike memory, it actively improves reasoning (analogy, pattern recognition, principle extraction, strategy selection). | EIOS-008 | Experience Layer, Scientific Memory | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
@@ -76,18 +77,19 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 |-----------|---------|------------------|---------|
 | CI | Constitutional Invariant | EIOS-000 (frozen; ADR-0006) | CI-008 Historical Replay Before Production |
 | FI | Foundational Principle (implements constitutional invariants) | EIOS-001 | FI-002 Replay-Driven Scientific Validation |
-| AR | Architectural Rule | EIOS-002 … EIOS-007 | AR-0609 Intelligence Graph derives from World Model |
+| AR | Architectural Rule | EIOS-002 … EIOS-008 | AR-0609 Intelligence Graph derives from World Model |
 | REQ-KO | Requirement — Knowledge Objects | EIOS-002 | REQ-KO-002 Provenance Tracking |
 | REQ-SC | Requirement — Scientific Cognition | EIOS-004 | REQ-SC-008 Scientific Judgment |
 | REQ-ST | Requirement — Systems Theory | EIOS-005 | REQ-ST-015 Bottleneck Analysis |
 | REQ-ISI | Requirement — Interconnected Systems Intelligence | EIOS-006 | REQ-ISI-011 Decision Graph Representation |
 | REQ-MD | Requirement — Models & Model Management | EIOS-007 | REQ-MD-005 Uncertainty Representation |
+| REQ-EX | Requirement — Experience Layer | EIOS-008 | REQ-EX-007 Emergence Intelligence |
 
 ---
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 2.2
+version: 2.3
 authoritative: true
 target_generator: Claude Code
 -->
@@ -4836,6 +4838,373 @@ Referenced by:
 - **Referenced By:** All reasoning, simulation, prediction, optimization, scientific discovery, experience accumulation, investment intelligence, orchestration, and autonomous agent subsystems
 
 <!-- END:CHAPTER:EIOS-007 -->
+
+## CHAPTER EIOS-008 — Experience Layer
+
+<!-- SLUG: experience-layer -->
+
+<!-- BEGIN:CHAPTER:EIOS-008 -->
+
+**Chapter Class:** Cognitive Architecture
+
+### Purpose
+
+The Experience Layer transforms accumulated observations, validated knowledge, successful reasoning strategies, failures, historical evolution, and scientific discoveries into reusable institutional intelligence.
+
+Unlike conventional memory systems that merely retain information, the Experience Layer continuously learns, organizes, refines, and applies scientific understanding.
+
+Its mission is not storage.
+
+Its mission is organizational learning.
+
+---
+
+### Conformance
+
+This chapter SHALL conform to:
+
+* EIOS-000 — Constitution
+* EIOS-001 — Purpose
+* EIOS-002 — Knowledge Model
+* EIOS-003 — World Model
+* EIOS-004 — Computational Scientific Cognition
+* EIOS-005 — Systems Theory
+* EIOS-006 — Interconnected Systems Intelligence
+* EIOS-007 — Models & Model Management
+
+---
+
+### Architectural Vision
+
+Every observation contributes to knowledge.
+
+Every knowledge object contributes to understanding.
+
+Every understanding contributes to experience.
+
+Every experience contributes to institutional intelligence.
+
+Every future discovery begins from accumulated institutional intelligence rather than from an empty starting point.
+
+The Experience Layer therefore represents the continuously evolving scientific memory of EIOS.
+
+---
+
+### Mission
+
+The Experience Layer SHALL:
+
+* preserve validated scientific understanding
+* accumulate historical intelligence
+* extract recurring patterns
+* discover reusable principles
+* preserve successful reasoning strategies
+* preserve unsuccessful reasoning strategies
+* identify analogies across history
+* detect emerging opportunities
+* improve future reasoning
+* continuously increase institutional intelligence
+
+---
+
+### Scientific Memory
+
+Scientific Memory, introduced in EIOS-007, is the persistent accumulation of validated scientific understanding maintained by the Experience Layer.
+
+Within the Experience Layer, Scientific Memory contains:
+
+* validated models
+* validated Model Portfolios
+* scientific principles
+* historical replay results
+* validation histories
+* benchmark histories
+* comparative evaluations
+* lessons learned
+* failures
+* successful reasoning strategies
+
+Scientific Memory SHALL preserve organizational knowledge across the lifetime of the platform.
+
+---
+
+### Institutional Intelligence
+
+Institutional Intelligence represents the collective scientific capability accumulated through continuous experience.
+
+Unlike memory, Institutional Intelligence actively improves reasoning.
+
+Institutional Intelligence supports:
+
+* analogy discovery
+* pattern recognition
+* principle extraction
+* hypothesis generation
+* reasoning strategy selection
+* opportunity detection
+* decision support
+
+Institutional Intelligence grows continuously.
+
+---
+
+### Historical Intelligence
+
+Historical Intelligence studies reality across long time horizons.
+
+Its mission is to understand:
+
+* technological evolution
+* scientific evolution
+* industrial evolution
+* economic evolution
+* geopolitical evolution
+* regulatory evolution
+* supply-chain evolution
+* value-network evolution
+* capital allocation
+* corporate evolution
+
+Historical Intelligence does not study companies in isolation.
+
+It studies systems.
+
+---
+
+### Historical Pattern Intelligence
+
+Historical Pattern Intelligence identifies recurring structures across history.
+
+Examples include:
+
+* technology platform transitions
+* infrastructure build-outs
+* manufacturing bottlenecks
+* supply shortages
+* capital rotation
+* regulatory inflection
+* network effects
+* standards adoption
+* ecosystem formation
+* industrial consolidation
+
+Patterns SHALL be represented independently from individual historical events.
+
+---
+
+### Principle Extraction
+
+The objective of Historical Intelligence is not historical description.
+
+Its objective is scientific principle extraction.
+
+Every historical case SHALL contribute to one or more reusable principles.
+
+Principles SHALL identify:
+
+* causal mechanisms
+* enabling conditions
+* limiting conditions
+* applicability
+* confidence
+* supporting evidence
+* contradictory evidence
+
+---
+
+### Analogical Intelligence
+
+The Experience Layer SHALL discover analogies across different technologies, industries, geographies, and historical eras.
+
+Analogies SHALL be based upon structural similarity rather than superficial resemblance.
+
+Example:
+
+AI Infrastructure (2025)
+
+may resemble
+
+Internet Backbone Expansion (1996)
+
+not because they share technology,
+
+but because they exhibit similar system dynamics.
+
+---
+
+### Experience Philosophy
+
+Experience is not a database.
+
+Experience is accumulated scientific understanding.
+
+The Experience Layer therefore evolves continuously through:
+
+Observation
+
+↓
+
+Knowledge
+
+↓
+
+Understanding
+
+↓
+
+Scientific Memory
+
+↓
+
+Institutional Intelligence
+
+↓
+
+Improved Discovery
+
+↓
+
+New Observation
+
+This represents the permanent learning cycle of EIOS.
+
+---
+
+### Emergence Intelligence
+
+The Experience Layer continuously compares present-day observations against accumulated institutional knowledge.
+
+Its objective is to detect systems approaching critical transitions.
+
+Emergence Intelligence answers questions such as:
+
+* Which historical patterns are beginning to repeat?
+* Which enabling conditions have already converged?
+* Which constraints remain unresolved?
+* Which technologies are approaching nonlinear adoption?
+* Which industries are nearing structural inflection?
+
+Emergence Intelligence transforms historical understanding into present-day awareness.
+
+---
+
+### Readiness Assessment
+
+Every emerging system SHALL be evaluated using multiple readiness dimensions.
+
+Illustrative dimensions include:
+
+* Scientific Readiness
+* Technology Readiness
+* Manufacturing Readiness
+* Supply-Chain Readiness
+* Infrastructure Readiness
+* Regulatory Readiness
+* Capital Readiness
+* Market Readiness
+* Adoption Readiness
+
+Collectively these dimensions estimate whether a system is approaching an inflection point.
+
+---
+
+### Evolution Intelligence
+
+Evolution Intelligence studies how systems evolve over time.
+
+Typical stages include:
+
+Emergence
+
+↓
+
+Experimentation
+
+↓
+
+Commercialization
+
+↓
+
+Acceleration
+
+↓
+
+Hypergrowth
+
+↓
+
+Institutional Adoption
+
+↓
+
+Maturity
+
+↓
+
+Transformation
+
+↓
+
+Decline (where applicable)
+
+Evolution Intelligence enables comparison between present-day systems and historical trajectories.
+
+---
+
+### Architectural Rules
+
+- **AR-0801** — The Experience Layer SHALL continuously improve institutional intelligence.
+- **AR-0802** — Scientific Memory SHALL preserve validated organizational knowledge.
+- **AR-0803** — Historical Intelligence SHALL study systems rather than isolated entities.
+- **AR-0804** — Historical Pattern Intelligence SHALL identify recurring structural patterns.
+- **AR-0805** — Principle Extraction SHALL convert historical observations into reusable scientific principles.
+- **AR-0806** — Analogical Intelligence SHALL discover structurally similar historical situations.
+- **AR-0807** — Emergence Intelligence SHALL continuously evaluate present-day readiness.
+- **AR-0808** — Readiness Assessment SHALL remain multi-dimensional.
+- **AR-0809** — Evolution Intelligence SHALL model complete historical trajectories.
+- **AR-0810** — Institutional Intelligence SHALL continuously improve future reasoning.
+
+---
+
+### Requirements Introduced
+
+- **REQ-EX-001** — Scientific Memory
+- **REQ-EX-002** — Institutional Intelligence
+- **REQ-EX-003** — Historical Intelligence
+- **REQ-EX-004** — Historical Pattern Intelligence
+- **REQ-EX-005** — Principle Extraction
+- **REQ-EX-006** — Analogical Intelligence
+- **REQ-EX-007** — Emergence Intelligence
+- **REQ-EX-008** — Readiness Assessment
+- **REQ-EX-009** — Evolution Intelligence
+- **REQ-EX-010** — Organizational Learning
+
+---
+
+### Future Dependencies
+
+Referenced by:
+
+* EIOS-009 — Scientific Discovery
+* GEN-001 — Genesis Discovery Engine
+* GEN-002 — Technology Intelligence Engine
+* GEN-003 — Economic Intelligence Engine
+* PROM-001 — Investment Thesis Engine
+* PROM-002 — Portfolio Intelligence
+* PROM-003 — Capital Allocation Intelligence
+* Personal CIO
+
+---
+
+### Cross References
+
+- **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007
+- **Builds Upon:** Scientific Memory; Historical Replay; Model Portfolios; Collective Learning
+- **Defines:** Experience Layer; Institutional Intelligence; Historical Intelligence; Historical Pattern Intelligence; Principle Extraction; Analogical Intelligence; Emergence Intelligence; Evolution Intelligence
+- **Referenced By:** Scientific Discovery, Genesis, Prometheus, Personal CIO, Opportunity Detection, Technology Intelligence, Economic Intelligence, Replay Engine, and all future institutional learning capabilities
+
+<!-- END:CHAPTER:EIOS-008 -->
 
 <!-- END:PART:COGNITIVE_ARCHITECTURE -->
 
