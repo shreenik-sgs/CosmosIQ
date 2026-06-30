@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 1.3 |
+| Version | 1.4 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -42,7 +42,7 @@ Each architectural term is defined exactly once, here. Chapters reference these 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 1.3
+version: 1.4
 authoritative: true
 target_generator: Claude Code
 -->
@@ -691,6 +691,26 @@ These responsibilities are consequences of the architectural principles establis
 
 ---
 
+### 1.9 Non-Goals
+
+The following capabilities are explicitly outside the architectural purpose of EIOS.
+
+EIOS is NOT:
+
+* a stock screener
+* a trading algorithm
+* a portfolio optimizer
+* an LLM wrapper
+* a chatbot
+* a rule engine
+* a reporting dashboard
+* a relational database
+* a business intelligence tool
+
+These capabilities may exist as applications constructed upon EIOS, but SHALL NOT define the architecture itself.
+
+---
+
 ### Cross References
 
 - **Conforms To:** EIOS-000
@@ -864,25 +884,74 @@ Knowledge Objects constitute the canonical persistence model of EIOS.
 
 Every persistent concept SHALL be represented as exactly one Knowledge Object type.
 
-Knowledge Objects include, but are not limited to:
-
-* Companies
-* Technologies
-* Products
-* Scientific discoveries
-* Supply chains
-* Manufacturing facilities
-* Governments
-* Regulations
-* Economic indicators
-* Megatrends
-* Risks
-* Opportunities
-* Investment theses
-* Portfolios
-* Research reports
-
 Future domains SHALL extend the ontology rather than introducing parallel persistence models.
+
+---
+
+### Canonical Object Categories
+
+Persistent Knowledge Objects include the following canonical categories:
+
+* Entity
+* Relationship
+* Observation
+* Evidence
+* Fact
+* Knowledge Object
+* Research Question
+* Hypothesis
+* Prediction
+* Decision
+* Experience
+* Simulation
+* Scenario
+* Concept
+* Principle
+* Constraint
+* Opportunity
+* Policy
+
+Future chapters SHALL reference these canonical object definitions rather than redefining them.
+
+---
+
+### Concept Objects
+
+Concepts represent abstract ideas that participate in reasoning but do not exist as physical entities.
+
+Illustrative examples include:
+
+* Inflation
+* Scarcity
+* Competition
+* Network Effects
+* Learning Curves
+* Comparative Advantage
+* Optionality
+* Platform Effects
+* Economies of Scale
+
+Concepts SHALL be reusable across multiple domains.
+
+---
+
+### Principle Objects
+
+Principles represent reusable explanatory mechanisms that describe recurring behavior within systems.
+
+Illustrative examples include:
+
+* Moore's Law
+* Wright's Law
+* Metcalfe's Law
+* Jevons Paradox
+* Pareto Principle
+* Comparative Advantage
+* Experience Curves
+
+Principles SHALL be first-class reasoning objects.
+
+Scientific cognition SHALL reason with principles rather than merely storing them.
 
 ---
 
@@ -1036,6 +1105,25 @@ The World Model incorporates:
 * Experience Layer
 
 The World Model SHALL therefore be defined separately in Chapter EIOS-003.
+
+---
+
+### Canonical Definition Rule
+
+Every architectural concept SHALL possess exactly one canonical definition.
+
+Subsequent chapters SHALL reference that definition rather than redefining the concept.
+
+This rule applies to:
+
+* Object definitions
+* Architectural constructs
+* Graphs
+* Cognitive concepts
+* System concepts
+* Reasoning concepts
+
+This preserves architectural consistency as the platform evolves.
 
 ---
 
@@ -1472,6 +1560,76 @@ Counterfactual Futures
 Only observed reality influences confidence directly.
 
 Forecasts influence hypotheses.
+
+---
+
+### World Model Views
+
+Views are persistent projections of the World Model optimized for a class of investigations.
+
+Illustrative Views include:
+
+* Technology View
+* Scientific View
+* Capital View
+* Supply View
+* Demand View
+* Infrastructure View
+* Resource View
+* Policy View
+* Risk View
+
+Views remain derived from the World Model.
+
+The World Model remains the single canonical representation of observable reality.
+
+---
+
+### Event Layer
+
+Events represent discrete occurrences that modify one or more system states.
+
+Illustrative events include:
+
+* Patent granted
+* Factory opened
+* Factory destroyed
+* Regulation enacted
+* Acquisition completed
+* Scientific breakthrough
+* Product released
+
+Events SHALL remain distinct from system state.
+
+State describes what currently exists.
+
+Events describe what caused change.
+
+---
+
+### Belief Layer
+
+Reality and observed behavior frequently diverge.
+
+The World Model SHALL distinguish:
+
+Observed Reality
+
+↓
+
+Beliefs
+
+↓
+
+Behavior
+
+↓
+
+Observable Outcomes
+
+Beliefs influence markets, policy, organizations, and individuals.
+
+The architecture SHALL therefore represent beliefs independently of objective reality.
 
 ---
 
@@ -2000,6 +2158,16 @@ Knowledge evolution includes:
 Evolution SHALL preserve complete historical lineage.
 
 Earlier understanding SHALL remain replayable.
+
+---
+
+### Ontology Clarification
+
+Research Questions, Hypotheses, Predictions, Decisions, Experiences, Concepts, and Principles SHALL be defined exclusively within EIOS-002 — Knowledge Model.
+
+EIOS-004 defines their cognitive lifecycle rather than their structural representation.
+
+Future chapters SHALL reference the canonical ontology defined by the Knowledge Model.
 
 ---
 
@@ -2626,6 +2794,16 @@ Opportunity analysis SHALL consider:
 
 ---
 
+### Network-Centric Terminology
+
+The architecture SHALL prefer network-centric terminology.
+
+Wherever architectural language refers to linear "chains" in a purely conceptual sense, it SHALL be understood as a network.
+
+Linear chains—such as a real-world supply chain—SHALL be treated as specialized projections of richer dependency networks.
+
+---
+
 ### Architectural Rules
 
 - **AR-0501** — Systems SHALL be the primary unit of analysis.
@@ -3050,6 +3228,21 @@ Different applications MAY construct specialized Intelligence Graphs while remai
 
 ---
 
+### Decision Graph
+
+The Decision Graph represents a structured projection of actionable alternatives derived from the Intelligence Graph.
+
+It SHALL remain distinct from:
+
+- **Knowledge Graph** — persistent validated knowledge.
+- **World Model** — canonical representation of reality.
+- **Intelligence Graph** — analytical representation of interconnected systems.
+- **Decision Graph** — action-oriented representation of feasible choices, expected consequences, trade-offs, confidence, and recommendations.
+
+Applications such as Prometheus MAY construct specialized Decision Graphs while remaining consistent with the Intelligence Graph.
+
+---
+
 ### Architectural Rules
 
 - **AR-0601** — Networks SHALL be primary analytical structures.
@@ -3062,6 +3255,7 @@ Different applications MAY construct specialized Intelligence Graphs while remai
 - **AR-0608** — Opportunity Networks SHALL emerge through network convergence.
 - **AR-0609** — The Intelligence Graph SHALL derive from the World Model.
 - **AR-0610** — Architectural reasoning SHALL remain independent of specific graph algorithms.
+- **AR-0611** — The Decision Graph SHALL derive exclusively from the Intelligence Graph; applications SHALL NOT bypass analytical reasoning by constructing decisions directly from the World Model.
 
 ---
 
@@ -3077,6 +3271,7 @@ Different applications MAY construct specialized Intelligence Graphs while remai
 - **REQ-ISI-008** — Network Evolution
 - **REQ-ISI-009** — Intelligence Graph
 - **REQ-ISI-010** — Multi-Hop Intelligence
+- **REQ-ISI-011** — Decision Graph Representation
 
 ---
 
@@ -3099,7 +3294,7 @@ Referenced by:
 ### Cross References
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005
-- **Defines:** Interconnected Systems Intelligence; Network Ontology; Network Types; Dependency Networks; Flow Networks; Influence Networks; Opportunity Networks; Constraint Networks; Intelligence Graph
+- **Defines:** Interconnected Systems Intelligence; Network Ontology; Network Types; Dependency Networks; Flow Networks; Influence Networks; Opportunity Networks; Constraint Networks; Intelligence Graph; Decision Graph
 - **Referenced By:** All scientific, economic, technological, investment, simulation, replay, orchestration, and autonomous intelligence subsystems
 
 <!-- END:CHAPTER:EIOS-006 -->
