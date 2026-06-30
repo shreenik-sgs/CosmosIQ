@@ -240,5 +240,23 @@ class TestVerticalSliceIREN(unittest.TestCase):
             self.assertNotIn(f, fields)
 
 
+    # --- IMPLEMENTATION-005: the slice exposes the REAL Investment Action -------
+    def test_vertical_slice_exposes_real_investment_action(self):
+        from prometheus.investment_action import InvestmentAction, ManualExecutionIntent
+        action = self.r.action
+        # r.action is the real, gated, boundary-clean governed action candidate...
+        self.assertIsInstance(action, InvestmentAction)
+        self.assertNotIsInstance(action, ManualExecutionIntent)
+        self.assertEqual(action.action_type, "enter_candidate")
+        self.assertEqual(action.action_status, "timing_confirmed_candidate")
+        self.assertEqual(action.source_thesis_id, self.r.thesis.id)
+        self.assertIn(self.r.thesis.id, {r.object_id for r in action.provenance.sources})
+        # ...and it carries NO allocation / order / side / ticket field.
+        fields = set(type(action).__dataclass_fields__.keys())
+        for bad in ("intended_allocation", "allocation", "position_size", "side",
+                    "quantity", "order_type", "limit_price", "broker_order_id"):
+            self.assertNotIn(bad, fields)
+
+
 if __name__ == "__main__":
     unittest.main()

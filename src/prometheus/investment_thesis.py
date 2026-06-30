@@ -310,10 +310,10 @@ class _ToyInvestmentThesis(ReasoningObject):
     diligence; it simply carries an instrument + allocation + timing forward so the
     legacy action -> ticket path still resolves. It is a SEPARATE class from the real
     gated ``InvestmentThesis`` and must never leak its instrument / allocation /
-    timing fields into it. REMOVE this shim (and the ``instrument`` /
-    ``intended_allocation`` / ``timing`` fallbacks in ``make_investment_action``) when
-    the real Investment Action layer is implemented and the slice no longer threads
-    allocation through a thesis. The real, gated, allocation-free thesis is
+    timing fields into it. It is now ONLY a convenient source object for the labelled
+    ``ManualExecutionIntent`` compatibility shim; REMOVE this thesis shim when
+    Saarathi (Personal CIO) performs real sizing and the slice no longer threads
+    allocation through a reasoning object. The real, gated, allocation-free thesis is
     ``InvestmentThesis`` via ``generate_investment_thesis``.
     """
 

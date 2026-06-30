@@ -15,7 +15,7 @@ from eios_core.ids import iso_from_epoch
 from reality_intelligence.intelligence_assessment import make_intelligence_assessment
 from genesis.opportunity_hypothesis import make_opportunity_hypothesis
 from prometheus.investment_thesis import make_investment_thesis
-from prometheus.investment_action import make_investment_action
+from prometheus.investment_action import make_manual_execution_intent
 
 
 class TestNoUpstreamMutation(unittest.TestCase):
@@ -37,7 +37,9 @@ class TestNoUpstreamMutation(unittest.TestCase):
         ia_snapshot = copy.deepcopy(ia)
         oph = make_opportunity_hypothesis(ia, "S", "h", actor="t", now=0)
         thesis = make_investment_thesis(oph, "IREN", 2000.0, actor="t", now=0)
-        make_investment_action(thesis, "enter", actor="t", now=0)
+        make_manual_execution_intent(
+        thesis, instrument="IREN", intended_allocation=2000.0,
+        side="buy", action_type="enter", timing="now", actor="t", now=0)
 
         # Upstream objects are unchanged after downstream construction.
         self.assertEqual(obs, obs_snapshot)

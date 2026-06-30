@@ -12,7 +12,7 @@ from eios_core.provenance import Provenance
 from reality_intelligence.intelligence_assessment import make_intelligence_assessment
 from genesis.opportunity_hypothesis import make_opportunity_hypothesis
 from prometheus.investment_thesis import make_investment_thesis
-from prometheus.investment_action import make_investment_action
+from prometheus.investment_action import make_manual_execution_intent
 from personal_cio.personal_investment_profile import make_personal_investment_profile
 from personal_cio.personalized_action import make_personalized_action
 from execution_manual.manual_trade_ticket import create_or_get_ticket
@@ -24,7 +24,9 @@ def _ticket(now=0, price=10.0):
     ia = make_intelligence_assessment([obs], "IREN", "a", actor="t", now=0)
     oph = make_opportunity_hypothesis(ia, "IREN", "h", actor="t", now=0)
     thesis = make_investment_thesis(oph, "IREN", 2000.0, actor="t", now=0)
-    action = make_investment_action(thesis, "enter", actor="t", now=0)
+    action = make_manual_execution_intent(
+        thesis, instrument="IREN", intended_allocation=2000.0,
+        side="buy", action_type="enter", timing="now", actor="t", now=0)
     profile = make_personal_investment_profile("ACCT", actor="t", now=0)
     psa = make_personalized_action(action, profile, actor="t", now=0)
     params = {"order_type": "limit", "limit_price": price, "venue": "IBKR", "price": price}

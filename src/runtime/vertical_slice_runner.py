@@ -25,7 +25,10 @@ from reality_intelligence.intelligence_assessment import generate_intelligence_a
 from genesis.opportunity_hypothesis import generate_opportunity_hypothesis
 from prometheus.investment_thesis import generate_investment_thesis
 from prometheus.diligence_inputs import CandidateInput, DiligenceInputs
-from prometheus.investment_action import make_investment_action
+from prometheus.investment_action import (
+    generate_investment_action,
+    make_manual_execution_intent,
+)
 from prometheus.position_lifecycle import position_state
 from personal_cio.personal_investment_profile import make_personal_investment_profile
 from personal_cio.personalized_action import make_personalized_action
@@ -223,17 +226,25 @@ def run_iren_slice(
         actor="prometheus",
         now=t0,
     )
-    # TOY bridge (no action alpha): the thesis carries no allocation, so the
-    # instrument / allocation / timing are supplied explicitly here to thread the
-    # manual-execution slice.
-    action = make_investment_action(
-        thesis, "enter", actor="prometheus", now=t0,
+    # Nivesha's Investment Action layer converts the gated thesis into a REAL,
+    # boundary-clean governed model action candidate (no allocation, no order).
+    action = generate_investment_action(thesis, actor="prometheus", now=t0)
+    # TEMPORARY COMPATIBILITY step (no action alpha): the real action carries no
+    # allocation / side, so a labelled ManualExecutionIntent threads the instrument
+    # / allocation / side the manual-execution (Kriya) path still reads. REMOVE
+    # when Saarathi performs real sizing.
+    manual_intent = make_manual_execution_intent(
+        action,
         instrument=thesis.security_or_instrument_mapping or instrument,
         intended_allocation=intended_allocation,
-        timing="emerging",
+        side="buy", action_type="enter", timing="emerging",
+        actor="prometheus", now=t0,
     )
     profile = make_personal_investment_profile(account=account, actor="personal-cio", now=t0)
-    personalized = make_personalized_action(action, profile, actor="personal-cio", now=t0, priority=1)
+    personalized = make_personalized_action(
+        manual_intent, profile, actor="personal-cio", now=t0, priority=1,
+        intended_allocation=intended_allocation,
+    )
 
     grounding = {
         "investment_action_version": action.version,
@@ -256,7 +267,7 @@ def run_iren_slice(
         "queue_item_id": stable_id("QUE", action.id),
         "risk_warning": "limit order may not fill",
     }
-    ticket1 = create_or_get_ticket(registry, action, personalized, params, now=t0)
+    ticket1 = create_or_get_ticket(registry, manual_intent, personalized, params, now=t0)
     audit.append(t0, ticket1.id, "ticket_created", actor,
                  payload={"quantity": ticket1.quantity, "preview_hash": ticket1.preview_hash},
                  grounding_versions=grounding)
@@ -335,7 +346,7 @@ def run_iren_slice(
                  payload={"all_reconciled": reconciliation.all_reconciled})
 
     # --- Derived position + feedback Observation up the chain --------------
-    position = position_state([action], fills)
+    position = position_state([manual_intent], fills)
     feedback_sources = (placed.ref("ManualTradeTicket"),) + tuple(f.ref("Fill") for f in fills)
     feedback = Observation(
         id=stable_id("OBS", "feedback", placed.id),

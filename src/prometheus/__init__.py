@@ -30,12 +30,20 @@ from .technical_inflection import analyze_technical_inflection, TechnicalInflect
 from .repricing_trigger import analyze_repricing_trigger, RepricingTriggerResult
 from .investment_action import (
     InvestmentAction,
-    make_investment_action,
+    generate_investment_action,
     ACTION_TYPES,
-    TRADE_ACTIONS,
-    side_for_action,
+    ACTION_STATUSES,
+    URGENCY_LEVELS,
+    ManualExecutionIntent,
+    make_manual_execution_intent,
 )
-from .position_lifecycle import PositionState, position_state
+from .position_lifecycle import (
+    PositionState,
+    position_state,
+    PositionContext,
+    LIFECYCLE_STATES,
+    THESIS_DIRECTIONS,
+)
 
 __all__ = [
     "InvestmentThesis",
@@ -56,10 +64,15 @@ __all__ = [
     "analyze_technical_inflection", "TechnicalInflectionResult",
     "analyze_repricing_trigger", "RepricingTriggerResult",
     "InvestmentAction",
-    "make_investment_action",
+    "generate_investment_action",
     "ACTION_TYPES",
-    "TRADE_ACTIONS",
-    "side_for_action",
+    "ACTION_STATUSES",
+    "URGENCY_LEVELS",
+    "ManualExecutionIntent",
+    "make_manual_execution_intent",
     "PositionState",
     "position_state",
+    "PositionContext",
+    "LIFECYCLE_STATES",
+    "THESIS_DIRECTIONS",
 ]
