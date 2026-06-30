@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 4.6 |
+| Version | 4.7 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -52,7 +52,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Historical Scientific Intelligence | The Experience Layer capability that extracts enduring, reusable scientific understanding from historical reality — cases, transitions, successes, and failures — rather than merely recording history. | EIOS-008 | Historical Case, Scientific Principle | Cognitive Architecture |
 | Historical Case | A bounded, replayable observation of reality over a defined period, preserving its full scientific context; the unit from which scientific principles are extracted. | EIOS-008 | Historical Scientific Intelligence, Scientific Principle | Cognitive Architecture |
 | Scientific Principle | A Principle (EIOS-002) generalized from recurring mechanisms across multiple independent Historical Cases; preserves supporting cases, evidence, models, confidence, applicability, and limits; continuously re-evaluable. | EIOS-008 | Principle, Candidate Scientific Law | Cognitive Architecture |
-| Candidate Scientific Law | A Scientific Principle showing persistent validity across many domains and long history, proposed with stronger evidence for validation. Experience proposes; Scientific Discovery validates. | EIOS-008 | Scientific Principle | Cognitive Architecture |
+| Candidate Scientific Law | A Scientific Principle showing persistent validity across many domains and long history, proposed with stronger evidence for validation. Experience (EIOS-008) proposes from accumulated historical evidence; Scientific Discovery (EIOS-009) adjudicates — promotes, refines, defers, rejects, or returns for investigation. | EIOS-008 | Scientific Principle | Cognitive Architecture |
 | Institutional Scientific Learning | The Experience Layer capability that turns accumulated scientific experience into enduring organizational intelligence — consolidation, confidence evolution, conflict preservation, maturity, continuity — so every validated discovery permanently improves future reasoning. | EIOS-008 | Institutional Intelligence, Institutional Wisdom | Cognitive Architecture |
 | Institutional Wisdom | The highest level of accumulated scientific understanding, emerging from long-term integration of validated experience, principles, candidate laws, and organizational learning; evidence-based and distinguished from opinion. | EIOS-008 | Institutional Scientific Learning, Scientific Principle | Cognitive Architecture |
 | Knowledge Consolidation | Combining related scientific understanding into coherent institutional knowledge while preserving provenance, uncertainty, and competing explanations; never discards contradictory evidence. | EIOS-008 | Institutional Scientific Learning | Cognitive Architecture |
@@ -118,7 +118,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 4.6
+version: 4.7
 authoritative: true
 target_generator: Claude Code
 -->
@@ -7955,15 +7955,15 @@ Scientific Principles SHALL remain continuously replayable.
 
 Some Scientific Principles demonstrate broad explanatory power across diverse situations.
 
-Scientific Discovery MAY promote such Principles to Candidate Scientific Laws.
+The Experience Layer proposes such Principles as Candidate Scientific Laws; Scientific Discovery then evaluates and adjudicates them through Investigation and Validation.
 
 Candidate Scientific Laws represent the strongest currently available scientific explanations.
 
-Candidate Scientific Law is defined canonically in the Experience Layer (EIOS-008) — Experience proposes, Scientific Discovery validates; this section describes how Discovery validates and evolves them.
+Candidate Scientific Law is defined canonically in the Experience Layer (EIOS-008): Experience proposes; Scientific Discovery adjudicates — promotes, refines, defers, rejects, or returns for investigation. This section describes Discovery's role in that lifecycle.
 
 Candidate Scientific Laws SHALL remain continuously challengeable.
 
-Promotion SHALL never imply permanent truth.
+Adjudication SHALL never imply permanent truth.
 
 ---
 
@@ -8103,6 +8103,156 @@ Integration SHALL preserve:
 * uncertainty
 
 Scientific Knowledge Integration SHALL provide the primary input to the Experience Layer.
+
+---
+
+### Scientific Generalization
+
+Scientific Discovery SHALL continuously determine whether validated understanding extends beyond the specific situations in which it was originally observed.
+
+Generalization SHALL preserve:
+
+* supporting Evidence
+* supporting Investigations
+* applicability
+* limitations
+* uncertainty
+
+Generalization SHALL remain continuously challengeable.
+
+---
+
+### Scientific Specialization
+
+Validated understanding MAY become more specialized as additional evidence reveals domain-specific behavior.
+
+Scientific Discovery SHALL preserve both generalized and specialized explanations where scientifically justified.
+
+Specialization SHALL preserve complete lineage to the originating Scientific Principles.
+
+---
+
+### Knowledge Integration
+
+Scientific Discovery SHALL continuously integrate validated understanding across multiple scientific domains.
+
+Integration SHALL preserve:
+
+* participating Scientific Principles
+* participating Candidate Scientific Laws
+* participating Models
+* supporting Evidence
+
+Integration SHALL remain scientifically explainable.
+
+---
+
+### Cross-Domain Theory Formation
+
+Scientific understanding frequently spans multiple domains.
+
+Scientific Discovery SHALL support the formation of cross-domain Scientific Theories.
+
+Illustrative domains include:
+
+* technology
+* economics
+* biology
+* physics
+* complex systems
+
+Cross-domain theories SHALL preserve the contribution of every participating domain.
+
+---
+
+### Candidate Law Promotion
+
+The Experience Layer proposes Candidate Scientific Laws based upon accumulated historical scientific understanding.
+
+Scientific Discovery SHALL evaluate every proposed Candidate Scientific Law through Investigation and Validation.
+
+Candidate Scientific Laws MAY be:
+
+* promoted
+* refined
+* deferred
+* rejected
+* returned for additional investigation
+
+Every promotion decision SHALL preserve complete scientific justification.
+
+---
+
+### Theory Refinement
+
+Scientific Theories SHALL continuously evolve through refinement.
+
+Refinement SHALL preserve:
+
+* previous theory
+* revised theory
+* triggering Evidence
+* supporting Scientific Principles
+* scientific justification
+
+Theory refinement SHALL remain replayable.
+
+---
+
+### Scientific Coherence
+
+Scientific Discovery SHALL continuously evaluate coherence across:
+
+* Scientific Principles
+* Candidate Scientific Laws
+* Scientific Theories
+* Models
+
+Scientific coherence SHALL preserve competing explanations where necessary.
+
+Perfect coherence SHALL never be required.
+
+---
+
+### Theory Portfolio
+
+Scientific Discovery SHALL maintain Theory Portfolios.
+
+A Theory Portfolio represents a coordinated collection of Scientific Theories describing related aspects of reality.
+
+Theory Portfolios SHALL preserve:
+
+* participating theories
+* participating principles
+* participating candidate laws
+* participating models
+
+Theory Portfolios SHALL remain continuously evolving.
+
+---
+
+### Scientific Worldview
+
+The complete collection of validated Scientific Theories represents the organization's current Scientific Worldview.
+
+The Scientific Worldview SHALL remain:
+
+* evidence-based
+* explainable
+* replayable
+* continuously revisable
+
+No Scientific Worldview SHALL be considered permanently complete.
+
+---
+
+### Continuous Scientific Evolution
+
+Scientific Discovery SHALL continuously evolve the organization's Scientific Worldview as reality changes.
+
+Continuous Scientific Evolution SHALL remain one of the primary responsibilities of Scientific Discovery.
+
+Every validated improvement SHALL strengthen future scientific reasoning throughout EIOS.
 
 ---
 
