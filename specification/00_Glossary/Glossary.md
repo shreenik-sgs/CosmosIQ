@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 1.8
+book_version: 1.9
 generator_version: 1.1
-source_hash: e040835717b1276b9e41faf44d417de4378d9fecdc905516644d19ec1b9ef444
-generated_at: 2026-06-29T20:19:53-05:00
+source_hash: 0d61feebf14b5b498623dac7d5e8b3bc7704b38b021a2e1560848726e0d4c319
+generated_at: 2026-06-29T20:54:32-05:00
 ---
 
 # Glossary
@@ -47,6 +47,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Network | A first-class analytical structure of nodes, relationships, flows, dependencies, and constraints; participants belong to many at once. | EIOS-006 | Intelligence Graph, Relationship | Foundational |
 | Intelligence Graph | A dynamic analytical projection assembled from interconnected networks to answer a class of questions; derived from the World Model, not a replacement for it. | EIOS-006 | World Model, Decision Graph | Foundational |
 | Decision Graph | A transient, goal-specific projection of feasible choices, consequences, trade-offs, and recommendations, derived exclusively from the Intelligence Graph; never a canonical representation of reality. | EIOS-006 | Intelligence Graph | Foundational |
+| Model Graph | The first-class graph of relationships among models — inheritance, specialization, composition, dependency, validation, refinement; the primary primitive for reasoning about models. The Model Registry is an index over it. | EIOS-007 | Model, Intelligence Graph | Cognitive Architecture |
 | Genesis | Operational subsystem that discovers transformations in real-world systems rather than searching directly for securities. | EIOS-001 | Prometheus, Personal CIO | Operational |
 | Prometheus | Operational subsystem that evaluates the implications of validated knowledge for publicly traded entities. | EIOS-001 | Genesis, Personal CIO | Operational |
 | Personal CIO | Operational subsystem that explains causal chains, quantifies uncertainty, and retains human accountability for recommendations. | EIOS-001 | Genesis, Prometheus | Operational |

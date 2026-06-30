@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 1.8
+book_version: 1.9
 generator_version: 1.1
-source_hash: e040835717b1276b9e41faf44d417de4378d9fecdc905516644d19ec1b9ef444
-generated_at: 2026-06-29T20:19:53-05:00
+source_hash: 0d61feebf14b5b498623dac7d5e8b3bc7704b38b021a2e1560848726e0d4c319
+generated_at: 2026-06-29T20:54:32-05:00
 ---
 
 # Architectural Rule Index
@@ -87,5 +87,15 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0708 | EIOS-007 — Models and Model Management | Competing models SHALL be permitted. |
 | AR-0709 | EIOS-007 — Models and Model Management | Model definition SHALL remain independent of execution. |
 | AR-0710 | EIOS-007 — Models and Model Management | Applications SHALL depend upon model interfaces rather than implementations. |
+| AR-0711 | EIOS-007 — Models and Model Management | Models SHALL be classified according to the canonical taxonomy. |
+| AR-0712 | EIOS-007 — Models and Model Management | Model inheritance SHALL preserve architectural contracts. |
+| AR-0713 | EIOS-007 — Models and Model Management | Model specialization SHALL narrow validity domains explicitly. |
+| AR-0714 | EIOS-007 — Models and Model Management | Composite models SHALL preserve constituent traceability. |
+| AR-0715 | EIOS-007 — Models and Model Management | Model dependencies SHALL be represented explicitly. |
+| AR-0716 | EIOS-007 — Models and Model Management | The Model Graph SHALL be maintained as a first-class architectural artifact. |
+| AR-0717 | EIOS-007 — Models and Model Management | Every model SHALL participate in the Model Ecology. |
+| AR-0718 | EIOS-007 — Models and Model Management | Model lineage SHALL remain replayable. |
+| AR-0719 | EIOS-007 — Models and Model Management | The Model Registry SHALL maintain canonical metadata. |
+| AR-0720 | EIOS-007 — Models and Model Management | Competing models SHALL coexist when supported by evidence. |
 
-_71 rules._
+_81 rules._
