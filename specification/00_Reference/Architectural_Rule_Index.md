@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 4.1
+book_version: 4.2
 generator_version: 1.1
-source_hash: 3eae38d99f325f42530c6fd2dec10f031e1f1541b2d32f247e2ee99d1a7b6186
-generated_at: 2026-06-29T23:29:28-05:00
+source_hash: f0ceba0fcc618e0aa387db755bf7747a80a49ac78b1d3105d8413f32aa297ec5
+generated_at: 2026-06-29T23:33:23-05:00
 ---
 
 # Architectural Rule Index
@@ -212,5 +212,20 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0928 | EIOS-009 — Scientific Discovery | Hypothesis Generation SHALL remain implementation independent. |
 | AR-0929 | EIOS-009 — Scientific Discovery | Scientific Discovery SHALL continuously generate alternative explanations when existing Hypotheses fail to explain observed reality. |
 | AR-0930 | EIOS-009 — Scientific Discovery | Scientific Discovery SHALL provide prioritized Hypothesis Portfolios to Scientific Investigation. |
+| AR-0931 | EIOS-009 — Scientific Discovery | Scientific Investigation SHALL execute Investigation Plans systematically while preserving complete replayability. |
+| AR-0932 | EIOS-009 — Scientific Discovery | Every Investigation SHALL preserve explicit traceability to participating Research Questions, Hypotheses, Models, and Evidence. |
+| AR-0933 | EIOS-009 — Scientific Discovery | Evidence Acquisition SHALL preserve complete provenance throughout its lifecycle. |
+| AR-0934 | EIOS-009 — Scientific Discovery | Scientific Observations SHALL remain explicitly distinguishable from interpretations, explanations, and conclusions. |
+| AR-0935 | EIOS-009 — Scientific Discovery | Evidence Evaluation SHALL remain independent from scientific validation. |
+| AR-0936 | EIOS-009 — Scientific Discovery | Evidence Synthesis SHALL preserve unresolved conflicts together with supporting evidence. |
+| AR-0937 | EIOS-009 — Scientific Discovery | The Evidence Graph SHALL remain synchronized with the Hypothesis Graph throughout Scientific Investigation. |
+| AR-0938 | EIOS-009 — Scientific Discovery | Comparative Investigation SHALL evaluate competing Hypotheses using consistent assumptions and common evidence. |
+| AR-0939 | EIOS-009 — Scientific Discovery | Counterfactual Investigation SHALL remain explicitly distinguishable from historical observation and empirical evidence. |
+| AR-0940 | EIOS-009 — Scientific Discovery | Simulation SHALL complement empirical investigation but SHALL NOT replace direct observation where such observation is reasonably obtainable. |
+| AR-0941 | EIOS-009 — Scientific Discovery | Investigation Coverage SHALL remain continuously observable and re-evaluable. |
+| AR-0942 | EIOS-009 — Scientific Discovery | Investigation Confidence SHALL represent confidence in the investigation process and SHALL remain independent from confidence in individual Hypotheses. |
+| AR-0943 | EIOS-009 — Scientific Discovery | Investigation Portfolios SHALL preserve coordinated scientific investigations while maintaining the autonomy of individual investigations. |
+| AR-0944 | EIOS-009 — Scientific Discovery | Investigation Orchestration SHALL optimize scientific value while preserving investigative diversity. |
+| AR-0945 | EIOS-009 — Scientific Discovery | Scientific Investigation SHALL provide evidence-based investigation outcomes to Validation & Falsification. |
 
-_196 rules._
+_211 rules._
