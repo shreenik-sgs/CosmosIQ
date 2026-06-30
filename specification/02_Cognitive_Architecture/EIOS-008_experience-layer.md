@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-008
 slug: experience-layer
-book_version: 2.3
+book_version: 2.4
 generator_version: 1.1
-source_hash: e08a7fa17d663f2c1087e5a78c63e06d2e1349e139a6220c202fa5c48622f3ec
-generated_at: 2026-06-29T21:31:25-05:00
+source_hash: 779d1c67fe530c6c8fc24b0742f8f43856fc3f8e44ff14d05c0f70f6ad523a39
+generated_at: 2026-06-29T21:52:38-05:00
 ---
 
 # EIOS-008 — Experience Layer
@@ -316,6 +316,171 @@ Transformation
 Decline (where applicable)
 
 Evolution Intelligence enables comparison between present-day systems and historical trajectories.
+
+---
+
+### System State Theory
+
+The Experience Layer is responsible not only for preserving institutional intelligence but also for continuously assessing the evolving state of complex adaptive systems.
+
+Every observed system exists in a continuously changing state.
+
+This state cannot be represented by a single scalar value.
+
+Instead, every system SHALL be represented as a multidimensional state vector describing its current capabilities, constraints, dependencies, maturity, and evolutionary direction.
+
+The purpose of the Experience Layer is to estimate this state as accurately as possible using accumulated scientific understanding.
+
+---
+
+### State Ontology
+
+A System State represents the current condition of a real-world system.
+
+System State is composed of multiple orthogonal dimensions.
+
+These include, but are not limited to:
+
+* Readiness State
+* Constraint State
+* Dependency State
+* Confidence State
+* Evolution State
+* Transition State
+
+Each dimension SHALL evolve independently while remaining interconnected through the World Model.
+
+---
+
+### Readiness Ontology
+
+Readiness represents the degree to which a system possesses the prerequisites required to successfully undergo a future transition.
+
+Readiness is neither binary nor static.
+
+Readiness SHALL be represented as a multidimensional vector rather than a single scalar.
+
+The purpose of Readiness is to estimate how prepared a system is for future transformation.
+
+---
+
+### Canonical Readiness Dimensions
+
+Unless superseded by domain-specific models, Readiness SHALL consider multiple independent dimensions.
+
+Illustrative dimensions include:
+
+* Scientific Readiness
+* Technology Readiness
+* Engineering Readiness
+* Manufacturing Readiness
+* Supply Chain Readiness
+* Infrastructure Readiness
+* Energy Readiness
+* Data Readiness
+* Talent Readiness
+* Standards Readiness
+* Regulatory Readiness
+* Capital Readiness
+* Market Readiness
+* Customer Readiness
+* Ecosystem Readiness
+* Environmental Readiness
+* Geopolitical Readiness
+
+The ontology intentionally remains extensible.
+
+Future domains MAY introduce additional readiness dimensions without modifying the foundational ontology.
+
+---
+
+### Readiness Vector
+
+A system SHALL expose its readiness as a vector of readiness dimensions rather than a single aggregate value.
+
+The Experience Layer SHALL preserve each readiness dimension independently.
+
+Aggregated readiness measures SHALL always remain derivable from the underlying vector.
+
+Vector representation preserves explainability, traceability, and future extensibility.
+
+---
+
+### Readiness Dependencies
+
+Readiness dimensions are not independent.
+
+Many readiness dimensions emerge only after prerequisite dimensions have matured.
+
+Illustrative examples include:
+
+* Manufacturing Readiness depends upon Engineering Readiness.
+* Commercial Readiness depends upon Manufacturing Readiness.
+* Market Readiness depends upon Commercial Readiness.
+* Large-scale Adoption depends upon Infrastructure, Capital, and Market Readiness.
+
+The Experience Layer SHALL explicitly represent readiness dependencies.
+
+---
+
+### Constraint Ontology
+
+Readiness describes capability.
+
+Constraints describe limitations.
+
+Constraints SHALL be modeled independently from readiness.
+
+A highly capable system may nevertheless remain constrained by one or more critical bottlenecks.
+
+Constraint analysis SHALL therefore remain a first-class architectural capability.
+
+---
+
+### Canonical Constraint Categories
+
+Illustrative constraint categories include:
+
+* Manufacturing Capacity
+* Raw Materials
+* Skilled Labor
+* Capital Availability
+* Energy Availability
+* Infrastructure Capacity
+* Regulatory Restrictions
+* Technology Limitations
+* Scientific Uncertainty
+* Supply Chain Fragility
+* Geopolitical Risk
+* Environmental Limits
+
+Future domains MAY introduce additional constraint categories.
+
+---
+
+### Constraint Propagation
+
+Constraints propagate through interconnected systems.
+
+A localized bottleneck may produce downstream effects across multiple industries, technologies, or value networks.
+
+The Experience Layer SHALL model constraint propagation through the World Model and associated Intelligence Graphs.
+
+Constraint propagation SHALL preserve causal relationships whenever possible.
+
+---
+
+### Convergence Theory
+
+Large-scale system transitions rarely occur because of a single enabling condition.
+
+Instead, transitions emerge through the convergence of multiple independently evolving readiness dimensions.
+
+Convergence represents the simultaneous satisfaction of critical enabling conditions.
+
+The Experience Layer SHALL continuously evaluate convergence across relevant readiness dimensions.
+
+Convergence SHALL be represented independently from individual readiness measures.
 
 ---
 
