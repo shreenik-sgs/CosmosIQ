@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 2.6
+book_version: 2.7
 generator_version: 1.1
-source_hash: 14bd19f4ae1e9d3b63f4436b5bdd8937a5b98ad92395ce185afc66321e568adc
-generated_at: 2026-06-29T22:11:03-05:00
+source_hash: 1d000d7d404b73a29efed2de8b78b997562693cd6bc122baedf9b7458e1f913a
+generated_at: 2026-06-29T22:15:47-05:00
 ---
 
 # Architectural Rule Index
@@ -137,5 +137,20 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0808 | EIOS-008 — Experience Layer | Readiness Assessment SHALL remain multi-dimensional. |
 | AR-0809 | EIOS-008 — Experience Layer | Evolution Intelligence SHALL model complete historical trajectories. |
 | AR-0810 | EIOS-008 — Experience Layer | Institutional Intelligence SHALL continuously improve future reasoning. |
+| AR-0811 | EIOS-008 — Experience Layer | Emergence Assessment SHALL remain a continuous architectural capability. |
+| AR-0812 | EIOS-008 — Experience Layer | Emergence Readiness SHALL be derived from underlying system evidence rather than isolated observations. |
+| AR-0813 | EIOS-008 — Experience Layer | Readiness Momentum SHALL remain independent from absolute readiness. |
+| AR-0814 | EIOS-008 — Experience Layer | Constraint Release SHALL be evaluated independently from readiness evolution. |
+| AR-0815 | EIOS-008 — Experience Layer | Convergence Assessment SHALL preserve visibility into contributing readiness dimensions. |
+| AR-0816 | EIOS-008 — Experience Layer | Historical Analog Assessment SHALL inform scientific reasoning but SHALL NOT determine scientific conclusions. |
+| AR-0817 | EIOS-008 — Experience Layer | All architectural assessments SHALL preserve explainability, provenance, and replayability. |
+| AR-0818 | EIOS-008 — Experience Layer | Time-to-Inflection SHALL always preserve uncertainty and SHALL NOT be interpreted as deterministic prediction. |
+| AR-0819 | EIOS-008 — Experience Layer | Canonical architectural assessments SHALL remain implementation independent. |
+| AR-0820 | EIOS-008 — Experience Layer | Emergence indicators SHALL remain extensible without architectural modification. |
+| AR-0821 | EIOS-008 — Experience Layer | Continuous Assessment SHALL be triggered by changes in scientific understanding rather than fixed execution intervals. |
+| AR-0822 | EIOS-008 — Experience Layer | Independent architectural assessments SHALL preserve separate provenance. |
+| AR-0823 | EIOS-008 — Experience Layer | Composite assessments SHALL remain decomposable into their supporting architectural assessments. |
+| AR-0824 | EIOS-008 — Experience Layer | Scientific Interpretation SHALL remain separate from architectural assessment. |
+| AR-0825 | EIOS-008 — Experience Layer | Emergence Intelligence SHALL continuously support Scientific Discovery through evidence-based assessment of evolving systems. |
 
-_121 rules._
+_136 rules._

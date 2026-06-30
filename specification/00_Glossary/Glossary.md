@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 2.6
+book_version: 2.7
 generator_version: 1.1
-source_hash: 14bd19f4ae1e9d3b63f4436b5bdd8937a5b98ad92395ce185afc66321e568adc
-generated_at: 2026-06-29T22:11:03-05:00
+source_hash: 1d000d7d404b73a29efed2de8b78b997562693cd6bc122baedf9b7458e1f913a
+generated_at: 2026-06-29T22:15:47-05:00
 ---
 
 # Glossary
@@ -33,6 +33,11 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Replay | Historical replay: scientific re-validation against a point-in-time reconstruction of the world; a precondition of production. | EIOS-000 (CI-008) | Confidence, FI-002 | Constitutional |
 | Experience Layer | The institutional memory of scientific understanding — validated models, reasoning strategies, replay outcomes, lessons learned — that turns accumulated experience into reusable institutional intelligence. | EIOS-008 | Scientific Memory, Institutional Intelligence | Cognitive Architecture |
 | Institutional Intelligence | The collective scientific capability accumulated through continuous experience; unlike memory, it actively improves reasoning (analogy, pattern recognition, principle extraction, strategy selection). | EIOS-008 | Experience Layer, Scientific Memory | Cognitive Architecture |
+| System State | A real-world system's condition as a multidimensional state vector (readiness, constraint, dependency, confidence, evolution, transition), not a scalar; estimated continuously by the Experience Layer. | EIOS-008 | Readiness, Experience Layer | Cognitive Architecture |
+| Readiness | The degree to which a system holds the prerequisites for a future transition; an extensible multidimensional vector (not a scalar), with momentum (direction of change) tracked separately. | EIOS-008 | System State, Constraint Release | Cognitive Architecture |
+| Constraint Release | The reduction or elimination of limiting conditions that previously blocked system evolution; often precedes major transitions; tracked independently of readiness (measured by CRI). | EIOS-008 | Constraint, Readiness | Cognitive Architecture |
+| Convergence | The simultaneous satisfaction of multiple independently evolving readiness dimensions; major transitions emerge from convergence rather than any single condition (measured by CAS). | EIOS-008 | Readiness, Emergence Readiness Score | Cognitive Architecture |
+| Emergence Readiness Score | The headline architectural assessment (ERS) of how prepared a system appears for significant transition; an architectural concept, not a prescribed algorithm — one of six (ERS, RM, CRI, CAS, HAS, TTI). | EIOS-008 | Readiness, Convergence | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |

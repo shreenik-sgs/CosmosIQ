@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-008
 slug: experience-layer
-book_version: 2.6
+book_version: 2.7
 generator_version: 1.1
-source_hash: 14bd19f4ae1e9d3b63f4436b5bdd8937a5b98ad92395ce185afc66321e568adc
-generated_at: 2026-06-29T22:11:03-05:00
+source_hash: 1d000d7d404b73a29efed2de8b78b997562693cd6bc122baedf9b7458e1f913a
+generated_at: 2026-06-29T22:15:47-05:00
 ---
 
 # EIOS-008 — Experience Layer
@@ -863,6 +863,21 @@ Architectural assessments therefore inform scientific judgment without determini
 - **AR-0808** — Readiness Assessment SHALL remain multi-dimensional.
 - **AR-0809** — Evolution Intelligence SHALL model complete historical trajectories.
 - **AR-0810** — Institutional Intelligence SHALL continuously improve future reasoning.
+- **AR-0811** — Emergence Assessment SHALL remain a continuous architectural capability.
+- **AR-0812** — Emergence Readiness SHALL be derived from underlying system evidence rather than isolated observations.
+- **AR-0813** — Readiness Momentum SHALL remain independent from absolute readiness.
+- **AR-0814** — Constraint Release SHALL be evaluated independently from readiness evolution.
+- **AR-0815** — Convergence Assessment SHALL preserve visibility into contributing readiness dimensions.
+- **AR-0816** — Historical Analog Assessment SHALL inform scientific reasoning but SHALL NOT determine scientific conclusions.
+- **AR-0817** — All architectural assessments SHALL preserve explainability, provenance, and replayability.
+- **AR-0818** — Time-to-Inflection SHALL always preserve uncertainty and SHALL NOT be interpreted as deterministic prediction.
+- **AR-0819** — Canonical architectural assessments SHALL remain implementation independent.
+- **AR-0820** — Emergence indicators SHALL remain extensible without architectural modification.
+- **AR-0821** — Continuous Assessment SHALL be triggered by changes in scientific understanding rather than fixed execution intervals.
+- **AR-0822** — Independent architectural assessments SHALL preserve separate provenance.
+- **AR-0823** — Composite assessments SHALL remain decomposable into their supporting architectural assessments.
+- **AR-0824** — Scientific Interpretation SHALL remain separate from architectural assessment.
+- **AR-0825** — Emergence Intelligence SHALL continuously support Scientific Discovery through evidence-based assessment of evolving systems.
 
 ---
 
@@ -878,6 +893,21 @@ Architectural assessments therefore inform scientific judgment without determini
 - **REQ-EX-008** — Readiness Assessment
 - **REQ-EX-009** — Evolution Intelligence
 - **REQ-EX-010** — Organizational Learning
+- **REQ-EX-011** — Emergence Assessment
+- **REQ-EX-012** — Readiness Evolution
+- **REQ-EX-013** — Readiness Momentum
+- **REQ-EX-014** — Constraint Evolution
+- **REQ-EX-015** — Constraint Release
+- **REQ-EX-016** — Convergence Assessment
+- **REQ-EX-017** — Transition Assessment
+- **REQ-EX-018** — Transition Trajectory
+- **REQ-EX-019** — Historical Analog Assessment
+- **REQ-EX-020** — Continuous Assessment
+- **REQ-EX-021** — Scientific Explainability
+- **REQ-EX-022** — Emergence Readiness Score
+- **REQ-EX-023** — Convergence Alignment
+- **REQ-EX-024** — Time-to-Inflection
+- **REQ-EX-025** — Assessment Independence
 
 ---
 
@@ -900,5 +930,5 @@ Referenced by:
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007
 - **Builds Upon:** Scientific Memory; Historical Replay; Model Portfolios; Collective Learning
-- **Defines:** Experience Layer; Institutional Intelligence; Historical Intelligence; Historical Pattern Intelligence; Principle Extraction; Analogical Intelligence; Emergence Intelligence; Evolution Intelligence
+- **Defines:** Experience Layer; Institutional Intelligence; Historical Intelligence; Historical Pattern Intelligence; Principle Extraction; Analogical Intelligence; Emergence Intelligence; Evolution Intelligence; System State; Readiness Ontology; Constraint Ontology; Convergence; Emergence Assessment; Readiness Momentum; Constraint Release; Transition Assessment; Transition Trajectory; Historical Analog Assessment; Emergence Readiness Score (ERS); Constraint Release Index (CRI); Convergence Alignment Score (CAS); Historical Analog Strength (HAS); Time-to-Inflection (TTI)
 - **Referenced By:** Scientific Discovery, Genesis, Prometheus, Personal CIO, Opportunity Detection, Technology Intelligence, Economic Intelligence, Replay Engine, and all future institutional learning capabilities
