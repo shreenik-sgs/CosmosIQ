@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 5.2
+book_version: 5.3
 generator_version: 1.1
-source_hash: a1026c0e030db04e5a0f791f63e779aec6106fa137d18420a63fdc7efe212f9c
-generated_at: 2026-06-30T02:04:23-05:00
+source_hash: c57af512f35b35ae30b288fa8dd646a2c657130ec79aa387b141c6c93f7b38fd
+generated_at: 2026-06-30T02:07:30-05:00
 ---
 
 # Architectural Rule Index
@@ -301,5 +301,19 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-1112 | EIOS-011 — Technology Intelligence | Technology Intelligence SHALL maintain continuously evolving technology understanding. |
 | AR-1113 | EIOS-011 — Technology Intelligence | Technology Intelligence SHALL provide Technology Intelligence Assessments and Products to the Intelligence Portfolio and to Genesis, grounding but not forming opportunities. |
 | AR-1114 | EIOS-011 — Technology Intelligence | Technology Intelligence SHALL remain implementation independent. |
+| AR-1201 | EIOS-012 — Economic Intelligence | Economic Intelligence SHALL form Intelligence Assessments about the economic domain, conforming to the Reality Intelligence contract (EIOS-010). |
+| AR-1202 | EIOS-012 — Economic Intelligence | Economic Intelligence SHALL reference the canonical Intelligence Assessment object and SHALL NOT redefine it, nor introduce new reasoning objects. |
+| AR-1203 | EIOS-012 — Economic Intelligence | Economic Intelligence assessments SHALL ground in the Scientific Worldview and the Experience Layer's value-network, capital, constraint, readiness, and timing understanding rather than recomputing them. |
+| AR-1204 | EIOS-012 — Economic Intelligence | Economic Transition Assessment SHALL ground in constraint-release, value-network, and capital-evolution understanding and SHALL preserve uncertainty. |
+| AR-1205 | EIOS-012 — Economic Intelligence | Value Network Assessment SHALL ground in value network and supply network evolution and SHALL preserve the contribution of each participating node and relationship. |
+| AR-1206 | EIOS-012 — Economic Intelligence | Capital Flow Assessment SHALL ground in capital evolution and capital propagation and SHALL express understanding of capital movement, not allocation guidance. |
+| AR-1207 | EIOS-012 — Economic Intelligence | Economic Constraint Assessment SHALL ground in the constraint and bottleneck understanding of Systems Theory and the Experience Layer. |
+| AR-1208 | EIOS-012 — Economic Intelligence | Economic Readiness and Timing Assessment SHALL ground in constraint-release and timing assessments, keep readiness distinct from timing, and preserve uncertainty. |
+| AR-1209 | EIOS-012 — Economic Intelligence | Economic Intelligence Assessments MAY influence assessments in other domains through the Intelligence Graph, preserving explicit justification, and SHALL NOT reach into how other domains form their understanding. |
+| AR-1210 | EIOS-012 — Economic Intelligence | Economic Intelligence Products SHALL be compositions of Economic Intelligence Assessments without independent canonical identity. |
+| AR-1211 | EIOS-012 — Economic Intelligence | Economic Intelligence SHALL express understanding only and SHALL NOT assign value, opportunity, or investability. |
+| AR-1212 | EIOS-012 — Economic Intelligence | Economic Intelligence SHALL maintain continuously evolving economic understanding. |
+| AR-1213 | EIOS-012 — Economic Intelligence | Economic Intelligence SHALL provide Economic Intelligence Assessments and Products to the Intelligence Portfolio and to Genesis, grounding but not forming opportunities. |
+| AR-1214 | EIOS-012 — Economic Intelligence | Economic Intelligence SHALL remain implementation independent. |
 
-_285 rules._
+_299 rules._
