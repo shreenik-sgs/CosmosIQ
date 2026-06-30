@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 3.2 |
+| Version | 3.3 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -53,6 +53,10 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Historical Case | A bounded, replayable observation of reality over a defined period, preserving its full scientific context; the unit from which scientific principles are extracted. | EIOS-008 | Historical Scientific Intelligence, Scientific Principle | Cognitive Architecture |
 | Scientific Principle | A Principle (EIOS-002) generalized from recurring mechanisms across multiple independent Historical Cases; preserves supporting cases, evidence, models, confidence, applicability, and limits; continuously re-evaluable. | EIOS-008 | Principle, Candidate Scientific Law | Cognitive Architecture |
 | Candidate Scientific Law | A Scientific Principle showing persistent validity across many domains and long history, proposed with stronger evidence for validation. Experience proposes; Scientific Discovery validates. | EIOS-008 | Scientific Principle | Cognitive Architecture |
+| Institutional Scientific Learning | The Experience Layer capability that turns accumulated scientific experience into enduring organizational intelligence — consolidation, confidence evolution, conflict preservation, maturity, continuity — so every validated discovery permanently improves future reasoning. | EIOS-008 | Institutional Intelligence, Institutional Wisdom | Cognitive Architecture |
+| Institutional Wisdom | The highest level of accumulated scientific understanding, emerging from long-term integration of validated experience, principles, candidate laws, and organizational learning; evidence-based and distinguished from opinion. | EIOS-008 | Institutional Scientific Learning, Scientific Principle | Cognitive Architecture |
+| Knowledge Consolidation | Combining related scientific understanding into coherent institutional knowledge while preserving provenance, uncertainty, and competing explanations; never discards contradictory evidence. | EIOS-008 | Institutional Scientific Learning | Cognitive Architecture |
+| Knowledge Maturity | The progressive stages (emerging → developing → validated → established → foundational) through which an institutional knowledge artifact advances; evolves independently per artifact and is continuously reassessable. | EIOS-008 | Institutional Scientific Learning | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
@@ -98,7 +102,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 3.2
+version: 3.3
 authoritative: true
 target_generator: Claude Code
 -->
@@ -6464,6 +6468,21 @@ Continuous improvement SHALL remain one of the primary responsibilities of the E
 - **AR-0838** — Every Scientific Principle SHALL preserve explicit applicability boundaries.
 - **AR-0839** — Historical exceptions SHALL be preserved together with supporting principles.
 - **AR-0840** — Historical Scientific Intelligence SHALL continuously provide reusable scientific understanding to Scientific Discovery, Genesis, Prometheus, and future reasoning systems.
+- **AR-0841** — Institutional Scientific Learning SHALL continuously improve organizational scientific capability through accumulated validated experience.
+- **AR-0842** — Knowledge Consolidation SHALL preserve complete provenance, supporting evidence, uncertainty, and competing explanations.
+- **AR-0843** — Experience Consolidation SHALL preserve replayability of every contributing Historical Case.
+- **AR-0844** — Scientific Principle Consolidation SHALL preserve the lineage of every contributing principle.
+- **AR-0845** — Candidate Law Consolidation SHALL maintain complete traceability to every supporting Scientific Principle and Historical Case.
+- **AR-0846** — Knowledge Conflict Resolution SHALL preserve unresolved scientific disagreement until validated through Scientific Discovery.
+- **AR-0847** — Confidence Evolution SHALL preserve every confidence revision together with its scientific justification.
+- **AR-0848** — Knowledge Obsolescence SHALL preserve obsolete scientific understanding together with the evidence supporting its replacement.
+- **AR-0849** — Scientific Memory Maintenance SHALL continuously improve institutional knowledge without compromising historical traceability.
+- **AR-0850** — Institutional Wisdom SHALL emerge only from validated scientific understanding supported by accumulated evidence.
+- **AR-0851** — Institutional Learning Loops SHALL remain continuously observable, replayable, and scientifically explainable.
+- **AR-0852** — Knowledge Maturity SHALL evolve independently for every significant scientific artifact.
+- **AR-0853** — Scientific Continuity SHALL preserve institutional intelligence across organizational, technological, and personnel changes.
+- **AR-0854** — Continuous Institutional Improvement SHALL permanently strengthen future scientific reasoning through accumulated experience.
+- **AR-0855** — Institutional Scientific Learning SHALL continuously provide refined organizational intelligence to Scientific Discovery, Genesis, Prometheus, Personal CIO, and future autonomous scientific systems.
 
 ---
 
@@ -6509,6 +6528,21 @@ Continuous improvement SHALL remain one of the primary responsibilities of the E
 - **REQ-EX-038** — Candidate Law Discovery
 - **REQ-EX-039** — Historical Replay
 - **REQ-EX-040** — Continuous Historical Learning
+- **REQ-EX-041** — Institutional Scientific Learning
+- **REQ-EX-042** — Knowledge Consolidation
+- **REQ-EX-043** — Experience Consolidation
+- **REQ-EX-044** — Scientific Principle Consolidation
+- **REQ-EX-045** — Candidate Law Consolidation
+- **REQ-EX-046** — Knowledge Conflict Resolution
+- **REQ-EX-047** — Confidence Evolution
+- **REQ-EX-048** — Knowledge Obsolescence
+- **REQ-EX-049** — Scientific Memory Maintenance
+- **REQ-EX-050** — Institutional Wisdom
+- **REQ-EX-051** — Organizational Adaptation
+- **REQ-EX-052** — Institutional Learning Loops
+- **REQ-EX-053** — Knowledge Maturity
+- **REQ-EX-054** — Scientific Continuity
+- **REQ-EX-055** — Continuous Institutional Improvement
 
 ---
 
@@ -6533,6 +6567,14 @@ Provides:
 * historical analogs
 * evolutionary patterns
 * replayable historical reasoning
+* institutional scientific knowledge
+* consolidated organizational experience
+* institutional wisdom
+* organizational learning
+* replayable scientific memory
+* confidence evolution
+* knowledge maturity
+* scientific continuity
 
 ---
 
@@ -6540,7 +6582,7 @@ Provides:
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007
 - **Builds Upon:** Scientific Memory; Historical Replay; Model Portfolios; Collective Learning
-- **Defines:** Experience Layer; Institutional Intelligence; Historical Intelligence; Historical Pattern Intelligence; Principle Extraction; Analogical Intelligence; Emergence Intelligence; Evolution Intelligence; System State; Readiness Ontology; Constraint Ontology; Convergence; Emergence Assessment; Readiness Momentum; Constraint Release; Transition Assessment; Transition Trajectory; Historical Analog Assessment; Emergence Readiness Score (ERS); Constraint Release Index (CRI); Convergence Alignment Score (CAS); Historical Analog Strength (HAS); Time-to-Inflection (TTI); Historical Scientific Intelligence; Historical Case; Historical Transition Library; Historical Pattern Library; Historical Analog Library; Technology Evolution Analysis; Value Network Evolution; Supply Network Evolution; Constraint Evolution Analysis; Bottleneck Evolution; Capital Evolution; Success Intelligence; Failure Intelligence; Scientific Principle Extraction; Candidate Law Discovery
+- **Defines:** Experience Layer; Institutional Intelligence; Historical Intelligence; Historical Pattern Intelligence; Principle Extraction; Analogical Intelligence; Emergence Intelligence; Evolution Intelligence; System State; Readiness Ontology; Constraint Ontology; Convergence; Emergence Assessment; Readiness Momentum; Constraint Release; Transition Assessment; Transition Trajectory; Historical Analog Assessment; Emergence Readiness Score (ERS); Constraint Release Index (CRI); Convergence Alignment Score (CAS); Historical Analog Strength (HAS); Time-to-Inflection (TTI); Historical Scientific Intelligence; Historical Case; Historical Transition Library; Historical Pattern Library; Historical Analog Library; Technology Evolution Analysis; Value Network Evolution; Supply Network Evolution; Constraint Evolution Analysis; Bottleneck Evolution; Capital Evolution; Success Intelligence; Failure Intelligence; Scientific Principle Extraction; Candidate Law Discovery; Institutional Scientific Learning; Organizational Intelligence; Institutional Memory Evolution; Knowledge Consolidation; Experience Consolidation; Scientific Principle Consolidation; Candidate Law Consolidation; Knowledge Conflict Resolution; Knowledge Quality Evolution; Organizational Learning; Confidence Evolution; Knowledge Obsolescence; Knowledge Preservation; Scientific Memory Maintenance; Institutional Wisdom; Organizational Adaptation; Institutional Learning Loops; Knowledge Maturity; Scientific Continuity; Continuous Institutional Improvement
 - **Referenced By:** Scientific Discovery, Genesis, Prometheus, Personal CIO, Opportunity Detection, Technology Intelligence, Economic Intelligence, Replay Engine, and all future institutional learning capabilities
 
 <!-- END:CHAPTER:EIOS-008 -->
