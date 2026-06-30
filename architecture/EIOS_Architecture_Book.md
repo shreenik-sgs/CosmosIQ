@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 2.4 |
+| Version | 2.5 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -89,7 +89,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 2.4
+version: 2.5
 authoritative: true
 target_generator: Claude Code
 -->
@@ -5086,6 +5086,8 @@ Emergence Intelligence answers questions such as:
 
 Emergence Intelligence transforms historical understanding into present-day awareness.
 
+Emergence Intelligence does not predict the future; it continuously evaluates the present state of reality to determine whether the underlying conditions for future transformation are developing. It therefore represents scientific interpretation rather than prediction.
+
 ---
 
 ### Readiness Assessment
@@ -5314,6 +5316,186 @@ Convergence represents the simultaneous satisfaction of critical enabling condit
 The Experience Layer SHALL continuously evaluate convergence across relevant readiness dimensions.
 
 Convergence SHALL be represented independently from individual readiness measures.
+
+---
+
+### Emergence Assessment
+
+Emergence is rarely the result of a single event.
+
+Instead, emergence develops gradually through the interaction of numerous independently evolving systems.
+
+The Experience Layer SHALL therefore continuously assess the evolutionary state of observed systems.
+
+Emergence Assessment integrates observations from:
+
+* System State
+* Readiness State
+* Constraint State
+* Dependency State
+* Transition State
+* Historical Experience
+
+Together these determine the degree to which meaningful transformation may be developing.
+
+Assessment SHALL remain continuous rather than event-driven.
+
+---
+
+### Readiness Evolution
+
+Readiness is never static.
+
+Every readiness dimension continuously evolves as new knowledge becomes available.
+
+Some readiness dimensions mature rapidly.
+
+Others require years or decades.
+
+The Experience Layer SHALL preserve the historical evolution of every readiness dimension.
+
+Readiness evolution SHALL remain replayable throughout the complete history of the system.
+
+---
+
+### Readiness Momentum
+
+Understanding current readiness is insufficient.
+
+Scientific reasoning also requires understanding the direction in which readiness is evolving.
+
+Readiness Momentum represents the direction and relative rate at which readiness changes over time.
+
+Illustrative momentum states include:
+
+* Accelerating
+* Improving
+* Stable
+* Weakening
+* Declining
+
+Momentum SHALL always be interpreted relative to the associated readiness dimension.
+
+Momentum SHALL remain independent from absolute readiness.
+
+---
+
+### Constraint Evolution
+
+Constraints also evolve continuously.
+
+Some constraints become increasingly restrictive.
+
+Others gradually disappear.
+
+New constraints may emerge while existing constraints are eliminated.
+
+The Experience Layer SHALL preserve the complete historical evolution of constraints.
+
+Constraint evolution provides important evidence regarding future system transitions.
+
+---
+
+### Constraint Release
+
+Many major transitions occur only after one or more critical constraints are removed.
+
+Constraint Release represents the reduction or elimination of limiting conditions that previously prevented further system evolution.
+
+Illustrative examples include:
+
+* manufacturing capacity expansion
+* regulatory approval
+* infrastructure deployment
+* scientific breakthrough
+* capital availability
+* supply-chain stabilization
+
+Constraint Release SHALL be represented independently from readiness.
+
+Both concepts SHALL remain first-class architectural capabilities.
+
+---
+
+### Convergence Assessment
+
+Individual readiness dimensions rarely produce transformational change by themselves.
+
+Instead, major transitions emerge through the convergence of multiple enabling conditions.
+
+Convergence Assessment evaluates the degree to which independently evolving readiness dimensions are becoming simultaneously satisfied.
+
+Illustrative convergence may include:
+
+* scientific maturity
+* manufacturing readiness
+* capital availability
+* infrastructure deployment
+* regulatory acceptance
+
+Convergence SHALL always preserve the contributing readiness dimensions.
+
+Aggregated convergence SHALL never replace underlying evidence.
+
+---
+
+### Transition Assessment
+
+Transition Assessment evaluates whether a system appears to be approaching a meaningful structural change.
+
+Transition Assessment is based upon accumulated scientific understanding rather than isolated observations.
+
+The assessment SHALL integrate:
+
+* readiness evolution
+* constraint evolution
+* convergence
+* historical analogs
+* scientific models
+
+Transition Assessment SHALL remain explainable, replayable, and evidence-based.
+
+It SHALL never rely upon opaque reasoning.
+
+---
+
+### Transition Trajectories
+
+Every evolving system follows a transition trajectory.
+
+The trajectory describes how the system changes through time.
+
+Rather than representing isolated observations, trajectories represent continuous system evolution.
+
+Illustrative trajectory characteristics include:
+
+* current state
+* evolutionary direction
+* relative momentum
+* stability
+* confidence
+
+Trajectories SHALL remain independent from implementation-specific mathematical models.
+
+Future implementations MAY estimate trajectories using different computational techniques while preserving the architectural abstraction.
+
+---
+
+### Historical Analog Assessment
+
+Historical transitions provide valuable scientific context.
+
+The Experience Layer SHALL compare evolving systems against previously observed transitions.
+
+Historical Analog Assessment evaluates similarities between current observations and accumulated historical experience.
+
+Historical analogs SHALL support scientific reasoning.
+
+Historical analogs SHALL NOT determine scientific conclusions.
+
+Similarity alone SHALL never constitute sufficient evidence.
+
+Scientific judgment SHALL remain responsible for integrating historical evidence with present observations.
 
 ---
 
