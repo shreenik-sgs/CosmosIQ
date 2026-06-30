@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: GEN-001
 slug: genesis-discovery-engine
-book_version: 6.2
+book_version: 7.0
 generator_version: 1.1
-source_hash: 3a18e9761971c20d617fc38b61a413ddc8d31fb5fa636b87d4dfb05518dcdeba
-generated_at: 2026-06-30T09:52:06-05:00
+source_hash: f1c04395f7d4b05211dc15cb7eed14fb8d84ff7f26e7e1cb79ca993299ae24c1
+generated_at: 2026-06-30T10:08:04-05:00
 ---
 
 # GEN-001 — Genesis Discovery Engine

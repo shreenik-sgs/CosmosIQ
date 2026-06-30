@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 6.2
+book_version: 7.0
 generator_version: 1.1
-source_hash: 3a18e9761971c20d617fc38b61a413ddc8d31fb5fa636b87d4dfb05518dcdeba
-generated_at: 2026-06-30T09:52:06-05:00
+source_hash: f1c04395f7d4b05211dc15cb7eed14fb8d84ff7f26e7e1cb79ca993299ae24c1
+generated_at: 2026-06-30T10:08:04-05:00
 ---
 
 # Architectural Rule Index
@@ -363,5 +363,25 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-1518 | GEN-001 — Genesis Discovery Engine | Genesis SHALL remain implementation independent. |
 | AR-1519 | GEN-001 — Genesis Discovery Engine | Genesis SHALL maintain explicit Opportunity Relationships in an Opportunity Graph, relating Opportunities to one another and to the Intelligence Assessments that ground them; the Opportunity Graph SHALL remain continuously evolving and replayable. |
 | AR-1520 | GEN-001 — Genesis Discovery Engine | Genesis SHALL continuously prioritize Opportunities by expected significance, re-evaluable as understanding evolves; prioritization SHALL express relative significance, not investment recommendation. |
+| AR-1601 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL consume the opportunities Genesis discovers and determine how capital should respond; it SHALL NOT form scientific understanding, domain intelligence, or opportunities. |
+| AR-1602 | PROM-001 — Prometheus Capital Allocation Engine | Investment semantics SHALL begin at Prometheus and SHALL NEVER flow downward into Genesis, Reality Intelligence, or Scientific Understanding. |
+| AR-1603 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL consume Genesis outputs — Opportunity Hypotheses, the Opportunity Portfolio, Opportunity Relationships, Opportunity Evolution, and Opportunity Prioritization — by version, and SHALL read them without ever mutating them. |
+| AR-1604 | PROM-001 — Prometheus Capital Allocation Engine | Every Prometheus output SHALL be replayable, explainable, and auditable, binding the Opportunity and understanding versions it was formed against. |
+| AR-1605 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL consume and evaluate upstream understanding and opportunity and SHALL NEVER rewrite, restate, or redefine them. |
+| AR-1606 | PROM-001 — Prometheus Capital Allocation Engine | The Investment Thesis SHALL be a specialized Knowledge Object conforming to the canonical structure defined by the Knowledge Model; it SHALL reference, and SHALL NOT redefine, existing canonical objects, and it SHALL be the only new canonical object introduced by Prometheus. |
+| AR-1607 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL assess Investability before constructing any Investment Thesis, preserving the distinction that not every Opportunity worth pursuing is investable. |
+| AR-1608 | PROM-001 — Prometheus Capital Allocation Engine | Every Investment Thesis SHALL bind the Opportunity version it addresses and preserve grounding, confidence, and uncertainty; competing Theses SHALL be preserved until evidence supports adjudication. |
+| AR-1609 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL map Opportunities to the securities and instruments that express them, preserving alternatives, explainably and revisably. |
+| AR-1610 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL preserve grounded, provenanced, uncertainty-preserving Valuation Evidence; no valuation SHALL be asserted as certain and no Thesis SHALL rest on a single valuation. |
+| AR-1611 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL assess Risk and Reward together, preserving uncertainty, downside, and failure conditions; reward SHALL never be expressed without its accompanying risk. |
+| AR-1612 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL assess Position Suitability (scale, structure, liquidity, horizon, constraints), kept distinct from Portfolio Fit. |
+| AR-1613 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL assess Portfolio Fit (concentration, correlation, diversification, interaction) without rewriting any upstream understanding or opportunity. |
+| AR-1614 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL produce Capital Allocation Recommendations expressing how much capital, in what structure, and under what conditions; a recommendation SHALL NOT be executed by Prometheus. |
+| AR-1615 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL assess Timing-to-Action, grounded in upstream opportunity timing and readiness, preserving uncertainty, and distinguishing the timing of an opportunity from the timing of acting upon it. |
+| AR-1616 | PROM-001 — Prometheus Capital Allocation Engine | Every Prometheus decision SHALL be recorded in a Prometheus Decision Record, which SHALL be a Decision (EIOS-002), preserving the Thesis, grounding versions, recommendation, rationale, and alternatives, complete enough to reconstruct and audit the decision exactly. |
+| AR-1617 | PROM-001 — Prometheus Capital Allocation Engine | When an Opportunity is adjudicated, superseded, or overturned, every Investment Thesis grounded upon it SHALL be re-evaluated; no Thesis SHALL silently retain a superseded grounding. |
+| AR-1618 | PROM-001 — Prometheus Capital Allocation Engine | Every Investment Thesis, Capital Allocation Recommendation, and Prometheus Decision Record SHALL be replayable and auditable, with prior versions preserved. |
+| AR-1619 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL recommend capital allocation and SHALL NOT execute trades, place orders, or operate live positions; execution belongs to consumers beyond this layer. |
+| AR-1620 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL remain implementation independent. |
 
-_347 rules._
+_367 rules._

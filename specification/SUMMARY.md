@@ -3,17 +3,17 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: summary
-book_version: 6.2
+book_version: 7.0
 generator_version: 1.1
-source_hash: 3a18e9761971c20d617fc38b61a413ddc8d31fb5fa636b87d4dfb05518dcdeba
-generated_at: 2026-06-30T09:52:06-05:00
+source_hash: f1c04395f7d4b05211dc15cb7eed14fb8d84ff7f26e7e1cb79ca993299ae24c1
+generated_at: 2026-06-30T10:08:04-05:00
 ---
 
 # Economic Intelligence Operating System
 
 ## Architecture Book
 
-Version 6.2
+Version 7.0
 
 Compiled from `architecture/EIOS_Architecture_Book.md`.
 
@@ -52,6 +52,6 @@ Compiled from `architecture/EIOS_Architecture_Book.md`.
 
 - [GEN-001 — Genesis Discovery Engine](04_Opportunity_Generation/GEN-001_genesis-discovery-engine.md)
 
-### Part V — Engineering Reference
+### Part V — Capital Allocation
 
-_Planned — no chapters yet._
+- [PROM-001 — Prometheus Capital Allocation Engine](05_Capital_Allocation/PROM-001_prometheus-capital-allocation-engine.md)
