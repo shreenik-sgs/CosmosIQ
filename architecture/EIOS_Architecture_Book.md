@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 4.1 |
+| Version | 4.2 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -65,6 +65,9 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Hypothesis Graph | The first-class graph of relationships among Hypotheses — refinement, dependency, competition, support, contradiction, composition — over which Scientific Discovery reasons. | EIOS-009 | Hypothesis, Question Graph | Cognitive Architecture |
 | Hypothesis Portfolio | A coordinated collection of competing and cooperating candidate explanations for a Research Question; preserves diversity of scientific reasoning rather than converging prematurely. | EIOS-009 | Hypothesis, Research Program | Cognitive Architecture |
 | Research Program | A long-term scientific investigation organized around a coherent family of Research Questions and Hypotheses (with supporting models and evidence); replayable, and the unit an investment domain can map to. | EIOS-009 | Research Question, Hypothesis | Cognitive Architecture |
+| Scientific Investigation | The capability that systematically acquires evidence to strengthen, weaken, refine, or reject competing Hypotheses; evidence acquisition before judgment, and the stage feeding Validation & Falsification. | EIOS-009 | Hypothesis, Evidence Graph | Cognitive Architecture |
+| Evidence Graph | The first-class graph of Evidence and its relationships — supports, contradicts, explains, derives-from, validates, challenges — kept synchronized with the Hypothesis Graph during investigation. | EIOS-009 | Hypothesis Graph, Scientific Investigation | Cognitive Architecture |
+| Investigation Portfolio | A coordinated collection of related investigations pursuing complementary objectives; preserves the autonomy of each investigation while optimizing scientific value across the set. | EIOS-009 | Scientific Investigation, Hypothesis Portfolio | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
@@ -111,7 +114,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 4.1
+version: 4.2
 authoritative: true
 target_generator: Claude Code
 -->
@@ -7657,6 +7660,21 @@ Independent investigations SHALL preserve their autonomy while participating in 
 - **AR-0928** — Hypothesis Generation SHALL remain implementation independent.
 - **AR-0929** — Scientific Discovery SHALL continuously generate alternative explanations when existing Hypotheses fail to explain observed reality.
 - **AR-0930** — Scientific Discovery SHALL provide prioritized Hypothesis Portfolios to Scientific Investigation.
+- **AR-0931** — Scientific Investigation SHALL execute Investigation Plans systematically while preserving complete replayability.
+- **AR-0932** — Every Investigation SHALL preserve explicit traceability to participating Research Questions, Hypotheses, Models, and Evidence.
+- **AR-0933** — Evidence Acquisition SHALL preserve complete provenance throughout its lifecycle.
+- **AR-0934** — Scientific Observations SHALL remain explicitly distinguishable from interpretations, explanations, and conclusions.
+- **AR-0935** — Evidence Evaluation SHALL remain independent from scientific validation.
+- **AR-0936** — Evidence Synthesis SHALL preserve unresolved conflicts together with supporting evidence.
+- **AR-0937** — The Evidence Graph SHALL remain synchronized with the Hypothesis Graph throughout Scientific Investigation.
+- **AR-0938** — Comparative Investigation SHALL evaluate competing Hypotheses using consistent assumptions and common evidence.
+- **AR-0939** — Counterfactual Investigation SHALL remain explicitly distinguishable from historical observation and empirical evidence.
+- **AR-0940** — Simulation SHALL complement empirical investigation but SHALL NOT replace direct observation where such observation is reasonably obtainable.
+- **AR-0941** — Investigation Coverage SHALL remain continuously observable and re-evaluable.
+- **AR-0942** — Investigation Confidence SHALL represent confidence in the investigation process and SHALL remain independent from confidence in individual Hypotheses.
+- **AR-0943** — Investigation Portfolios SHALL preserve coordinated scientific investigations while maintaining the autonomy of individual investigations.
+- **AR-0944** — Investigation Orchestration SHALL optimize scientific value while preserving investigative diversity.
+- **AR-0945** — Scientific Investigation SHALL provide evidence-based investigation outcomes to Validation & Falsification.
 
 ---
 
@@ -7692,6 +7710,21 @@ Independent investigations SHALL preserve their autonomy while participating in 
 - **REQ-SD-028** — Research Program Evolution
 - **REQ-SD-029** — Competing Hypotheses
 - **REQ-SD-030** — Prioritized Hypothesis Output
+- **REQ-SD-031** — Investigation Planning
+- **REQ-SD-032** — Evidence Acquisition
+- **REQ-SD-033** — Scientific Observation
+- **REQ-SD-034** — Experimentation
+- **REQ-SD-035** — Simulation
+- **REQ-SD-036** — Evidence Evaluation
+- **REQ-SD-037** — Evidence Synthesis
+- **REQ-SD-038** — Investigation Coverage
+- **REQ-SD-039** — Investigation Confidence
+- **REQ-SD-040** — Investigation Portfolio
+- **REQ-SD-041** — Investigation Orchestration
+- **REQ-SD-042** — Comparative Investigation
+- **REQ-SD-043** — Counterfactual Investigation
+- **REQ-SD-044** — Evidence Graph
+- **REQ-SD-045** — Evidence-Based Investigation
 
 ---
 
@@ -7699,7 +7732,6 @@ Independent investigations SHALL preserve their autonomy while participating in 
 
 Referenced by:
 
-* Scientific Investigation
 * Validation & Falsification
 * Scientific Theory Evolution
 * GEN-001 — Genesis Discovery Engine
@@ -7719,15 +7751,19 @@ Provides:
 * Hypothesis Graph
 * Competing Hypotheses
 * Scientific Explanations
+* Investigation Results
+* Evidence Graph
+* Investigation Portfolios
+* Evidence-Based Scientific Findings
 
 ---
 
 ### Cross References
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007; EIOS-008
-- **Builds Upon:** Research Question (EIOS-002); Scientific Cognition; Computational Curiosity; Experience Layer; Models & Model Management (EIOS-007)
-- **Defines:** Scientific Discovery; Research Agenda; Question Prioritization; Question Dependencies; Question Decomposition; Question Graph; Knowledge Gaps; Discovery Readiness; Scientific Discovery Pipeline; Hypothesis Generation; Hypothesis Portfolio; Hypothesis Graph; Hypothesis Quality; Hypothesis Lineage; Competing Hypotheses; Composite Hypotheses; Research Program; Multi-Model Hypothesis Generation; Analogical Hypothesis Generation
-- **Referenced By:** Scientific Investigation, Validation & Falsification, Technology Intelligence, Economic Intelligence, Genesis Discovery Engine, and autonomous scientific agents
+- **Builds Upon:** Research Question (EIOS-002); Hypothesis (EIOS-002); Scientific Cognition; Computational Curiosity; Experience Layer; Models & Model Management (EIOS-007)
+- **Defines:** Scientific Discovery; Research Agenda; Question Prioritization; Question Dependencies; Question Decomposition; Question Graph; Knowledge Gaps; Discovery Readiness; Scientific Discovery Pipeline; Hypothesis Generation; Hypothesis Portfolio; Hypothesis Graph; Hypothesis Quality; Hypothesis Lineage; Competing Hypotheses; Composite Hypotheses; Research Program; Multi-Model Hypothesis Generation; Analogical Hypothesis Generation; Scientific Investigation; Investigation Planning; Evidence Acquisition; Evidence Evaluation; Evidence Synthesis; Evidence Graph; Investigation Portfolio; Investigation Orchestration; Comparative Investigation; Counterfactual Investigation
+- **Referenced By:** Validation & Falsification, Scientific Theory Evolution, Technology Intelligence, Economic Intelligence, Genesis Discovery Engine, and autonomous scientific agents
 
 <!-- END:CHAPTER:EIOS-009 -->
 
