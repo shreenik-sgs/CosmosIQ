@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 1.9
+book_version: 2.0
 generator_version: 1.1
-source_hash: 0d61feebf14b5b498623dac7d5e8b3bc7704b38b021a2e1560848726e0d4c319
-generated_at: 2026-06-29T20:54:32-05:00
+source_hash: 46ea030c01568337800330a59c111a38a6e153542ca68f59d4b1ba9b9f69735a
+generated_at: 2026-06-29T21:02:32-05:00
 ---
 
 # Architectural Rule Index
@@ -97,5 +97,15 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0718 | EIOS-007 — Models and Model Management | Model lineage SHALL remain replayable. |
 | AR-0719 | EIOS-007 — Models and Model Management | The Model Registry SHALL maintain canonical metadata. |
 | AR-0720 | EIOS-007 — Models and Model Management | Competing models SHALL coexist when supported by evidence. |
+| AR-0721 | EIOS-007 — Models and Model Management | Every model SHALL originate from an explicit Research Question. |
+| AR-0722 | EIOS-007 — Models and Model Management | Candidate Models SHALL remain isolated from operational reasoning until validated. |
+| AR-0723 | EIOS-007 — Models and Model Management | Operational Models SHALL support continuous monitoring. |
+| AR-0724 | EIOS-007 — Models and Model Management | Model Drift SHALL initiate reassessment. |
+| AR-0725 | EIOS-007 — Models and Model Management | Model Maturity SHALL be explicitly represented. |
+| AR-0726 | EIOS-007 — Models and Model Management | Model Confidence SHALL remain independent from Evidence Confidence. |
+| AR-0727 | EIOS-007 — Models and Model Management | Model Health SHALL be continuously monitored. |
+| AR-0728 | EIOS-007 — Models and Model Management | Model Fitness SHALL support comparative evaluation. |
+| AR-0729 | EIOS-007 — Models and Model Management | Repository, Registry, and Model Graph SHALL remain architecturally distinct. |
+| AR-0730 | EIOS-007 — Models and Model Management | Scientific progress SHALL occur through model evolution rather than replacement. |
 
-_81 rules._
+_91 rules._

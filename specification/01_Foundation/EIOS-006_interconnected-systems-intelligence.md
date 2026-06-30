@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-006
 slug: interconnected-systems-intelligence
-book_version: 1.9
+book_version: 2.0
 generator_version: 1.1
-source_hash: 0d61feebf14b5b498623dac7d5e8b3bc7704b38b021a2e1560848726e0d4c319
-generated_at: 2026-06-29T20:54:32-05:00
+source_hash: 46ea030c01568337800330a59c111a38a6e153542ca68f59d4b1ba9b9f69735a
+generated_at: 2026-06-29T21:02:32-05:00
 ---
 
 # EIOS-006 — Interconnected Systems Intelligence
