@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-010
 slug: reality-intelligence
-book_version: 5.1
+book_version: 5.2
 generator_version: 1.1
-source_hash: e46f2f476a9fc02783fd48c4a3836e0a7770b7e3bfb40cc9c7ff321e8b34774f
-generated_at: 2026-06-30T02:00:20-05:00
+source_hash: a1026c0e030db04e5a0f791f63e779aec6106fa137d18420a63fdc7efe212f9c
+generated_at: 2026-06-30T02:04:23-05:00
 ---
 
 # EIOS-010 — Reality Intelligence
@@ -280,7 +280,7 @@ Change Propagation SHALL ensure that domain understanding never silently diverge
 
 ---
 
-### Intelligence Graph
+### Intelligence Graph Representation
 
 Reality Intelligence SHALL represent the relationships among Intelligence Assessments using the Intelligence Graph defined by Interconnected Systems Intelligence (EIOS-006).
 
