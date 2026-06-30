@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 4.4 |
+| Version | 4.5 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -68,6 +68,10 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Scientific Investigation | The capability that systematically acquires evidence to strengthen, weaken, refine, or reject competing Hypotheses; evidence acquisition before judgment, and the stage feeding Validation & Falsification. | EIOS-009 | Hypothesis, Evidence Graph | Cognitive Architecture |
 | Evidence Graph | The first-class graph of Evidence and its relationships — supports, contradicts, explains, derives-from, validates, challenges — kept synchronized with the Hypothesis Graph during investigation. | EIOS-009 | Hypothesis Graph, Scientific Investigation | Cognitive Architecture |
 | Investigation Portfolio | A coordinated collection of related investigations pursuing complementary objectives; preserves the autonomy of each investigation while optimizing scientific value across the set. | EIOS-009 | Scientific Investigation, Hypothesis Portfolio | Cognitive Architecture |
+| Scientific Validation | The continuous assessment of which competing Hypothesis currently best explains reality given available Evidence — a current best-supported assessment, never proof, continuously repeatable. | EIOS-009 | Falsification, Belief Revision | Cognitive Architecture |
+| Falsification | The active pursuit of evidence capable of refuting an accepted explanation; failure to falsify is not permanent validation, and falsification strengthens understanding regardless of outcome. | EIOS-009 | Scientific Validation | Cognitive Architecture |
+| Belief Revision | The first-class capability that updates scientific assessments when new Evidence materially shifts the relative explanatory strength of competing Hypotheses; preserves prior/revised assessment, trigger, justification, and confidence evolution. | EIOS-009 | Scientific Validation, Validation Graph | Cognitive Architecture |
+| Validation Graph | The first-class graph of Validation Assessments and their relationships — supports, weakens, overturns, supersedes, confirms, falsifies — preserving the historical evolution of scientific understanding. | EIOS-009 | Evidence Graph, Belief Revision | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
@@ -114,7 +118,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 4.4
+version: 4.5
 authoritative: true
 target_generator: Claude Code
 -->
@@ -7964,6 +7968,21 @@ Continuous reassessment SHALL remain one of the primary responsibilities of Scie
 - **AR-0943** — Investigation Portfolios SHALL preserve coordinated scientific investigations while maintaining the autonomy of individual investigations.
 - **AR-0944** — Investigation Orchestration SHALL optimize scientific value while preserving investigative diversity.
 - **AR-0945** — Scientific Investigation SHALL provide evidence-based investigation outcomes to Validation & Falsification.
+- **AR-0946** — Scientific Validation SHALL continuously compare competing Hypotheses using common Evidence and explicit evaluation criteria.
+- **AR-0947** — Validation Assessments SHALL preserve complete traceability to participating Research Questions, Hypotheses, Evidence, Models, and Investigations.
+- **AR-0948** — Falsification SHALL actively seek evidence capable of refuting accepted explanations.
+- **AR-0949** — Failure to falsify a Hypothesis SHALL NOT constitute permanent scientific validation.
+- **AR-0950** — Independent Verification SHALL preserve complete methodological independence while remaining fully replayable.
+- **AR-0951** — Scientific conclusions SHALL remain reproducible using preserved Investigation Plans, Evidence, Models, and computational procedures.
+- **AR-0952** — Belief Revision SHALL preserve previous assessments, revised assessments, triggering Evidence, scientific justification, and confidence evolution.
+- **AR-0953** — Scientific Consensus SHALL emerge from accumulated Evidence and SHALL remain continuously revisable.
+- **AR-0954** — Scientifically plausible Minority Explanations SHALL remain available for future investigation until conclusively rejected through continued scientific evaluation.
+- **AR-0955** — Scientific Challenges SHALL continuously test accepted explanations using new Evidence, improved Models, and improved Investigations.
+- **AR-0956** — Validation Portfolios SHALL preserve coordinated Validation Assessments while maintaining independent scientific evaluation.
+- **AR-0957** — Scientific Robustness SHALL continuously evolve as reproducibility, independent verification, explanatory breadth, and historical consistency improve.
+- **AR-0958** — Validation Drift SHALL trigger renewed Scientific Investigation rather than automatic acceptance or rejection.
+- **AR-0959** — Continuous Scientific Reassessment SHALL remain a permanent responsibility of Scientific Discovery.
+- **AR-0960** — Scientific Validation SHALL continuously provide the current best-supported scientific explanations to Scientific Theory Evolution.
 
 ---
 
@@ -8014,6 +8033,21 @@ Continuous reassessment SHALL remain one of the primary responsibilities of Scie
 - **REQ-SD-043** — Counterfactual Investigation
 - **REQ-SD-044** — Evidence Graph
 - **REQ-SD-045** — Evidence-Based Investigation
+- **REQ-SD-046** — Scientific Validation
+- **REQ-SD-047** — Comparative Validation
+- **REQ-SD-048** — Falsification
+- **REQ-SD-049** — Independent Verification
+- **REQ-SD-050** — Reproducibility
+- **REQ-SD-051** — Belief Revision
+- **REQ-SD-052** — Scientific Consensus
+- **REQ-SD-053** — Minority Explanations
+- **REQ-SD-054** — Scientific Challenges
+- **REQ-SD-055** — Validation Portfolio
+- **REQ-SD-056** — Scientific Robustness
+- **REQ-SD-057** — Validation Drift
+- **REQ-SD-058** — Continuous Scientific Reassessment
+- **REQ-SD-059** — Validation Confidence
+- **REQ-SD-060** — Best-Supported Scientific Explanation
 
 ---
 
@@ -8021,7 +8055,6 @@ Continuous reassessment SHALL remain one of the primary responsibilities of Scie
 
 Referenced by:
 
-* Validation & Falsification
 * Scientific Theory Evolution
 * GEN-001 — Genesis Discovery Engine
 * PROM-001 — Investment Thesis Engine
@@ -8044,6 +8077,10 @@ Provides:
 * Evidence Graph
 * Investigation Portfolios
 * Evidence-Based Scientific Findings
+* Validation Assessments
+* Validation Graph
+* Validation Portfolios
+* Best-Supported Scientific Explanations
 
 ---
 
@@ -8051,8 +8088,8 @@ Provides:
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007; EIOS-008
 - **Builds Upon:** Research Question (EIOS-002); Hypothesis (EIOS-002); Scientific Cognition; Computational Curiosity; Experience Layer; Models & Model Management (EIOS-007)
-- **Defines:** Scientific Discovery; Research Agenda; Question Prioritization; Question Dependencies; Question Decomposition; Question Graph; Knowledge Gaps; Discovery Readiness; Scientific Discovery Pipeline; Hypothesis Generation; Hypothesis Portfolio; Hypothesis Graph; Hypothesis Quality; Hypothesis Lineage; Competing Hypotheses; Composite Hypotheses; Research Program; Multi-Model Hypothesis Generation; Analogical Hypothesis Generation; Scientific Investigation; Investigation Planning; Evidence Acquisition; Evidence Evaluation; Evidence Synthesis; Evidence Graph; Investigation Portfolio; Investigation Orchestration; Comparative Investigation; Counterfactual Investigation
-- **Referenced By:** Validation & Falsification, Scientific Theory Evolution, Technology Intelligence, Economic Intelligence, Genesis Discovery Engine, and autonomous scientific agents
+- **Defines:** Scientific Discovery; Research Agenda; Question Prioritization; Question Dependencies; Question Decomposition; Question Graph; Knowledge Gaps; Discovery Readiness; Scientific Discovery Pipeline; Hypothesis Generation; Hypothesis Portfolio; Hypothesis Graph; Hypothesis Quality; Hypothesis Lineage; Competing Hypotheses; Composite Hypotheses; Research Program; Multi-Model Hypothesis Generation; Analogical Hypothesis Generation; Scientific Investigation; Investigation Planning; Evidence Acquisition; Evidence Evaluation; Evidence Synthesis; Evidence Graph; Investigation Portfolio; Investigation Orchestration; Comparative Investigation; Counterfactual Investigation; Scientific Validation; Comparative Validation; Falsification; Independent Verification; Belief Revision; Validation Graph; Validation Portfolio; Scientific Consensus; Scientific Robustness; Validation Drift
+- **Referenced By:** Scientific Theory Evolution, Technology Intelligence, Economic Intelligence, Genesis Discovery Engine, Personal CIO, and autonomous scientific agents
 
 <!-- END:CHAPTER:EIOS-009 -->
 
