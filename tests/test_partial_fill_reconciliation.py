@@ -11,13 +11,13 @@ from execution_manual.manual_trade_ticket import create_or_get_ticket
 from execution_manual.execution_checklist import confirm, place_order, mark_recorded
 from execution_manual.fill_record import make_fill, aggregate
 from execution_manual.reconciliation import reconcile
-from _real_chain import real_adapter
+from _real_chain import real_intent
 
 
 def _placed_ticket(registry, price=10.40):
-    adapter = real_adapter()
+    intent = real_intent()
     params = {"order_type": "limit", "limit_price": price, "venue": "IBKR", "price": price}
-    ticket = create_or_get_ticket(registry, adapter, adapter, params, now=0)
+    ticket = create_or_get_ticket(registry, intent, params, now=0)
     confirmed = confirm(ticket, ticket.preview_hash)
     registry[confirmed.id] = confirmed
     return place_order(registry, confirmed, "IBKR-99", placed_at=100.0)

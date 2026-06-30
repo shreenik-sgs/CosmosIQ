@@ -19,12 +19,9 @@ holdings, so it can never emit add / trim / exit / rotate.
 Determinism: every output is a pure function of the inputs and the explicit
 ``now``; no wall clock, no randomness; the upstream thesis is never mutated.
 
-A clearly-labelled TEMPORARY Kriya adapter -- ``ManualExecutionAdapter`` /
-``make_manual_execution_adapter`` -- lives here too. It is a SEPARATE class (NOT
-the real ``InvestmentAction`` and NOT Saarathi's ``PersonalizedAction``) that
-carries the user's chosen exact size (within Saarathi's recommended RANGE) plus
-the instrument / side / account / decision-record id the pre-existing Kriya
-manual-ticket path reads. See its docstring for the removal condition.
+The Investment Action carries NO order / allocation / sizing / side. The user's
+explicit chosen size lives downstream of Saarathi, on the
+``ManualExecutionIntent`` at the Kriya boundary (``src/execution_manual/``).
 """
 
 from __future__ import annotations
@@ -310,75 +307,4 @@ def generate_investment_action(thesis, *, position_context=None, comparative_the
         upstream_observation_ids=tuple(thesis.upstream_observation_ids),
         triggering_assessment_ids=tuple(getattr(thesis, "triggering_assessment_ids", ())),
         triggering_assessment_versions=tuple(getattr(thesis, "triggering_assessment_versions", ())),
-    )
-
-
-# ---------------------------------------------------------------------------
-# TEMPORARY KRIYA ADAPTER GLUE -- narrow, labelled, and SEPARATE from both the
-# real InvestmentAction (above) and Saarathi's PersonalizedAction. It carries the
-# user's CHOSEN exact size (within Saarathi's recommended range) plus the
-# instrument / side / account / decision-record id the manual-execution (Kriya)
-# ticket path reads. REMOVE when a real execution-selection step exists that turns
-# Saarathi's recommended RANGE into a chosen size on its own object.
-# ---------------------------------------------------------------------------
-@dataclass(frozen=True)
-class ManualExecutionAdapter(ReasoningObject):
-    """TEMPORARY Kriya adapter glue -- the user's chosen exact size within
-    Saarathi's recommended range; remove when a real execution-selection step
-    exists.
-
-    Saarathi's ``PersonalizedAction`` carries NO exact allocation (only a % range),
-    and the real ``InvestmentAction`` carries no side / allocation either -- the
-    cognition/actuation boundary (ADR-0010). But the existing Kriya manual-ticket
-    path (``create_or_get_ticket``) still reads ``instrument / side / action_type``
-    (its investment_action arg) and ``account / intended_allocation /
-    cio_decision_record_id`` (its personalized_action arg) off the objects handed
-    to it. This single adapter carries exactly those fields so that ONE object can
-    be passed as BOTH args (``ref(kind)`` serves both). It is a SEPARATE class and
-    must never leak its fields into ``InvestmentAction`` or ``PersonalizedAction``.
-
-    REMOVE this class (and ``make_manual_execution_adapter``) once a real
-    execution-selection step turns Saarathi's recommended RANGE into a chosen size
-    on its own operational/selection object.
-    """
-
-    instrument: str = ""
-    side: str = "buy"
-    action_type: str = "enter"
-    account: str = ""
-    intended_allocation: float = 0.0
-    cio_decision_record_id: str = ""
-
-
-def make_manual_execution_adapter(investment_action, personalized_action, *,
-                                  intended_allocation, instrument=None,
-                                  side="buy", action_type="enter", actor, now):
-    """Build the labelled Kriya ``ManualExecutionAdapter`` from the REAL
-    ``InvestmentAction`` + Saarathi's ``PersonalizedAction`` + the user's chosen
-    exact allocation (which must sit within the personalized recommended range).
-
-    No alpha and no sizing logic of its own -- it merely threads the instrument /
-    side / account / chosen allocation / decision-record id the manual-execution
-    slice needs, binding both upstream objects for provenance.
-    """
-    instrument = instrument if instrument is not None else getattr(
-        investment_action, "security_or_instrument_mapping", "")
-    account = getattr(personalized_action, "account", "")
-    decision_id = getattr(personalized_action, "id", "")
-    sources = (
-        investment_action.ref("InvestmentAction"),
-        personalized_action.ref("PersonalizedAction"),
-    )
-    oid = stable_id("MEA", investment_action.id, decision_id, action_type, instrument)
-    prov = make_provenance(actor=actor, created_at=iso_from_epoch(now), sources=sources)
-    return ManualExecutionAdapter(
-        id=oid,
-        version=1,
-        provenance=prov,
-        instrument=instrument,
-        side=side,
-        action_type=action_type,
-        account=account,
-        intended_allocation=float(intended_allocation),
-        cio_decision_record_id=decision_id,
     )

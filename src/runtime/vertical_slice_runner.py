@@ -1,9 +1,9 @@
 """Runtime vertical slice -- threads the full EIOS chain end to end.
 
 Observation -> IntelligenceAssessment -> OpportunityHypothesis -> InvestmentThesis
--> InvestmentAction -> PersonalizedAction -> ManualTradeTicket
--> (revalidate -> stale -> re-preview -> confirm) -> place (manual)
--> Fills -> reconcile -> feedback Observation.
+-> InvestmentAction -> PersonalizedAction -> ManualExecutionIntent
+-> ManualTradeTicket -> (revalidate -> stale -> re-preview -> confirm)
+-> place (manual) -> Fills -> reconcile -> feedback Observation.
 
 This is the working manual-execution mechanics of the slice. It performs NO
 investment reasoning of its own (the upstream layers are minimal placeholders);
@@ -25,15 +25,13 @@ from reality_intelligence.intelligence_assessment import generate_intelligence_a
 from genesis.opportunity_hypothesis import generate_opportunity_hypothesis
 from prometheus.investment_thesis import generate_investment_thesis
 from prometheus.diligence_inputs import CandidateInput, DiligenceInputs
-from prometheus.investment_action import (
-    generate_investment_action,
-    make_manual_execution_adapter,
-)
+from prometheus.investment_action import generate_investment_action
 from prometheus.position_lifecycle import position_state
 from personal_cio.personal_investment_profile import make_personal_investment_profile
 from personal_cio.portfolio_snapshot import make_portfolio_snapshot
 from personal_cio.personalized_action import generate_personalized_action
 
+from execution_manual.manual_execution_intent import make_manual_execution_intent
 from execution_manual.manual_trade_ticket import create_or_get_ticket, re_preview
 from execution_manual.execution_checklist import (
     Thresholds,
@@ -58,6 +56,7 @@ class SliceResult:
     action: Any
     profile: Any
     personalized_action: Any
+    execution_intent: Any
     ticket_preview1: Any
     revalidate_stale: Any
     ticket_preview2: Any
@@ -258,18 +257,18 @@ def run_iren_slice(
     personalized = generate_personalized_action(
         thesis, action, profile, portfolio, actor="personal-cio", now=t0,
     )
-    # TEMPORARY Kriya adapter glue (no alpha): Saarathi recommends a RANGE, so the
-    # user picks an exact size WITHIN that range and a labelled ManualExecutionAdapter
-    # threads the chosen allocation + instrument / side / account / decision-record
-    # id the manual-execution (Kriya) path reads. The SAME adapter is passed as both
-    # the action and personalized args (its ref(kind) serves both). REMOVE when a
-    # real execution-selection step exists.
-    adapter = make_manual_execution_adapter(
-        action, personalized,
-        intended_allocation=intended_allocation,
-        instrument=thesis.security_or_instrument_mapping or instrument,
-        side="buy", action_type="enter",
-        actor="personal-cio", now=t0,
+    # Kriya boundary: Saarathi recommends a RANGE, and the USER makes the explicit
+    # manual-execution choice here on a ManualExecutionIntent (downstream of the
+    # PersonalizedAction). The $2,000 below is the user's explicit chosen size,
+    # selected WITHIN Saarathi's recommended range -- Saarathi never names an exact
+    # number. This is NOT a broker order; Kriya turns it into a ticket preview and
+    # the trade is placed manually outside the system.
+    execution_intent = make_manual_execution_intent(
+        personalized,
+        selected_instrument=thesis.security_or_instrument_mapping or instrument,
+        user_selected_allocation_amount=intended_allocation,
+        execution_side="open_candidate",
+        actor="user", now=t0,
     )
 
     grounding = {
@@ -293,7 +292,7 @@ def run_iren_slice(
         "queue_item_id": stable_id("QUE", action.id),
         "risk_warning": "limit order may not fill",
     }
-    ticket1 = create_or_get_ticket(registry, adapter, adapter, params, now=t0)
+    ticket1 = create_or_get_ticket(registry, execution_intent, params, now=t0)
     audit.append(t0, ticket1.id, "ticket_created", actor,
                  payload={"quantity": ticket1.quantity, "preview_hash": ticket1.preview_hash},
                  grounding_versions=grounding)
@@ -372,7 +371,7 @@ def run_iren_slice(
                  payload={"all_reconciled": reconciliation.all_reconciled})
 
     # --- Derived position + feedback Observation up the chain --------------
-    position = position_state([adapter], fills)
+    position = position_state([placed], fills)
     feedback_sources = (placed.ref("ManualTradeTicket"),) + tuple(f.ref("Fill") for f in fills)
     feedback = Observation(
         id=stable_id("OBS", "feedback", placed.id),
@@ -397,6 +396,7 @@ def run_iren_slice(
         action=action,
         profile=profile,
         personalized_action=personalized,
+        execution_intent=execution_intent,
         ticket_preview1=ticket1,
         revalidate_stale=revalidate_stale,
         ticket_preview2=ticket2,

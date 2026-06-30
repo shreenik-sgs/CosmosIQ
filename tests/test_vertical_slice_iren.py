@@ -242,11 +242,12 @@ class TestVerticalSliceIREN(unittest.TestCase):
 
     # --- IMPLEMENTATION-005: the slice exposes the REAL Investment Action -------
     def test_vertical_slice_exposes_real_investment_action(self):
-        from prometheus.investment_action import InvestmentAction, ManualExecutionAdapter
+        from prometheus.investment_action import InvestmentAction
+        from execution_manual.manual_execution_intent import ManualExecutionIntent
         action = self.r.action
         # r.action is the real, gated, boundary-clean governed action candidate...
         self.assertIsInstance(action, InvestmentAction)
-        self.assertNotIsInstance(action, ManualExecutionAdapter)
+        self.assertNotIsInstance(action, ManualExecutionIntent)
         self.assertEqual(action.action_type, "enter_candidate")
         self.assertEqual(action.action_status, "timing_confirmed_candidate")
         self.assertEqual(action.source_thesis_id, self.r.thesis.id)
@@ -260,11 +261,11 @@ class TestVerticalSliceIREN(unittest.TestCase):
     # --- IMPLEMENTATION-006: the slice exposes the REAL Personalized Action -----
     def test_vertical_slice_iren_generates_personalized_action(self):
         from personal_cio.personalized_action import PersonalizedAction
-        from prometheus.investment_action import ManualExecutionAdapter
+        from execution_manual.manual_execution_intent import ManualExecutionIntent
         p = self.r.personalized_action
-        # r.personalized_action is the REAL Saarathi view (not the Kriya adapter)...
+        # r.personalized_action is the REAL Saarathi view (not the Kriya intent)...
         self.assertIsInstance(p, PersonalizedAction)
-        self.assertNotIsInstance(p, ManualExecutionAdapter)
+        self.assertNotIsInstance(p, ManualExecutionIntent)
         # ...a suitable/priority/reduced candidate with a sizing RANGE / max % ...
         self.assertIn(p.recommendation_status,
                       ("suitable_candidate", "priority_candidate", "reduced_size_candidate"))

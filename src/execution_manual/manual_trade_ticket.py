@@ -6,9 +6,9 @@ place the trade in their broker platform. No broker adapter, no automated
 submission -- "placing the trade" is recording ``broker_order_id`` + ``placed_at``.
 
 Idempotency (EXEC-002 AR-2001/2002): the ticket id is
-``stable_id("TKT", investment_action_id, investment_action_version)``, so the
-same (Investment Action, version) always resolves to the SAME ticket -- created
-at most once.
+``stable_id("TKT", source_action_id, source_personalized_action_version)`` of the
+``ManualExecutionIntent``, so the same upstream chain always resolves to the SAME
+ticket -- created at most once.
 
 The ticket is a frozen dataclass; every state transition produces a new value
 via ``dataclasses.replace`` with a bumped version, never an in-place edit.
@@ -146,11 +146,26 @@ def _build_preview(ticket: ManualTradeTicket, price: float, now: float, lot: int
     return replace(previewed, preview_hash=phash)
 
 
-def create_or_get_ticket(registry, investment_action, personalized_action, params, now, lot=1):
-    """Create the ticket for an Investment Action, or return the existing one.
+def _side_for_execution(execution_side: str) -> str:
+    """Map the manual-execution intent's side to the ticket's broker side.
 
-    Idempotent (EXEC-002 AR-2001): keyed by ``stable_id("TKT", ia_id, ia_version)``
-    in ``registry``. A repeat request resolves to the same ticket, never a
+    Purely operational mechanics -- Kriya performs NO investment reasoning. An
+    open candidate buys; a reduce / close candidate sells.
+    """
+    return "buy" if execution_side == "open_candidate" else "sell"
+
+
+def create_or_get_ticket(registry, execution_intent, params, now, lot=1):
+    """Create the ticket for a ``ManualExecutionIntent``, or return the existing one.
+
+    The intent is the proper Kriya input (the user's explicit chosen size,
+    downstream of Saarathi). Kriya does NO investment reasoning here -- it reads
+    the already-chosen instrument / size / side / account off the intent and
+    builds the operational ticket preview.
+
+    Idempotent (EXEC-002 AR-2001): keyed by
+    ``stable_id("TKT", source_action_id, source_personalized_action_version)`` in
+    ``registry``, so the same upstream chain resolves to the same ticket, never a
     duplicate.
 
     ``params`` carries the externally-supplied order parameters:
@@ -159,16 +174,15 @@ def create_or_get_ticket(registry, investment_action, personalized_action, param
     ``queue_item_id`` / ``risk_warning``.
     """
     ticket_id = stable_id(
-        "TKT", investment_action.id, investment_action.version
+        "TKT",
+        execution_intent.source_action_id,
+        execution_intent.source_personalized_action_version,
     )
     if ticket_id in registry:
         return registry[ticket_id]
 
     price = float(params["price"])
-    sources = (
-        investment_action.ref("InvestmentAction"),
-        personalized_action.ref("PersonalizedAction"),
-    )
+    sources = (execution_intent.ref("ManualExecutionIntent"),)
     prov = make_provenance(
         actor=params.get("actor", "user"),
         created_at=iso_from_epoch(now),
@@ -179,18 +193,18 @@ def create_or_get_ticket(registry, investment_action, personalized_action, param
         version=1,
         provenance=prov,
         queue_item_id=params.get("queue_item_id", ""),
-        investment_action_id=investment_action.id,
-        investment_action_version=investment_action.version,
-        cio_decision_record_id=getattr(personalized_action, "cio_decision_record_id", ""),
-        action_type=investment_action.action_type,
-        instrument=investment_action.instrument,
-        side=investment_action.side,
+        investment_action_id=execution_intent.source_action_id,
+        investment_action_version=execution_intent.source_personalized_action_version,
+        cio_decision_record_id=execution_intent.source_personalized_action_id,
+        action_type=execution_intent.execution_side,
+        instrument=execution_intent.selected_instrument,
+        side=_side_for_execution(execution_intent.execution_side),
         order_type=params.get("order_type", "market"),
         limit_price=params.get("limit_price"),
         stop_price=params.get("stop_price"),
         time_in_force=params.get("time_in_force", "day"),
-        account=personalized_action.account,
-        intended_allocation=personalized_action.intended_allocation,
+        account=execution_intent.account,
+        intended_allocation=execution_intent.user_selected_allocation_amount,
         venue=params.get("venue", ""),
         risk_warning=params.get("risk_warning", ""),
         state="draft",

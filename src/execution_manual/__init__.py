@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from .manual_execution_intent import (
+    ManualExecutionIntent,
+    make_manual_execution_intent,
+    EXECUTION_SIDES,
+)
 from .manual_trade_ticket import (
     ManualTradeTicket,
     STATES,
@@ -25,6 +30,9 @@ from .reconciliation import LinkResult, ReconciliationResult, reconcile
 from .audit_trail import AuditEntry, AuditTrail, ReplayState, EVENT_TYPES
 
 __all__ = [
+    "ManualExecutionIntent",
+    "make_manual_execution_intent",
+    "EXECUTION_SIDES",
     "ManualTradeTicket",
     "STATES",
     "compute_preview_hash",

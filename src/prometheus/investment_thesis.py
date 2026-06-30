@@ -310,11 +310,12 @@ class _ToyInvestmentThesis(ReasoningObject):
     diligence; it simply carries an instrument + allocation + timing forward so the
     legacy action -> ticket path still resolves. It is a SEPARATE class from the real
     gated ``InvestmentThesis`` and must never leak its instrument / allocation /
-    timing fields into it. It is now ONLY a convenient source object for the labelled
-    ``ManualExecutionAdapter`` Kriya compatibility shim; REMOVE this thesis shim when
-    a real execution-selection step threads the chosen size and the slice no longer
-    needs an allocation carried through a reasoning object. The real, gated,
-    allocation-free thesis is ``InvestmentThesis`` via ``generate_investment_thesis``.
+    timing fields into it. As of the 007 Kriya cleanup the real execution path threads
+    the user's chosen size via ``ManualExecutionIntent`` in the execution layer (not
+    through a thesis), so this toy is now retained ONLY for the
+    ``test_toy_bridge_does_not_leak_into_investment_thesis`` boundary test and can be
+    retired in a future Nivesha-scoped cleanup. The real, gated, allocation-free
+    thesis is ``InvestmentThesis`` via ``generate_investment_thesis``.
     """
 
     instrument: str = ""

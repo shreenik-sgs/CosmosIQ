@@ -9,13 +9,13 @@ import unittest
 
 from execution_manual.manual_trade_ticket import create_or_get_ticket
 from execution_manual.execution_checklist import Thresholds, revalidate
-from _real_chain import real_adapter
+from _real_chain import real_intent
 
 
 def _ticket(now=0, price=10.0):
-    adapter = real_adapter()
+    intent = real_intent()
     params = {"order_type": "limit", "limit_price": price, "venue": "IBKR", "price": price}
-    return create_or_get_ticket({}, adapter, adapter, params, now=now)
+    return create_or_get_ticket({}, intent, params, now=now)
 
 
 class TestStalePreviewRevalidation(unittest.TestCase):

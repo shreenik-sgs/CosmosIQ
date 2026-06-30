@@ -1,13 +1,13 @@
 """Shared test fixtures: build the REAL EIOS reasoning chain end to end.
 
 Observation -> IntelligenceAssessment -> OpportunityHypothesis -> InvestmentThesis
-(gauntlet) -> InvestmentAction -> PersonalizedAction (Saarathi) -> the labelled
-Kriya ``ManualExecutionAdapter``.
+(gauntlet) -> InvestmentAction -> PersonalizedAction (Saarathi) -> the user's
+``ManualExecutionIntent`` (the Kriya boundary object).
 
-The execution-threading tests use ``real_adapter`` to obtain the single adapter
-object that the Kriya manual-ticket path reads (passed as BOTH the action and
-personalized args to ``create_or_get_ticket``). ``real_chain`` returns every
-intermediate object for provenance / mutation assertions.
+The execution-threading tests use ``real_intent`` to obtain the single
+``ManualExecutionIntent`` the Kriya manual-ticket path consumes (the proper input
+to ``create_or_get_ticket``). ``real_chain`` returns every intermediate object for
+provenance / mutation assertions.
 """
 
 from __future__ import annotations
@@ -22,13 +22,11 @@ if _SRC not in _sys.path:
 from reality_intelligence.intelligence_assessment import generate_intelligence_assessment
 from genesis.opportunity_hypothesis import generate_opportunity_hypothesis
 from prometheus.investment_thesis import generate_investment_thesis
-from prometheus.investment_action import (
-    generate_investment_action,
-    make_manual_execution_adapter,
-)
+from prometheus.investment_action import generate_investment_action
 from personal_cio.personal_investment_profile import make_personal_investment_profile
 from personal_cio.portfolio_snapshot import make_portfolio_snapshot
 from personal_cio.personalized_action import generate_personalized_action
+from execution_manual.manual_execution_intent import make_manual_execution_intent
 from runtime.vertical_slice_runner import iren_source_observations, iren_diligence_inputs
 
 DOMAIN = "ai-infrastructure"
@@ -52,12 +50,15 @@ def real_chain(now=0.0, account="ACCT"):
     }
 
 
-def real_adapter(now=0.0, account="ACCT", intended_allocation=2000.0, instrument="IREN"):
-    """The labelled Kriya ``ManualExecutionAdapter`` -- the user's chosen exact size
-    within Saarathi's recommended range -- for the Kriya manual-ticket path."""
+def real_intent(now=0.0, account="ACCT", user_selected_allocation_amount=2000.0,
+                instrument="IREN", execution_side="open_candidate"):
+    """The user's ``ManualExecutionIntent`` -- the explicit chosen size (within
+    Saarathi's recommended range) the Kriya manual-ticket path consumes."""
     c = real_chain(now=now, account=account)
-    return make_manual_execution_adapter(
-        c["action"], c["personalized"],
-        intended_allocation=intended_allocation, instrument=instrument,
-        side="buy", action_type="enter", actor="t", now=now,
+    return make_manual_execution_intent(
+        c["personalized"],
+        selected_instrument=instrument,
+        user_selected_allocation_amount=user_selected_allocation_amount,
+        execution_side=execution_side,
+        actor="t", now=now,
     )

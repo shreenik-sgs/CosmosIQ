@@ -14,13 +14,13 @@ from execution_manual.manual_trade_ticket import (
     preview_params_of,
 )
 from execution_manual.execution_checklist import confirm
-from _real_chain import real_adapter
+from _real_chain import real_intent
 
 
 def _ticket():
-    adapter = real_adapter()
+    intent = real_intent()
     params = {"order_type": "limit", "limit_price": 10.0, "venue": "IBKR", "price": 10.0}
-    return create_or_get_ticket({}, adapter, adapter, params, now=0)
+    return create_or_get_ticket({}, intent, params, now=0)
 
 
 class TestConfirmationPreviewBinding(unittest.TestCase):
