@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 1.5 |
+| Version | 1.6 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -75,7 +75,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 1.5
+version: 1.6
 authoritative: true
 target_generator: Claude Code
 -->
@@ -83,6 +83,8 @@ target_generator: Claude Code
 # PART I — FOUNDATION
 
 <!-- BEGIN:PART:FOUNDATION -->
+
+> **Foundation Status: Release 2.0 — Frozen (ADR-0007).** Chapters EIOS-000 through EIOS-006 are architecturally stable; changes require a new ADR, not a manuscript patch. This freeze covers the Foundation chapters only — appendices, reference material, and later Parts continue to evolve.
 
 ## CHAPTER EIOS-000 — Constitution of EIOS
 
