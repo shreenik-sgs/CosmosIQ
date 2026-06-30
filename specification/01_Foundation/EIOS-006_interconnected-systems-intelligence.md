@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-006
 slug: interconnected-systems-intelligence
-book_version: 1.3
+book_version: 1.4
 generator_version: 1.0
-source_hash: 7bc276519d668cba0fa607824da910c7aa5141c92e3338810d2c9301b02ea4dc
-generated_at: 2026-06-29T19:07:50-05:00
+source_hash: 21928941072a01b877fa37af705de5a60f7d01fe730764b8770083b3ef19ddb4
+generated_at: 2026-06-29T19:20:22-05:00
 ---
 
 # EIOS-006 — Interconnected Systems Intelligence
@@ -359,6 +359,21 @@ Different applications MAY construct specialized Intelligence Graphs while remai
 
 ---
 
+### Decision Graph
+
+The Decision Graph represents a structured projection of actionable alternatives derived from the Intelligence Graph.
+
+It SHALL remain distinct from:
+
+- **Knowledge Graph** — persistent validated knowledge.
+- **World Model** — canonical representation of reality.
+- **Intelligence Graph** — analytical representation of interconnected systems.
+- **Decision Graph** — action-oriented representation of feasible choices, expected consequences, trade-offs, confidence, and recommendations.
+
+Applications such as Prometheus MAY construct specialized Decision Graphs while remaining consistent with the Intelligence Graph.
+
+---
+
 ### Architectural Rules
 
 - **AR-0601** — Networks SHALL be primary analytical structures.
@@ -371,6 +386,7 @@ Different applications MAY construct specialized Intelligence Graphs while remai
 - **AR-0608** — Opportunity Networks SHALL emerge through network convergence.
 - **AR-0609** — The Intelligence Graph SHALL derive from the World Model.
 - **AR-0610** — Architectural reasoning SHALL remain independent of specific graph algorithms.
+- **AR-0611** — The Decision Graph SHALL derive exclusively from the Intelligence Graph; applications SHALL NOT bypass analytical reasoning by constructing decisions directly from the World Model.
 
 ---
 
@@ -386,6 +402,7 @@ Different applications MAY construct specialized Intelligence Graphs while remai
 - **REQ-ISI-008** — Network Evolution
 - **REQ-ISI-009** — Intelligence Graph
 - **REQ-ISI-010** — Multi-Hop Intelligence
+- **REQ-ISI-011** — Decision Graph Representation
 
 ---
 
@@ -408,5 +425,5 @@ Referenced by:
 ### Cross References
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005
-- **Defines:** Interconnected Systems Intelligence; Network Ontology; Network Types; Dependency Networks; Flow Networks; Influence Networks; Opportunity Networks; Constraint Networks; Intelligence Graph
+- **Defines:** Interconnected Systems Intelligence; Network Ontology; Network Types; Dependency Networks; Flow Networks; Influence Networks; Opportunity Networks; Constraint Networks; Intelligence Graph; Decision Graph
 - **Referenced By:** All scientific, economic, technological, investment, simulation, replay, orchestration, and autonomous intelligence subsystems

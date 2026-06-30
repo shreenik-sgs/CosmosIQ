@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-003
 slug: world-model
-book_version: 1.3
+book_version: 1.4
 generator_version: 1.0
-source_hash: 7bc276519d668cba0fa607824da910c7aa5141c92e3338810d2c9301b02ea4dc
-generated_at: 2026-06-29T19:07:50-05:00
+source_hash: 21928941072a01b877fa37af705de5a60f7d01fe730764b8770083b3ef19ddb4
+generated_at: 2026-06-29T19:20:22-05:00
 ---
 
 # EIOS-003 — The World Model
@@ -402,6 +402,76 @@ Counterfactual Futures
 Only observed reality influences confidence directly.
 
 Forecasts influence hypotheses.
+
+---
+
+### World Model Views
+
+Views are persistent projections of the World Model optimized for a class of investigations.
+
+Illustrative Views include:
+
+* Technology View
+* Scientific View
+* Capital View
+* Supply View
+* Demand View
+* Infrastructure View
+* Resource View
+* Policy View
+* Risk View
+
+Views remain derived from the World Model.
+
+The World Model remains the single canonical representation of observable reality.
+
+---
+
+### Event Layer
+
+Events represent discrete occurrences that modify one or more system states.
+
+Illustrative events include:
+
+* Patent granted
+* Factory opened
+* Factory destroyed
+* Regulation enacted
+* Acquisition completed
+* Scientific breakthrough
+* Product released
+
+Events SHALL remain distinct from system state.
+
+State describes what currently exists.
+
+Events describe what caused change.
+
+---
+
+### Belief Layer
+
+Reality and observed behavior frequently diverge.
+
+The World Model SHALL distinguish:
+
+Observed Reality
+
+↓
+
+Beliefs
+
+↓
+
+Behavior
+
+↓
+
+Observable Outcomes
+
+Beliefs influence markets, policy, organizations, and individuals.
+
+The architecture SHALL therefore represent beliefs independently of objective reality.
 
 ---
 

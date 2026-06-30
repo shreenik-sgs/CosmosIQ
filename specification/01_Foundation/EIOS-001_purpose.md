@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-001
 slug: purpose
-book_version: 1.3
+book_version: 1.4
 generator_version: 1.0
-source_hash: 7bc276519d668cba0fa607824da910c7aa5141c92e3338810d2c9301b02ea4dc
-generated_at: 2026-06-29T19:07:50-05:00
+source_hash: 21928941072a01b877fa37af705de5a60f7d01fe730764b8770083b3ef19ddb4
+generated_at: 2026-06-29T19:20:22-05:00
 ---
 
 # EIOS-001 — Purpose
@@ -289,6 +289,26 @@ The Personal CIO will not merely recommend transactions.
 It will explain the complete causal chain leading from observed reality to each recommendation, quantify uncertainty at every stage, identify assumptions, and update conclusions as new evidence becomes available.
 
 These responsibilities are consequences of the architectural principles established here rather than independent product features.
+
+---
+
+### 1.9 Non-Goals
+
+The following capabilities are explicitly outside the architectural purpose of EIOS.
+
+EIOS is NOT:
+
+* a stock screener
+* a trading algorithm
+* a portfolio optimizer
+* an LLM wrapper
+* a chatbot
+* a rule engine
+* a reporting dashboard
+* a relational database
+* a business intelligence tool
+
+These capabilities may exist as applications constructed upon EIOS, but SHALL NOT define the architecture itself.
 
 ---
 

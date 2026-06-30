@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-002
 slug: knowledge-model
-book_version: 1.3
+book_version: 1.4
 generator_version: 1.0
-source_hash: 7bc276519d668cba0fa607824da910c7aa5141c92e3338810d2c9301b02ea4dc
-generated_at: 2026-06-29T19:07:50-05:00
+source_hash: 21928941072a01b877fa37af705de5a60f7d01fe730764b8770083b3ef19ddb4
+generated_at: 2026-06-29T19:20:22-05:00
 ---
 
 # EIOS-002 — Reality, Observation, Evidence, and Knowledge
@@ -169,25 +169,74 @@ Knowledge Objects constitute the canonical persistence model of EIOS.
 
 Every persistent concept SHALL be represented as exactly one Knowledge Object type.
 
-Knowledge Objects include, but are not limited to:
-
-* Companies
-* Technologies
-* Products
-* Scientific discoveries
-* Supply chains
-* Manufacturing facilities
-* Governments
-* Regulations
-* Economic indicators
-* Megatrends
-* Risks
-* Opportunities
-* Investment theses
-* Portfolios
-* Research reports
-
 Future domains SHALL extend the ontology rather than introducing parallel persistence models.
+
+---
+
+### Canonical Object Categories
+
+Persistent Knowledge Objects include the following canonical categories:
+
+* Entity
+* Relationship
+* Observation
+* Evidence
+* Fact
+* Knowledge Object
+* Research Question
+* Hypothesis
+* Prediction
+* Decision
+* Experience
+* Simulation
+* Scenario
+* Concept
+* Principle
+* Constraint
+* Opportunity
+* Policy
+
+Future chapters SHALL reference these canonical object definitions rather than redefining them.
+
+---
+
+### Concept Objects
+
+Concepts represent abstract ideas that participate in reasoning but do not exist as physical entities.
+
+Illustrative examples include:
+
+* Inflation
+* Scarcity
+* Competition
+* Network Effects
+* Learning Curves
+* Comparative Advantage
+* Optionality
+* Platform Effects
+* Economies of Scale
+
+Concepts SHALL be reusable across multiple domains.
+
+---
+
+### Principle Objects
+
+Principles represent reusable explanatory mechanisms that describe recurring behavior within systems.
+
+Illustrative examples include:
+
+* Moore's Law
+* Wright's Law
+* Metcalfe's Law
+* Jevons Paradox
+* Pareto Principle
+* Comparative Advantage
+* Experience Curves
+
+Principles SHALL be first-class reasoning objects.
+
+Scientific cognition SHALL reason with principles rather than merely storing them.
 
 ---
 
@@ -341,6 +390,25 @@ The World Model incorporates:
 * Experience Layer
 
 The World Model SHALL therefore be defined separately in Chapter EIOS-003.
+
+---
+
+### Canonical Definition Rule
+
+Every architectural concept SHALL possess exactly one canonical definition.
+
+Subsequent chapters SHALL reference that definition rather than redefining the concept.
+
+This rule applies to:
+
+* Object definitions
+* Architectural constructs
+* Graphs
+* Cognitive concepts
+* System concepts
+* Reasoning concepts
+
+This preserves architectural consistency as the platform evolves.
 
 ---
 
