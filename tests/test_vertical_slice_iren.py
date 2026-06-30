@@ -205,8 +205,8 @@ class TestVerticalSliceIREN(unittest.TestCase):
     def test_vertical_slice_iren_generates_alpha_grade_investment_thesis(self):
         t = self.r.thesis
         # The thesis is the GATED alpha thesis, not the toy placeholder.
-        self.assertEqual(t.investability_assessment, "thesis_worthy_action_ready")
-        self.assertTrue(t.action_ready)
+        self.assertEqual(t.investability_assessment, "thesis_worthy_timing_confirmed")
+        self.assertTrue(t.timing_confirmation)
         # Security/instrument mapping follows the winner mapping (top winner ticker).
         self.assertEqual(t.security_or_instrument_mapping, "IREN")
         self.assertEqual(t.winner_mapping[0].ticker, "IREN")

@@ -14,8 +14,9 @@ GATING is the heart of this stage. The thesis is NOT an additive score: a poor
 payoff, a failed red team, a euphoric/bubble recognition, no credible winner, or
 severe dilution DOWNGRADES or BLOCKS investability regardless of how high the
 other legs score. A strong chart on a weak thesis is only a watch; a strong
-thesis without chart confirmation is thesis-worthy but not action-ready.
-``action_ready`` is a technical-timing flag, never an order.
+thesis without chart confirmation is thesis-worthy but not timing-confirmed.
+``timing_confirmation`` is a technical-timing flag, never an order and never an
+action decision -- the Investment Action layer (later) decides whether to act.
 
 Determinism: every output is a pure function of the inputs and the explicit
 ``now``; no wall clock, no randomness; upstream objects are never mutated.
@@ -43,17 +44,19 @@ from .technical_inflection import analyze_technical_inflection
 from .red_team import analyze_red_team, severe_dilution
 from .repricing_trigger import analyze_repricing_trigger
 
-# Trade / allocation / order language that must never appear in a thesis's
-# synthesised text. Nivesha MAY say: investable, asymmetry, valuation, security /
-# ticker mapping, repricing, action-ready (a technical-timing flag), risk/reward.
+# Trade / allocation / order / action-decision language that must never appear in a
+# thesis's synthesised text. Nivesha MAY say: investable, asymmetry, valuation,
+# security / ticker mapping, repricing, timing-confirmation (a technical-timing
+# flag). It must NOT expose action-decision language -- that is the Investment
+# Action layer's job, downstream of the cognition/actuation boundary.
 _FORBIDDEN_TERMS = (
     "buy", "sell", " hold", "enter ", "exit ", "trim", " add ", "rotate",
     "allocat", "position size", "order", "trade ticket", "manual execution",
-    "ticket",
+    "ticket", "action-ready", "action ready", "action readiness", "ready to buy",
 )
 
 INVESTABILITY_LEVELS = (
-    "not_investable", "watch", "thesis_worthy", "thesis_worthy_action_ready",
+    "not_investable", "watch", "thesis_worthy", "thesis_worthy_timing_confirmed",
 )
 
 _BASE_THRESHOLD = 0.50
@@ -89,7 +92,8 @@ class InvestmentThesis(ReasoningObject):
     # verdict
     security_or_instrument_mapping: str = ""
     investability_assessment: str = "not_investable"
-    action_ready: bool = False
+    # technical-timing flag (thesis timing is confirmed) -- NOT an action decision.
+    timing_confirmation: bool = False
     thesis_confidence: float = 0.0
     thesis_time_horizon: str = ""
     base_score: float = 0.0
@@ -175,18 +179,18 @@ def generate_investment_thesis(opportunity_hypothesis, diligence_inputs, *,
 
     if not_investable:
         investability = "not_investable"
-        action_ready = False
+        timing_confirmation = False
     elif not strong_thesis:
-        # strong chart but weak thesis -> watch (not action-ready)
+        # strong chart but weak thesis -> watch (timing not confirmed)
         investability = "watch"
-        action_ready = False
+        timing_confirmation = False
     elif technical_confirmation and repricing_gate:
-        investability = "thesis_worthy_action_ready"
-        action_ready = True
+        investability = "thesis_worthy_timing_confirmed"
+        timing_confirmation = True
     else:
-        # strong thesis but no technical confirmation -> thesis-worthy, not action-ready
+        # strong thesis but no chart confirmation -> thesis-worthy, timing not confirmed
         investability = "thesis_worthy"
-        action_ready = False
+        timing_confirmation = False
 
     thesis_confidence = clamp(base - red.confidence_haircut)
     if not_investable:
@@ -248,8 +252,8 @@ def generate_investment_thesis(opportunity_hypothesis, diligence_inputs, *,
 
     thesis_summary = (
         "Investability {0}; thesis confidence {1}; security/instrument mapping {2}; "
-        "action-ready {3} (a technical-timing flag, not an instruction)".format(
-            investability, round(thesis_confidence, 4), mapping or "none", action_ready))
+        "timing-confirmation {3} (a technical-timing flag, not an instruction)".format(
+            investability, round(thesis_confidence, 4), mapping or "none", timing_confirmation))
 
     # --- boundary guard over synthesised text ---------------------------------
     _assert_no_leakage(
@@ -286,7 +290,7 @@ def generate_investment_thesis(opportunity_hypothesis, diligence_inputs, *,
         repricing_trigger_summary=repricing,
         security_or_instrument_mapping=mapping,
         investability_assessment=investability,
-        action_ready=action_ready,
+        timing_confirmation=timing_confirmation,
         thesis_confidence=round(thesis_confidence, 4),
         thesis_time_horizon=horizon,
         base_score=base,
@@ -300,12 +304,17 @@ def generate_investment_thesis(opportunity_hypothesis, diligence_inputs, *,
 
 @dataclass(frozen=True)
 class _ToyInvestmentThesis(ReasoningObject):
-    """A deliberately minimal TOY thesis used ONLY by ``make_investment_thesis``
-    to thread the pre-existing generic / Kriya tests. It is NOT the alpha thesis
-    and performs NO diligence; it simply carries an instrument + allocation +
-    timing forward so the legacy action -> ticket path still resolves. The real,
-    gated, allocation-free thesis is ``InvestmentThesis`` via
-    ``generate_investment_thesis``.
+    """TEMPORARY COMPATIBILITY GLUE (quarantined) -- NOT part of the Nivesha alpha
+    surface. A deliberately minimal TOY thesis used ONLY by ``make_investment_thesis``
+    to thread the pre-existing generic / Kriya threading tests. It performs NO
+    diligence; it simply carries an instrument + allocation + timing forward so the
+    legacy action -> ticket path still resolves. It is a SEPARATE class from the real
+    gated ``InvestmentThesis`` and must never leak its instrument / allocation /
+    timing fields into it. REMOVE this shim (and the ``instrument`` /
+    ``intended_allocation`` / ``timing`` fallbacks in ``make_investment_action``) when
+    the real Investment Action layer is implemented and the slice no longer threads
+    allocation through a thesis. The real, gated, allocation-free thesis is
+    ``InvestmentThesis`` via ``generate_investment_thesis``.
     """
 
     instrument: str = ""

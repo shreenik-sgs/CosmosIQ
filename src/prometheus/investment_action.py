@@ -51,9 +51,12 @@ def make_investment_action(thesis, action_type, actor, now,
 
     The Investment Thesis (Nivesha) carries NO allocation or position size -- that
     is the cognition/actuation boundary -- so ``instrument`` / ``intended_allocation``
-    / ``timing`` are supplied EXPLICITLY here (a labelled TOY bridge that threads
-    the manual-execution slice; it adds no action alpha). For backward
-    compatibility they fall back to attributes on the thesis when present.
+    / ``timing`` are supplied EXPLICITLY here. These explicit params are a labelled
+    TEMPORARY TOY bridge that threads the manual-execution slice; they add no action
+    alpha. The thesis-attribute fallbacks below exist ONLY for the quarantined
+    ``_ToyInvestmentThesis`` -- the real gated ``InvestmentThesis`` carries none of
+    these fields. REMOVE the fallbacks (and the toy shim) when the real Investment
+    Action layer is implemented.
     """
     if action_type not in ACTION_TYPES:
         raise ValueError("unknown action_type: {0}".format(action_type))

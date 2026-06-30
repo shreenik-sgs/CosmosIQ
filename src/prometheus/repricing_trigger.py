@@ -5,7 +5,7 @@ confirmable catalyst AND a fundamental inflection AND a still-early recognition
 AND a favorable payoff AND a confirming chart. Only when all of these line up is
 the opportunity "ready to reprice". A speculative rumour cannot materially raise
 it (its catalyst score is ~0), and high dilution drags it down -- so a positive
-catalyst sitting on top of heavy dilution is NOT action-ready.
+catalyst sitting on top of heavy dilution does NOT clear the repricing gate.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from typing import Tuple
 
 from ._common import clamp, mean
 
-GATE = 0.50  # the per-leg threshold and the action-ready repricing threshold
+GATE = 0.50  # the per-leg threshold and the repricing-gate threshold
 
 
 @dataclass(frozen=True)
@@ -73,7 +73,7 @@ def analyze_repricing_trigger(opportunity_hypothesis, top_candidate, financial_r
         # ungated: a partial signal, deliberately well below the action threshold.
         probability = clamp(0.30 * mean([catalyst, fin, mkt, asym, tech]))
 
-    # high dilution drags the trigger down (and out of action-ready range)
+    # high dilution drags the trigger down (and out of repricing-gate range)
     if top_candidate is not None and top_candidate.dilution_risk == "high":
         probability = clamp(probability - 0.30)
         gate_passed = gate_passed and probability >= GATE

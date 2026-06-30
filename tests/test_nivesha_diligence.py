@@ -383,17 +383,17 @@ class TestNiveshaDiligence(unittest.TestCase):
         for attr in ("order", "ticket", "trade", "side", "quantity", "broker_order_id"):
             self.assertFalse(hasattr(r, attr))
 
-    # --- action-readiness gating ------------------------------------------
-    def test_strong_thesis_without_technical_confirmation_is_not_action_ready(self):
+    # --- timing-confirmation gating ---------------------------------------
+    def test_strong_thesis_without_technical_confirmation_is_not_timing_confirmed(self):
         # strong fundamentals/asymmetry but the chart does not confirm.
         cand = _alpha_candidate(ema9=8.0, volume_recent=900_000.0, price_above_breakout=False)
         t = _thesis(_alpha_oh(), cand)
         self.assertGreaterEqual(t.base_score, 0.5)
         self.assertFalse(t.technical_inflection_summary.technical_confirmation)
         self.assertEqual(t.investability_assessment, "thesis_worthy")
-        self.assertFalse(t.action_ready)
+        self.assertFalse(t.timing_confirmation)
 
-    def test_weak_thesis_with_strong_chart_is_not_action_ready(self):
+    def test_weak_thesis_with_strong_chart_is_not_timing_confirmed(self):
         # no bottleneck -> value-chain capture and bottleneck leverage are ~0,
         # so the thesis base is weak even though the chart is a clean breakout.
         oh = _no_bottleneck_oh()
@@ -406,7 +406,7 @@ class TestNiveshaDiligence(unittest.TestCase):
         self.assertTrue(t.technical_inflection_summary.technical_confirmation)
         self.assertLess(t.base_score, 0.5)
         self.assertEqual(t.investability_assessment, "watch")
-        self.assertFalse(t.action_ready)
+        self.assertFalse(t.timing_confirmation)
 
     # --- boundary ----------------------------------------------------------
     def test_investment_thesis_has_no_buy_sell_hold_enter_exit_allocation_order_leakage(self):
@@ -419,14 +419,64 @@ class TestNiveshaDiligence(unittest.TestCase):
         ]).lower()
         for term in ("buy", "sell", " hold", "enter ", "exit ", "trim", " add ",
                      "rotate", "allocat", "position size", "order", "trade ticket",
-                     "manual execution", "ticket"):
+                     "manual execution", "ticket", "action-ready", "action ready",
+                     "action readiness", "ready to buy"):
             self.assertNotIn(term, blob, msg="leaked forbidden term: {0}".format(term))
-        fields = set(InvestmentThesis.__dataclass_fields__.keys())
-        for f in ("intended_allocation", "position_size", "allocation", "side",
-                  "quantity", "order"):
-            self.assertNotIn(f, fields)
-        # Nivesha MAY name the security/ticker mapping and say "action-ready".
+        # Nivesha MAY name the security/ticker mapping.
         self.assertEqual(t.security_or_instrument_mapping, "IREN")
+
+    def test_investment_thesis_has_no_allocation_or_position_size_field(self):
+        fields = set(InvestmentThesis.__dataclass_fields__.keys())
+        for f in ("intended_allocation", "allocation", "position_size",
+                  "position", "size", "quantity", "capital"):
+            self.assertNotIn(f, fields, msg="thesis must not carry {0}".format(f))
+
+    def test_investment_thesis_has_no_order_or_trade_ticket_field(self):
+        fields = set(InvestmentThesis.__dataclass_fields__.keys())
+        for f in ("order", "order_type", "side", "trade_ticket", "ticket",
+                  "direction", "instrument"):
+            self.assertNotIn(f, fields, msg="thesis must not carry {0}".format(f))
+
+    def test_nivesha_public_output_exposes_no_action_decision_terms(self):
+        # No public thesis field name carries an action / trade / allocation token.
+        for f in InvestmentThesis.__dataclass_fields__.keys():
+            for bad in ("action_ready", "action", "buy", "sell", "allocat",
+                        "order", "position"):
+                self.assertNotIn(bad, f, msg="action-decision field name: {0}".format(f))
+        # No investability level carries an action / trade token.
+        from prometheus.investment_thesis import INVESTABILITY_LEVELS
+        for lvl in INVESTABILITY_LEVELS:
+            for bad in ("action", "buy", "sell", "enter", "exit"):
+                self.assertNotIn(bad, lvl)
+        # Nivesha exposes the clean technical-timing flag, not an action flag.
+        self.assertIn("timing_confirmation", InvestmentThesis.__dataclass_fields__)
+        self.assertNotIn("action_ready", InvestmentThesis.__dataclass_fields__)
+
+    def test_toy_bridge_does_not_leak_into_investment_thesis(self):
+        # The quarantined _ToyInvestmentThesis carries instrument/allocation/timing;
+        # the real gated InvestmentThesis must carry NONE of them.
+        from prometheus.investment_thesis import _ToyInvestmentThesis
+        toy_only = {"instrument", "intended_allocation", "timing"}
+        real = set(InvestmentThesis.__dataclass_fields__.keys())
+        toy = set(_ToyInvestmentThesis.__dataclass_fields__.keys())
+        self.assertTrue(toy_only.issubset(toy))
+        self.assertEqual(toy_only & real, set())
+
+    def test_nivesha_adds_no_execution_or_broker_code(self):
+        # No Nivesha module imports the manual-execution layer or any broker /
+        # order-submission surface -- diligence is cognition, never actuation.
+        prom_dir = _os.path.join(_SRC, "prometheus")
+        offenders = []
+        for fn in _os.listdir(prom_dir):
+            if not fn.endswith(".py"):
+                continue
+            with open(_os.path.join(prom_dir, fn)) as fh:
+                src = fh.read().lower()
+            for bad in ("import execution_manual", "from execution_manual",
+                        "broker", "place_order", "submit_order"):
+                if bad in src:
+                    offenders.append((fn, bad))
+        self.assertEqual(offenders, [], msg="Nivesha must add no execution/broker code")
 
     # --- provenance / immutability ----------------------------------------
     def test_provenance_chain_preserved_from_observations_to_thesis(self):
