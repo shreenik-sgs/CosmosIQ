@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-001
 slug: purpose
-book_version: 1.5
+book_version: 1.6
 generator_version: 1.0
-source_hash: 8e03db052c6fb48c5a82e19e92942bb94c8630cca41a4c68083a4d3944df0d25
-generated_at: 2026-06-29T19:36:51-05:00
+source_hash: 7d867c694c1d76c69c59ae56b7e9f6bad9dba0ff2c2084648e70aba680d87570
+generated_at: 2026-06-29T19:54:49-05:00
 ---
 
 # EIOS-001 — Purpose
