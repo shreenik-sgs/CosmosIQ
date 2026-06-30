@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-009
 slug: scientific-discovery
-book_version: 4.0
+book_version: 4.1
 generator_version: 1.1
-source_hash: 059978d0c620032fc128866b7b6e01935b74a435ef5e346b2ed3184fc3154906
-generated_at: 2026-06-29T23:26:51-05:00
+source_hash: 3eae38d99f325f42530c6fd2dec10f031e1f1541b2d32f247e2ee99d1a7b6186
+generated_at: 2026-06-29T23:29:28-05:00
 ---
 
 # EIOS-009 — Scientific Discovery
@@ -873,6 +873,165 @@ Investigations MAY be:
 * completed
 
 The complete evolution of every Investigation SHALL remain replayable.
+
+---
+
+### Investigation Execution
+
+Scientific Investigation SHALL execute Investigation Plans systematically.
+
+Execution SHALL preserve:
+
+* participating Research Questions
+* participating Hypotheses
+* participating Models
+* participating Evidence
+* execution history
+* intermediate findings
+
+Execution SHALL remain continuously replayable.
+
+---
+
+### Scientific Observation
+
+Observations provide the primary empirical input to Scientific Investigation.
+
+Scientific Investigation SHALL preserve every observation together with:
+
+* provenance
+* acquisition method
+* context
+* uncertainty
+* confidence
+
+Observations SHALL remain distinguishable from interpretations.
+
+---
+
+### Experimentation
+
+Scientific Investigation MAY conduct experiments to evaluate competing Hypotheses.
+
+Experiments SHALL preserve:
+
+* objective
+* methodology
+* assumptions
+* observations
+* outcomes
+* limitations
+
+Experimental evidence SHALL remain independently replayable.
+
+---
+
+### Simulation
+
+Scientific Investigation MAY employ simulations where direct experimentation is impractical.
+
+Simulations SHALL preserve:
+
+* participating Models
+* assumptions
+* initial conditions
+* simulated outcomes
+* uncertainty
+
+Simulation SHALL complement, but SHALL NOT replace, empirical observation.
+
+---
+
+### Evidence Evaluation
+
+Scientific Investigation SHALL continuously evaluate acquired Evidence.
+
+Evaluation SHALL determine:
+
+* relevance
+* consistency
+* explanatory contribution
+* uncertainty
+* completeness
+* conflicts
+
+Evidence evaluation SHALL remain independent from final scientific validation.
+
+---
+
+### Evidence Synthesis
+
+Scientific Investigation SHALL synthesize Evidence originating from multiple independent sources.
+
+Evidence Synthesis SHALL preserve:
+
+* contributing Evidence
+* synthesis methodology
+* unresolved conflicts
+* confidence
+* limitations
+
+Synthesis SHALL remain scientifically explainable.
+
+---
+
+### Investigation Coverage
+
+Scientific Investigation SHALL continuously assess investigation completeness.
+
+Illustrative dimensions include:
+
+* Research Questions investigated
+* Hypotheses evaluated
+* Evidence acquired
+* contradictions examined
+* Knowledge Gaps remaining
+
+Coverage SHALL remain continuously observable.
+
+---
+
+### Investigation Confidence
+
+Scientific Investigation SHALL continuously estimate confidence in ongoing investigations.
+
+Investigation Confidence reflects confidence in the investigation process rather than confidence in individual Hypotheses.
+
+Confidence SHALL evolve continuously as additional Evidence becomes available.
+
+---
+
+### Investigation Portfolio
+
+Scientific Discovery SHALL maintain Investigation Portfolios.
+
+An Investigation Portfolio represents a coordinated collection of related investigations pursuing complementary scientific objectives.
+
+Investigation Portfolios SHALL preserve:
+
+* participating investigations
+* Research Questions
+* Hypotheses
+* Evidence
+* participating Models
+
+Investigation Portfolios SHALL remain replayable and continuously evolving.
+
+---
+
+### Investigation Orchestration
+
+Scientific Investigation SHALL coordinate multiple simultaneous investigations.
+
+Orchestration SHALL optimize:
+
+* investigative diversity
+* Evidence acquisition
+* Model utilization
+* computational resources
+* scientific value
+
+Independent investigations SHALL preserve their autonomy while participating in coordinated scientific discovery.
 
 ---
 
