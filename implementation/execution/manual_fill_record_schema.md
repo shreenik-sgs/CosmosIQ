@@ -23,6 +23,7 @@ derived view (EXEC-002 AR-2018/2021).
 | `remaining_quantity` | intended − `cumulative_filled` |
 | `average_price` | quantity-weighted |
 | `outcome` | working / partially_filled / filled / expired / cancelled / rejected / **indeterminate** |
+| `remainder_status` | for a partial fill, the state of the unfilled remainder: working / cancelled / expired |
 
 ## Outcomes (terminal, mutually exclusive)
 - **filled** — cumulative = intended.

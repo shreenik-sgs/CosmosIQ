@@ -31,6 +31,14 @@ resolves to the same ticket, never a duplicate (EXEC-002 AR-2001).
 | `risk_warning` | slippage / fill-risk note (EXEC-001 AR-1916) |
 | `venue` | broker / venue (informational; manual) |
 
+## Allocation & quantity derivation
+| Field | Description |
+|-------|-------------|
+| `intended_allocation` | the capital this ticket should deploy, in account currency — from the **Capital Allocation Recommendation** (PROM-001), personalized by CIO |
+
+- `instrument` comes from the **Security / Instrument Mapping** (PROM-001) carried on the Investment Action — it is **not** chosen in Execution.
+- `quantity` MAY be derived as `intended_allocation ÷ preview price`, subject to **rounding rules** (whole shares / lot size / option-contract multiple), so deployed capital approximates `intended_allocation`. The derivation and its rounding are recorded so reconciliation can compare intended vs actual capital.
+
 ## Preview & confirmation binding
 | Field | Description |
 |-------|-------------|
@@ -41,6 +49,14 @@ resolves to the same ticket, never a duplicate (EXEC-002 AR-2001).
 Any change to instrument, side, quantity, order_type, limit/stop price, time_in_force, account,
 estimated_cost, risk_warning, or venue **invalidates the confirmation** and requires a fresh
 preview and confirmation (EXEC-002 AR-2009).
+
+## Placement (recorded when the user places the order)
+| Field | Description |
+|-------|-------------|
+| `broker_order_id` | the order identifier the broker returns when the user places the order manually — the key for reconciling against the broker record (EXEC-002 AR-2012, links 4–5) |
+| `placed_at` | timestamp at which the user placed the order |
+
+Both are empty until the user places the order, and are **required before reconciliation links 4–5 can be walked**.
 
 ## State
 `draft → previewed → confirmed → placed (by the user) → recorded → reconciled`; or

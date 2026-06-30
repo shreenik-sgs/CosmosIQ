@@ -17,8 +17,8 @@ re-actuates** (EXEC-002 AR-2003/2024).
 | `grounding_versions` | investment_action, thesis, opportunity, worldview, profile versions |
 
 ## event_type (at least)
-- `queue_item_presented` · `ticket_created` · `previewed` · `checklist_completed` · `confirmed`
-- **`placed_by_user`** · `fill_recorded` · `partial_fill` · `expired` · `cancelled` · `rejected`
+- `queue_item_presented` · `ticket_created` · `previewed` · `stale_detected` · `returned_to_preview` · `checklist_completed` · `confirmed`
+- **`placed_by_user`** (payload includes `broker_order_id` and `placed_at`) · `fill_recorded` · `partial_fill` · `expired` · `cancelled` · `rejected`
 - `cancel_requested` · `replace_requested` · `indeterminate_marked` · `reconciled` · `divergence_found`
 - `disabled` · `override` · `emergency_invoked`
 
