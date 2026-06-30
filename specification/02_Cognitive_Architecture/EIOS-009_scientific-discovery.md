@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-009
 slug: scientific-discovery
-book_version: 4.7
+book_version: 4.8
 generator_version: 1.1
-source_hash: 5b08bf04a84a449a46d82daa8a7ba8875338558dee0097ab7e215a4cb296c0bd
-generated_at: 2026-06-29T23:50:18-05:00
+source_hash: d896ebc17385d1fdc0c76ebfb6737ad3f9c8bd89440666cc01b2c611887a7e29
+generated_at: 2026-06-29T23:54:28-05:00
 ---
 
 # EIOS-009 — Scientific Discovery
@@ -1535,7 +1535,7 @@ Specialization SHALL preserve complete lineage to the originating Scientific Pri
 
 ---
 
-### Knowledge Integration
+### Cross-Domain Knowledge Integration
 
 Scientific Discovery SHALL continuously integrate validated understanding across multiple scientific domains.
 
@@ -1721,6 +1721,21 @@ Every validated improvement SHALL strengthen future scientific reasoning through
 - **AR-0958** — Validation Drift SHALL trigger renewed Scientific Investigation rather than automatic acceptance or rejection.
 - **AR-0959** — Continuous Scientific Reassessment SHALL remain a permanent responsibility of Scientific Discovery.
 - **AR-0960** — Scientific Validation SHALL continuously provide the current best-supported scientific explanations to Scientific Theory Evolution.
+- **AR-0961** — Scientific Theory Evolution SHALL continuously transform validated scientific understanding into increasingly reusable organizational knowledge.
+- **AR-0962** — Scientific Principles SHALL preserve complete traceability to supporting Research Questions, Hypotheses, Evidence, Investigations, and Validation Assessments.
+- **AR-0963** — Scientific Discovery SHALL evaluate Candidate Scientific Laws proposed by the Experience Layer through Investigation and Validation before promotion, refinement, deferment, rejection, or return for further investigation.
+- **AR-0964** — Scientific Theory Formation SHALL preserve explicit relationships among Scientific Principles, Candidate Scientific Laws, Models, and supporting Evidence.
+- **AR-0965** — Scientific Generalization SHALL preserve explicit applicability boundaries together with supporting Evidence and uncertainty.
+- **AR-0966** — Scientific Specialization SHALL preserve lineage to originating Scientific Principles.
+- **AR-0967** — Cross-Domain Knowledge Integration SHALL preserve contributions from every participating scientific domain.
+- **AR-0968** — Cross-Domain Scientific Theories SHALL preserve complete scientific explainability.
+- **AR-0969** — Theory Refinement SHALL preserve historical theory evolution together with supporting Evidence and scientific justification.
+- **AR-0970** — Scientific Coherence SHALL continuously evaluate consistency across Scientific Principles, Candidate Scientific Laws, Scientific Theories, and Models while preserving scientifically justified competing explanations.
+- **AR-0971** — Theory Portfolios SHALL preserve coordinated collections of Scientific Theories while maintaining independent scientific evolution.
+- **AR-0972** — The Scientific Worldview SHALL represent the organization's current best-supported scientific understanding of reality.
+- **AR-0973** — The Scientific Worldview SHALL remain evidence-based, explainable, replayable, continuously challengeable, and continuously revisable.
+- **AR-0974** — Scientific Knowledge Integration SHALL continuously provide validated scientific understanding to the Experience Layer.
+- **AR-0975** — Scientific Theory Evolution SHALL continuously improve the organization's Scientific Worldview as reality evolves.
 
 ---
 
@@ -1786,6 +1801,21 @@ Every validated improvement SHALL strengthen future scientific reasoning through
 - **REQ-SD-058** — Continuous Scientific Reassessment
 - **REQ-SD-059** — Validation Confidence
 - **REQ-SD-060** — Best-Supported Scientific Explanation
+- **REQ-SD-061** — Scientific Theory Evolution
+- **REQ-SD-062** — Scientific Principles
+- **REQ-SD-063** — Candidate Scientific Law Evaluation
+- **REQ-SD-064** — Scientific Theory Formation
+- **REQ-SD-065** — Scientific Generalization
+- **REQ-SD-066** — Scientific Specialization
+- **REQ-SD-067** — Cross-Domain Knowledge Integration
+- **REQ-SD-068** — Cross-Domain Scientific Theory
+- **REQ-SD-069** — Theory Refinement
+- **REQ-SD-070** — Scientific Coherence
+- **REQ-SD-071** — Theory Portfolio
+- **REQ-SD-072** — Scientific Worldview
+- **REQ-SD-073** — Scientific Knowledge Integration
+- **REQ-SD-074** — Theory Graph
+- **REQ-SD-075** — Continuous Scientific Evolution
 
 ---
 
@@ -1793,7 +1823,7 @@ Every validated improvement SHALL strengthen future scientific reasoning through
 
 Referenced by:
 
-* Scientific Theory Evolution
+* EIOS-010 — World Intelligence
 * GEN-001 — Genesis Discovery Engine
 * PROM-001 — Investment Thesis Engine
 * Personal CIO
@@ -1819,6 +1849,12 @@ Provides:
 * Validation Graph
 * Validation Portfolios
 * Best-Supported Scientific Explanations
+* Candidate Scientific Law Assessments
+* Scientific Theories
+* Theory Graph
+* Theory Portfolios
+* Scientific Worldview
+* Continuously Evolving Scientific Understanding
 
 ---
 
@@ -1826,5 +1862,5 @@ Provides:
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007; EIOS-008
 - **Builds Upon:** Research Question (EIOS-002); Hypothesis (EIOS-002); Scientific Cognition; Computational Curiosity; Experience Layer; Models & Model Management (EIOS-007)
-- **Defines:** Scientific Discovery; Research Agenda; Question Prioritization; Question Dependencies; Question Decomposition; Question Graph; Knowledge Gaps; Discovery Readiness; Scientific Discovery Pipeline; Hypothesis Generation; Hypothesis Portfolio; Hypothesis Graph; Hypothesis Quality; Hypothesis Lineage; Competing Hypotheses; Composite Hypotheses; Research Program; Multi-Model Hypothesis Generation; Analogical Hypothesis Generation; Scientific Investigation; Investigation Planning; Evidence Acquisition; Evidence Evaluation; Evidence Synthesis; Evidence Graph; Investigation Portfolio; Investigation Orchestration; Comparative Investigation; Counterfactual Investigation; Scientific Validation; Comparative Validation; Falsification; Independent Verification; Belief Revision; Validation Graph; Validation Portfolio; Scientific Consensus; Scientific Robustness; Validation Drift
-- **Referenced By:** Scientific Theory Evolution, Technology Intelligence, Economic Intelligence, Genesis Discovery Engine, Personal CIO, and autonomous scientific agents
+- **Defines:** Scientific Discovery; Research Agenda; Question Prioritization; Question Dependencies; Question Decomposition; Question Graph; Knowledge Gaps; Discovery Readiness; Scientific Discovery Pipeline; Hypothesis Generation; Hypothesis Portfolio; Hypothesis Graph; Hypothesis Quality; Hypothesis Lineage; Competing Hypotheses; Composite Hypotheses; Research Program; Multi-Model Hypothesis Generation; Analogical Hypothesis Generation; Scientific Investigation; Investigation Planning; Evidence Acquisition; Evidence Evaluation; Evidence Synthesis; Evidence Graph; Investigation Portfolio; Investigation Orchestration; Comparative Investigation; Counterfactual Investigation; Scientific Validation; Comparative Validation; Falsification; Independent Verification; Belief Revision; Validation Graph; Validation Portfolio; Scientific Consensus; Scientific Robustness; Validation Drift; Scientific Theory Evolution; Theory Formation; Scientific Theory; Theory Graph; Theory Portfolio; Scientific Worldview; Cross-Domain Knowledge Integration; Cross-Domain Scientific Theory; Scientific Generalization; Scientific Specialization; Scientific Coherence; Scientific Knowledge Integration
+- **Referenced By:** World Intelligence, Genesis Discovery Engine, Technology Intelligence, Economic Intelligence, Supply Network Intelligence, Capital Intelligence, Personal CIO, and autonomous scientific agents

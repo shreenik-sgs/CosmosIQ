@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 4.7
+book_version: 4.8
 generator_version: 1.1
-source_hash: 5b08bf04a84a449a46d82daa8a7ba8875338558dee0097ab7e215a4cb296c0bd
-generated_at: 2026-06-29T23:50:18-05:00
+source_hash: d896ebc17385d1fdc0c76ebfb6737ad3f9c8bd89440666cc01b2c611887a7e29
+generated_at: 2026-06-29T23:54:28-05:00
 ---
 
 # Architectural Rule Index
@@ -242,5 +242,20 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0958 | EIOS-009 — Scientific Discovery | Validation Drift SHALL trigger renewed Scientific Investigation rather than automatic acceptance or rejection. |
 | AR-0959 | EIOS-009 — Scientific Discovery | Continuous Scientific Reassessment SHALL remain a permanent responsibility of Scientific Discovery. |
 | AR-0960 | EIOS-009 — Scientific Discovery | Scientific Validation SHALL continuously provide the current best-supported scientific explanations to Scientific Theory Evolution. |
+| AR-0961 | EIOS-009 — Scientific Discovery | Scientific Theory Evolution SHALL continuously transform validated scientific understanding into increasingly reusable organizational knowledge. |
+| AR-0962 | EIOS-009 — Scientific Discovery | Scientific Principles SHALL preserve complete traceability to supporting Research Questions, Hypotheses, Evidence, Investigations, and Validation Assessments. |
+| AR-0963 | EIOS-009 — Scientific Discovery | Scientific Discovery SHALL evaluate Candidate Scientific Laws proposed by the Experience Layer through Investigation and Validation before promotion, refinement, deferment, rejection, or return for further investigation. |
+| AR-0964 | EIOS-009 — Scientific Discovery | Scientific Theory Formation SHALL preserve explicit relationships among Scientific Principles, Candidate Scientific Laws, Models, and supporting Evidence. |
+| AR-0965 | EIOS-009 — Scientific Discovery | Scientific Generalization SHALL preserve explicit applicability boundaries together with supporting Evidence and uncertainty. |
+| AR-0966 | EIOS-009 — Scientific Discovery | Scientific Specialization SHALL preserve lineage to originating Scientific Principles. |
+| AR-0967 | EIOS-009 — Scientific Discovery | Cross-Domain Knowledge Integration SHALL preserve contributions from every participating scientific domain. |
+| AR-0968 | EIOS-009 — Scientific Discovery | Cross-Domain Scientific Theories SHALL preserve complete scientific explainability. |
+| AR-0969 | EIOS-009 — Scientific Discovery | Theory Refinement SHALL preserve historical theory evolution together with supporting Evidence and scientific justification. |
+| AR-0970 | EIOS-009 — Scientific Discovery | Scientific Coherence SHALL continuously evaluate consistency across Scientific Principles, Candidate Scientific Laws, Scientific Theories, and Models while preserving scientifically justified competing explanations. |
+| AR-0971 | EIOS-009 — Scientific Discovery | Theory Portfolios SHALL preserve coordinated collections of Scientific Theories while maintaining independent scientific evolution. |
+| AR-0972 | EIOS-009 — Scientific Discovery | The Scientific Worldview SHALL represent the organization's current best-supported scientific understanding of reality. |
+| AR-0973 | EIOS-009 — Scientific Discovery | The Scientific Worldview SHALL remain evidence-based, explainable, replayable, continuously challengeable, and continuously revisable. |
+| AR-0974 | EIOS-009 — Scientific Discovery | Scientific Knowledge Integration SHALL continuously provide validated scientific understanding to the Experience Layer. |
+| AR-0975 | EIOS-009 — Scientific Discovery | Scientific Theory Evolution SHALL continuously improve the organization's Scientific Worldview as reality evolves. |
 
-_226 rules._
+_241 rules._

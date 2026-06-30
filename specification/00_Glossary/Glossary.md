@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 4.7
+book_version: 4.8
 generator_version: 1.1
-source_hash: 5b08bf04a84a449a46d82daa8a7ba8875338558dee0097ab7e215a4cb296c0bd
-generated_at: 2026-06-29T23:50:18-05:00
+source_hash: d896ebc17385d1fdc0c76ebfb6737ad3f9c8bd89440666cc01b2c611887a7e29
+generated_at: 2026-06-29T23:54:28-05:00
 ---
 
 # Glossary
@@ -61,6 +61,11 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Falsification | The active pursuit of evidence capable of refuting an accepted explanation; failure to falsify is not permanent validation, and falsification strengthens understanding regardless of outcome. | EIOS-009 | Scientific Validation | Cognitive Architecture |
 | Belief Revision | The first-class capability that updates scientific assessments when new Evidence materially shifts the relative explanatory strength of competing Hypotheses; preserves prior/revised assessment, trigger, justification, and confidence evolution. | EIOS-009 | Scientific Validation, Validation Graph | Cognitive Architecture |
 | Validation Graph | The first-class graph of Validation Assessments and their relationships — supports, weakens, overturns, supersedes, confirms, falsifies — preserving the historical evolution of scientific understanding. | EIOS-009 | Evidence Graph, Belief Revision | Cognitive Architecture |
+| Scientific Theory Evolution | The capstone capability that transforms validated understanding into increasingly general, reusable knowledge — principles, candidate-law assessments, theories — and continuously evolves the Scientific Worldview; nothing is ever final. | EIOS-009 | Scientific Worldview, Scientific Validation | Cognitive Architecture |
+| Scientific Theory | An evolvable explanatory framework integrating multiple Scientific Principles, with explicit applicability, limitations, and uncertainty; continuously refinable, challengeable, and replayable. | EIOS-009 | Scientific Principle, Theory Graph | Cognitive Architecture |
+| Theory Graph | The first-class graph of Scientific Principles, Candidate Scientific Laws, and Scientific Theories and their relationships (derives-from, generalizes, specializes, supersedes, supports, contradicts); synchronized with the Model Graph and Experience Layer. | EIOS-009 | Scientific Theory, Model Graph | Cognitive Architecture |
+| Theory Portfolio | A coordinated collection of Scientific Theories describing related aspects of reality; preserves independent theory evolution. | EIOS-009 | Scientific Theory, Validation Portfolio | Cognitive Architecture |
+| Scientific Worldview | The organization's current, best-supported, continuously evolving scientific understanding of reality — the complete collection of validated Scientific Theories. Distinct from the World Model (representation) and the Experience Layer (memory); the primary output other cognitive subsystems consume. | EIOS-009 | Scientific Theory, World Model | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
