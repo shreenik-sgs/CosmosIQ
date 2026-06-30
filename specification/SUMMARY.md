@@ -3,17 +3,17 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: summary
-book_version: 4.3
+book_version: 4.4
 generator_version: 1.1
-source_hash: 1599a92b6088235263862fabc2f4f2595d1b656450ec6be9e4a24a83f40c8269
-generated_at: 2026-06-29T23:35:28-05:00
+source_hash: 360179aedaf1ecadbe996d8832e40e4fda4c8e610cf8c8d615dfb0e73b5c80a9
+generated_at: 2026-06-29T23:39:06-05:00
 ---
 
 # Economic Intelligence Operating System
 
 ## Architecture Book
 
-Version 4.3
+Version 4.4
 
 Compiled from `architecture/EIOS_Architecture_Book.md`.
 

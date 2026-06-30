@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-009
 slug: scientific-discovery
-book_version: 4.3
+book_version: 4.4
 generator_version: 1.1
-source_hash: 1599a92b6088235263862fabc2f4f2595d1b656450ec6be9e4a24a83f40c8269
-generated_at: 2026-06-29T23:35:28-05:00
+source_hash: 360179aedaf1ecadbe996d8832e40e4fda4c8e610cf8c8d615dfb0e73b5c80a9
+generated_at: 2026-06-29T23:39:06-05:00
 ---
 
 # EIOS-009 — Scientific Discovery
@@ -1176,6 +1176,151 @@ Edges represent:
 * falsifies
 
 The Validation Graph SHALL preserve the historical evolution of scientific understanding.
+
+---
+
+### Independent Verification
+
+Scientific Validation SHALL support independent verification of every significant Validation Assessment.
+
+Independent Verification SHALL preserve:
+
+* participating investigators
+* participating Models
+* participating Evidence
+* verification methodology
+* verification outcome
+
+Independent verification SHALL remain replayable.
+
+---
+
+### Reproducibility
+
+Scientific conclusions SHALL be reproducible.
+
+Scientific Discovery SHALL preserve sufficient information to reproduce every Validation Assessment.
+
+Reproducibility SHALL preserve:
+
+* Investigation Plans
+* Evidence
+* Models
+* assumptions
+* computational procedures
+* intermediate findings
+
+Reproducibility SHALL remain continuously assessable.
+
+---
+
+### Belief Revision
+
+Scientific understanding evolves through continuous belief revision.
+
+Belief Revision SHALL update scientific assessments when new Evidence materially changes the relative explanatory strength of competing Hypotheses.
+
+Belief Revision SHALL preserve:
+
+* previous assessment
+* revised assessment
+* triggering Evidence
+* scientific justification
+* confidence evolution
+
+Every belief revision SHALL remain historically replayable.
+
+---
+
+### Scientific Consensus
+
+Scientific Consensus represents the current convergence of available Evidence.
+
+Consensus SHALL emerge from accumulated scientific validation rather than authority.
+
+Consensus SHALL remain continuously revisable.
+
+Consensus SHALL never be interpreted as permanent scientific truth.
+
+---
+
+### Minority Explanations
+
+Scientific Discovery SHALL preserve scientifically plausible minority explanations.
+
+Minority Hypotheses SHALL remain available for future investigation.
+
+Historical scientific progress frequently began as minority explanations.
+
+---
+
+### Scientific Challenges
+
+Scientific Discovery SHALL continuously challenge accepted explanations.
+
+Challenges MAY originate from:
+
+* contradictory Evidence
+* anomalous observations
+* improved Models
+* improved Investigations
+* new historical experience
+
+Scientific Challenge SHALL strengthen scientific robustness regardless of outcome.
+
+---
+
+### Validation Portfolio
+
+Scientific Discovery SHALL maintain Validation Portfolios.
+
+A Validation Portfolio represents coordinated Validation Assessments for related Research Questions and Hypotheses.
+
+Validation Portfolios SHALL preserve:
+
+* participating validations
+* Evidence
+* Hypotheses
+* confidence
+* unresolved disagreements
+
+Validation Portfolios SHALL remain continuously replayable.
+
+---
+
+### Scientific Robustness
+
+Scientific Robustness represents the resilience of scientific understanding under continued investigation.
+
+Illustrative robustness dimensions include:
+
+* reproducibility
+* independent verification
+* competing explanations
+* historical consistency
+* explanatory breadth
+
+Scientific Robustness SHALL evolve continuously.
+
+---
+
+### Validation Drift
+
+Validation Assessments MAY drift over time as reality evolves.
+
+Scientific Discovery SHALL continuously detect Validation Drift.
+
+Validation Drift SHALL trigger renewed investigation rather than automatic rejection.
+
+---
+
+### Continuous Scientific Reassessment
+
+Scientific Discovery SHALL continuously reassess previously validated understanding.
+
+No scientific conclusion SHALL be considered permanently complete.
+
+Continuous reassessment SHALL remain one of the primary responsibilities of Scientific Discovery.
 
 ---
 
