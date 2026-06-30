@@ -49,6 +49,11 @@ from .cockpit import (
     build_alpha_decision_cockpit_view,
     from_slice,
 )
+from .render_html import (
+    render_cockpit_html,
+    render_slice_to_html,
+    write_cockpit_html,
+)
 
 __all__ = [
     "EvidenceRef",
@@ -81,6 +86,9 @@ __all__ = [
     "AlphaDecisionCockpitView",
     "build_alpha_decision_cockpit_view",
     "from_slice",
+    "render_cockpit_html",
+    "render_slice_to_html",
+    "write_cockpit_html",
     "LAYER_TATTVA",
     "LAYER_SPHURANA",
     "LAYER_NIVESHA",
