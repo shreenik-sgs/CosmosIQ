@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 4.2 |
+| Version | 4.3 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -114,7 +114,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 4.2
+version: 4.3
 authoritative: true
 target_generator: Claude Code
 -->
@@ -7625,6 +7625,150 @@ Orchestration SHALL optimize:
 * scientific value
 
 Independent investigations SHALL preserve their autonomy while participating in coordinated scientific discovery.
+
+---
+
+### Scientific Validation
+
+Scientific Validation continuously evaluates whether available Evidence adequately supports competing Hypotheses.
+
+Validation is not proof.
+
+Validation represents the current scientific assessment based upon available evidence.
+
+Scientific Validation SHALL remain continuously repeatable as additional Evidence becomes available.
+
+---
+
+### Purpose of Validation
+
+The purpose of Scientific Validation is to determine which competing Hypotheses currently provide the strongest explanation for observed reality.
+
+Validation SHALL continuously compare alternative explanations.
+
+Scientific Discovery SHALL avoid treating validation as a permanent conclusion.
+
+---
+
+### Validation Criteria
+
+Scientific Validation SHALL evaluate Hypotheses using multiple complementary criteria.
+
+Illustrative criteria include:
+
+* explanatory power
+* predictive consistency
+* evidence quality
+* evidence completeness
+* internal consistency
+* simplicity
+* reproducibility
+
+Future validation criteria MAY be introduced without architectural modification.
+
+---
+
+### Comparative Validation
+
+Validation SHALL compare competing Hypotheses using common Evidence.
+
+Comparative Validation SHALL preserve:
+
+* participating Hypotheses
+* participating Evidence
+* evaluation criteria
+* competing conclusions
+* remaining uncertainty
+
+Comparative Validation SHALL remain replayable.
+
+---
+
+### Falsification
+
+Scientific Discovery SHALL actively seek evidence capable of falsifying existing Hypotheses.
+
+Failure to falsify SHALL NOT constitute permanent validation.
+
+Falsification strengthens scientific understanding regardless of outcome.
+
+---
+
+### Validation Evidence
+
+Scientific Validation SHALL distinguish between:
+
+* supporting Evidence
+* contradictory Evidence
+* inconclusive Evidence
+* missing Evidence
+
+Validation SHALL preserve explicit relationships between Evidence and every evaluated Hypothesis.
+
+---
+
+### Validation Confidence
+
+Validation Confidence represents confidence in the current scientific assessment.
+
+Validation Confidence SHALL evolve continuously.
+
+Confidence SHALL increase or decrease as additional Evidence becomes available.
+
+Validation Confidence SHALL remain distinguishable from Investigation Confidence.
+
+---
+
+### Scientific Uncertainty
+
+Scientific Uncertainty is an expected characteristic of scientific discovery.
+
+Validation SHALL preserve explicit uncertainty rather than concealing it.
+
+Illustrative uncertainty includes:
+
+* insufficient Evidence
+* conflicting Evidence
+* competing explanations
+* observational limitations
+* model limitations
+
+Scientific Uncertainty SHALL remain scientifically explainable.
+
+---
+
+### Validation Evolution
+
+Validation continuously evolves.
+
+Scientific assessments MAY be:
+
+* strengthened
+* weakened
+* revised
+* overturned
+* superseded
+
+Complete Validation Evolution SHALL remain replayable.
+
+---
+
+### Validation Graph
+
+Scientific Discovery SHALL maintain a Validation Graph.
+
+Nodes represent Validation Assessments.
+
+Edges represent:
+
+* supports
+* weakens
+* overturns
+* supersedes
+* confirms
+* falsifies
+
+The Validation Graph SHALL preserve the historical evolution of scientific understanding.
 
 ---
 
