@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 5.1 |
+| Version | 5.2 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -132,7 +132,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 5.1
+version: 5.2
 authoritative: true
 target_generator: Claude Code
 -->
@@ -8760,7 +8760,7 @@ Change Propagation SHALL ensure that domain understanding never silently diverge
 
 ---
 
-### Intelligence Graph
+### Intelligence Graph Representation
 
 Reality Intelligence SHALL represent the relationships among Intelligence Assessments using the Intelligence Graph defined by Interconnected Systems Intelligence (EIOS-006).
 
