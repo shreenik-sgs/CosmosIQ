@@ -12,10 +12,9 @@ import unittest
 from eios_core.canonical_objects import Observation
 from eios_core.provenance import Provenance
 from eios_core.ids import iso_from_epoch
-from reality_intelligence.intelligence_assessment import make_intelligence_assessment
-from genesis.opportunity_hypothesis import make_opportunity_hypothesis
-from prometheus.investment_thesis import make_investment_thesis
-from prometheus.investment_action import make_manual_execution_intent
+from prometheus.investment_action import generate_investment_action
+from personal_cio.personalized_action import generate_personalized_action
+from _real_chain import real_chain
 
 
 class TestNoUpstreamMutation(unittest.TestCase):
@@ -25,26 +24,20 @@ class TestNoUpstreamMutation(unittest.TestCase):
             obs.id = "OBS-2"  # type: ignore[misc]
 
     def test_constructing_downstream_does_not_mutate_upstream(self):
-        obs = Observation(
-            id="OBS-1",
-            version=1,
-            provenance=Provenance(created_at=iso_from_epoch(0), actor="t"),
-            content={"x": 1},
-        )
-        obs_snapshot = copy.deepcopy(obs)
+        c = real_chain()
+        thesis, action = c["thesis"], c["action"]
+        profile, portfolio = c["profile"], c["portfolio"]
+        ia_snapshot = copy.deepcopy(c["assessment"])
+        thesis_snapshot = copy.deepcopy(thesis)
+        action_snapshot = copy.deepcopy(action)
 
-        ia = make_intelligence_assessment([obs], "S", "a", actor="t", now=0)
-        ia_snapshot = copy.deepcopy(ia)
-        oph = make_opportunity_hypothesis(ia, "S", "h", actor="t", now=0)
-        thesis = make_investment_thesis(oph, "IREN", 2000.0, actor="t", now=0)
-        make_manual_execution_intent(
-        thesis, instrument="IREN", intended_allocation=2000.0,
-        side="buy", action_type="enter", timing="now", actor="t", now=0)
+        # Re-deriving downstream objects must not mutate any upstream object.
+        generate_investment_action(thesis, actor="t", now=0)
+        generate_personalized_action(thesis, action, profile, portfolio, actor="t", now=0)
 
-        # Upstream objects are unchanged after downstream construction.
-        self.assertEqual(obs, obs_snapshot)
-        self.assertEqual(ia, ia_snapshot)
-        self.assertEqual(obs.content, {"x": 1})
+        self.assertEqual(c["assessment"], ia_snapshot)
+        self.assertEqual(thesis, thesis_snapshot)
+        self.assertEqual(action, action_snapshot)
 
 
 if __name__ == "__main__":

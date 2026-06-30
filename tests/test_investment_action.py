@@ -16,7 +16,7 @@ from prometheus.investment_thesis import generate_investment_thesis, InvestmentT
 from prometheus.investment_action import (
     generate_investment_action,
     InvestmentAction,
-    ManualExecutionIntent,
+    ManualExecutionAdapter,
 )
 from prometheus.position_lifecycle import PositionContext
 from runtime.vertical_slice_runner import (
@@ -278,7 +278,7 @@ class TestInvestmentAction(unittest.TestCase):
     def test_vertical_slice_iren_generates_real_investment_action(self):
         r = run_iren_slice()
         self.assertIsInstance(r.action, InvestmentAction)
-        self.assertNotIsInstance(r.action, ManualExecutionIntent)
+        self.assertNotIsInstance(r.action, ManualExecutionAdapter)
         self.assertEqual(r.action.action_type, "enter_candidate")
         self.assertEqual(r.action.action_status, "timing_confirmed_candidate")
         self.assertEqual(r.action.source_thesis_id, r.thesis.id)

@@ -242,11 +242,11 @@ class TestVerticalSliceIREN(unittest.TestCase):
 
     # --- IMPLEMENTATION-005: the slice exposes the REAL Investment Action -------
     def test_vertical_slice_exposes_real_investment_action(self):
-        from prometheus.investment_action import InvestmentAction, ManualExecutionIntent
+        from prometheus.investment_action import InvestmentAction, ManualExecutionAdapter
         action = self.r.action
         # r.action is the real, gated, boundary-clean governed action candidate...
         self.assertIsInstance(action, InvestmentAction)
-        self.assertNotIsInstance(action, ManualExecutionIntent)
+        self.assertNotIsInstance(action, ManualExecutionAdapter)
         self.assertEqual(action.action_type, "enter_candidate")
         self.assertEqual(action.action_status, "timing_confirmed_candidate")
         self.assertEqual(action.source_thesis_id, self.r.thesis.id)
@@ -256,6 +256,37 @@ class TestVerticalSliceIREN(unittest.TestCase):
         for bad in ("intended_allocation", "allocation", "position_size", "side",
                     "quantity", "order_type", "limit_price", "broker_order_id"):
             self.assertNotIn(bad, fields)
+
+    # --- IMPLEMENTATION-006: the slice exposes the REAL Personalized Action -----
+    def test_vertical_slice_iren_generates_personalized_action(self):
+        from personal_cio.personalized_action import PersonalizedAction
+        from prometheus.investment_action import ManualExecutionAdapter
+        p = self.r.personalized_action
+        # r.personalized_action is the REAL Saarathi view (not the Kriya adapter)...
+        self.assertIsInstance(p, PersonalizedAction)
+        self.assertNotIsInstance(p, ManualExecutionAdapter)
+        # ...a suitable/priority/reduced candidate with a sizing RANGE / max % ...
+        self.assertIn(p.recommendation_status,
+                      ("suitable_candidate", "priority_candidate", "reduced_size_candidate"))
+        self.assertGreater(p.recommended_max_exposure_pct, 0.0)
+        lo, hi = p.suggested_sizing_range_pct
+        self.assertLessEqual(lo, hi)
+        self.assertAlmostEqual(hi, p.recommended_max_exposure_pct, places=2)
+        # ...bound to the action + thesis, carrying the account and upstream obs ...
+        self.assertEqual(p.source_action_id, self.r.action.id)
+        self.assertEqual(p.source_thesis_id, self.r.thesis.id)
+        self.assertEqual(p.account, self.r.profile.account)
+        self.assertEqual(set(p.upstream_observation_ids),
+                         set(self.r.action.upstream_observation_ids))
+        self.assertIn(self.r.action.id, {r.object_id for r in p.provenance.sources})
+        # ...and carries NO exact order / share / dollar / side / quantity field.
+        fields = set(type(p).__dataclass_fields__.keys())
+        for bad in ("intended_allocation", "allocation", "shares", "quantity",
+                    "side", "order", "order_type", "limit_price", "broker_order_id",
+                    "dollar_amount", "exact_shares"):
+            self.assertNotIn(bad, fields)
+        # The Kriya ticket still threads through the labelled adapter (200 shares).
+        self.assertEqual(self.r.ticket_preview1.quantity, 200)
 
 
 if __name__ == "__main__":

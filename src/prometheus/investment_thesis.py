@@ -311,10 +311,10 @@ class _ToyInvestmentThesis(ReasoningObject):
     legacy action -> ticket path still resolves. It is a SEPARATE class from the real
     gated ``InvestmentThesis`` and must never leak its instrument / allocation /
     timing fields into it. It is now ONLY a convenient source object for the labelled
-    ``ManualExecutionIntent`` compatibility shim; REMOVE this thesis shim when
-    Saarathi (Personal CIO) performs real sizing and the slice no longer threads
-    allocation through a reasoning object. The real, gated, allocation-free thesis is
-    ``InvestmentThesis`` via ``generate_investment_thesis``.
+    ``ManualExecutionAdapter`` Kriya compatibility shim; REMOVE this thesis shim when
+    a real execution-selection step threads the chosen size and the slice no longer
+    needs an allocation carried through a reasoning object. The real, gated,
+    allocation-free thesis is ``InvestmentThesis`` via ``generate_investment_thesis``.
     """
 
     instrument: str = ""

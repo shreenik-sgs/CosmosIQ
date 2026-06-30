@@ -34,8 +34,8 @@ from .investment_action import (
     ACTION_TYPES,
     ACTION_STATUSES,
     URGENCY_LEVELS,
-    ManualExecutionIntent,
-    make_manual_execution_intent,
+    ManualExecutionAdapter,
+    make_manual_execution_adapter,
 )
 from .position_lifecycle import (
     PositionState,
@@ -68,8 +68,8 @@ __all__ = [
     "ACTION_TYPES",
     "ACTION_STATUSES",
     "URGENCY_LEVELS",
-    "ManualExecutionIntent",
-    "make_manual_execution_intent",
+    "ManualExecutionAdapter",
+    "make_manual_execution_adapter",
     "PositionState",
     "position_state",
     "PositionContext",
