@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 4.8 |
+| Version | 4.9 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -35,7 +35,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Principle | A reusable explanatory mechanism describing recurring system behavior (e.g. Moore's Law); a first-class reasoning object. | EIOS-002 | Concept, Scientific Cognition | Foundational |
 | Relationship | A first-class interaction between participants, carrying type, direction, confidence, and provenance. | EIOS-002 | Knowledge Object, Network | Foundational |
 | Knowledge Graph | The complete collection of Knowledge Objects and Relationships; the persistent memory of EIOS. | EIOS-002 | World Model, Intelligence Graph | Foundational |
-| Research Question | The unit that opens a scientific investigation; progresses through a defined lifecycle. | EIOS-004 | Hypothesis, Scientific Cognition | Foundational |
+| Research Question | The unit that opens a scientific investigation; progresses through a defined lifecycle. | EIOS-002 | Hypothesis, Scientific Cognition | Foundational |
 | Hypothesis | A competing explanation maintained with independent evidence, confidence, and replay history; contradictions preserved. | EIOS-002 | Research Question, Confidence | Foundational |
 | Confidence | The current scientific belief in an object or relationship; evolves continuously and is never silently overridden. | EIOS-002 | Evidence, Replay | Foundational |
 | Scientific Cognition | The architectural process turning knowledge into understanding: curiosity, mental modeling, inquiry, judgment, evolution. | EIOS-004 | Mental Model, Research Question | Foundational |
@@ -95,7 +95,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Model Graph | The first-class graph of relationships among models — inheritance, specialization, composition, dependency, validation, refinement; the primary primitive for reasoning about models. The Model Registry is an index over it. | EIOS-007 | Model, Intelligence Graph | Cognitive Architecture |
 | Model Repository | The store of model definitions, implementations, artifacts, and historical versions; distinct from the Model Registry (the index) and the Model Graph (the relationships). | EIOS-007 | Model Graph, Model Registry | Cognitive Architecture |
 | Model Portfolio | A purpose-specific collection of cooperating models assembled for a reasoning objective; more than a set of models — a reusable reasoning strategy whose effectiveness the Experience Layer learns over time. | EIOS-007 | Model, Model Graph | Cognitive Architecture |
-| Scientific Memory | The accumulated body of validated models, reasoning strategies, validation history, replay outcomes, and lessons learned; grows without rewriting history and is a primary input to future discovery — the bridge to the Experience Layer. | EIOS-007 | Model Portfolio, Experience Layer | Cognitive Architecture |
+| Scientific Memory | The accumulated body of validated models, reasoning strategies, validation history, replay outcomes, and lessons learned; grows without rewriting history and is a primary input to future discovery. Its structure is defined in EIOS-007 (Scientific Memory Structure); the Experience Layer (EIOS-008) maintains and evolves it (Scientific Memory Management). | EIOS-007 | Model Portfolio, Experience Layer | Cognitive Architecture |
 | Genesis | Operational subsystem that discovers transformations in real-world systems rather than searching directly for securities. | EIOS-001 | Prometheus, Personal CIO | Operational |
 | Prometheus | Operational subsystem that evaluates the implications of validated knowledge for publicly traded entities. | EIOS-001 | Genesis, Personal CIO | Operational |
 | Personal CIO | Operational subsystem that explains causal chains, quantifies uncertainty, and retains human accountability for recommendations. | EIOS-001 | Genesis, Prometheus | Operational |
@@ -112,6 +112,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 | FI | Foundational Principle (implements constitutional invariants) | EIOS-001 | FI-002 Replay-Driven Scientific Validation |
 | AR | Architectural Rule | EIOS-002 … EIOS-009 | AR-0609 Intelligence Graph derives from World Model |
 | REQ-KO | Requirement — Knowledge Objects | EIOS-002 | REQ-KO-002 Provenance Tracking |
+| REQ-WM | Requirement — World Model | EIOS-003 | REQ-WM-001 Canonical World Model |
 | REQ-SC | Requirement — Scientific Cognition | EIOS-004 | REQ-SC-008 Scientific Judgment |
 | REQ-ST | Requirement — Systems Theory | EIOS-005 | REQ-ST-015 Bottleneck Analysis |
 | REQ-ISI | Requirement — Interconnected Systems Intelligence | EIOS-006 | REQ-ISI-011 Decision Graph Representation |
@@ -123,7 +124,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 4.8
+version: 4.9
 authoritative: true
 target_generator: Claude Code
 -->
@@ -4475,7 +4476,7 @@ Collective learning SHALL continuously improve portfolio construction.
 
 ---
 
-### Continuous Scientific Evolution
+### Continuous Model Scientific Evolution
 
 Scientific knowledge advances through continuous challenge, validation, refinement, and replacement.
 
@@ -4489,7 +4490,7 @@ Continuous improvement is a permanent architectural capability.
 
 ---
 
-### Scientific Validation
+### Model Scientific Validation
 
 Validation determines whether a model adequately explains observed reality.
 
@@ -4589,7 +4590,7 @@ Benchmarking SHALL support continuous optimization.
 
 ---
 
-### Scientific Challenges
+### Model Scientific Challenges
 
 Every Accepted Model SHALL remain open to challenge.
 
@@ -4638,7 +4639,7 @@ Replacement SHALL never destroy scientific history.
 
 ---
 
-### Knowledge Preservation
+### Model Knowledge Preservation
 
 Retired models remain valuable scientific knowledge.
 
@@ -4671,9 +4672,9 @@ Adaptive learning forms the bridge to the Experience Layer.
 
 ---
 
-### Scientific Memory
+### Scientific Memory Structure
 
-Scientific Memory represents the accumulated body of validated models, reasoning strategies, validation history, and lessons learned.
+The Scientific Memory Structure defines what scientific memory stores: the accumulated body of validated models, reasoning strategies, validation history, and lessons learned.
 
 Scientific Memory SHALL become a primary input to future discovery.
 
@@ -4836,16 +4837,16 @@ This loop constitutes the permanent learning engine of EIOS.
 - **REQ-MD-038** — Meta-Models
 - **REQ-MD-039** — Collective Learning
 - **REQ-MD-040** — Portfolio Optimization
-- **REQ-MD-041** — Scientific Validation
+- **REQ-MD-041** — Model Scientific Validation
 - **REQ-MD-042** — Portfolio Validation
 - **REQ-MD-043** — Historical Replay
 - **REQ-MD-044** — Counterfactual Replay
 - **REQ-MD-045** — Comparative Evaluation
 - **REQ-MD-046** — Portfolio Benchmarking
 - **REQ-MD-047** — Controlled Replacement
-- **REQ-MD-048** — Knowledge Preservation
+- **REQ-MD-048** — Model Knowledge Preservation
 - **REQ-MD-049** — Adaptive Learning
-- **REQ-MD-050** — Scientific Memory
+- **REQ-MD-050** — Scientific Memory Structure
 
 ---
 
@@ -4868,7 +4869,7 @@ Referenced by:
 ### Cross References
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006
-- **Defines:** Model; Model Identity; Model Purpose; Model Assumptions; Validity Domain; Model Uncertainty; Explainability; Replayability; Model Interface; Model Execution; Model Taxonomy; Model Hierarchies; Model Inheritance; Model Specialization; Model Composition; Model Dependencies; Model Graph; Model Ecology; Model Lineage; Model Repository; Model Registry; Model Lifecycle; Candidate Model; Accepted Model; Operational Model; Model Drift; Model Maturity; Model Health; Model Fitness; Model Evolution; Collective Model Intelligence; Multi-Model Reasoning; Model Portfolio; Model Orchestration; Consensus Formation; Confidence Fusion; Meta-Reasoning; Meta-Models; Collective Learning; Scientific Validation; Portfolio Validation; Counterfactual Replay; Scientific Challenges; Scientific Memory; Continuous Scientific Evolution
+- **Defines:** Model; Model Identity; Model Purpose; Model Assumptions; Validity Domain; Model Uncertainty; Explainability; Replayability; Model Interface; Model Execution; Model Taxonomy; Model Hierarchies; Model Inheritance; Model Specialization; Model Composition; Model Dependencies; Model Graph; Model Ecology; Model Lineage; Model Repository; Model Registry; Model Lifecycle; Candidate Model; Accepted Model; Operational Model; Model Drift; Model Maturity; Model Health; Model Fitness; Model Evolution; Collective Model Intelligence; Multi-Model Reasoning; Model Portfolio; Model Orchestration; Consensus Formation; Confidence Fusion; Meta-Reasoning; Meta-Models; Collective Learning; Model Scientific Validation; Portfolio Validation; Counterfactual Replay; Model Scientific Challenges; Scientific Memory Structure; Continuous Model Scientific Evolution
 - **Referenced By:** All reasoning, simulation, prediction, optimization, scientific discovery, experience accumulation, investment intelligence, orchestration, and autonomous agent subsystems
 
 <!-- END:CHAPTER:EIOS-007 -->
@@ -4941,11 +4942,11 @@ The Experience Layer SHALL:
 
 ---
 
-### Scientific Memory
+### Scientific Memory Management
 
-Scientific Memory, introduced in EIOS-007, is the persistent accumulation of validated scientific understanding maintained by the Experience Layer.
+Scientific Memory Management is how the Experience Layer maintains and evolves the Scientific Memory whose structure is defined in EIOS-007.
 
-Within the Experience Layer, Scientific Memory contains:
+The Experience Layer continuously maintains and evolves the full Scientific Memory, including:
 
 * validated models
 * validated Model Portfolios
@@ -6602,7 +6603,7 @@ Provides:
 ### Cross References
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007
-- **Builds Upon:** Scientific Memory; Historical Replay; Model Portfolios; Collective Learning
+- **Builds Upon:** Scientific Memory Structure; Historical Replay; Model Portfolios; Collective Learning
 - **Defines:** Experience Layer; Institutional Intelligence; Historical Intelligence; Historical Pattern Intelligence; Principle Extraction; Analogical Intelligence; Emergence Intelligence; Evolution Intelligence; System State; Readiness Ontology; Constraint Ontology; Convergence; Emergence Assessment; Readiness Momentum; Constraint Release; Transition Assessment; Transition Trajectory; Historical Analog Assessment; Emergence Readiness Score (ERS); Constraint Release Index (CRI); Convergence Alignment Score (CAS); Historical Analog Strength (HAS); Time-to-Inflection (TTI); Historical Scientific Intelligence; Historical Case; Historical Transition Library; Historical Pattern Library; Historical Analog Library; Technology Evolution Analysis; Value Network Evolution; Supply Network Evolution; Constraint Evolution Analysis; Bottleneck Evolution; Capital Evolution; Success Intelligence; Failure Intelligence; Scientific Principle Extraction; Candidate Law Discovery; Institutional Scientific Learning; Organizational Intelligence; Institutional Memory Evolution; Knowledge Consolidation; Experience Consolidation; Scientific Principle Consolidation; Candidate Law Consolidation; Knowledge Conflict Resolution; Knowledge Quality Evolution; Organizational Learning; Confidence Evolution; Knowledge Obsolescence; Knowledge Preservation; Scientific Memory Maintenance; Institutional Wisdom; Organizational Adaptation; Institutional Learning Loops; Knowledge Maturity; Scientific Continuity; Continuous Institutional Improvement
 - **Referenced By:** Scientific Discovery, Genesis, Prometheus, Personal CIO, Opportunity Detection, Technology Intelligence, Economic Intelligence, Replay Engine, and all future institutional learning capabilities
 
