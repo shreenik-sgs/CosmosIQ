@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 2.0 |
+| Version | 2.1 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -60,6 +60,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Decision Graph | A transient, goal-specific projection of feasible choices, consequences, trade-offs, and recommendations, derived exclusively from the Intelligence Graph; never a canonical representation of reality. | EIOS-006 | Intelligence Graph | Foundational |
 | Model Graph | The first-class graph of relationships among models — inheritance, specialization, composition, dependency, validation, refinement; the primary primitive for reasoning about models. The Model Registry is an index over it. | EIOS-007 | Model, Intelligence Graph | Cognitive Architecture |
 | Model Repository | The store of model definitions, implementations, artifacts, and historical versions; distinct from the Model Registry (the index) and the Model Graph (the relationships). | EIOS-007 | Model Graph, Model Registry | Cognitive Architecture |
+| Model Portfolio | A purpose-specific collection of cooperating models assembled for a reasoning objective; more than a set of models — a reusable reasoning strategy whose effectiveness the Experience Layer learns over time. | EIOS-007 | Model, Model Graph | Cognitive Architecture |
 | Genesis | Operational subsystem that discovers transformations in real-world systems rather than searching directly for securities. | EIOS-001 | Prometheus, Personal CIO | Operational |
 | Prometheus | Operational subsystem that evaluates the implications of validated knowledge for publicly traded entities. | EIOS-001 | Genesis, Personal CIO | Operational |
 | Personal CIO | Operational subsystem that explains causal chains, quantifies uncertainty, and retains human accountability for recommendations. | EIOS-001 | Genesis, Prometheus | Operational |
@@ -85,7 +86,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 2.0
+version: 2.1
 authoritative: true
 target_generator: Claude Code
 -->
@@ -3557,6 +3558,8 @@ Selection among competing models SHALL be evidence-driven rather than predetermi
 
 Competing models SHALL remain replayable to permit retrospective evaluation.
 
+The architecture SHALL never permanently privilege one model over another.
+
 ---
 
 ### Model Independence
@@ -3785,6 +3788,8 @@ Cooperation differs from composition.
 Composition constructs a larger model.
 
 Cooperation coordinates independent models while preserving their individual identities.
+
+Cooperation may proceed by sharing intermediate conclusions, and intermediate reasoning SHALL remain inspectable.
 
 ---
 
@@ -4141,6 +4146,298 @@ These three architectural structures SHALL remain distinct.
 
 ---
 
+### Collective Model Intelligence
+
+No individual model can adequately explain complex reality.
+
+Intelligence emerges through the coordinated interaction of multiple specialized models.
+
+EIOS SHALL therefore treat collections of cooperating models as first-class architectural entities.
+
+Collective intelligence extends beyond model composition by introducing orchestration, collaboration, competition, negotiation, consensus, and adaptive coordination.
+
+---
+
+### Multi-Model Reasoning
+
+Complex reasoning SHALL employ multiple models simultaneously.
+
+Illustrative reasoning flow:
+
+Observation
+
+↓
+
+Technology Model
+
+↓
+
+Scientific Model
+
+↓
+
+Supply Network Model
+
+↓
+
+Capital Flow Model
+
+↓
+
+Policy Model
+
+↓
+
+Behavioral Model
+
+↓
+
+Integrated Understanding
+
+No single model is expected to explain the complete phenomenon.
+
+---
+
+### Model Portfolios
+
+A Model Portfolio is a purpose-specific collection of cooperating models assembled to solve a particular reasoning objective.
+
+A Model Portfolio is more than a set of models: it embodies a reusable reasoning strategy — a proven approach to reasoning about a class of problems.
+
+Illustrative portfolio — an **AI Infrastructure Portfolio**:
+
+* Technology Evolution Model
+* Semiconductor Manufacturing Model
+* Advanced Packaging Model
+* GPU Supply Model
+* Electrical Infrastructure Model
+* Water Resource Model
+* Capital Allocation Model
+* Policy Model
+
+Model Portfolios SHALL preserve explicit membership, dependencies, assumptions, and historical performance.
+
+The Experience Layer SHALL learn which reasoning strategies — entire Model Portfolios, not only individual models — consistently produce better explanations and predictions in a given context.
+
+---
+
+### Dynamic Portfolio Construction
+
+Model Portfolios SHOULD be dynamically assembled according to:
+
+* reasoning objective
+* available evidence
+* confidence
+* validity domains
+* computational constraints
+* historical effectiveness
+
+No portfolio SHALL be considered universally optimal.
+
+---
+
+### Model Orchestration
+
+Model Orchestration coordinates execution across cooperating models.
+
+Responsibilities include:
+
+* execution ordering
+* dependency resolution
+* context propagation
+* resource allocation
+* synchronization
+* failure handling
+
+Orchestration SHALL remain deterministic and replayable.
+
+---
+
+### Model Execution Pipelines
+
+Models MAY execute through structured pipelines.
+
+Illustrative pipeline:
+
+Observation
+
+↓
+
+Technology Model
+
+↓
+
+Supply Chain Model
+
+↓
+
+Economic Model
+
+↓
+
+Risk Model
+
+↓
+
+Decision Support
+
+Pipeline execution SHALL preserve complete reasoning traces.
+
+---
+
+### Parallel Model Execution
+
+Independent models MAY execute concurrently.
+
+Parallel execution SHALL preserve deterministic replay.
+
+Concurrency SHALL never compromise explainability.
+
+---
+
+### Recursive Reasoning
+
+Models MAY invoke additional models during reasoning.
+
+Illustrative recursion:
+
+Technology Model
+
+↓
+
+Battery Technology Model
+
+↓
+
+Lithium Supply Model
+
+↓
+
+Mining Infrastructure Model
+
+Recursive execution SHALL detect circular dependencies.
+
+---
+
+### Model Negotiation
+
+Conflicting models MAY negotiate through structured evidence exchange.
+
+Negotiation MAY include:
+
+* confidence comparison
+* evidence reconciliation
+* contradiction analysis
+* uncertainty propagation
+* causal comparison
+
+Negotiation SHALL remain replayable.
+
+---
+
+### Consensus Formation
+
+Collective reasoning MAY produce consensus among cooperating models.
+
+Consensus SHALL consider:
+
+* evidence quality
+* historical performance
+* validity domains
+* explanatory power
+* confidence
+
+Consensus SHALL never suppress minority explanations.
+
+Alternative models SHALL remain available.
+
+---
+
+### Confidence Fusion
+
+Collective reasoning SHALL combine confidence from multiple models.
+
+Fusion SHALL preserve individual model confidence alongside collective confidence.
+
+Loss of uncertainty information SHALL be prohibited.
+
+---
+
+### Contradiction Detection
+
+The architecture SHALL continuously detect contradictions between cooperating models.
+
+Contradictions SHALL become explicit reasoning objects.
+
+Resolution MAY require:
+
+* additional evidence
+* revised assumptions
+* competing hypotheses
+* new models
+
+Contradictions SHALL be preserved as scientific assets.
+
+---
+
+### Meta-Reasoning
+
+Meta-Reasoning determines:
+
+* which models should participate
+* execution strategy
+* orchestration approach
+* portfolio selection
+* confidence thresholds
+* termination criteria
+
+Meta-Reasoning is reasoning about reasoning.
+
+---
+
+### Meta-Models
+
+Meta-Models describe properties of other models.
+
+Illustrative responsibilities:
+
+* model classification
+* capability description
+* dependency analysis
+* maturity assessment
+* performance prediction
+
+Meta-Models improve adaptive orchestration.
+
+---
+
+### Model Portfolio Optimization
+
+Model Portfolios SHALL evolve continuously.
+
+Optimization MAY consider:
+
+* predictive performance
+* explanatory quality
+* computational cost
+* confidence
+* historical effectiveness
+* domain coverage
+
+Portfolio optimization SHALL preserve replayability.
+
+---
+
+### Collective Learning
+
+Experience SHALL evaluate entire Model Portfolios rather than isolated models.
+
+Successful portfolios SHALL become reusable reasoning assets.
+
+Collective learning SHALL continuously improve portfolio construction.
+
+---
+
 ### Architectural Rules
 
 - **AR-0701** — Every model SHALL possess a unique identity.
@@ -4173,6 +4470,16 @@ These three architectural structures SHALL remain distinct.
 - **AR-0728** — Model Fitness SHALL support comparative evaluation.
 - **AR-0729** — Repository, Registry, and Model Graph SHALL remain architecturally distinct.
 - **AR-0730** — Scientific progress SHALL occur through model evolution rather than replacement.
+- **AR-0731** — Complex reasoning SHALL support coordinated multi-model execution.
+- **AR-0732** — Model Portfolios SHALL be first-class architectural objects.
+- **AR-0733** — Model Orchestration SHALL remain deterministic.
+- **AR-0734** — Parallel execution SHALL preserve replayability.
+- **AR-0735** — Recursive reasoning SHALL detect dependency cycles.
+- **AR-0736** — Consensus SHALL preserve alternative explanations.
+- **AR-0737** — Contradictions SHALL become explicit reasoning objects.
+- **AR-0738** — Meta-Reasoning SHALL govern model selection.
+- **AR-0739** — Collective learning SHALL evaluate model portfolios.
+- **AR-0740** — Model Portfolio optimization SHALL remain evidence-driven.
 
 ---
 
@@ -4208,6 +4515,16 @@ These three architectural structures SHALL remain distinct.
 - **REQ-MD-028** — Model Health
 - **REQ-MD-029** — Model Fitness
 - **REQ-MD-030** — Repository Registry Graph Separation
+- **REQ-MD-031** — Multi-Model Reasoning
+- **REQ-MD-032** — Model Portfolios
+- **REQ-MD-033** — Model Orchestration
+- **REQ-MD-034** — Execution Pipelines
+- **REQ-MD-035** — Consensus
+- **REQ-MD-036** — Contradiction Detection
+- **REQ-MD-037** — Meta-Reasoning
+- **REQ-MD-038** — Meta-Models
+- **REQ-MD-039** — Collective Learning
+- **REQ-MD-040** — Portfolio Optimization
 
 ---
 
@@ -4222,6 +4539,7 @@ Referenced by:
 * GEN-003 — Economic Intelligence Engine
 * PROM-001 — Investment Thesis Engine
 * PROM-002 — Portfolio Intelligence
+* PROM-003 — Capital Allocation Intelligence
 * Personal CIO
 
 ---
@@ -4229,7 +4547,7 @@ Referenced by:
 ### Cross References
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006
-- **Defines:** Model; Model Identity; Model Purpose; Model Assumptions; Validity Domain; Model Uncertainty; Explainability; Replayability; Model Interface; Model Execution; Model Taxonomy; Model Hierarchies; Model Inheritance; Model Specialization; Model Composition; Model Dependencies; Model Graph; Model Ecology; Model Lineage; Model Repository; Model Registry; Model Lifecycle; Candidate Model; Accepted Model; Operational Model; Model Drift; Model Maturity; Model Health; Model Fitness; Model Evolution
+- **Defines:** Model; Model Identity; Model Purpose; Model Assumptions; Validity Domain; Model Uncertainty; Explainability; Replayability; Model Interface; Model Execution; Model Taxonomy; Model Hierarchies; Model Inheritance; Model Specialization; Model Composition; Model Dependencies; Model Graph; Model Ecology; Model Lineage; Model Repository; Model Registry; Model Lifecycle; Candidate Model; Accepted Model; Operational Model; Model Drift; Model Maturity; Model Health; Model Fitness; Model Evolution; Collective Model Intelligence; Multi-Model Reasoning; Model Portfolio; Model Orchestration; Consensus Formation; Confidence Fusion; Meta-Reasoning; Meta-Models; Collective Learning
 - **Referenced By:** All reasoning, simulation, prediction, optimization, scientific discovery, experience accumulation, investment intelligence, orchestration, and autonomous agent subsystems
 
 <!-- END:CHAPTER:EIOS-007 -->
