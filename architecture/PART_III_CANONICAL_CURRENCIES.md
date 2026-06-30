@@ -152,10 +152,19 @@ version, which is exactly what makes the whole layer replayable (CI-008): replay
 reconstructing the immutable Observations and the pinned worldview, then re-deriving the
 evolving assessments. *Immutable perception in; evolving understanding out.*
 
-## Open questions
-- **Q-a:** Intelligence Product — composition or object? (the decision above)
-- **Q-b:** Does the **Opportunity** object's canonical lifecycle (EIOS-002, frozen Part I)
-  already admit a "hypothesized/candidate" state, or must that state be *named* by Part III
-  without modifying EIOS-002? (Naming a state of a frozen object, not redefining it.)
-- **Q-c:** Should "salience / novelty" on an Observation be a first-class annotation or derived
-  by the sensing capability? (affects how Signal decomposes)
+## Decisions and open questions
+- **Q-a — RESOLVED (composition).** Intelligence Product remains a **composition**, not a
+  first-class canonical object. Intelligence Assessments are the units of reasoning; Products
+  package one or more Assessments for consumers; packaging is not cognition and therefore needs
+  no independent identity, lifecycle, provenance, lineage, or graph. Product evolution derives
+  entirely from the evolution of its constituent Assessments.
+- **Q-b — RESOLVED (no Part I change).** The Opportunity object remains a canonical Part I
+  object. Genesis defines the semantics and transitions of Opportunity lifecycle states
+  (including the candidate / "Opportunity Hypothesis" state) without redefining the object —
+  per the EIOS-002-owns-structure / downstream-owns-lifecycle precedent (EIOS-004 ↔ Research
+  Question). No ADR or constitutional change required.
+- **Q-c — open (authoring detail, non-blocking).** Whether Observation salience/novelty is a
+  first-class annotation or derived by the sensing capability; settle during EIOS-010 authoring.
+
+**Net result: Part III introduces exactly one new canonical object — the Intelligence
+Assessment** (designed in `PART_III_INTELLIGENCE_ASSESSMENT.md`).
