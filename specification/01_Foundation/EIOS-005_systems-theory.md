@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-005
 slug: systems-theory
-book_version: 3.0
+book_version: 3.1
 generator_version: 1.1
-source_hash: 7f5e6e93665020913cf4930b6acbcce459c5ba7382aad006861be8cf7ce6fba1
-generated_at: 2026-06-29T22:30:27-05:00
+source_hash: 30ea108812e46bc1f5939aeef9b47f2fed28f375d7dea0e6a2e45cce1676eab6
+generated_at: 2026-06-29T22:37:36-05:00
 ---
 
 # EIOS-005 — Systems Theory and Complex Adaptive Systems
