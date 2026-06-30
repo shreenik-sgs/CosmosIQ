@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 3.5
+book_version: 3.6
 generator_version: 1.1
-source_hash: 0e052c47d8cf2f6871b67ec81269649be99025c28db386f7055731192e06b4d0
-generated_at: 2026-06-29T23:05:02-05:00
+source_hash: 2870e30dd4a5bb6c8a3c6abfb5b87d5525cfd8d70c44d90de027a7d7d6ee2638
+generated_at: 2026-06-29T23:10:24-05:00
 ---
 
 # Glossary
@@ -46,6 +46,11 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Institutional Wisdom | The highest level of accumulated scientific understanding, emerging from long-term integration of validated experience, principles, candidate laws, and organizational learning; evidence-based and distinguished from opinion. | EIOS-008 | Institutional Scientific Learning, Scientific Principle | Cognitive Architecture |
 | Knowledge Consolidation | Combining related scientific understanding into coherent institutional knowledge while preserving provenance, uncertainty, and competing explanations; never discards contradictory evidence. | EIOS-008 | Institutional Scientific Learning | Cognitive Architecture |
 | Knowledge Maturity | The progressive stages (emerging → developing → validated → established → foundational) through which an institutional knowledge artifact advances; evolves independently per artifact and is continuously reassessable. | EIOS-008 | Institutional Scientific Learning | Cognitive Architecture |
+| Scientific Discovery | The architectural capability that generates new scientific understanding — managing the lifecycle of Research Questions and producing hypotheses, candidate models, principles, and candidate laws. Inquiry before inference. | EIOS-009 | Research Question, Experience Layer | Cognitive Architecture |
+| Research Agenda | The continuously evolving collection of active, unresolved, and emerging Research Questions requiring investigation; expands as discovery proceeds. | EIOS-009 | Scientific Discovery, Research Question | Cognitive Architecture |
+| Question Graph | The first-class graph of relationships among active Research Questions — dependency, refinement, decomposition, contradiction, support, competition — over which Scientific Discovery reasons. | EIOS-009 | Research Agenda, Research Question | Cognitive Architecture |
+| Knowledge Gap | An explicit region of incomplete scientific understanding, preserved independently of existing hypotheses as a discovery asset. | EIOS-009 | Scientific Discovery, Research Question | Cognitive Architecture |
+| Discovery Readiness | An assessment of whether a Research Question is currently investigable (available evidence, models, experimental capability); independent of question priority. | EIOS-009 | Research Question, Scientific Discovery | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |

@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-009
 slug: scientific-discovery
-book_version: 3.5
+book_version: 3.6
 generator_version: 1.1
-source_hash: 0e052c47d8cf2f6871b67ec81269649be99025c28db386f7055731192e06b4d0
-generated_at: 2026-06-29T23:05:02-05:00
+source_hash: 2870e30dd4a5bb6c8a3c6abfb5b87d5525cfd8d70c44d90de027a7d7d6ee2638
+generated_at: 2026-06-29T23:10:24-05:00
 ---
 
 # EIOS-009 — Scientific Discovery
@@ -297,6 +297,8 @@ Scientific Discovery is driven by curiosity.
 
 Curiosity represents the continuous pursuit of previously unknown explanations.
 
+Scientific Curiosity is the discovery-layer expression of the Computational Curiosity established in EIOS-004.
+
 Scientific Curiosity SHALL continuously identify:
 
 * unexplained observations
@@ -389,3 +391,75 @@ Scientific Principle
 Candidate Scientific Law
 
 The pipeline SHALL remain continuously observable and replayable.
+
+---
+
+### Architectural Rules
+
+- **AR-0901** — Scientific Discovery SHALL manage the complete lifecycle of Research Questions.
+- **AR-0902** — Research Questions SHALL reference the canonical Research Question definition specified by the Knowledge Model.
+- **AR-0903** — The Research Agenda SHALL remain continuously evolving as scientific understanding advances.
+- **AR-0904** — Research Question prioritization SHALL remain evidence-based and continuously re-evaluable.
+- **AR-0905** — Question Dependencies SHALL preserve complete traceability and replayability.
+- **AR-0906** — Question Decomposition SHALL preserve explicit parent-child relationships.
+- **AR-0907** — The Question Graph SHALL remain a first-class architectural artifact.
+- **AR-0908** — Knowledge Gaps SHALL remain explicitly represented until scientifically resolved.
+- **AR-0909** — Contradictions SHALL be preserved as opportunities for scientific discovery rather than eliminated prematurely.
+- **AR-0910** — Discovery Readiness SHALL remain independent from Question Priority.
+- **AR-0911** — Scientific Discovery SHALL continuously identify new Research Questions through observations, historical experience, and unresolved contradictions.
+- **AR-0912** — Research Question evolution SHALL preserve complete historical provenance.
+- **AR-0913** — Scientific Curiosity SHALL continuously expand the institutional Research Agenda.
+- **AR-0914** — Scientific Discovery SHALL remain implementation independent.
+- **AR-0915** — Scientific Discovery SHALL provide prioritized Research Questions to Hypothesis Generation.
+
+---
+
+### Requirements Introduced
+
+- **REQ-SD-001** — Scientific Discovery
+- **REQ-SD-002** — Research Agenda
+- **REQ-SD-003** — Research Question Prioritization
+- **REQ-SD-004** — Question Dependencies
+- **REQ-SD-005** — Question Decomposition
+- **REQ-SD-006** — Question Graph
+- **REQ-SD-007** — Scientific Curiosity
+- **REQ-SD-008** — Knowledge Gaps
+- **REQ-SD-009** — Discovery Readiness
+- **REQ-SD-010** — Research Question Lifecycle
+- **REQ-SD-011** — Research Question Evolution
+- **REQ-SD-012** — Scientific Discovery Pipeline
+- **REQ-SD-013** — Contradiction Management
+- **REQ-SD-014** — Research Agenda Evolution
+- **REQ-SD-015** — Prioritized Research Output
+
+---
+
+### Future Dependencies
+
+Referenced by:
+
+* Hypothesis Generation
+* Scientific Investigation
+* Validation & Falsification
+* Scientific Theory Evolution
+* GEN-001 — Genesis Discovery Engine
+* PROM-001 — Investment Thesis Engine
+* Personal CIO
+
+Provides:
+
+* prioritized Research Questions
+* Research Agenda
+* Question Graph
+* Discovery Readiness
+* Knowledge Gap identification
+* Research prioritization
+
+---
+
+### Cross References
+
+- **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007; EIOS-008
+- **Builds Upon:** Research Question (EIOS-002); Scientific Cognition; Computational Curiosity; Experience Layer
+- **Defines:** Scientific Discovery; Research Agenda; Question Prioritization; Question Dependencies; Question Decomposition; Question Graph; Knowledge Gaps; Discovery Readiness; Scientific Discovery Pipeline
+- **Referenced By:** Hypothesis Generation, Scientific Investigation, Technology Intelligence, Economic Intelligence, Genesis Discovery Engine, and autonomous scientific agents

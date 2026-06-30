@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 3.5
+book_version: 3.6
 generator_version: 1.1
-source_hash: 0e052c47d8cf2f6871b67ec81269649be99025c28db386f7055731192e06b4d0
-generated_at: 2026-06-29T23:05:02-05:00
+source_hash: 2870e30dd4a5bb6c8a3c6abfb5b87d5525cfd8d70c44d90de027a7d7d6ee2638
+generated_at: 2026-06-29T23:10:24-05:00
 ---
 
 # Architectural Rule Index
@@ -182,5 +182,20 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0853 | EIOS-008 — Experience Layer | Scientific Continuity SHALL preserve institutional intelligence across organizational, technological, and personnel changes. |
 | AR-0854 | EIOS-008 — Experience Layer | Continuous Institutional Improvement SHALL permanently strengthen future scientific reasoning through accumulated experience. |
 | AR-0855 | EIOS-008 — Experience Layer | Institutional Scientific Learning SHALL continuously provide refined organizational intelligence to Scientific Discovery, Genesis, Prometheus, Personal CIO, and future autonomous scientific systems. |
+| AR-0901 | EIOS-009 — Scientific Discovery | Scientific Discovery SHALL manage the complete lifecycle of Research Questions. |
+| AR-0902 | EIOS-009 — Scientific Discovery | Research Questions SHALL reference the canonical Research Question definition specified by the Knowledge Model. |
+| AR-0903 | EIOS-009 — Scientific Discovery | The Research Agenda SHALL remain continuously evolving as scientific understanding advances. |
+| AR-0904 | EIOS-009 — Scientific Discovery | Research Question prioritization SHALL remain evidence-based and continuously re-evaluable. |
+| AR-0905 | EIOS-009 — Scientific Discovery | Question Dependencies SHALL preserve complete traceability and replayability. |
+| AR-0906 | EIOS-009 — Scientific Discovery | Question Decomposition SHALL preserve explicit parent-child relationships. |
+| AR-0907 | EIOS-009 — Scientific Discovery | The Question Graph SHALL remain a first-class architectural artifact. |
+| AR-0908 | EIOS-009 — Scientific Discovery | Knowledge Gaps SHALL remain explicitly represented until scientifically resolved. |
+| AR-0909 | EIOS-009 — Scientific Discovery | Contradictions SHALL be preserved as opportunities for scientific discovery rather than eliminated prematurely. |
+| AR-0910 | EIOS-009 — Scientific Discovery | Discovery Readiness SHALL remain independent from Question Priority. |
+| AR-0911 | EIOS-009 — Scientific Discovery | Scientific Discovery SHALL continuously identify new Research Questions through observations, historical experience, and unresolved contradictions. |
+| AR-0912 | EIOS-009 — Scientific Discovery | Research Question evolution SHALL preserve complete historical provenance. |
+| AR-0913 | EIOS-009 — Scientific Discovery | Scientific Curiosity SHALL continuously expand the institutional Research Agenda. |
+| AR-0914 | EIOS-009 — Scientific Discovery | Scientific Discovery SHALL remain implementation independent. |
+| AR-0915 | EIOS-009 — Scientific Discovery | Scientific Discovery SHALL provide prioritized Research Questions to Hypothesis Generation. |
 
-_166 rules._
+_181 rules._
