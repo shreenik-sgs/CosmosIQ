@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 3.4 |
+| Version | 3.5 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -102,7 +102,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 3.4
+version: 3.5
 authoritative: true
 target_generator: Claude Code
 -->
@@ -6633,7 +6633,7 @@ Scientific Discovery continuously investigates observations, anomalies, contradi
 
 Its outputs include:
 
-* Scientific Questions
+* Research Questions
 * Hypotheses
 * Candidate Models
 * Scientific Principles
@@ -6643,25 +6643,25 @@ Scientific Discovery SHALL remain evidence-driven throughout its lifecycle.
 
 ---
 
-### Scientific Questions
+### Research Questions
 
 Every scientific investigation begins with a question.
 
-Scientific Questions represent explicit statements describing gaps in current scientific understanding.
+Research Questions represent explicit statements describing gaps in current scientific understanding.
 
 Questions define what remains unknown.
 
-Scientific Discovery SHALL treat Scientific Questions as first-class architectural objects.
+Scientific Discovery SHALL treat Research Questions as first-class architectural objects.
 
-Scientific Questions are represented as Research Question objects, defined canonically in the Knowledge Model (EIOS-002); this chapter defines how such questions are formulated, prioritized, and evolved for scientific discovery.
+Research Questions are defined canonically in the Knowledge Model (EIOS-002); this chapter defines how such questions are formulated, prioritized, and evolved for scientific discovery.
 
 Questions SHALL remain persistent, versioned, replayable, and continuously re-evaluable.
 
 ---
 
-### Purpose of Scientific Questions
+### Purpose of Research Questions
 
-Scientific Questions guide scientific investigation.
+Research Questions guide scientific investigation.
 
 Rather than searching indiscriminately for patterns, Scientific Discovery focuses investigation around clearly formulated questions.
 
@@ -6680,7 +6680,7 @@ The quality of scientific questions directly influences the quality of scientifi
 
 ### Question Ontology
 
-Every Scientific Question SHALL possess an explicit identity.
+Every Research Question SHALL possess an explicit identity.
 
 Illustrative attributes include:
 
@@ -6701,7 +6701,7 @@ Questions SHALL remain traceable throughout their complete lifecycle.
 
 ### Question Taxonomy
 
-Scientific Questions may exist at multiple levels.
+Research Questions may exist at multiple levels.
 
 Illustrative categories include:
 
@@ -6746,11 +6746,11 @@ Tactical Questions frequently refine broader Strategic Questions.
 
 ---
 
-### Open Scientific Questions
+### Open Research Questions
 
 Not every question is immediately answerable.
 
-Scientific Discovery SHALL preserve Open Scientific Questions independently from current investigative capability.
+Scientific Discovery SHALL preserve Open Research Questions independently from current investigative capability.
 
 Open Questions remain valuable scientific assets.
 
@@ -6760,7 +6760,7 @@ Future observations may eventually enable their resolution.
 
 ### Question Evolution
 
-Scientific Questions evolve continuously.
+Research Questions evolve continuously.
 
 Questions MAY be:
 
@@ -6771,9 +6771,205 @@ Questions MAY be:
 * resolved
 * reopened
 
-The Experience Layer SHALL preserve the complete evolution of every Scientific Question.
+The Experience Layer SHALL preserve the complete evolution of every Research Question.
 
 Question evolution SHALL remain fully replayable.
+
+---
+
+### Research Agenda
+
+Scientific Discovery SHALL maintain a continuously evolving Research Agenda.
+
+The Research Agenda represents the collection of active, unresolved, and emerging Research Questions requiring scientific investigation.
+
+The agenda SHALL continuously evolve as scientific understanding advances.
+
+Completion of one Research Question frequently produces additional Research Questions.
+
+Scientific discovery therefore represents a continuously expanding process rather than a finite sequence of investigations.
+
+---
+
+### Question Prioritization
+
+Not every Research Question possesses equal scientific value.
+
+Scientific Discovery SHALL continuously prioritize Research Questions according to their expected contribution to scientific understanding.
+
+Illustrative prioritization factors include:
+
+* scientific significance
+* explanatory potential
+* breadth of impact
+* uncertainty
+* historical importance
+* emergence potential
+* dependency relationships
+
+Prioritization SHALL remain continuously re-evaluable.
+
+---
+
+### Question Dependencies
+
+Research Questions frequently depend upon one another.
+
+Resolution of one question may enable, refine, invalidate, or generate additional questions.
+
+Scientific Discovery SHALL preserve explicit dependency relationships among Research Questions.
+
+Question dependencies SHALL remain replayable.
+
+---
+
+### Question Decomposition
+
+Complex scientific problems frequently require decomposition into smaller Research Questions.
+
+Scientific Discovery SHALL support hierarchical decomposition of Research Questions.
+
+Illustrative decomposition:
+
+Why is AI infrastructure accelerating?
+
+↓
+
+What changed in semiconductor manufacturing?
+
+↓
+
+What changed in HBM memory production?
+
+↓
+
+What manufacturing constraints were removed?
+
+Every decomposed question SHALL preserve traceability to its parent Research Question.
+
+---
+
+### Question Graph
+
+The Experience Layer preserves Research Questions.
+
+Scientific Discovery reasons over them.
+
+Scientific Discovery SHALL therefore maintain a Question Graph representing relationships among active Research Questions.
+
+Nodes represent Research Questions.
+
+Edges represent:
+
+* dependency
+* refinement
+* decomposition
+* contradiction
+* support
+* competition
+
+The Question Graph SHALL remain replayable and continuously evolving.
+
+---
+
+### Scientific Curiosity
+
+Scientific Discovery is driven by curiosity.
+
+Curiosity represents the continuous pursuit of previously unknown explanations.
+
+Scientific Curiosity SHALL continuously identify:
+
+* unexplained observations
+* contradictory evidence
+* unexpected transitions
+* missing causal mechanisms
+* emerging phenomena
+
+Curiosity SHALL continuously generate additional Research Questions.
+
+---
+
+### Knowledge Gaps
+
+Knowledge Gaps represent explicit regions of incomplete scientific understanding.
+
+Scientific Discovery SHALL preserve Knowledge Gaps independently from existing hypotheses.
+
+Knowledge Gaps SHALL remain valuable scientific assets.
+
+Future evidence MAY reduce or eliminate previously identified gaps.
+
+---
+
+### Contradictions
+
+Contradictions frequently indicate opportunities for scientific discovery.
+
+Scientific Discovery SHALL preserve contradictions rather than immediately attempting to eliminate them.
+
+Illustrative contradictions include:
+
+* conflicting observations
+* conflicting models
+* conflicting principles
+* conflicting historical evidence
+
+Contradictions SHALL remain continuously observable until scientifically resolved.
+
+---
+
+### Discovery Readiness
+
+Not every Research Question is immediately investigable.
+
+Scientific Discovery SHALL continuously assess Discovery Readiness.
+
+Illustrative readiness dimensions include:
+
+* available evidence
+* available models
+* historical understanding
+* experimental capability
+* supporting observations
+
+Research Questions MAY remain active while awaiting sufficient readiness.
+
+---
+
+### Scientific Discovery Pipeline
+
+Scientific Discovery SHALL continuously transform Research Questions into scientific understanding.
+
+Illustrative progression:
+
+Research Question
+
+↓
+
+Investigation
+
+↓
+
+Hypothesis
+
+↓
+
+Evidence
+
+↓
+
+Validation
+
+↓
+
+Scientific Principle
+
+↓
+
+Candidate Scientific Law
+
+The pipeline SHALL remain continuously observable and replayable.
 
 <!-- END:CHAPTER:EIOS-009 -->
 
