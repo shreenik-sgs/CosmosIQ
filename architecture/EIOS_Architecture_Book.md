@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 3.9 |
+| Version | 4.0 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -111,7 +111,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 3.9
+version: 4.0
 authoritative: true
 target_generator: Claude Code
 -->
@@ -7297,6 +7297,172 @@ Research Programs SHALL preserve:
 * historical evolution
 
 Research Programs SHALL remain replayable.
+
+---
+
+### Scientific Investigation
+
+Scientific Investigation transforms Hypotheses into scientifically testable explanations.
+
+Scientific Investigation is responsible for systematically acquiring evidence capable of strengthening, weakening, refining, or rejecting competing Hypotheses.
+
+Investigation precedes validation.
+
+The objective is evidence acquisition rather than scientific judgment.
+
+---
+
+### Investigation Objectives
+
+Every investigation SHALL pursue one or more explicit objectives.
+
+Illustrative objectives include:
+
+* acquiring evidence
+* resolving uncertainty
+* distinguishing competing Hypotheses
+* explaining contradictions
+* evaluating causal mechanisms
+* identifying missing observations
+
+Investigation objectives SHALL remain explicitly traceable to originating Research Questions.
+
+---
+
+### Investigation Planning
+
+Scientific Investigation SHALL generate explicit Investigation Plans.
+
+Every Investigation Plan SHALL preserve:
+
+* Research Questions
+* participating Hypotheses
+* required evidence
+* participating Models
+* required observations
+* expected outcomes
+* success criteria
+
+Investigation Plans SHALL remain replayable.
+
+---
+
+### Evidence Acquisition
+
+Evidence Acquisition represents the systematic collection of information relevant to one or more Hypotheses.
+
+Illustrative evidence sources include:
+
+* observations
+* historical cases
+* scientific literature
+* simulations
+* experiments
+* measurements
+* expert knowledge
+* economic data
+* technology data
+
+Evidence SHALL preserve provenance throughout its lifecycle.
+
+---
+
+### Evidence Classification
+
+Evidence SHALL be explicitly classified.
+
+Illustrative classifications include:
+
+* direct evidence
+* indirect evidence
+* supporting evidence
+* contradictory evidence
+* inconclusive evidence
+* missing evidence
+
+Evidence classification SHALL remain continuously re-evaluable.
+
+---
+
+### Evidence Graph
+
+Scientific Investigation SHALL maintain an Evidence Graph.
+
+Nodes represent Evidence.
+
+Edges represent:
+
+* supports
+* contradicts
+* explains
+* derives-from
+* validates
+* challenges
+
+The Evidence Graph SHALL remain continuously synchronized with the Hypothesis Graph.
+
+---
+
+### Multi-Model Investigation
+
+Scientific Investigation SHALL employ multiple Models simultaneously.
+
+Different Models contribute complementary perspectives.
+
+Illustrative participating Models include:
+
+* Technology Models
+* Economic Models
+* Behavioral Models
+* Systems Models
+* Historical Models
+
+Each participating Model SHALL preserve independent reasoning.
+
+---
+
+### Comparative Investigation
+
+Multiple Hypotheses SHALL be investigated comparatively.
+
+Comparative Investigation evaluates competing explanations using common evidence.
+
+Comparative investigation SHALL avoid evaluating competing Hypotheses under inconsistent assumptions.
+
+---
+
+### Counterfactual Investigation
+
+Scientific Investigation SHALL support Counterfactual Investigation.
+
+Counterfactual Investigation evaluates plausible alternative realities.
+
+Illustrative examples include:
+
+* absent technological breakthroughs
+* delayed infrastructure deployment
+* alternative regulatory decisions
+* different capital allocation
+
+Counterfactual Investigation SHALL remain explicitly distinguishable from historical observation.
+
+---
+
+### Investigation Evolution
+
+Scientific Investigations evolve continuously.
+
+Investigations MAY be:
+
+* expanded
+* refined
+* redirected
+* merged
+* suspended
+* resumed
+* completed
+
+The complete evolution of every Investigation SHALL remain replayable.
 
 ---
 
