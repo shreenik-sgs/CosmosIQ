@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 6.1 |
+| Version | 6.2 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -143,7 +143,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 6.1
+version: 6.2
 authoritative: true
 target_generator: Claude Code
 -->
@@ -10006,7 +10006,7 @@ Provides:
 
 ## CHAPTER GEN-001 — Genesis Discovery Engine
 
-<!-- SLUG: genesis -->
+<!-- SLUG: genesis-discovery-engine -->
 
 <!-- BEGIN:CHAPTER:GEN-001 -->
 
