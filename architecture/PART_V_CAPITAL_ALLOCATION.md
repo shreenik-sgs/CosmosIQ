@@ -40,7 +40,7 @@ not an extension of it, and investment purpose is visibly quarantined to its own
 ## Conventions
 - **Architectural Rules:** the single `AR-NNNN` namespace continues — `PROM-001` uses **AR-16xx**
   (after GEN-001's AR-15xx). No parallel rule namespace.
-- **Requirements:** `REQ-PROM`.
+- **Requirements:** `REQ-PROM` (Prometheus), `REQ-PL` (Position Lifecycle, PROM-002).
 - **Generated path:** `specification/05_Capital_Allocation/PROM-001_prometheus-capital-allocation-engine.md`
   (the generator already accepts the `PROM-` id scheme; the slug equals the kebab-cased title from
   the outset, per the GEN-001 slug lesson).
@@ -57,10 +57,16 @@ Portfolio, Opportunity Relationships (the Opportunity Graph), Opportunity Evolut
 Opportunity Prioritization **by version** — version-pinned, replayable, explainable, and
 auditable — reading them and never mutating them.
 
-## Sequence (planned)
+## Sequence
 1. **PROM-001 — Prometheus Capital Allocation Engine** (defines the layer, its boundary, the
    consumption contract, and its outputs).
-2. PROM-002+ — subsequent capital-allocation chapters, if and as warranted.
+2. **PROM-002 — Position Lifecycle Intelligence** (the position lifecycle: enter / hold / add /
+   trim / exit / avoid / wait / rotate, as justified Investment Actions; closes the ARB-015/016
+   exit-and-rotation gap). `REQ-PL` · AR-18xx · **no new canonical object** — Investment Action =
+   typed Prometheus Decision Record; Position State = derived view.
+3. **PROM-005 — Portfolio Construction & Capital Rotation** *(deferred)*: holistic, portfolio-wide
+   optimization — sizing, correlation budget, full-book reallocation, capital efficiency. Owns the
+   *holistic* half of rotation; PROM-002 owns the *pairwise/lifecycle* half.
 
 Execution/operations (placing capital, managing live positions) is a further consumer again and
 will carry its own namespace when authored; it is not Part V.
