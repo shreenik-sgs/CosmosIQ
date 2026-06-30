@@ -8,6 +8,7 @@ if _SRC not in _sys.path:
 import unittest
 
 from runtime.vertical_slice_runner import run_iren_slice
+from reality_intelligence.source_observation import SOURCE_TYPES
 
 
 class TestVerticalSliceIREN(unittest.TestCase):
@@ -100,6 +101,30 @@ class TestVerticalSliceIREN(unittest.TestCase):
         self.assertEqual(reconstructed["state"], "reconciled")
         self.assertEqual(reconstructed["broker_order_id"], "IBKR-12345")
         self.assertEqual(len(state1.fills), 2)
+
+    # --- IMPLEMENTATION-002: the slice begins from concrete Observations -------
+    def test_slice_begins_with_concrete_observations(self):
+        self.assertGreaterEqual(len(self.r.observations), 1)
+        for o in self.r.observations:
+            self.assertIsInstance(o.content, dict)
+            self.assertIn(o.content.get("source_type"), SOURCE_TYPES)
+        # The assessment is DERIVED from those Observations, not pre-baked.
+        bound = {ref.object_id for ref in self.r.assessment.provenance.sources}
+        self.assertEqual(bound, {o.id for o in self.r.observations})
+
+    def test_assessment_is_synthesised_from_observations(self):
+        ia = self.r.assessment
+        self.assertEqual(ia.domain, "ai-infrastructure")
+        self.assertIn("improving", ia.current_assessment)  # 3 supportive vs 1 contradictory
+        self.assertTrue(ia.contradictions)                 # the analyst note contradicts
+        self.assertEqual(len(ia.grounding_observation_ids), len(self.r.observations))
+
+    def test_assessment_has_no_investment_leakage(self):
+        ia = self.r.assessment
+        blob = " ".join([ia.current_assessment, " ".join(ia.contradictions),
+                         " ".join(ia.uncertainty)]).lower()
+        for term in ("buy", "sell", "price target", "investment", "opportunity", "thesis"):
+            self.assertNotIn(term, blob)
 
 
 if __name__ == "__main__":

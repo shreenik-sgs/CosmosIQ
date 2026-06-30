@@ -1,10 +1,33 @@
-"""Reality Intelligence layer (minimal placeholder reasoning models)."""
+"""Reality Intelligence layer.
+
+The first non-placeholder upstream layer: a deterministic Observation ->
+Intelligence Assessment pipeline. ``source_observation`` defines the input format
+for manually-supplied source material; ``intelligence_assessment`` synthesises a
+purpose-free assessment from it.
+"""
 
 from __future__ import annotations
 
+from .source_observation import (
+    Observation,
+    make_source_observation,
+    SOURCE_TYPES,
+    POLARITIES,
+)
 from .intelligence_assessment import (
     IntelligenceAssessment,
+    generate_intelligence_assessment,
     make_intelligence_assessment,
+    ALLOWED_ASSESSMENT_TYPES,
 )
 
-__all__ = ["IntelligenceAssessment", "make_intelligence_assessment"]
+__all__ = [
+    "Observation",
+    "make_source_observation",
+    "SOURCE_TYPES",
+    "POLARITIES",
+    "IntelligenceAssessment",
+    "generate_intelligence_assessment",
+    "make_intelligence_assessment",
+    "ALLOWED_ASSESSMENT_TYPES",
+]

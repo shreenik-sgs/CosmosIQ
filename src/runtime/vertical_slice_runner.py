@@ -20,7 +20,8 @@ from eios_core.canonical_objects import Observation
 from eios_core.ids import stable_id, iso_from_epoch
 from eios_core.provenance import make_provenance
 
-from reality_intelligence.intelligence_assessment import make_intelligence_assessment
+from reality_intelligence.source_observation import make_source_observation
+from reality_intelligence.intelligence_assessment import generate_intelligence_assessment
 from genesis.opportunity_hypothesis import make_opportunity_hypothesis
 from prometheus.investment_thesis import make_investment_thesis
 from prometheus.investment_action import make_investment_action
@@ -45,6 +46,7 @@ from execution_manual.audit_trail import AuditTrail
 @dataclass(frozen=True)
 class SliceResult:
     observation: Any
+    observations: Tuple[Any, ...]
     assessment: Any
     hypothesis: Any
     thesis: Any
@@ -64,6 +66,48 @@ class SliceResult:
     feedback_observation: Any
     audit_trail: Any
     registry: Dict[str, Any] = field(default_factory=dict)
+
+
+def iren_source_observations(now):
+    """The concrete, manually-supplied source material the IREN slice begins from.
+
+    Four typed Observations in the AI-infrastructure / data-center power domain --
+    three supportive, one contradictory -- so the Intelligence Assessment is
+    genuinely synthesised (direction, significance, confidence, a contradiction
+    note), not pre-baked. The contradictory analyst note deliberately contains
+    investment language ("buy rating", "price target") in its raw excerpt to prove
+    the assessment never leaks it.
+    """
+    return (
+        make_source_observation(
+            source_type="earnings_excerpt", domain="ai-infrastructure", entity="IREN",
+            excerpt=("Operating capacity expanded; contracted data-center power capacity "
+                     "increased quarter over quarter, with AI cloud compute revenue ramping."),
+            polarity="supportive", signal_strength=1.0, as_of="2026-Q1",
+            source_ref="IREN FY26 Q1 results", actor="analyst", now=now,
+        ),
+        make_source_observation(
+            source_type="infrastructure_milestone", domain="ai-infrastructure", entity="IREN",
+            excerpt=("Additional grid-connected megawatts energized at the Texas site; "
+                     "power-secured buildout ahead of prior schedule."),
+            polarity="supportive", signal_strength=1.0, metric={"power_mw_added": 200},
+            as_of="2026-05", source_ref="company infrastructure update", actor="analyst", now=now,
+        ),
+        make_source_observation(
+            source_type="capacity_power_demand_signal", domain="ai-infrastructure", entity="IREN",
+            excerpt=("Demand for power-secured data-center capacity is rising while available "
+                     "grid power is the binding constraint across the sector."),
+            polarity="supportive", signal_strength=0.8, as_of="2026-06",
+            source_ref="sector capacity/power signal", actor="analyst", now=now,
+        ),
+        make_source_observation(
+            source_type="analyst_note_excerpt", domain="ai-infrastructure", entity="IREN",
+            excerpt=("Note flags financing and dilution risk and bitcoin-linked revenue "
+                     "volatility; analysts reiterate a buy rating and raise the price target."),
+            polarity="contradictory", signal_strength=0.6, as_of="2026-06",
+            source_ref="sell-side note", actor="analyst", now=now,
+        ),
+    )
 
 
 def run_iren_slice(
@@ -87,20 +131,16 @@ def run_iren_slice(
     registry: Dict[str, Any] = {}
     audit = AuditTrail()
 
-    # --- Reasoning chain (minimal placeholder models) ----------------------
-    observation = Observation(
-        id=stable_id("OBS", instrument, "signal"),
-        version=1,
-        provenance=make_provenance(actor="reality-intelligence", created_at=iso_from_epoch(t0)),
-        content={"instrument": instrument, "signal": "datacenter/AI capacity pivot"},
-    )
-    assessment = make_intelligence_assessment(
-        [observation],
-        subject=instrument,
-        assessment="structurally improving capacity economics",
+    # --- Reasoning chain: begins with concrete manually-supplied Observations,
+    #     from which Reality Intelligence synthesises a real assessment ---------
+    observations = iren_source_observations(t0)
+    observation = observations[0]
+    assessment = generate_intelligence_assessment(
+        observations,
+        domain="ai-infrastructure",
+        assessment_type="capacity_economics",
         actor="reality-intelligence",
         now=t0,
-        confidence=0.7,
     )
     hypothesis = make_opportunity_hypothesis(
         assessment,
@@ -240,6 +280,7 @@ def run_iren_slice(
 
     return SliceResult(
         observation=observation,
+        observations=observations,
         assessment=assessment,
         hypothesis=hypothesis,
         thesis=thesis,
