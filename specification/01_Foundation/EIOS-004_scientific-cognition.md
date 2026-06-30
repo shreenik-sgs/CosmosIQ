@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-004
 slug: scientific-cognition
-book_version: 5.0
+book_version: 5.1
 generator_version: 1.1
-source_hash: a4f1b850cfe57ef581c128b4466fee638d941ace9cbb37aacb22928909a36ba1
-generated_at: 2026-06-30T01:50:20-05:00
+source_hash: e46f2f476a9fc02783fd48c4a3836e0a7770b7e3bfb40cc9c7ff321e8b34774f
+generated_at: 2026-06-30T02:00:20-05:00
 ---
 
 # EIOS-004 — Computational Scientific Cognition

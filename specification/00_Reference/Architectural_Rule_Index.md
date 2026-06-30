@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 5.0
+book_version: 5.1
 generator_version: 1.1
-source_hash: a4f1b850cfe57ef581c128b4466fee638d941ace9cbb37aacb22928909a36ba1
-generated_at: 2026-06-30T01:50:20-05:00
+source_hash: e46f2f476a9fc02783fd48c4a3836e0a7770b7e3bfb40cc9c7ff321e8b34774f
+generated_at: 2026-06-30T02:00:20-05:00
 ---
 
 # Architectural Rule Index
@@ -287,5 +287,19 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-1028 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL conform to the separation of layers established in ADR-0008: understanding flows upward; purpose never flows downward. |
 | AR-1029 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL maintain continuously evolving domain understanding; no domain understanding SHALL be considered permanently complete. |
 | AR-1030 | EIOS-010 — Reality Intelligence | Reality Intelligence SHALL remain implementation independent. |
+| AR-1101 | EIOS-011 — Technology Intelligence | Technology Intelligence SHALL form Intelligence Assessments about the technology domain, conforming to the Reality Intelligence contract (EIOS-010). |
+| AR-1102 | EIOS-011 — Technology Intelligence | Technology Intelligence SHALL reference the canonical Intelligence Assessment object and SHALL NOT redefine it, nor introduce new reasoning objects. |
+| AR-1103 | EIOS-011 — Technology Intelligence | Technology Intelligence assessments SHALL ground in the Scientific Worldview and the Experience Layer's emergence, readiness, timing, convergence, and evolution assessments rather than recomputing them. |
+| AR-1104 | EIOS-011 — Technology Intelligence | Technology Emergence Assessment SHALL ground in emergence and readiness assessments and SHALL preserve uncertainty. |
+| AR-1105 | EIOS-011 — Technology Intelligence | Technology Readiness Assessment SHALL ground in readiness, constraint-release, and timing assessments, and SHALL keep readiness distinct from timing. |
+| AR-1106 | EIOS-011 — Technology Intelligence | Technology Convergence Assessment SHALL ground in convergence assessments and SHALL preserve the contribution of each participating technology. |
+| AR-1107 | EIOS-011 — Technology Intelligence | Technology Constraint Assessment SHALL ground in the constraint and bottleneck understanding of Systems Theory and the Experience Layer. |
+| AR-1108 | EIOS-011 — Technology Intelligence | Technology Evolution Assessment SHALL ground in technology evolution analysis and the relevant Scientific Principles, and SHALL preserve timing uncertainty. |
+| AR-1109 | EIOS-011 — Technology Intelligence | Technology Intelligence Assessments MAY influence assessments in other domains through the Intelligence Graph, preserving explicit justification, and SHALL NOT reach into how other domains form their understanding. |
+| AR-1110 | EIOS-011 — Technology Intelligence | Technology Intelligence Products SHALL be compositions of Technology Intelligence Assessments without independent canonical identity. |
+| AR-1111 | EIOS-011 — Technology Intelligence | Technology Intelligence SHALL express understanding only and SHALL NOT assign value, opportunity, or investability. |
+| AR-1112 | EIOS-011 — Technology Intelligence | Technology Intelligence SHALL maintain continuously evolving technology understanding. |
+| AR-1113 | EIOS-011 — Technology Intelligence | Technology Intelligence SHALL provide Technology Intelligence Assessments and Products to the Intelligence Portfolio and to Genesis, grounding but not forming opportunities. |
+| AR-1114 | EIOS-011 — Technology Intelligence | Technology Intelligence SHALL remain implementation independent. |
 
-_271 rules._
+_285 rules._
