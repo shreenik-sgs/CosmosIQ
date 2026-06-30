@@ -354,6 +354,114 @@ The principle is this: understanding has one form, and a domain supplies only wh
 
 ---
 
+## ADR-0010
+Title: The Cognition–Actuation Boundary
+Status: Accepted
+
+Context:
+
+A system that understands the world, judges what is worth pursuing, decides how to commit, and
+shapes its counsel to a particular person has still done only one kind of thing: it has thought.
+Every act so far — to observe, to model, to hypothesize, to assess, to recommend, to personalize —
+is reversible. A belief can be revised, a judgment withdrawn, a recommendation replayed and remade,
+and the world is none the wiser. Thought leaves no mark.
+
+Action is not like this. To place capital is to change the world, and the world offers no undo. A
+reasoning that proves mistaken is corrected at no cost but the correcting; an action that proves
+mistaken has already happened. Between the last thought and the first deed lies the one threshold
+the system cannot recross.
+
+This decision concerns that threshold. It holds that the freedom proper to thought is not proper to
+action, and that the system must therefore keep the two apart — reasoning without limit, but acting
+only through a single, guarded, accountable passage.
+
+**What can be undone may be done freely; what cannot be undone must be gated.**
+
+Decision:
+
+The system MAY reason, recommend, and personalize within its governed cognitive layers. It MAY
+actuate only through a separate, gated, auditable layer that does nothing but carry out what has
+already been decided. Cognition and actuation are different in kind and SHALL be kept apart.
+
+This boundary establishes the following.
+
+**Actuation is not cognition.** Execution performs operational validation, not investment reasoning.
+It MAY validate account constraints, market-hours constraints, cancelability, order previews,
+slippage and fill risk, reconciliation, and kill-switch conditions. But it SHALL NOT discover,
+understand, identify opportunities, construct theses, allocate capital, personalize counsel, or
+decide actions. It SHALL only carry out actions already approved.
+
+**Actuation consumes decisions; it does not form them.** The actuation layer SHALL consume the
+decisions handed to it — the personalized actions and the records that justify them — and SHALL
+originate none of them. It receives the verdict; it never reaches it.
+
+**Every irreversible action passes through a gate.** No actuation SHALL touch the world until it has
+passed an explicit gate: confirmation by the responsible authority, a preview of what will be done,
+a check that the action can still be cancelled or reversed while that remains possible, a check
+against the constraints of account and venue, a check that the moment is permitted, an awareness of
+the cost of imperfect execution, the standing power to halt everything at once, and a record
+sufficient to account for it afterward. The gate is not a feature of actuation; it is its
+precondition.
+
+**Actuation produces operational reality.** What returns from the world — orders placed, fills
+received, rejections, cancellations, exceptions, failures, and the reconciliation of intent against
+outcome — are observations of reality, not judgments about it. They MAY flow upward as evidence, to
+be understood like any other observation; they SHALL NEVER flow upward as purpose. The world may
+inform the system; it may not instruct it.
+
+**Broker-specific logic is implementation, not architecture.** The actuation layer SHALL define the
+governance and operational state of action in the abstract — what a gate is, what an order's life
+consists of, what must be reconciled. The particular venues through which action reaches the world
+are matters of implementation, bound to the architecture at its edge and never written into it.
+
+**The Order is the first operational object.** Until now every object the system has held has been a
+reasoning object — a thing known, judged, or recommended: the Knowledge Object and its kin, the
+Intelligence Assessment, the Opportunity, the Investment Thesis, the Personal Investment Profile. The
+Order is not of this kind. It does not represent what the system believes or counsels; it represents
+what the system is doing, and the state of that doing in the world. Its truth is not warrant but fact
+— not "is this justified?" but "did it happen?". The Order SHALL therefore be recognized as the first
+operational object — the first member of a category distinct from the reasoning objects — and SHALL
+NOT be modeled as a specialized Knowledge Object. To make the record of a deed a species of knowledge
+would erase, in the model itself, the very line this decision draws. The Order's justification lives
+upstream, in the reasoning objects it carries out; its state is operational and its own. Where the
+world answers — a fill, a rejection — that answer re-enters the system as an Observation, a reasoning
+object once more. Thus the operational layer touches the world and returns observations to thought,
+while remaining, in itself, not thought but action.
+
+Relationship to prior decisions:
+
+- This completes the ordering set down when understanding, judgment, and action were separated
+  (ADR-0008). That decision named action as the last of the three and held that purpose flows only
+  upward; this one reaches the end of the line — where action stops being a decision and becomes a
+  deed — and gates it. Purpose still never descends; now neither does the irreversible ascend without
+  a gate.
+- It is consistent with the invariant grammar of understanding (ADR-0009). That grammar governs how
+  the system reasons; actuation does not reason, and so stands outside the grammar rather than
+  against it. The grammar shapes thought; this decision bounds the passage out of thought into the
+  world.
+
+Consequences:
+
+- The system gains a single, narrow, accountable aperture onto the world, and no other. Everywhere
+  else it is free; here alone it is gated.
+- The actuation layer carries no intelligence of its own and is forbidden to acquire any; its
+  discipline is governance, not judgment.
+- The object model bifurcates for the first time: reasoning objects, which represent what is known
+  and judged, and operational objects, which represent what is done. The bridge between them is the
+  Observation — the world's answer, returning as evidence.
+- The cost of error becomes visible in the architecture: because action is irreversible, its gate is
+  not optional, and a system that cannot confirm, preview, reverse, or halt is not permitted to act
+  at all.
+- The machinery of any particular venue is kept outside the architecture, so that what is true of
+  action remains true however the system is connected to the world.
+
+This decision fixes a principle, not its mechanism. What a gate checks, how an order's states are
+named, and how reconciliation is performed are left to be settled where execution is written. The
+principle is this: the system may think freely and act only narrowly, and the record of a deed is not
+a kind of knowledge.
+
+---
+
 ## Next ADR Number
 
-ADR-0010
+ADR-0011
