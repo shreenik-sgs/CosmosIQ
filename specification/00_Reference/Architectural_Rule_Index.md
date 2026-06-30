@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 3.8
+book_version: 3.9
 generator_version: 1.1
-source_hash: 8d695c99cbd3871c0ffab914918efbe2b42fac80c9894675d26803cc046327b7
-generated_at: 2026-06-29T23:19:53-05:00
+source_hash: 3b9408fff936f6ec9f020ba29814eba13912ca60dce25a72413a9461d5472bf4
+generated_at: 2026-06-29T23:23:18-05:00
 ---
 
 # Architectural Rule Index
@@ -197,5 +197,20 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0913 | EIOS-009 — Scientific Discovery | Scientific Curiosity SHALL continuously expand the institutional Research Agenda. |
 | AR-0914 | EIOS-009 — Scientific Discovery | Scientific Discovery SHALL remain implementation independent. |
 | AR-0915 | EIOS-009 — Scientific Discovery | Scientific Discovery SHALL provide prioritized Research Questions to Hypothesis Generation. |
+| AR-0916 | EIOS-009 — Scientific Discovery | Scientific Discovery SHALL generate Hypotheses exclusively in response to Research Questions. |
+| AR-0917 | EIOS-009 — Scientific Discovery | Every Hypothesis SHALL preserve explicit traceability to its originating Research Question. |
+| AR-0918 | EIOS-009 — Scientific Discovery | Hypothesis Generation SHALL preserve complete provenance for all supporting observations, models, evidence, and reasoning. |
+| AR-0919 | EIOS-009 — Scientific Discovery | Multiple competing Hypotheses SHALL be preserved until scientific investigation provides sufficient evidence for refinement or rejection. |
+| AR-0920 | EIOS-009 — Scientific Discovery | Hypothesis Portfolios SHALL preserve diversity of scientific reasoning and SHALL NOT prematurely converge on a single explanation. |
+| AR-0921 | EIOS-009 — Scientific Discovery | Multi-Model Hypothesis Generation SHALL preserve the independent reasoning contributed by each participating Model. |
+| AR-0922 | EIOS-009 — Scientific Discovery | Analogical Hypothesis Generation SHALL preserve explicit relationships to the supporting Historical Cases, Historical Patterns, and Historical Analogs. |
+| AR-0923 | EIOS-009 — Scientific Discovery | Knowledge-Gap Generation SHALL preserve explicit traceability between every Knowledge Gap and every generated Hypothesis. |
+| AR-0924 | EIOS-009 — Scientific Discovery | Research Programs SHALL preserve the complete evolution of participating Research Questions, Hypotheses, Models, Evidence, and Investigations. |
+| AR-0925 | EIOS-009 — Scientific Discovery | Hypothesis Quality SHALL remain continuously re-evaluable as new evidence becomes available. |
+| AR-0926 | EIOS-009 — Scientific Discovery | Hypothesis Lineage SHALL preserve complete historical evolution and replayability. |
+| AR-0927 | EIOS-009 — Scientific Discovery | The Hypothesis Graph SHALL remain a first-class architectural artifact supporting scientific reasoning. |
+| AR-0928 | EIOS-009 — Scientific Discovery | Hypothesis Generation SHALL remain implementation independent. |
+| AR-0929 | EIOS-009 — Scientific Discovery | Scientific Discovery SHALL continuously generate alternative explanations when existing Hypotheses fail to explain observed reality. |
+| AR-0930 | EIOS-009 — Scientific Discovery | Scientific Discovery SHALL provide prioritized Hypothesis Portfolios to Scientific Investigation. |
 
-_181 rules._
+_196 rules._

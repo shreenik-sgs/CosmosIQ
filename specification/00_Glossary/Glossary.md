@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 3.8
+book_version: 3.9
 generator_version: 1.1
-source_hash: 8d695c99cbd3871c0ffab914918efbe2b42fac80c9894675d26803cc046327b7
-generated_at: 2026-06-29T23:19:53-05:00
+source_hash: 3b9408fff936f6ec9f020ba29814eba13912ca60dce25a72413a9461d5472bf4
+generated_at: 2026-06-29T23:23:18-05:00
 ---
 
 # Glossary
@@ -51,6 +51,9 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Question Graph | The first-class graph of relationships among active Research Questions — dependency, refinement, decomposition, contradiction, support, competition — over which Scientific Discovery reasons. | EIOS-009 | Research Agenda, Research Question | Cognitive Architecture |
 | Knowledge Gap | An explicit region of incomplete scientific understanding, preserved independently of existing hypotheses as a discovery asset. | EIOS-009 | Scientific Discovery, Research Question | Cognitive Architecture |
 | Discovery Readiness | An assessment of whether a Research Question is currently investigable (available evidence, models, experimental capability); independent of question priority. | EIOS-009 | Research Question, Scientific Discovery | Cognitive Architecture |
+| Hypothesis Graph | The first-class graph of relationships among Hypotheses — refinement, dependency, competition, support, contradiction, composition — over which Scientific Discovery reasons. | EIOS-009 | Hypothesis, Question Graph | Cognitive Architecture |
+| Hypothesis Portfolio | A coordinated collection of competing and cooperating candidate explanations for a Research Question; preserves diversity of scientific reasoning rather than converging prematurely. | EIOS-009 | Hypothesis, Research Program | Cognitive Architecture |
+| Research Program | A long-term scientific investigation organized around a coherent family of Research Questions and Hypotheses (with supporting models and evidence); replayable, and the unit an investment domain can map to. | EIOS-009 | Research Question, Hypothesis | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
