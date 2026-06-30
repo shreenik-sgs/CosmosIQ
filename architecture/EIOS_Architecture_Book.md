@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 2.6 |
+| Version | 2.7 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -44,6 +44,11 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Replay | Historical replay: scientific re-validation against a point-in-time reconstruction of the world; a precondition of production. | EIOS-000 (CI-008) | Confidence, FI-002 | Constitutional |
 | Experience Layer | The institutional memory of scientific understanding — validated models, reasoning strategies, replay outcomes, lessons learned — that turns accumulated experience into reusable institutional intelligence. | EIOS-008 | Scientific Memory, Institutional Intelligence | Cognitive Architecture |
 | Institutional Intelligence | The collective scientific capability accumulated through continuous experience; unlike memory, it actively improves reasoning (analogy, pattern recognition, principle extraction, strategy selection). | EIOS-008 | Experience Layer, Scientific Memory | Cognitive Architecture |
+| System State | A real-world system's condition as a multidimensional state vector (readiness, constraint, dependency, confidence, evolution, transition), not a scalar; estimated continuously by the Experience Layer. | EIOS-008 | Readiness, Experience Layer | Cognitive Architecture |
+| Readiness | The degree to which a system holds the prerequisites for a future transition; an extensible multidimensional vector (not a scalar), with momentum (direction of change) tracked separately. | EIOS-008 | System State, Constraint Release | Cognitive Architecture |
+| Constraint Release | The reduction or elimination of limiting conditions that previously blocked system evolution; often precedes major transitions; tracked independently of readiness (measured by CRI). | EIOS-008 | Constraint, Readiness | Cognitive Architecture |
+| Convergence | The simultaneous satisfaction of multiple independently evolving readiness dimensions; major transitions emerge from convergence rather than any single condition (measured by CAS). | EIOS-008 | Readiness, Emergence Readiness Score | Cognitive Architecture |
+| Emergence Readiness Score | The headline architectural assessment (ERS) of how prepared a system appears for significant transition; an architectural concept, not a prescribed algorithm — one of six (ERS, RM, CRI, CAS, HAS, TTI). | EIOS-008 | Readiness, Convergence | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
@@ -89,7 +94,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 2.6
+version: 2.7
 authoritative: true
 target_generator: Claude Code
 -->
@@ -5696,6 +5701,21 @@ Architectural assessments therefore inform scientific judgment without determini
 - **AR-0808** — Readiness Assessment SHALL remain multi-dimensional.
 - **AR-0809** — Evolution Intelligence SHALL model complete historical trajectories.
 - **AR-0810** — Institutional Intelligence SHALL continuously improve future reasoning.
+- **AR-0811** — Emergence Assessment SHALL remain a continuous architectural capability.
+- **AR-0812** — Emergence Readiness SHALL be derived from underlying system evidence rather than isolated observations.
+- **AR-0813** — Readiness Momentum SHALL remain independent from absolute readiness.
+- **AR-0814** — Constraint Release SHALL be evaluated independently from readiness evolution.
+- **AR-0815** — Convergence Assessment SHALL preserve visibility into contributing readiness dimensions.
+- **AR-0816** — Historical Analog Assessment SHALL inform scientific reasoning but SHALL NOT determine scientific conclusions.
+- **AR-0817** — All architectural assessments SHALL preserve explainability, provenance, and replayability.
+- **AR-0818** — Time-to-Inflection SHALL always preserve uncertainty and SHALL NOT be interpreted as deterministic prediction.
+- **AR-0819** — Canonical architectural assessments SHALL remain implementation independent.
+- **AR-0820** — Emergence indicators SHALL remain extensible without architectural modification.
+- **AR-0821** — Continuous Assessment SHALL be triggered by changes in scientific understanding rather than fixed execution intervals.
+- **AR-0822** — Independent architectural assessments SHALL preserve separate provenance.
+- **AR-0823** — Composite assessments SHALL remain decomposable into their supporting architectural assessments.
+- **AR-0824** — Scientific Interpretation SHALL remain separate from architectural assessment.
+- **AR-0825** — Emergence Intelligence SHALL continuously support Scientific Discovery through evidence-based assessment of evolving systems.
 
 ---
 
@@ -5711,6 +5731,21 @@ Architectural assessments therefore inform scientific judgment without determini
 - **REQ-EX-008** — Readiness Assessment
 - **REQ-EX-009** — Evolution Intelligence
 - **REQ-EX-010** — Organizational Learning
+- **REQ-EX-011** — Emergence Assessment
+- **REQ-EX-012** — Readiness Evolution
+- **REQ-EX-013** — Readiness Momentum
+- **REQ-EX-014** — Constraint Evolution
+- **REQ-EX-015** — Constraint Release
+- **REQ-EX-016** — Convergence Assessment
+- **REQ-EX-017** — Transition Assessment
+- **REQ-EX-018** — Transition Trajectory
+- **REQ-EX-019** — Historical Analog Assessment
+- **REQ-EX-020** — Continuous Assessment
+- **REQ-EX-021** — Scientific Explainability
+- **REQ-EX-022** — Emergence Readiness Score
+- **REQ-EX-023** — Convergence Alignment
+- **REQ-EX-024** — Time-to-Inflection
+- **REQ-EX-025** — Assessment Independence
 
 ---
 
@@ -5733,7 +5768,7 @@ Referenced by:
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007
 - **Builds Upon:** Scientific Memory; Historical Replay; Model Portfolios; Collective Learning
-- **Defines:** Experience Layer; Institutional Intelligence; Historical Intelligence; Historical Pattern Intelligence; Principle Extraction; Analogical Intelligence; Emergence Intelligence; Evolution Intelligence
+- **Defines:** Experience Layer; Institutional Intelligence; Historical Intelligence; Historical Pattern Intelligence; Principle Extraction; Analogical Intelligence; Emergence Intelligence; Evolution Intelligence; System State; Readiness Ontology; Constraint Ontology; Convergence; Emergence Assessment; Readiness Momentum; Constraint Release; Transition Assessment; Transition Trajectory; Historical Analog Assessment; Emergence Readiness Score (ERS); Constraint Release Index (CRI); Convergence Alignment Score (CAS); Historical Analog Strength (HAS); Time-to-Inflection (TTI)
 - **Referenced By:** Scientific Discovery, Genesis, Prometheus, Personal CIO, Opportunity Detection, Technology Intelligence, Economic Intelligence, Replay Engine, and all future institutional learning capabilities
 
 <!-- END:CHAPTER:EIOS-008 -->
