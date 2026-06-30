@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-008
 slug: experience-layer
-book_version: 2.9
+book_version: 3.0
 generator_version: 1.1
-source_hash: 0e748886148b14b8db5abb4810df2ac8627f8fa64f515abca12468107994181b
-generated_at: 2026-06-29T22:25:28-05:00
+source_hash: 7f5e6e93665020913cf4930b6acbcce459c5ba7382aad006861be8cf7ce6fba1
+generated_at: 2026-06-29T22:30:27-05:00
 ---
 
 # EIOS-008 — Experience Layer
@@ -161,21 +161,9 @@ Patterns SHALL be represented independently from individual historical events.
 
 ### Principle Extraction
 
-The objective of Historical Intelligence is not historical description.
+The objective of Historical Intelligence is not historical description but scientific principle extraction: the Experience Layer ultimately extracts reusable scientific principles from accumulated historical experience rather than merely recording it.
 
-Its objective is scientific principle extraction.
-
-Every historical case SHALL contribute to one or more reusable principles.
-
-Principles SHALL identify:
-
-* causal mechanisms
-* enabling conditions
-* limiting conditions
-* applicability
-* confidence
-* supporting evidence
-* contradictory evidence
+The canonical definition — how principles are generalized from multiple Historical Cases, the evidence they preserve, and how they mature toward Candidate Scientific Laws — is given in Scientific Principle Extraction under Historical Scientific Intelligence.
 
 ---
 
@@ -551,17 +539,9 @@ The architecture formalizes this as Readiness Momentum (RM): the overall directi
 
 ### Constraint Evolution
 
-Constraints also evolve continuously.
+Within emergence assessment, the continuous evolution of constraints — some tightening, others disappearing, new ones emerging — provides important evidence regarding whether a system is approaching transition.
 
-Some constraints become increasingly restrictive.
-
-Others gradually disappear.
-
-New constraints may emerge while existing constraints are eliminated.
-
-The Experience Layer SHALL preserve the complete historical evolution of constraints.
-
-Constraint evolution provides important evidence regarding future system transitions.
+The canonical historical-learning treatment of constraint evolution, including its categories and replay requirements, is defined in Constraint Evolution Analysis under Historical Scientific Intelligence.
 
 ---
 
@@ -1236,6 +1216,8 @@ Recurring explanatory mechanisms observed across multiple independent Historical
 
 Scientific Principles represent reusable explanations rather than isolated historical observations.
 
+Each Scientific Principle SHALL identify the causal mechanism it explains, together with its enabling and limiting conditions.
+
 Every extracted principle SHALL preserve:
 
 * supporting Historical Cases
@@ -1244,6 +1226,7 @@ Every extracted principle SHALL preserve:
 * confidence
 * applicability
 * known limitations
+* contradicting evidence
 
 Scientific Principles SHALL remain continuously re-evaluable as new historical evidence becomes available.
 
@@ -1294,6 +1277,21 @@ Scientific Discovery validates.
 - **AR-0823** — Composite assessments SHALL remain decomposable into their supporting architectural assessments.
 - **AR-0824** — Scientific Interpretation SHALL remain separate from architectural assessment.
 - **AR-0825** — Emergence Intelligence SHALL continuously support Scientific Discovery through evidence-based assessment of evolving systems.
+- **AR-0826** — Historical Cases SHALL preserve complete scientific context.
+- **AR-0827** — Historical Transition Libraries SHALL remain canonical repositories of validated historical transitions.
+- **AR-0828** — Historical Pattern Libraries SHALL distinguish recurring observations from scientific explanations.
+- **AR-0829** — Historical Analog Libraries SHALL preserve structural similarity together with supporting reasoning.
+- **AR-0830** — Historical Scientific Intelligence SHALL analyze successful and unsuccessful historical systems with equal scientific rigor.
+- **AR-0831** — Technology, Value Network, Supply Network, Constraint, Bottleneck, and Capital evolution SHALL remain interconnected throughout historical analysis.
+- **AR-0832** — Scientific Principles SHALL only be extracted from multiple independent Historical Cases supported by sufficient evidence.
+- **AR-0833** — Candidate Scientific Laws SHALL remain provisional until validated by Scientific Discovery.
+- **AR-0834** — Historical learning SHALL remain continuously replayable and reproducible.
+- **AR-0835** — Historical conclusions SHALL preserve complete provenance, evidence, confidence, and competing explanations.
+- **AR-0836** — Historical intelligence SHALL continuously incorporate newly observed historical evidence.
+- **AR-0837** — Historical Scientific Intelligence SHALL remain implementation independent.
+- **AR-0838** — Every Scientific Principle SHALL preserve explicit applicability boundaries.
+- **AR-0839** — Historical exceptions SHALL be preserved together with supporting principles.
+- **AR-0840** — Historical Scientific Intelligence SHALL continuously provide reusable scientific understanding to Scientific Discovery, Genesis, Prometheus, and future reasoning systems.
 
 ---
 
@@ -1324,6 +1322,21 @@ Scientific Discovery validates.
 - **REQ-EX-023** — Convergence Alignment
 - **REQ-EX-024** — Time-to-Inflection
 - **REQ-EX-025** — Assessment Independence
+- **REQ-EX-026** — Historical Case Management
+- **REQ-EX-027** — Historical Transition Library
+- **REQ-EX-028** — Historical Pattern Library
+- **REQ-EX-029** — Historical Analog Library
+- **REQ-EX-030** — Multi-Level Historical Analysis
+- **REQ-EX-031** — Technology Evolution Analysis
+- **REQ-EX-032** — Value Network Evolution
+- **REQ-EX-033** — Supply Network Evolution
+- **REQ-EX-034** — Constraint and Bottleneck Evolution
+- **REQ-EX-035** — Capital Evolution Analysis
+- **REQ-EX-036** — Success and Failure Intelligence
+- **REQ-EX-037** — Scientific Principle Extraction
+- **REQ-EX-038** — Candidate Law Discovery
+- **REQ-EX-039** — Historical Replay
+- **REQ-EX-040** — Continuous Historical Learning
 
 ---
 
@@ -1340,11 +1353,20 @@ Referenced by:
 * PROM-003 — Capital Allocation Intelligence
 * Personal CIO
 
+Provides:
+
+* historical scientific evidence
+* scientific principles
+* candidate scientific laws
+* historical analogs
+* evolutionary patterns
+* replayable historical reasoning
+
 ---
 
 ### Cross References
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007
 - **Builds Upon:** Scientific Memory; Historical Replay; Model Portfolios; Collective Learning
-- **Defines:** Experience Layer; Institutional Intelligence; Historical Intelligence; Historical Pattern Intelligence; Principle Extraction; Analogical Intelligence; Emergence Intelligence; Evolution Intelligence; System State; Readiness Ontology; Constraint Ontology; Convergence; Emergence Assessment; Readiness Momentum; Constraint Release; Transition Assessment; Transition Trajectory; Historical Analog Assessment; Emergence Readiness Score (ERS); Constraint Release Index (CRI); Convergence Alignment Score (CAS); Historical Analog Strength (HAS); Time-to-Inflection (TTI)
+- **Defines:** Experience Layer; Institutional Intelligence; Historical Intelligence; Historical Pattern Intelligence; Principle Extraction; Analogical Intelligence; Emergence Intelligence; Evolution Intelligence; System State; Readiness Ontology; Constraint Ontology; Convergence; Emergence Assessment; Readiness Momentum; Constraint Release; Transition Assessment; Transition Trajectory; Historical Analog Assessment; Emergence Readiness Score (ERS); Constraint Release Index (CRI); Convergence Alignment Score (CAS); Historical Analog Strength (HAS); Time-to-Inflection (TTI); Historical Scientific Intelligence; Historical Case; Historical Transition Library; Historical Pattern Library; Historical Analog Library; Technology Evolution Analysis; Value Network Evolution; Supply Network Evolution; Constraint Evolution Analysis; Bottleneck Evolution; Capital Evolution; Success Intelligence; Failure Intelligence; Scientific Principle Extraction; Candidate Law Discovery
 - **Referenced By:** Scientific Discovery, Genesis, Prometheus, Personal CIO, Opportunity Detection, Technology Intelligence, Economic Intelligence, Replay Engine, and all future institutional learning capabilities

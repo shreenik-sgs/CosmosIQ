@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 2.9
+book_version: 3.0
 generator_version: 1.1
-source_hash: 0e748886148b14b8db5abb4810df2ac8627f8fa64f515abca12468107994181b
-generated_at: 2026-06-29T22:25:28-05:00
+source_hash: 7f5e6e93665020913cf4930b6acbcce459c5ba7382aad006861be8cf7ce6fba1
+generated_at: 2026-06-29T22:30:27-05:00
 ---
 
 # Architectural Rule Index
@@ -152,5 +152,20 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0823 | EIOS-008 — Experience Layer | Composite assessments SHALL remain decomposable into their supporting architectural assessments. |
 | AR-0824 | EIOS-008 — Experience Layer | Scientific Interpretation SHALL remain separate from architectural assessment. |
 | AR-0825 | EIOS-008 — Experience Layer | Emergence Intelligence SHALL continuously support Scientific Discovery through evidence-based assessment of evolving systems. |
+| AR-0826 | EIOS-008 — Experience Layer | Historical Cases SHALL preserve complete scientific context. |
+| AR-0827 | EIOS-008 — Experience Layer | Historical Transition Libraries SHALL remain canonical repositories of validated historical transitions. |
+| AR-0828 | EIOS-008 — Experience Layer | Historical Pattern Libraries SHALL distinguish recurring observations from scientific explanations. |
+| AR-0829 | EIOS-008 — Experience Layer | Historical Analog Libraries SHALL preserve structural similarity together with supporting reasoning. |
+| AR-0830 | EIOS-008 — Experience Layer | Historical Scientific Intelligence SHALL analyze successful and unsuccessful historical systems with equal scientific rigor. |
+| AR-0831 | EIOS-008 — Experience Layer | Technology, Value Network, Supply Network, Constraint, Bottleneck, and Capital evolution SHALL remain interconnected throughout historical analysis. |
+| AR-0832 | EIOS-008 — Experience Layer | Scientific Principles SHALL only be extracted from multiple independent Historical Cases supported by sufficient evidence. |
+| AR-0833 | EIOS-008 — Experience Layer | Candidate Scientific Laws SHALL remain provisional until validated by Scientific Discovery. |
+| AR-0834 | EIOS-008 — Experience Layer | Historical learning SHALL remain continuously replayable and reproducible. |
+| AR-0835 | EIOS-008 — Experience Layer | Historical conclusions SHALL preserve complete provenance, evidence, confidence, and competing explanations. |
+| AR-0836 | EIOS-008 — Experience Layer | Historical intelligence SHALL continuously incorporate newly observed historical evidence. |
+| AR-0837 | EIOS-008 — Experience Layer | Historical Scientific Intelligence SHALL remain implementation independent. |
+| AR-0838 | EIOS-008 — Experience Layer | Every Scientific Principle SHALL preserve explicit applicability boundaries. |
+| AR-0839 | EIOS-008 — Experience Layer | Historical exceptions SHALL be preserved together with supporting principles. |
+| AR-0840 | EIOS-008 — Experience Layer | Historical Scientific Intelligence SHALL continuously provide reusable scientific understanding to Scientific Discovery, Genesis, Prometheus, and future reasoning systems. |
 
-_136 rules._
+_151 rules._

@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 2.9
+book_version: 3.0
 generator_version: 1.1
-source_hash: 0e748886148b14b8db5abb4810df2ac8627f8fa64f515abca12468107994181b
-generated_at: 2026-06-29T22:25:28-05:00
+source_hash: 7f5e6e93665020913cf4930b6acbcce459c5ba7382aad006861be8cf7ce6fba1
+generated_at: 2026-06-29T22:30:27-05:00
 ---
 
 # Glossary
@@ -38,6 +38,10 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Constraint Release | The reduction or elimination of limiting conditions that previously blocked system evolution; often precedes major transitions; tracked independently of readiness (measured by CRI). | EIOS-008 | Constraint, Readiness | Cognitive Architecture |
 | Convergence | The simultaneous satisfaction of multiple independently evolving readiness dimensions; major transitions emerge from convergence rather than any single condition (measured by CAS). | EIOS-008 | Readiness, Emergence Readiness Score | Cognitive Architecture |
 | Emergence Readiness Score | The headline architectural assessment (ERS) of how prepared a system appears for significant transition; an architectural concept, not a prescribed algorithm — one of six (ERS, RM, CRI, CAS, HAS, TTI). | EIOS-008 | Readiness, Convergence | Cognitive Architecture |
+| Historical Scientific Intelligence | The Experience Layer capability that extracts enduring, reusable scientific understanding from historical reality — cases, transitions, successes, and failures — rather than merely recording history. | EIOS-008 | Historical Case, Scientific Principle | Cognitive Architecture |
+| Historical Case | A bounded, replayable observation of reality over a defined period, preserving its full scientific context; the unit from which scientific principles are extracted. | EIOS-008 | Historical Scientific Intelligence, Scientific Principle | Cognitive Architecture |
+| Scientific Principle | A Principle (EIOS-002) generalized from recurring mechanisms across multiple independent Historical Cases; preserves supporting cases, evidence, models, confidence, applicability, and limits; continuously re-evaluable. | EIOS-008 | Principle, Candidate Scientific Law | Cognitive Architecture |
+| Candidate Scientific Law | A Scientific Principle showing persistent validity across many domains and long history, proposed with stronger evidence for validation. Experience proposes; Scientific Discovery validates. | EIOS-008 | Scientific Principle | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
