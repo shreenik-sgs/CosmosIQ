@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 5.5
+book_version: 6.0
 generator_version: 1.1
-source_hash: a6b7b41a07653594f5dba61d708d463b6e1e2c99db071a4b99e4cd45d572f8e4
-generated_at: 2026-06-30T02:18:41-05:00
+source_hash: d2dd124fa3a31084f90fbab5b6eca9e850bb5a290cea60145b2b165778479b0d
+generated_at: 2026-06-30T09:42:12-05:00
 ---
 
 # Architectural Rule Index
@@ -343,5 +343,23 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-1412 | EIOS-014 — Capital Intelligence | Capital Intelligence SHALL maintain continuously evolving capital understanding. |
 | AR-1413 | EIOS-014 — Capital Intelligence | Capital Intelligence SHALL provide Capital Intelligence Assessments and Products to the Intelligence Portfolio and to Genesis, grounding but not forming opportunities. |
 | AR-1414 | EIOS-014 — Capital Intelligence | Capital Intelligence SHALL remain implementation independent. |
+| AR-1501 | GEN-001 — Genesis | Genesis SHALL discover opportunities by consuming the understanding produced by the Reality Intelligence and Cognitive Architecture layers; it SHALL form opportunities, never understanding. |
+| AR-1502 | GEN-001 — Genesis | Genesis SHALL ground every Opportunity in Intelligence Assessments, Intelligence Products, and the Scientific Worldview, referenced by version, and SHALL NEVER recompute, restate, or redefine them. |
+| AR-1503 | GEN-001 — Genesis | Purpose — opportunity, value, and worth — SHALL enter the architecture only at Genesis and SHALL NEVER flow downward into the layers that form understanding. |
+| AR-1504 | GEN-001 — Genesis | Genesis SHALL reason in Opportunities, the canonical object defined by the Knowledge Model; it SHALL own the Opportunity lifecycle semantics without redefining the object, and SHALL introduce no new canonical reasoning object. |
+| AR-1505 | GEN-001 — Genesis | Genesis SHALL generate Opportunity Hypotheses as candidate Opportunities, and SHALL preserve competing Opportunity Hypotheses until evidence supports adjudication. |
+| AR-1506 | GEN-001 — Genesis | Opportunity Formation SHALL preserve grounding Assessments and Products, participating domains, worldview version, confidence, and uncertainty, and SHALL remain scientifically explainable. |
+| AR-1507 | GEN-001 — Genesis | Genesis SHALL synthesize opportunities across domains while preserving the contribution of each participating domain. |
+| AR-1508 | GEN-001 — Genesis | Genesis SHALL assess Opportunity Timing, grounded in emergence, readiness, and time-to-inflection understanding, preserving uncertainty. |
+| AR-1509 | GEN-001 — Genesis | Genesis SHALL assess Opportunity Magnitude, grounded in understanding and always carrying explicit uncertainty; no magnitude SHALL be asserted as certain. |
+| AR-1510 | GEN-001 — Genesis | Opportunity lifecycle state values and semantics SHALL be owned by Genesis, while the structural lifecycle field remains owned by the Knowledge Model; every state transition SHALL become a historical event. |
+| AR-1511 | GEN-001 — Genesis | Genesis SHALL continuously adjudicate Opportunity Hypotheses as understanding evolves, preserving complete grounding and justification for every adjudication. |
+| AR-1512 | GEN-001 — Genesis | When belief revision or validation drift changes the understanding grounding an Opportunity, that Opportunity SHALL be re-evaluated; no Opportunity SHALL silently retain a superseded grounding. |
+| AR-1513 | GEN-001 — Genesis | Every Opportunity SHALL be replayable, binding the versions of understanding it was formed against; prior versions SHALL be preserved and remain replayable. |
+| AR-1514 | GEN-001 — Genesis | Opportunity Portfolios SHALL be coordinated collections of evolving opportunities; they SHALL carry no allocation, position, or capital and SHALL NOT be investment portfolios. |
+| AR-1515 | GEN-001 — Genesis | Genesis SHALL discover opportunities continuously, not on demand. |
+| AR-1516 | GEN-001 — Genesis | Genesis SHALL provide Opportunity Hypotheses and Opportunity Portfolios to downstream investment and decision subsystems. |
+| AR-1517 | GEN-001 — Genesis | Genesis SHALL discover what is worth pursuing and SHALL NOT decide how to act upon it; it SHALL NOT allocate capital, take positions, construct investment portfolios, or execute decisions. |
+| AR-1518 | GEN-001 — Genesis | Genesis SHALL remain implementation independent. |
 
-_327 rules._
+_345 rules._

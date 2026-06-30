@@ -3,17 +3,17 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: summary
-book_version: 5.5
+book_version: 6.0
 generator_version: 1.1
-source_hash: a6b7b41a07653594f5dba61d708d463b6e1e2c99db071a4b99e4cd45d572f8e4
-generated_at: 2026-06-30T02:18:41-05:00
+source_hash: d2dd124fa3a31084f90fbab5b6eca9e850bb5a290cea60145b2b165778479b0d
+generated_at: 2026-06-30T09:42:12-05:00
 ---
 
 # Economic Intelligence Operating System
 
 ## Architecture Book
 
-Version 5.5
+Version 6.0
 
 Compiled from `architecture/EIOS_Architecture_Book.md`.
 
@@ -48,9 +48,9 @@ Compiled from `architecture/EIOS_Architecture_Book.md`.
 - [EIOS-013 — Supply Network Intelligence](03_Reality_Intelligence/EIOS-013_supply-network-intelligence.md)
 - [EIOS-014 — Capital Intelligence](03_Reality_Intelligence/EIOS-014_capital-intelligence.md)
 
-### Part IV — Applications
+### Part IV — Opportunity Generation
 
-_Planned — no chapters yet._
+- [GEN-001 — Genesis](04_Opportunity_Generation/GEN-001_genesis.md)
 
 ### Part V — Engineering Reference
 
