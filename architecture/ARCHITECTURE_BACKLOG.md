@@ -48,6 +48,15 @@ Questions with no committed answer yet.
   graphs forever."
 - **Tags:** `Requires EIOS-010`
 
+### BL-008 — Are domain intelligence engines instances of one "Intelligence Discipline"?
+- **Origin:** future review proposal ARB-012.
+- **Question:** are Technology / Economic / Supply / Capital / Energy / Healthcare / Defense
+  Intelligence all instances of a single reusable **Intelligence Discipline** abstraction rather
+  than individually designed engines? See `ARB-012_Intelligence_Discipline_Architecture.md`.
+- **Why deferred:** judge the pattern only after several real domain chapters exist; do not
+  abstract prematurely. Do not change EIOS-010 / ADR-0008 on its basis.
+- **Tags:** `Requires Part III` (several domain chapters first)
+
 ### BL-003 — Are five portfolio abstractions sufficient?
 - **Origin:** ARB-001 architect note.
 - **Question:** The architecture defines five portfolio layers (Model, Hypothesis,
