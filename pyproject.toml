@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eios-runtime-slice"
+version = "0.1.0"
+description = "EIOS runtime MVP vertical slice: canonical objects + manual execution mechanics (stdlib only)."
+requires-python = ">=3.9"
+dependencies = []
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
