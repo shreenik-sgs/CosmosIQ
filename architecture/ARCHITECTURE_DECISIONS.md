@@ -135,6 +135,39 @@ Consequences:
 
 ---
 
+## ADR-0007
+Title: Freeze Foundation Release 2.0
+Status: Accepted
+
+Context:
+Part I — Foundation (chapters EIOS-000 through EIOS-006) is complete, consolidated
+(AB-0006A), and reviewed end-to-end at Book v1.5. It provides the stable
+architectural base for all downstream chapters and implementation.
+
+Decision:
+- Chapters EIOS-000 through EIOS-006 are designated Foundation Release 2.0 and are
+  FROZEN.
+- Changes to these seven chapters require a new ADR (with architecture review and
+  explicit approval), not an ordinary manuscript patch.
+- The freeze applies to the Foundation chapters ONLY. It does NOT freeze:
+  - the Architecture Book as a whole — the book version continues to increment;
+  - the Appendices and other reference material (Architecture Registry, Architectural
+    Dictionary/Lexicon, Graph Taxonomy, Architectural Patterns, Notation, Acronyms,
+    diagrams), which evolve independently and continuously;
+  - future Parts (II–V) and chapters (EIOS-007 and beyond).
+
+Relationship to prior ADRs:
+- Extends ADR-0006 (which froze EIOS-000, the Constitution) to the entire Foundation.
+- Consistent with ADR-0004 (architectural changes require ADRs).
+
+Consequences:
+- Manuscript patches (AB-xxxx) may add new chapters (EIOS-007+) and evolve
+  appendices, but may not modify EIOS-000 … EIOS-006.
+- Reference material is documentation: it continues to evolve freely without an ADR.
+- Source (Foundation chapters) freezes; documentation (appendices) evolves.
+
+---
+
 ## Next ADR Number
 
-ADR-0007
+ADR-0008
