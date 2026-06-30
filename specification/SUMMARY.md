@@ -3,23 +3,24 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: summary
-book_version: 1.7
-generator_version: 1.0
-source_hash: 4ac595a28327f94dfb9a74fb9d60c561251cf7e3720e7f77a015de8c24ad30b9
-generated_at: 2026-06-29T20:05:33-05:00
+book_version: 1.8
+generator_version: 1.1
+source_hash: e040835717b1276b9e41faf44d417de4378d9fecdc905516644d19ec1b9ef444
+generated_at: 2026-06-29T20:19:53-05:00
 ---
 
 # Economic Intelligence Operating System
 
 ## Architecture Book
 
-Version 1.7
+Version 1.8
 
 Compiled from `architecture/EIOS_Architecture_Book.md`.
 
-## Glossary
+## Reference
 
-- [Glossary](00_Glossary/Glossary.md) — the normative architectural dictionary
+- [Architectural Lexicon](00_Glossary/Glossary.md) — every first-class concept, defined once
+- [Architectural Rule Index](00_Reference/Architectural_Rule_Index.md) — every AR, by chapter
 
 ## Table of Contents
 
@@ -35,7 +36,7 @@ Compiled from `architecture/EIOS_Architecture_Book.md`.
 
 ### Part II — Cognitive Architecture
 
-_Planned — no chapters yet._
+- [EIOS-007 — Models and Model Management](02_Cognitive_Architecture/EIOS-007_models-and-model-management.md)
 
 ### Part III — Platform Architecture
 

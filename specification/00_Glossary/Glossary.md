@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 1.7
-generator_version: 1.0
-source_hash: 4ac595a28327f94dfb9a74fb9d60c561251cf7e3720e7f77a015de8c24ad30b9
-generated_at: 2026-06-29T20:05:33-05:00
+book_version: 1.8
+generator_version: 1.1
+source_hash: e040835717b1276b9e41faf44d417de4378d9fecdc905516644d19ec1b9ef444
+generated_at: 2026-06-29T20:19:53-05:00
 ---
 
 # Glossary
@@ -29,6 +29,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Confidence | The current scientific belief in an object or relationship; evolves continuously and is never silently overridden. | EIOS-002 | Evidence, Replay | Foundational |
 | Scientific Cognition | The architectural process turning knowledge into understanding: curiosity, mental modeling, inquiry, judgment, evolution. | EIOS-004 | Mental Model, Research Question | Foundational |
 | Mental Model | A temporary, domain-specific reasoning context derived from and synchronized with the World Model; never an independent source of truth. | EIOS-004 | World Model, Scientific Cognition | Foundational |
+| Model | A bounded, purpose-specific representation of part of reality, built to support explanation, prediction, simulation, reasoning, or decision; never reality itself. | EIOS-007 | Mental Model, World Model | Cognitive Architecture |
 | Replay | Historical replay: scientific re-validation against a point-in-time reconstruction of the world; a precondition of production. | EIOS-000 (CI-008) | Confidence, FI-002 | Constitutional |
 | Experience Layer | The accumulated record of past reasoning outcomes that continuously modifies future reasoning. | EIOS-003 (detailed in EIOS-008) | Scientific Cognition, Confidence | Foundational |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
