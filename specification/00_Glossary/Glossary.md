@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 2.2
+book_version: 2.3
 generator_version: 1.1
-source_hash: 988e1f64e3989279d6f99fe7336297f800420b40ff411b7923846e5a5860e696
-generated_at: 2026-06-29T21:11:29-05:00
+source_hash: e08a7fa17d663f2c1087e5a78c63e06d2e1349e139a6220c202fa5c48622f3ec
+generated_at: 2026-06-29T21:31:25-05:00
 ---
 
 # Glossary
@@ -31,7 +31,8 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Mental Model | A temporary, domain-specific reasoning context derived from and synchronized with the World Model; never an independent source of truth. | EIOS-004 | World Model, Scientific Cognition | Foundational |
 | Model | A bounded, purpose-specific representation of part of reality, built to support explanation, prediction, simulation, reasoning, or decision; never reality itself. | EIOS-007 | Mental Model, World Model | Cognitive Architecture |
 | Replay | Historical replay: scientific re-validation against a point-in-time reconstruction of the world; a precondition of production. | EIOS-000 (CI-008) | Confidence, FI-002 | Constitutional |
-| Experience Layer | The accumulated record of past reasoning outcomes that continuously modifies future reasoning. | EIOS-003 (detailed in EIOS-008) | Scientific Cognition, Confidence | Foundational |
+| Experience Layer | The institutional memory of scientific understanding — validated models, reasoning strategies, replay outcomes, lessons learned — that turns accumulated experience into reusable institutional intelligence. | EIOS-008 | Scientific Memory, Institutional Intelligence | Cognitive Architecture |
+| Institutional Intelligence | The collective scientific capability accumulated through continuous experience; unlike memory, it actively improves reasoning (analogy, pattern recognition, principle extraction, strategy selection). | EIOS-008 | Experience Layer, Scientific Memory | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |

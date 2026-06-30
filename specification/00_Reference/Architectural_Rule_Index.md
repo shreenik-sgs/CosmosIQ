@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 2.2
+book_version: 2.3
 generator_version: 1.1
-source_hash: 988e1f64e3989279d6f99fe7336297f800420b40ff411b7923846e5a5860e696
-generated_at: 2026-06-29T21:11:29-05:00
+source_hash: e08a7fa17d663f2c1087e5a78c63e06d2e1349e139a6220c202fa5c48622f3ec
+generated_at: 2026-06-29T21:31:25-05:00
 ---
 
 # Architectural Rule Index
@@ -127,5 +127,15 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0748 | EIOS-007 — Models and Model Management | Retired models SHALL remain scientifically accessible. |
 | AR-0749 | EIOS-007 — Models and Model Management | Adaptive learning SHALL incorporate successful and failed reasoning strategies. |
 | AR-0750 | EIOS-007 — Models and Model Management | Scientific Memory SHALL preserve the complete evolution of organizational knowledge. |
+| AR-0801 | EIOS-008 — Experience Layer | The Experience Layer SHALL continuously improve institutional intelligence. |
+| AR-0802 | EIOS-008 — Experience Layer | Scientific Memory SHALL preserve validated organizational knowledge. |
+| AR-0803 | EIOS-008 — Experience Layer | Historical Intelligence SHALL study systems rather than isolated entities. |
+| AR-0804 | EIOS-008 — Experience Layer | Historical Pattern Intelligence SHALL identify recurring structural patterns. |
+| AR-0805 | EIOS-008 — Experience Layer | Principle Extraction SHALL convert historical observations into reusable scientific principles. |
+| AR-0806 | EIOS-008 — Experience Layer | Analogical Intelligence SHALL discover structurally similar historical situations. |
+| AR-0807 | EIOS-008 — Experience Layer | Emergence Intelligence SHALL continuously evaluate present-day readiness. |
+| AR-0808 | EIOS-008 — Experience Layer | Readiness Assessment SHALL remain multi-dimensional. |
+| AR-0809 | EIOS-008 — Experience Layer | Evolution Intelligence SHALL model complete historical trajectories. |
+| AR-0810 | EIOS-008 — Experience Layer | Institutional Intelligence SHALL continuously improve future reasoning. |
 
-_111 rules._
+_121 rules._
