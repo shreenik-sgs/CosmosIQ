@@ -3,17 +3,17 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: summary
-book_version: 3.3
+book_version: 3.4
 generator_version: 1.1
-source_hash: 87850a17acd9bc1703d5080c8404407d67e383fa37c695921f2f9135512e30a7
-generated_at: 2026-06-29T22:50:41-05:00
+source_hash: 08a97fa5ce617bc9d1d62fd9ffe8b3c2eab223560e16db3e50c6748dd77f377c
+generated_at: 2026-06-29T22:56:31-05:00
 ---
 
 # Economic Intelligence Operating System
 
 ## Architecture Book
 
-Version 3.3
+Version 3.4
 
 Compiled from `architecture/EIOS_Architecture_Book.md`.
 
@@ -38,6 +38,7 @@ Compiled from `architecture/EIOS_Architecture_Book.md`.
 
 - [EIOS-007 — Models and Model Management](02_Cognitive_Architecture/EIOS-007_models-and-model-management.md)
 - [EIOS-008 — Experience Layer](02_Cognitive_Architecture/EIOS-008_experience-layer.md)
+- [EIOS-009 — Scientific Discovery](02_Cognitive_Architecture/EIOS-009_scientific-discovery.md)
 
 ### Part III — Platform Architecture
 
