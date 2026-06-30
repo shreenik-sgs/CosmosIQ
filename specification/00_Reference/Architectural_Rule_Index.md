@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 4.4
+book_version: 4.5
 generator_version: 1.1
-source_hash: 360179aedaf1ecadbe996d8832e40e4fda4c8e610cf8c8d615dfb0e73b5c80a9
-generated_at: 2026-06-29T23:39:06-05:00
+source_hash: 95e28fb733ea2ffd65d41a66fc334c602b01e6da2f74dbb7c8f95b1bb2a870f9
+generated_at: 2026-06-29T23:41:57-05:00
 ---
 
 # Architectural Rule Index
@@ -227,5 +227,20 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0943 | EIOS-009 — Scientific Discovery | Investigation Portfolios SHALL preserve coordinated scientific investigations while maintaining the autonomy of individual investigations. |
 | AR-0944 | EIOS-009 — Scientific Discovery | Investigation Orchestration SHALL optimize scientific value while preserving investigative diversity. |
 | AR-0945 | EIOS-009 — Scientific Discovery | Scientific Investigation SHALL provide evidence-based investigation outcomes to Validation & Falsification. |
+| AR-0946 | EIOS-009 — Scientific Discovery | Scientific Validation SHALL continuously compare competing Hypotheses using common Evidence and explicit evaluation criteria. |
+| AR-0947 | EIOS-009 — Scientific Discovery | Validation Assessments SHALL preserve complete traceability to participating Research Questions, Hypotheses, Evidence, Models, and Investigations. |
+| AR-0948 | EIOS-009 — Scientific Discovery | Falsification SHALL actively seek evidence capable of refuting accepted explanations. |
+| AR-0949 | EIOS-009 — Scientific Discovery | Failure to falsify a Hypothesis SHALL NOT constitute permanent scientific validation. |
+| AR-0950 | EIOS-009 — Scientific Discovery | Independent Verification SHALL preserve complete methodological independence while remaining fully replayable. |
+| AR-0951 | EIOS-009 — Scientific Discovery | Scientific conclusions SHALL remain reproducible using preserved Investigation Plans, Evidence, Models, and computational procedures. |
+| AR-0952 | EIOS-009 — Scientific Discovery | Belief Revision SHALL preserve previous assessments, revised assessments, triggering Evidence, scientific justification, and confidence evolution. |
+| AR-0953 | EIOS-009 — Scientific Discovery | Scientific Consensus SHALL emerge from accumulated Evidence and SHALL remain continuously revisable. |
+| AR-0954 | EIOS-009 — Scientific Discovery | Scientifically plausible Minority Explanations SHALL remain available for future investigation until conclusively rejected through continued scientific evaluation. |
+| AR-0955 | EIOS-009 — Scientific Discovery | Scientific Challenges SHALL continuously test accepted explanations using new Evidence, improved Models, and improved Investigations. |
+| AR-0956 | EIOS-009 — Scientific Discovery | Validation Portfolios SHALL preserve coordinated Validation Assessments while maintaining independent scientific evaluation. |
+| AR-0957 | EIOS-009 — Scientific Discovery | Scientific Robustness SHALL continuously evolve as reproducibility, independent verification, explanatory breadth, and historical consistency improve. |
+| AR-0958 | EIOS-009 — Scientific Discovery | Validation Drift SHALL trigger renewed Scientific Investigation rather than automatic acceptance or rejection. |
+| AR-0959 | EIOS-009 — Scientific Discovery | Continuous Scientific Reassessment SHALL remain a permanent responsibility of Scientific Discovery. |
+| AR-0960 | EIOS-009 — Scientific Discovery | Scientific Validation SHALL continuously provide the current best-supported scientific explanations to Scientific Theory Evolution. |
 
-_211 rules._
+_226 rules._

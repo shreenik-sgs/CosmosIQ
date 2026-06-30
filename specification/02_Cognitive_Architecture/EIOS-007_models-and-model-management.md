@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-007
 slug: models-and-model-management
-book_version: 4.4
+book_version: 4.5
 generator_version: 1.1
-source_hash: 360179aedaf1ecadbe996d8832e40e4fda4c8e610cf8c8d615dfb0e73b5c80a9
-generated_at: 2026-06-29T23:39:06-05:00
+source_hash: 95e28fb733ea2ffd65d41a66fc334c602b01e6da2f74dbb7c8f95b1bb2a870f9
+generated_at: 2026-06-29T23:41:57-05:00
 ---
 
 # EIOS-007 — Models & Model Management

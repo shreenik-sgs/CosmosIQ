@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 4.4
+book_version: 4.5
 generator_version: 1.1
-source_hash: 360179aedaf1ecadbe996d8832e40e4fda4c8e610cf8c8d615dfb0e73b5c80a9
-generated_at: 2026-06-29T23:39:06-05:00
+source_hash: 95e28fb733ea2ffd65d41a66fc334c602b01e6da2f74dbb7c8f95b1bb2a870f9
+generated_at: 2026-06-29T23:41:57-05:00
 ---
 
 # Glossary
@@ -57,6 +57,10 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Scientific Investigation | The capability that systematically acquires evidence to strengthen, weaken, refine, or reject competing Hypotheses; evidence acquisition before judgment, and the stage feeding Validation & Falsification. | EIOS-009 | Hypothesis, Evidence Graph | Cognitive Architecture |
 | Evidence Graph | The first-class graph of Evidence and its relationships — supports, contradicts, explains, derives-from, validates, challenges — kept synchronized with the Hypothesis Graph during investigation. | EIOS-009 | Hypothesis Graph, Scientific Investigation | Cognitive Architecture |
 | Investigation Portfolio | A coordinated collection of related investigations pursuing complementary objectives; preserves the autonomy of each investigation while optimizing scientific value across the set. | EIOS-009 | Scientific Investigation, Hypothesis Portfolio | Cognitive Architecture |
+| Scientific Validation | The continuous assessment of which competing Hypothesis currently best explains reality given available Evidence — a current best-supported assessment, never proof, continuously repeatable. | EIOS-009 | Falsification, Belief Revision | Cognitive Architecture |
+| Falsification | The active pursuit of evidence capable of refuting an accepted explanation; failure to falsify is not permanent validation, and falsification strengthens understanding regardless of outcome. | EIOS-009 | Scientific Validation | Cognitive Architecture |
+| Belief Revision | The first-class capability that updates scientific assessments when new Evidence materially shifts the relative explanatory strength of competing Hypotheses; preserves prior/revised assessment, trigger, justification, and confidence evolution. | EIOS-009 | Scientific Validation, Validation Graph | Cognitive Architecture |
+| Validation Graph | The first-class graph of Validation Assessments and their relationships — supports, weakens, overturns, supersedes, confirms, falsifies — preserving the historical evolution of scientific understanding. | EIOS-009 | Evidence Graph, Belief Revision | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
