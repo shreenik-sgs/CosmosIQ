@@ -452,15 +452,22 @@ class TestNiveshaDiligence(unittest.TestCase):
         self.assertIn("timing_confirmation", InvestmentThesis.__dataclass_fields__)
         self.assertNotIn("action_ready", InvestmentThesis.__dataclass_fields__)
 
-    def test_toy_bridge_does_not_leak_into_investment_thesis(self):
-        # The quarantined _ToyInvestmentThesis carries instrument/allocation/timing;
-        # the real gated InvestmentThesis must carry NONE of them.
-        from prometheus.investment_thesis import _ToyInvestmentThesis
-        toy_only = {"instrument", "intended_allocation", "timing"}
+    def test_investment_thesis_has_no_toy_or_compatibility_fields(self):
+        # The toy thesis shim is retired (007B). The real gated InvestmentThesis must
+        # carry NO compatibility / execution-bridge fields -- it is cognition only,
+        # allocation-free (ADR-0010). The instrument is exposed only as the read-only
+        # security/instrument MAPPING, never as a tradable instrument+allocation pair.
         real = set(InvestmentThesis.__dataclass_fields__.keys())
-        toy = set(_ToyInvestmentThesis.__dataclass_fields__.keys())
-        self.assertTrue(toy_only.issubset(toy))
-        self.assertEqual(toy_only & real, set())
+        for forbidden in ("instrument", "intended_allocation", "allocation",
+                          "position_size", "timing", "side", "direction", "quantity",
+                          "order_type", "limit_price", "broker_order_id"):
+            self.assertNotIn(forbidden, real,
+                             msg="InvestmentThesis must not carry {0}".format(forbidden))
+        self.assertIn("security_or_instrument_mapping", real)
+        # And the retired toy shim is gone from the module entirely.
+        import prometheus.investment_thesis as it
+        self.assertFalse(hasattr(it, "_ToyInvestmentThesis"))
+        self.assertFalse(hasattr(it, "make_investment_thesis"))
 
     def test_nivesha_adds_no_execution_or_broker_code(self):
         # No Nivesha module imports the manual-execution layer or any broker /

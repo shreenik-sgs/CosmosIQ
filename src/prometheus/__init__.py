@@ -2,8 +2,8 @@
 
 The Investment Thesis is produced by an eleven-stage alpha diligence gauntlet
 (``generate_investment_thesis``) over an Opportunity Hypothesis + hand-fed
-``DiligenceInputs``. The legacy ``make_investment_thesis`` is a TOY shim retained
-only to thread pre-existing generic tests.
+``DiligenceInputs``. It carries no allocation/order field (the cognition/actuation
+boundary, ADR-0010).
 """
 
 from __future__ import annotations
@@ -11,7 +11,6 @@ from __future__ import annotations
 from .investment_thesis import (
     InvestmentThesis,
     generate_investment_thesis,
-    make_investment_thesis,
     INVESTABILITY_LEVELS,
 )
 from .diligence_inputs import CandidateInput, DiligenceInputs
@@ -46,7 +45,6 @@ from .position_lifecycle import (
 __all__ = [
     "InvestmentThesis",
     "generate_investment_thesis",
-    "make_investment_thesis",
     "INVESTABILITY_LEVELS",
     "CandidateInput",
     "DiligenceInputs",
