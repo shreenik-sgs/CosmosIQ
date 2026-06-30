@@ -20,3 +20,6 @@ __all__ = [
     "generate_opportunity_hypothesis",
     "make_opportunity_hypothesis",
 ]
+
+# A deterministic alpha-reasoning Intelligence Assessment -> Opportunity Hypothesis
+# pipeline. ``Opportunity`` remains a thin downstream placeholder.

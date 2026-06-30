@@ -154,10 +154,12 @@ def run_iren_slice(
     #     from which Reality Intelligence synthesises a real assessment ---------
     observations = iren_source_observations(t0)
     observation = observations[0]
+    # No assessment_type override: Reality Intelligence (Tattva) INFERS it from the
+    # enriched signals, and Genesis reasons opportunity from those signals -- not
+    # from a hand-supplied label.
     assessment = generate_intelligence_assessment(
         observations,
         domain="ai-infrastructure",
-        assessment_type="capacity_economics",
         actor="reality-intelligence",
         now=t0,
     )

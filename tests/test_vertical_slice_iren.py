@@ -148,17 +148,56 @@ class TestVerticalSliceIREN(unittest.TestCase):
         # ...and produces a real Opportunity Hypothesis bound to that Assessment.
         oh = self.r.hypothesis
         self.assertEqual(oh.domain, "ai-infrastructure")
-        self.assertEqual(oh.opportunity_type, "capacity_expansion")
+        # The opportunity is REASONED from the enriched signals: a named theme,
+        # an inferred timing, a bottleneck with its driving constraint and the
+        # value-chain position it advantages -- never a relabelled score.
+        self.assertEqual(oh.theme, "secured power capacity for AI infrastructure")
+        self.assertIn(oh.theme_maturity,
+                      ("hidden", "emerging", "accelerating", "crowded", "euphoric"))
+        self.assertIn(oh.opportunity_timing,
+                      ("before_obvious", "emerging", "recognized", "late"))
+        self.assertTrue(oh.bottleneck_driven)
+        self.assertEqual(oh.driving_constraint, "power/energy")
+        self.assertEqual(oh.value_chain_position, "secured-power capacity owners")
         self.assertEqual(oh.triggering_assessment_ids, (self.r.assessment.id,))
         self.assertIn(self.r.assessment.id, {r.object_id for r in oh.provenance.sources})
         self.assertEqual(oh.triggering_assessment_versions, (self.r.assessment.version,))
-        self.assertIn(oh.opportunity_magnitude, ("moderate", "large", "transformational"))
-        self.assertEqual(oh.timing_window, "emerging")
+        self.assertIn(oh.opportunity_magnitude,
+                      ("small", "moderate", "large", "transformational"))
         self.assertGreater(oh.confidence, 0.0)
-        # Genesis says WHAT is emerging, never HOW to invest.
-        blob = " ".join([oh.opportunity_summary, oh.opportunity_mechanism,
-                         " ".join(oh.uncertainty)]).lower()
-        for term in ("buy", "sell", "allocat", "portfolio", "invest", "trade", "position size"):
+        # Genesis says WHAT is emerging and WHY, never HOW to invest.
+        blob = " ".join([oh.theme, oh.opportunity_mechanism, oh.why_now,
+                         oh.why_before_obvious, oh.value_chain_position,
+                         " ".join(oh.uncertainty), " ".join(oh.monitoring_signals)]).lower()
+        for term in ("buy", "sell", "allocat", "portfolio", "security", "ticker",
+                     "valuation", "trade", "order", "position size", "$", "price target"):
+            self.assertNotIn(term, blob)
+
+    def test_vertical_slice_iren_generates_alpha_grade_opportunity_without_assessment_type_bridge(self):
+        import inspect
+        from runtime import vertical_slice_runner
+        # The runner must NOT pass an assessment_type override into Reality
+        # Intelligence -- the assessment type is INFERRED from the signals.
+        src = inspect.getsource(vertical_slice_runner.run_iren_slice)
+        self.assertNotIn("assessment_type=", src)
+        # With the bridge removed, Tattva infers the type from the dominant signal.
+        self.assertEqual(self.r.assessment.assessment_type, "readiness_timing")
+        # The slice opportunity is alpha-grade: a theme, >=2 converging families,
+        # an inferred timing, and a bottleneck with its driving constraint.
+        oh = self.r.hypothesis
+        self.assertTrue(oh.theme)
+        self.assertGreaterEqual(len(oh.cross_domain_convergence), 2)
+        self.assertIn(oh.opportunity_timing,
+                      ("before_obvious", "emerging", "recognized", "late"))
+        self.assertTrue(oh.bottleneck_driven)
+        self.assertTrue(oh.driving_constraint)
+        # No security / valuation / trade / allocation leakage in any synthesised text.
+        blob = " ".join([oh.theme, oh.opportunity_mechanism, oh.why_now,
+                         oh.why_before_obvious, oh.value_chain_position,
+                         oh.driving_constraint, " ".join(oh.megatrend_context),
+                         " ".join(oh.uncertainty), " ".join(oh.monitoring_signals)]).lower()
+        for term in ("buy", "sell", "allocat", "portfolio", "security", "ticker",
+                     "valuation", "trade", "order", "position size", "$"):
             self.assertNotIn(term, blob)
 
 
