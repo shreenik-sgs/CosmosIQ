@@ -168,6 +168,105 @@ Consequences:
 
 ---
 
+## ADR-0008
+Title: Separation of Scientific Understanding, Domain Intelligence, and Opportunity Generation
+Status: Accepted
+
+Context:
+Reality exists independently. The purpose of EIOS is not to predict reality, nor to optimize
+decisions, but to progressively understand reality. That progression separates naturally into
+three fundamentally different cognitive acts —
+
+Scientific Understanding → Domain Understanding → Opportunity Formation
+
+— each of which answers a different question, requires different reasoning, and must remain
+architecturally independent.
+
+The Cognitive Architecture has so far built only the first: it forms a continuously evolving,
+best-supported scientific understanding of reality — a Scientific Worldview. That understanding
+is necessary for the mission but not sufficient. Understanding reality scientifically is not the
+same as understanding a domain of reality well enough to recognize what is emerging within it;
+and recognizing what is emerging is not the same as deciding what is worth acting on.
+
+As the architecture turns outward toward the world, three temptations press on it:
+- to give the scientific core a purpose, so it can "just produce the answer";
+- to treat domain understanding as a thin application of the worldview rather than a discipline
+  in its own right;
+- to fuse the recognition of opportunity with the formation of understanding, so the system can
+  go from reality to recommendation in a single step.
+
+Each trades long-term integrity for short-term convenience. This decision records why the
+architecture resists all three.
+
+Decision:
+The architecture SHALL maintain three distinct layers of cognition, separated on principle.
+
+1. Scientific Understanding.
+   The Cognitive Architecture forms understanding of reality as such, and SHALL remain free of
+   purpose. A scientific instrument is trustworthy precisely because it does not know which
+   answer would be preferable. The core may come to know a great deal about particular domains —
+   semiconductors, biology, economics — and that is not contamination; those are scientific
+   subjects. What contaminates science is wanting a particular answer. Purpose is the
+   contaminant: science must never know which answer would be preferable. That is what keeps it
+   a reusable, trustworthy instrument rather than a special-purpose tool that ages and
+   accumulates bias.
+
+2. Domain Intelligence — a first-class layer (Reality Intelligence).
+   Forming domain-specific understanding — continuously synthesizing observations, the worldview,
+   historical experience, and assessments into living understanding of a domain as it is and as
+   it is becoming — is itself a first-class cognitive act, not an application of the science
+   engine. It SHALL be its own architectural layer, of the same stature as Scientific
+   Understanding and held to the same rigor: replayable, explainable, challengeable, revisable.
+   Giving it its own layer lets domain understanding evolve continuously and independently, and
+   keeps purpose out of the scientific core.
+
+3. Opportunity Generation — separated from intelligence formation (Genesis).
+   Deciding what is worth pursuing is a different act from understanding what is true. If the two
+   are fused, the desire for an opportunity will bias the understanding that justifies it — the
+   same contamination, one layer higher. Opportunity Generation SHALL be separated from Domain
+   Intelligence: it consumes finished, conformant intelligence rather than forming it. This keeps
+   intelligence formation honest — it forms understanding without knowing which conclusion would
+   be lucrative — and lets opportunity generation orchestrate across many domains without
+   entangling itself in any one of them.
+
+**Understanding flows upward through these layers; purpose never flows downward.** Reality is
+sensed, understood scientifically, understood as domains, and only then weighed for opportunity
+— and no later layer's desire is permitted to shape an earlier layer's understanding.
+
+Why Part III therefore exists:
+Part III exists to be the layer of Domain Intelligence — the faculty by which the system
+continuously forms domain-specific understanding of the world out of its purpose-free science.
+Without it, the architecture is a science engine with no sustained understanding of any actual
+domain. With it, the science becomes usable without being corrupted.
+
+Relationship to prior ADRs:
+- Extends the intent of ADR-0006 (Constitution frozen) and ADR-0007 (Foundation frozen): the
+  purpose-free core is the thing those freezes protect; this ADR explains why that core must
+  stay pure as the architecture turns outward.
+- Consistent with ADR-0001 (specification is the single source of truth) and ADR-0004
+  (architectural change requires an ADR): the separation established here is architectural and
+  governs every downstream layer.
+
+Consequences:
+- The Cognitive Architecture remains a reusable scientific instrument free of purpose; no
+  downstream purpose may be encoded into it.
+- Domain Intelligence is built and reasoned about as a first-class layer, not an application; it
+  depends on the scientific core, never the reverse.
+- Opportunity Generation consumes intelligence; it does not form it. It may orchestrate across
+  domains but may not reach back into how understanding is formed.
+- The separation is a permanent architectural invariant: any future capability must locate
+  itself in exactly one of these three layers, and understanding must never be shaped by purpose
+  from a layer above.
+
+The architecture therefore places understanding before judgment, and judgment before action.
+That ordering is a permanent invariant.
+
+The concrete expression of this decision — the naming, sequencing, and placement of the chapters
+that realize these layers — is recorded in the Part III design materials, not here. This ADR
+fixes the principles; the design brief carries the mechanics.
+
+---
+
 ## Next ADR Number
 
-ADR-0008
+ADR-0009
