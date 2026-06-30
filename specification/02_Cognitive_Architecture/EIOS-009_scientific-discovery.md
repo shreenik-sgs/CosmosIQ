@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-009
 slug: scientific-discovery
-book_version: 3.6
+book_version: 3.7
 generator_version: 1.1
-source_hash: 2870e30dd4a5bb6c8a3c6abfb5b87d5525cfd8d70c44d90de027a7d7d6ee2638
-generated_at: 2026-06-29T23:10:24-05:00
+source_hash: 9a996e4ae0773c340602b35b4b384b2cb28a5a7092faaba762b7808b0c213cce
+generated_at: 2026-06-29T23:14:17-05:00
 ---
 
 # EIOS-009 — Scientific Discovery
@@ -391,6 +391,164 @@ Scientific Principle
 Candidate Scientific Law
 
 The pipeline SHALL remain continuously observable and replayable.
+
+---
+
+### Scientific Hypothesis Generation
+
+Research Questions initiate scientific investigation.
+
+Scientific Hypothesis Generation produces candidate explanations that may answer unresolved Research Questions.
+
+Hypotheses represent possible explanations rather than validated scientific understanding.
+
+Every hypothesis SHALL remain explicitly distinguishable from Scientific Principles and Candidate Scientific Laws.
+
+---
+
+### Scientific Hypothesis
+
+A Scientific Hypothesis is a proposed explanation for one or more Research Questions.
+
+Scientific Hypotheses are represented as Hypothesis objects, defined canonically in the Knowledge Model (EIOS-002); this chapter defines how such hypotheses are generated, related, and evolved for scientific discovery.
+
+Hypotheses SHALL be evidence-informed but not evidence-constrained.
+
+They may extend beyond currently available observations provided their assumptions remain explicit and scientifically explainable.
+
+Every hypothesis SHALL preserve:
+
+* originating Research Questions
+* supporting observations
+* supporting models
+* assumptions
+* uncertainty
+* confidence
+* provenance
+
+---
+
+### Hypothesis Ontology
+
+Scientific Hypotheses are first-class architectural objects.
+
+Illustrative attributes include:
+
+* identifier
+* description
+* originating Research Questions
+* explanatory scope
+* supporting evidence
+* competing hypotheses
+* confidence
+* lifecycle state
+
+The canonical object definition SHALL remain implementation independent.
+
+---
+
+### Purpose of Hypotheses
+
+Hypotheses guide scientific investigation.
+
+Rather than attempting to explain every observation simultaneously, hypotheses provide focused candidate explanations that can be systematically investigated.
+
+Multiple hypotheses MAY coexist for the same Research Question.
+
+Scientific Discovery SHALL encourage competing explanations until sufficient evidence supports convergence.
+
+---
+
+### Hypothesis Taxonomy
+
+Illustrative classes of Scientific Hypotheses include:
+
+* causal hypotheses
+* mechanistic hypotheses
+* structural hypotheses
+* evolutionary hypotheses
+* comparative hypotheses
+* predictive hypotheses
+* integrative hypotheses
+
+Future hypothesis classes MAY be introduced without architectural modification.
+
+---
+
+### Competing Hypotheses
+
+Scientific progress frequently depends upon competing explanations.
+
+Scientific Discovery SHALL preserve competing hypotheses throughout investigation.
+
+Competing hypotheses SHALL remain independently replayable.
+
+Scientific Discovery SHALL avoid prematurely eliminating scientifically plausible explanations.
+
+---
+
+### Composite Hypotheses
+
+Complex Research Questions frequently require multiple cooperating hypotheses.
+
+Composite Hypotheses coordinate several compatible hypotheses while preserving the identity of each constituent hypothesis.
+
+Composite Hypotheses SHALL preserve complete traceability to every contributing hypothesis.
+
+---
+
+### Hypothesis Evolution
+
+Scientific Hypotheses evolve continuously.
+
+Hypotheses MAY be:
+
+* refined
+* expanded
+* decomposed
+* merged
+* superseded
+* rejected
+* validated
+
+Every hypothesis SHALL preserve its complete scientific evolution.
+
+Hypothesis evolution SHALL remain replayable.
+
+---
+
+### Hypothesis Lineage
+
+Every Scientific Hypothesis SHALL preserve lineage.
+
+Lineage SHALL identify:
+
+* parent hypotheses
+* derived hypotheses
+* competing hypotheses
+* superseded hypotheses
+* validated successors
+
+Hypothesis lineage SHALL remain fully inspectable.
+
+---
+
+### Hypothesis Graph
+
+Scientific Discovery SHALL maintain a Hypothesis Graph.
+
+Nodes represent Scientific Hypotheses.
+
+Edges represent:
+
+* refinement
+* dependency
+* competition
+* support
+* contradiction
+* composition
+
+The Hypothesis Graph SHALL continuously evolve together with scientific understanding.
 
 ---
 
