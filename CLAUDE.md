@@ -42,7 +42,7 @@ Within the Architecture Book and the content it generates, headings map to struc
 | `####` | Definition / Principle / Requirement |
 | `#####` | Example |
 
-Book front/back matter (book title, `## Preface`, `## Book Status`, `## Glossary`, `# GENERATION CONTRACT`) sits outside this hierarchy. Constitutional invariants live in their own `CI-NNN` namespace (defined in `EIOS-000`); do not reuse or renumber the `FI-NNN` invariants already defined inside other chapters. Every chapter ends with a `### Cross References` section; non-root chapters declare `Conforms To: EIOS-000`.
+Book front/back matter (book title, `## Preface`, `## Book Status`, `## Master Architecture Diagram`, `## Glossary`, `## Namespace Registry`, `# GENERATION CONTRACT`) sits outside this hierarchy. Constitutional invariants live in their own `CI-NNN` namespace (defined in `EIOS-000`); do not reuse or renumber the `FI-NNN` invariants already defined inside other chapters. Architectural rules use a single `AR-NNNN` namespace, chapter-scoped (`AR-02xx`…`AR-07xx`); do not introduce parallel rule namespaces — the proposed `MR` is permanently retired. The **Architectural Rule Index** (`specification/00_Reference/Architectural_Rule_Index.md`) is auto-generated from these `AR-` lines — never hand-edited. Every chapter ends with a `### Cross References` section; non-root chapters declare `Conforms To: EIOS-000`.
 
 ### Editorial rules (permanent)
 

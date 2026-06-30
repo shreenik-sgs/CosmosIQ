@@ -57,7 +57,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_BOOK = REPO_ROOT / "architecture" / "EIOS_Architecture_Book.md"
 DEFAULT_OUT = REPO_ROOT / "specification"
-GENERATOR_VERSION = "1.0"
+GENERATOR_VERSION = "1.1"
 
 ROMAN_VALUES = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
 
@@ -79,6 +79,9 @@ CHAPTER_BLOCK_RE = re.compile(
 # Canonical slug directive, e.g. <!-- SLUG: world-model -->. It lives between the
 # chapter heading and the BEGIN marker so it never leaks into generated content.
 SLUG_RE = re.compile(r"<!--\s*SLUG:\s*(?P<slug>[a-z0-9][a-z0-9-]*)\s*-->")
+# Architectural Rule lines, e.g. `- **AR-0701** — Every model SHALL ...`. Used to
+# compile the Architectural Rule Index appendix directly from chapter bodies.
+AR_RULE_RE = re.compile(r"^- \*\*(AR-\d{4})\*\* " + DASH + r" (?P<text>.+?)\s*$", re.MULTILINE)
 METADATA_RE = re.compile(r"<!--\s*BOOK-METADATA(?P<body>.*?)-->", re.DOTALL)
 # Front-matter Glossary: from the `## Glossary` heading to the next `---` rule.
 GLOSSARY_RE = re.compile(
@@ -121,8 +124,13 @@ def chapter_file_name(chapter_id: str, slug: str) -> str:
 
 
 def slug_display(slug: str) -> str:
-    """`world-model` -> `World Model` (table-of-contents display name)."""
-    return " ".join(word.capitalize() for word in slug.replace("-", " ").split())
+    """`world-model` -> `World Model`; `models-and-model-management` -> `Models and
+    Model Management` (small words stay lowercase except in first position)."""
+    small = {"and", "or", "of", "the", "to", "for", "a", "an", "in", "on", "vs"}
+    words = slug.replace("-", " ").split()
+    return " ".join(
+        w if (i and w in small) else w.capitalize() for i, w in enumerate(words)
+    )
 
 
 def build_header(
@@ -211,12 +219,14 @@ def parse_parts(text: str) -> list[dict]:
                     "directive. Filenames are derived from canonical slugs, never "
                     "from display titles."
                 )
+            body = cm.group("body")
             chapters.append(
                 {
                     "id": cm.group("id"),
                     "title": cm.group("title").strip(),
                     "slug": slug_match.group("slug"),
-                    "body": cm.group("body").strip("\n"),
+                    "body": body.strip("\n"),
+                    "rules": [(rid, text.strip()) for rid, text in AR_RULE_RE.findall(body)],
                 }
             )
 
@@ -256,6 +266,31 @@ def render_glossary(
     return header + "# Glossary\n\n" + body.strip("\n") + "\n"
 
 
+def render_ar_index(
+    parts: list[dict], book_rel: str, version: str, source_hash: str, generated_at: str
+) -> str:
+    """Compile every Architectural Rule (AR) across the Book into one index."""
+    header = build_header(book_rel, version, source_hash, generated_at, kind="ar-index")
+    lines = [
+        "# Architectural Rule Index",
+        "",
+        "Every Architectural Rule (AR) across the Book, in order, with the chapter that",
+        "defines it. Compiled directly from the chapters — do not edit by hand.",
+        "",
+        "| Rule | Chapter | Statement |",
+        "|------|---------|-----------|",
+    ]
+    count = 0
+    for part in parts:
+        for ch in part["chapters"]:
+            chapter = f"{ch['id']} — {slug_display(ch['slug'])}"
+            for rid, text in ch["rules"]:
+                lines.append(f"| {rid} | {chapter} | {text} |")
+                count += 1
+    lines += ["", f"_{count} rules._"]
+    return header + "\n".join(lines) + "\n"
+
+
 def render_summary(
     parts: list[dict], book_rel: str, version: str, source_hash: str, generated_at: str
 ) -> str:
@@ -269,9 +304,10 @@ def render_summary(
         "",
         f"Compiled from `{book_rel}`.",
         "",
-        "## Glossary",
+        "## Reference",
         "",
-        "- [Glossary](00_Glossary/Glossary.md) — the normative architectural dictionary",
+        "- [Architectural Lexicon](00_Glossary/Glossary.md) — every first-class concept, defined once",
+        "- [Architectural Rule Index](00_Reference/Architectural_Rule_Index.md) — every AR, by chapter",
         "",
         "## Table of Contents",
         "",
@@ -308,6 +344,10 @@ def plan_outputs(
         (
             out_dir / "00_Glossary" / "Glossary.md",
             render_glossary(glossary_body, book_rel, version, source_hash, generated_at),
+        ),
+        (
+            out_dir / "00_Reference" / "Architectural_Rule_Index.md",
+            render_ar_index(parts, book_rel, version, source_hash, generated_at),
         ),
     ]
     for part in parts:
