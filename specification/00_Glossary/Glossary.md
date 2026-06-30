@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 4.8
+book_version: 4.9
 generator_version: 1.1
-source_hash: d896ebc17385d1fdc0c76ebfb6737ad3f9c8bd89440666cc01b2c611887a7e29
-generated_at: 2026-06-29T23:54:28-05:00
+source_hash: 10a0d02dff3c41c75ea7a4cd1c1b319fa5bb2aa6ee6999f7944775cb35ced80e
+generated_at: 2026-06-30T00:22:25-05:00
 ---
 
 # Glossary
@@ -24,7 +24,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Principle | A reusable explanatory mechanism describing recurring system behavior (e.g. Moore's Law); a first-class reasoning object. | EIOS-002 | Concept, Scientific Cognition | Foundational |
 | Relationship | A first-class interaction between participants, carrying type, direction, confidence, and provenance. | EIOS-002 | Knowledge Object, Network | Foundational |
 | Knowledge Graph | The complete collection of Knowledge Objects and Relationships; the persistent memory of EIOS. | EIOS-002 | World Model, Intelligence Graph | Foundational |
-| Research Question | The unit that opens a scientific investigation; progresses through a defined lifecycle. | EIOS-004 | Hypothesis, Scientific Cognition | Foundational |
+| Research Question | The unit that opens a scientific investigation; progresses through a defined lifecycle. | EIOS-002 | Hypothesis, Scientific Cognition | Foundational |
 | Hypothesis | A competing explanation maintained with independent evidence, confidence, and replay history; contradictions preserved. | EIOS-002 | Research Question, Confidence | Foundational |
 | Confidence | The current scientific belief in an object or relationship; evolves continuously and is never silently overridden. | EIOS-002 | Evidence, Replay | Foundational |
 | Scientific Cognition | The architectural process turning knowledge into understanding: curiosity, mental modeling, inquiry, judgment, evolution. | EIOS-004 | Mental Model, Research Question | Foundational |
@@ -84,7 +84,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Model Graph | The first-class graph of relationships among models — inheritance, specialization, composition, dependency, validation, refinement; the primary primitive for reasoning about models. The Model Registry is an index over it. | EIOS-007 | Model, Intelligence Graph | Cognitive Architecture |
 | Model Repository | The store of model definitions, implementations, artifacts, and historical versions; distinct from the Model Registry (the index) and the Model Graph (the relationships). | EIOS-007 | Model Graph, Model Registry | Cognitive Architecture |
 | Model Portfolio | A purpose-specific collection of cooperating models assembled for a reasoning objective; more than a set of models — a reusable reasoning strategy whose effectiveness the Experience Layer learns over time. | EIOS-007 | Model, Model Graph | Cognitive Architecture |
-| Scientific Memory | The accumulated body of validated models, reasoning strategies, validation history, replay outcomes, and lessons learned; grows without rewriting history and is a primary input to future discovery — the bridge to the Experience Layer. | EIOS-007 | Model Portfolio, Experience Layer | Cognitive Architecture |
+| Scientific Memory | The accumulated body of validated models, reasoning strategies, validation history, replay outcomes, and lessons learned; grows without rewriting history and is a primary input to future discovery. Its structure is defined in EIOS-007 (Scientific Memory Structure); the Experience Layer (EIOS-008) maintains and evolves it (Scientific Memory Management). | EIOS-007 | Model Portfolio, Experience Layer | Cognitive Architecture |
 | Genesis | Operational subsystem that discovers transformations in real-world systems rather than searching directly for securities. | EIOS-001 | Prometheus, Personal CIO | Operational |
 | Prometheus | Operational subsystem that evaluates the implications of validated knowledge for publicly traded entities. | EIOS-001 | Genesis, Personal CIO | Operational |
 | Personal CIO | Operational subsystem that explains causal chains, quantifies uncertainty, and retains human accountability for recommendations. | EIOS-001 | Genesis, Prometheus | Operational |
