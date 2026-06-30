@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 3.7
+book_version: 3.8
 generator_version: 1.1
-source_hash: 9a996e4ae0773c340602b35b4b384b2cb28a5a7092faaba762b7808b0c213cce
-generated_at: 2026-06-29T23:14:17-05:00
+source_hash: 8d695c99cbd3871c0ffab914918efbe2b42fac80c9894675d26803cc046327b7
+generated_at: 2026-06-29T23:19:53-05:00
 ---
 
 # Glossary

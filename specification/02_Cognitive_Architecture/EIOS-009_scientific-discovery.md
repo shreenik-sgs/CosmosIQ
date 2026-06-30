@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-009
 slug: scientific-discovery
-book_version: 3.7
+book_version: 3.8
 generator_version: 1.1
-source_hash: 9a996e4ae0773c340602b35b4b384b2cb28a5a7092faaba762b7808b0c213cce
-generated_at: 2026-06-29T23:14:17-05:00
+source_hash: 8d695c99cbd3871c0ffab914918efbe2b42fac80c9894675d26803cc046327b7
+generated_at: 2026-06-29T23:19:53-05:00
 ---
 
 # EIOS-009 — Scientific Discovery
@@ -394,11 +394,11 @@ The pipeline SHALL remain continuously observable and replayable.
 
 ---
 
-### Scientific Hypothesis Generation
+### Hypothesis Generation
 
 Research Questions initiate scientific investigation.
 
-Scientific Hypothesis Generation produces candidate explanations that may answer unresolved Research Questions.
+Hypothesis Generation produces candidate explanations that may answer unresolved Research Questions.
 
 Hypotheses represent possible explanations rather than validated scientific understanding.
 
@@ -406,11 +406,11 @@ Every hypothesis SHALL remain explicitly distinguishable from Scientific Princip
 
 ---
 
-### Scientific Hypothesis
+### Hypothesis
 
-A Scientific Hypothesis is a proposed explanation for one or more Research Questions.
+A Hypothesis is a proposed explanation for one or more Research Questions.
 
-Scientific Hypotheses are represented as Hypothesis objects, defined canonically in the Knowledge Model (EIOS-002); this chapter defines how such hypotheses are generated, related, and evolved for scientific discovery.
+Hypotheses are defined canonically in the Knowledge Model (EIOS-002); this chapter defines how such hypotheses are generated, related, and evolved for scientific discovery.
 
 Hypotheses SHALL be evidence-informed but not evidence-constrained.
 
@@ -430,7 +430,7 @@ Every hypothesis SHALL preserve:
 
 ### Hypothesis Ontology
 
-Scientific Hypotheses are first-class architectural objects.
+Hypotheses are first-class architectural objects.
 
 Illustrative attributes include:
 
@@ -461,7 +461,7 @@ Scientific Discovery SHALL encourage competing explanations until sufficient evi
 
 ### Hypothesis Taxonomy
 
-Illustrative classes of Scientific Hypotheses include:
+Illustrative classes of Hypotheses include:
 
 * causal hypotheses
 * mechanistic hypotheses
@@ -499,7 +499,7 @@ Composite Hypotheses SHALL preserve complete traceability to every contributing 
 
 ### Hypothesis Evolution
 
-Scientific Hypotheses evolve continuously.
+Hypotheses evolve continuously.
 
 Hypotheses MAY be:
 
@@ -519,7 +519,7 @@ Hypothesis evolution SHALL remain replayable.
 
 ### Hypothesis Lineage
 
-Every Scientific Hypothesis SHALL preserve lineage.
+Every Hypothesis SHALL preserve lineage.
 
 Lineage SHALL identify:
 
@@ -537,7 +537,7 @@ Hypothesis lineage SHALL remain fully inspectable.
 
 Scientific Discovery SHALL maintain a Hypothesis Graph.
 
-Nodes represent Scientific Hypotheses.
+Nodes represent Hypotheses.
 
 Edges represent:
 
@@ -549,6 +549,164 @@ Edges represent:
 * composition
 
 The Hypothesis Graph SHALL continuously evolve together with scientific understanding.
+
+---
+
+### Hypothesis Generation Strategies
+
+Scientific Discovery SHALL support multiple strategies for generating Hypotheses.
+
+Different Research Questions may require different approaches.
+
+Illustrative strategies include:
+
+* inductive reasoning
+* deductive reasoning
+* abductive reasoning
+* analogical reasoning
+* causal reasoning
+* systems reasoning
+* evolutionary reasoning
+
+Future hypothesis-generation strategies MAY be introduced without architectural modification.
+
+---
+
+### Evidence-Informed Generation
+
+Hypotheses SHALL be informed by available evidence.
+
+Evidence informs hypothesis generation but SHALL NOT unnecessarily constrain scientific creativity.
+
+Scientific Discovery SHALL explicitly distinguish:
+
+* observed evidence
+* inferred evidence
+* missing evidence
+* contradictory evidence
+
+Every generated Hypothesis SHALL preserve explicit relationships to supporting evidence.
+
+---
+
+### Multi-Model Hypothesis Generation
+
+Scientific Discovery SHALL generate Hypotheses using multiple complementary Models.
+
+Illustrative contributing Models include:
+
+* Technology Models
+* Economic Models
+* Behavioral Models
+* Systems Models
+* Historical Models
+
+Multiple Models SHALL cooperate while preserving independent reasoning.
+
+---
+
+### Analogical Hypothesis Generation
+
+Historical analogs frequently suggest new explanations.
+
+Scientific Discovery SHALL leverage Historical Scientific Intelligence to generate Hypotheses through analogical reasoning.
+
+Analogical generation SHALL preserve:
+
+* supporting analogs
+* structural similarities
+* applicability
+* limitations
+
+Analogy SHALL propose explanations rather than establish scientific validity.
+
+---
+
+### Contradiction-Driven Generation
+
+Contradictions frequently reveal opportunities for new understanding.
+
+Scientific Discovery SHALL continuously generate Hypotheses explaining unresolved contradictions.
+
+Contradictions SHALL remain linked to every resulting Hypothesis.
+
+Scientific disagreement SHALL remain visible throughout investigation.
+
+---
+
+### Knowledge-Gap Generation
+
+Knowledge Gaps frequently indicate opportunities for scientific advancement.
+
+Scientific Discovery SHALL generate Hypotheses addressing explicitly identified Knowledge Gaps.
+
+Every generated Hypothesis SHALL preserve traceability to the originating Knowledge Gap.
+
+---
+
+### Cross-Domain Generation
+
+Scientific understanding frequently transfers across domains.
+
+Scientific Discovery SHALL support Cross-Domain Hypothesis Generation.
+
+Illustrative transfers include:
+
+* biology → computing
+* ecosystems → economics
+* transportation → communications
+* neuroscience → artificial intelligence
+
+Cross-domain generation SHALL preserve explicit scientific justification.
+
+---
+
+### Hypothesis Portfolio
+
+Multiple Hypotheses frequently coexist for a single Research Question.
+
+Scientific Discovery SHALL organize related Hypotheses into Hypothesis Portfolios.
+
+A Hypothesis Portfolio represents a coordinated collection of candidate explanations.
+
+Hypothesis Portfolios SHALL preserve diversity of scientific reasoning.
+
+---
+
+### Hypothesis Quality
+
+Scientific Discovery SHALL continuously assess Hypothesis quality.
+
+Illustrative quality dimensions include:
+
+* explanatory power
+* consistency
+* plausibility
+* novelty
+* simplicity
+* scientific usefulness
+
+Quality assessment SHALL remain continuously re-evaluable.
+
+---
+
+### Research Program
+
+Closely related Research Questions and Hypotheses frequently evolve together.
+
+Scientific Discovery SHALL organize them into Research Programs.
+
+A Research Program represents a long-term scientific investigation centered on a coherent family of Research Questions.
+
+Research Programs SHALL preserve:
+
+* participating Research Questions
+* participating Hypotheses
+* supporting Models
+* supporting Evidence
+* historical evolution
+
+Research Programs SHALL remain replayable.
 
 ---
 
