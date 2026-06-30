@@ -46,10 +46,15 @@ between cognition and actuation (ADR-0010).
   Fill and Exception/Failure Records. Execution Plan, Order Intent/Preview, Position Reconciliation,
   and the Audit Trail are operational views/states, not new objects.
 
-## Sequence (planned)
+## Sequence
 1. **EXEC-001 — Execution Engine** (the actuation layer, the Order, the Actuation Gate, and the
    operational records — governance-first).
-2. EXEC-002+ — subsequent execution chapters, if and as warranted.
+2. **EXEC-002 — Execution Safety & Operational Integrity** (the hard safety invariants from ARB-018:
+   at-most-once/idempotency, the indeterminate state, stale-action revalidation, confirmation↔preview
+   binding, single chokepoint, full-chain reconciliation, cancel/replace, partial fills, expiration,
+   emergency controls). `REQ-EXS` · AR-20xx · **no new object** — Order states/operations/invariants/
+   views, reusing Decision and Observation. *Required before any implementation or broker adapter.*
+3. EXEC-003+ — subsequent execution chapters, if and as warranted.
 
 Broker adapters and venue integrations are **implementation**, not Part VII; they bind to EXEC at its
 edge and are never written into the architecture.
