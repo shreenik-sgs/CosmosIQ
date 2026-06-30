@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 3.0 |
+| Version | 3.1 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -98,7 +98,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 3.0
+version: 3.1
 authoritative: true
 target_generator: Claude Code
 -->
@@ -6089,6 +6089,163 @@ Acceptance of Candidate Laws SHALL remain the responsibility of Scientific Disco
 Historical Scientific Intelligence proposes.
 
 Scientific Discovery validates.
+
+---
+
+### Institutional Scientific Learning
+
+Scientific understanding becomes increasingly valuable only when it survives beyond the individuals who originally produced it.
+
+The Experience Layer SHALL therefore provide Institutional Scientific Learning.
+
+Institutional Scientific Learning transforms accumulated scientific experience into enduring organizational intelligence.
+
+The objective is not merely to remember previous discoveries.
+
+The objective is to ensure that every validated discovery permanently improves the organization's future scientific reasoning.
+
+Institutional Scientific Learning therefore represents the continuous evolution of institutional intelligence.
+
+---
+
+### Organizational Intelligence
+
+Organizations accumulate knowledge through many independent scientific activities.
+
+Institutional Scientific Learning SHALL continuously integrate this distributed knowledge into a coherent, institution-wide understanding.
+
+This integrated capability is the Institutional Intelligence established earlier in this chapter — the collective scientific capability of the institution rather than the knowledge possessed by any individual contributor.
+
+It SHALL continuously evolve as scientific understanding improves.
+
+---
+
+### Institutional Memory Evolution
+
+Institutional memory is not static.
+
+New evidence continuously strengthens, weakens, refines, or replaces existing scientific understanding.
+
+The Experience Layer SHALL preserve the complete historical evolution of institutional memory.
+
+Institutional Memory Evolution SHALL remain fully replayable.
+
+Every significant change SHALL preserve:
+
+* previous understanding
+* supporting evidence
+* reason for change
+* scientific justification
+* confidence evolution
+
+---
+
+### Knowledge Consolidation
+
+Scientific knowledge frequently emerges through numerous independent observations.
+
+Knowledge Consolidation combines related scientific understanding into coherent institutional knowledge.
+
+Consolidation SHALL preserve:
+
+* provenance
+* supporting evidence
+* uncertainty
+* competing explanations
+* historical evolution
+
+Knowledge Consolidation SHALL never discard contradictory evidence.
+
+---
+
+### Experience Consolidation
+
+Multiple Historical Cases frequently reveal common mechanisms.
+
+Institutional Scientific Learning SHALL consolidate related experiences into reusable scientific understanding.
+
+Experience Consolidation transforms isolated historical observations into organizational experience.
+
+Consolidated experience SHALL remain continuously re-evaluable.
+
+---
+
+### Scientific Principle Consolidation
+
+Multiple Scientific Principles frequently describe complementary aspects of the same underlying phenomenon.
+
+Institutional Scientific Learning SHALL continuously evaluate opportunities to consolidate related principles.
+
+Principle Consolidation SHALL preserve:
+
+* supporting principles
+* supporting evidence
+* applicability
+* confidence
+* limitations
+
+Consolidation SHALL improve scientific understanding without reducing explainability.
+
+---
+
+### Candidate Law Consolidation
+
+Candidate Scientific Laws SHALL evolve continuously as additional historical evidence becomes available.
+
+Institutional Scientific Learning SHALL consolidate compatible Candidate Laws when supported by sufficient scientific evidence.
+
+Law Consolidation SHALL preserve complete scientific traceability.
+
+Competing Candidate Laws SHALL remain independently replayable until consolidation is scientifically justified.
+
+---
+
+### Knowledge Conflict Resolution
+
+Scientific understanding inevitably contains conflicting evidence.
+
+Institutional Scientific Learning SHALL preserve conflicting scientific knowledge rather than prematurely eliminating disagreement.
+
+Conflict Resolution SHALL identify:
+
+* conflicting observations
+* conflicting models
+* conflicting principles
+* conflicting Candidate Laws
+* unresolved scientific questions
+
+Scientific disagreement SHALL remain visible until resolved through Scientific Discovery.
+
+---
+
+### Knowledge Quality Evolution
+
+Scientific knowledge continuously improves.
+
+Institutional Scientific Learning SHALL continuously evaluate the quality of organizational knowledge.
+
+Illustrative quality dimensions include:
+
+* completeness
+* consistency
+* explainability
+* replayability
+* reproducibility
+* scientific confidence
+
+Knowledge Quality SHALL evolve together with institutional experience.
+
+---
+
+### Organizational Learning
+
+Organizations learn through repeated scientific observation, validation, correction, and refinement.
+
+Institutional Scientific Learning SHALL preserve the complete history of organizational learning.
+
+Every validated scientific improvement SHALL permanently strengthen future institutional reasoning.
+
+Institutional learning therefore represents cumulative scientific evolution rather than repeated rediscovery.
 
 ---
 
