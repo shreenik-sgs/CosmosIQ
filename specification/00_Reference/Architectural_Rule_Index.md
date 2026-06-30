@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 3.2
+book_version: 3.3
 generator_version: 1.1
-source_hash: adfb58d94b134e9c6d6be0b2084df1f0c21d641ff72c2fe925aae3354a073a1c
-generated_at: 2026-06-29T22:40:37-05:00
+source_hash: 87850a17acd9bc1703d5080c8404407d67e383fa37c695921f2f9135512e30a7
+generated_at: 2026-06-29T22:50:41-05:00
 ---
 
 # Architectural Rule Index
@@ -167,5 +167,20 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0838 | EIOS-008 — Experience Layer | Every Scientific Principle SHALL preserve explicit applicability boundaries. |
 | AR-0839 | EIOS-008 — Experience Layer | Historical exceptions SHALL be preserved together with supporting principles. |
 | AR-0840 | EIOS-008 — Experience Layer | Historical Scientific Intelligence SHALL continuously provide reusable scientific understanding to Scientific Discovery, Genesis, Prometheus, and future reasoning systems. |
+| AR-0841 | EIOS-008 — Experience Layer | Institutional Scientific Learning SHALL continuously improve organizational scientific capability through accumulated validated experience. |
+| AR-0842 | EIOS-008 — Experience Layer | Knowledge Consolidation SHALL preserve complete provenance, supporting evidence, uncertainty, and competing explanations. |
+| AR-0843 | EIOS-008 — Experience Layer | Experience Consolidation SHALL preserve replayability of every contributing Historical Case. |
+| AR-0844 | EIOS-008 — Experience Layer | Scientific Principle Consolidation SHALL preserve the lineage of every contributing principle. |
+| AR-0845 | EIOS-008 — Experience Layer | Candidate Law Consolidation SHALL maintain complete traceability to every supporting Scientific Principle and Historical Case. |
+| AR-0846 | EIOS-008 — Experience Layer | Knowledge Conflict Resolution SHALL preserve unresolved scientific disagreement until validated through Scientific Discovery. |
+| AR-0847 | EIOS-008 — Experience Layer | Confidence Evolution SHALL preserve every confidence revision together with its scientific justification. |
+| AR-0848 | EIOS-008 — Experience Layer | Knowledge Obsolescence SHALL preserve obsolete scientific understanding together with the evidence supporting its replacement. |
+| AR-0849 | EIOS-008 — Experience Layer | Scientific Memory Maintenance SHALL continuously improve institutional knowledge without compromising historical traceability. |
+| AR-0850 | EIOS-008 — Experience Layer | Institutional Wisdom SHALL emerge only from validated scientific understanding supported by accumulated evidence. |
+| AR-0851 | EIOS-008 — Experience Layer | Institutional Learning Loops SHALL remain continuously observable, replayable, and scientifically explainable. |
+| AR-0852 | EIOS-008 — Experience Layer | Knowledge Maturity SHALL evolve independently for every significant scientific artifact. |
+| AR-0853 | EIOS-008 — Experience Layer | Scientific Continuity SHALL preserve institutional intelligence across organizational, technological, and personnel changes. |
+| AR-0854 | EIOS-008 — Experience Layer | Continuous Institutional Improvement SHALL permanently strengthen future scientific reasoning through accumulated experience. |
+| AR-0855 | EIOS-008 — Experience Layer | Institutional Scientific Learning SHALL continuously provide refined organizational intelligence to Scientific Discovery, Genesis, Prometheus, Personal CIO, and future autonomous scientific systems. |
 
-_151 rules._
+_166 rules._

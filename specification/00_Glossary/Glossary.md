@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 3.2
+book_version: 3.3
 generator_version: 1.1
-source_hash: adfb58d94b134e9c6d6be0b2084df1f0c21d641ff72c2fe925aae3354a073a1c
-generated_at: 2026-06-29T22:40:37-05:00
+source_hash: 87850a17acd9bc1703d5080c8404407d67e383fa37c695921f2f9135512e30a7
+generated_at: 2026-06-29T22:50:41-05:00
 ---
 
 # Glossary
@@ -42,6 +42,10 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Historical Case | A bounded, replayable observation of reality over a defined period, preserving its full scientific context; the unit from which scientific principles are extracted. | EIOS-008 | Historical Scientific Intelligence, Scientific Principle | Cognitive Architecture |
 | Scientific Principle | A Principle (EIOS-002) generalized from recurring mechanisms across multiple independent Historical Cases; preserves supporting cases, evidence, models, confidence, applicability, and limits; continuously re-evaluable. | EIOS-008 | Principle, Candidate Scientific Law | Cognitive Architecture |
 | Candidate Scientific Law | A Scientific Principle showing persistent validity across many domains and long history, proposed with stronger evidence for validation. Experience proposes; Scientific Discovery validates. | EIOS-008 | Scientific Principle | Cognitive Architecture |
+| Institutional Scientific Learning | The Experience Layer capability that turns accumulated scientific experience into enduring organizational intelligence — consolidation, confidence evolution, conflict preservation, maturity, continuity — so every validated discovery permanently improves future reasoning. | EIOS-008 | Institutional Intelligence, Institutional Wisdom | Cognitive Architecture |
+| Institutional Wisdom | The highest level of accumulated scientific understanding, emerging from long-term integration of validated experience, principles, candidate laws, and organizational learning; evidence-based and distinguished from opinion. | EIOS-008 | Institutional Scientific Learning, Scientific Principle | Cognitive Architecture |
+| Knowledge Consolidation | Combining related scientific understanding into coherent institutional knowledge while preserving provenance, uncertainty, and competing explanations; never discards contradictory evidence. | EIOS-008 | Institutional Scientific Learning | Cognitive Architecture |
+| Knowledge Maturity | The progressive stages (emerging → developing → validated → established → foundational) through which an institutional knowledge artifact advances; evolves independently per artifact and is continuously reassessable. | EIOS-008 | Institutional Scientific Learning | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
