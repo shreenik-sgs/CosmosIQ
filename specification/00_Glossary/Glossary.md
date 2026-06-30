@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 5.3
+book_version: 5.4
 generator_version: 1.1
-source_hash: c57af512f35b35ae30b288fa8dd646a2c657130ec79aa387b141c6c93f7b38fd
-generated_at: 2026-06-30T02:07:30-05:00
+source_hash: f15bf3e5573afcd36feadc5b9db597234d1ec4b94598cdf9d2e4ad6b822514c7
+generated_at: 2026-06-30T02:15:43-05:00
 ---
 
 # Glossary
@@ -73,6 +73,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Intelligence Portfolio | A composition: the coordinated set of active Intelligence Products feeding consumers; evolves entirely from its constituent Assessments and Products. | EIOS-010 | Intelligence Product, Intelligence Assessment | Reality Intelligence |
 | Technology Intelligence | The Reality Intelligence domain engine that continuously forms Intelligence Assessments about the technology domain — emergence, readiness, convergence, constraints, and evolution — grounded in the Scientific Worldview and the Experience Layer. Understanding only, never purpose. | EIOS-011 | Reality Intelligence, Intelligence Assessment | Reality Intelligence |
 | Economic Intelligence | The Reality Intelligence domain engine that continuously forms Intelligence Assessments about the economic domain — economic transitions, value networks, capital flows, constraints, and timing — grounded in the Scientific Worldview and the Experience Layer. Understanding only, never purpose. | EIOS-012 | Reality Intelligence, Intelligence Assessment | Reality Intelligence |
+| Supply Network Intelligence | The Reality Intelligence domain engine that continuously forms Intelligence Assessments about the supply network domain — structure, constraints, fragility, transitions, and timing — grounded in the Scientific Worldview and the Experience Layer. Understanding only, never purpose. | EIOS-013 | Reality Intelligence, Intelligence Assessment | Reality Intelligence |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |

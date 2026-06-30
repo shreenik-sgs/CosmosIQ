@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 5.3
+book_version: 5.4
 generator_version: 1.1
-source_hash: c57af512f35b35ae30b288fa8dd646a2c657130ec79aa387b141c6c93f7b38fd
-generated_at: 2026-06-30T02:07:30-05:00
+source_hash: f15bf3e5573afcd36feadc5b9db597234d1ec4b94598cdf9d2e4ad6b822514c7
+generated_at: 2026-06-30T02:15:43-05:00
 ---
 
 # Architectural Rule Index
@@ -315,5 +315,19 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-1212 | EIOS-012 — Economic Intelligence | Economic Intelligence SHALL maintain continuously evolving economic understanding. |
 | AR-1213 | EIOS-012 — Economic Intelligence | Economic Intelligence SHALL provide Economic Intelligence Assessments and Products to the Intelligence Portfolio and to Genesis, grounding but not forming opportunities. |
 | AR-1214 | EIOS-012 — Economic Intelligence | Economic Intelligence SHALL remain implementation independent. |
+| AR-1301 | EIOS-013 — Supply Network Intelligence | Supply Network Intelligence SHALL form Intelligence Assessments about the supply network domain, conforming to the Reality Intelligence contract (EIOS-010). |
+| AR-1302 | EIOS-013 — Supply Network Intelligence | Supply Network Intelligence SHALL reference the canonical Intelligence Assessment object and SHALL NOT redefine it, nor introduce new reasoning objects. |
+| AR-1303 | EIOS-013 — Supply Network Intelligence | Supply Network Intelligence assessments SHALL ground in the Scientific Worldview and the Experience Layer's supply-network, constraint, fragility, readiness, and timing understanding rather than recomputing them. |
+| AR-1304 | EIOS-013 — Supply Network Intelligence | Supply Network Structure Assessment SHALL ground in supply network evolution and SHALL preserve the contribution of each participating node and dependency. |
+| AR-1305 | EIOS-013 — Supply Network Intelligence | Supply Constraint Assessment SHALL ground in the constraint and bottleneck understanding of Systems Theory and the Experience Layer. |
+| AR-1306 | EIOS-013 — Supply Network Intelligence | Supply Fragility Assessment SHALL ground in supply chain fragility and dependency understanding and SHALL preserve uncertainty. |
+| AR-1307 | EIOS-013 — Supply Network Intelligence | Supply Transition Assessment SHALL ground in constraint-release and supply network evolution and SHALL preserve uncertainty. |
+| AR-1308 | EIOS-013 — Supply Network Intelligence | Supply Readiness and Timing Assessment SHALL ground in supply chain readiness, constraint-release, and timing assessments, keep readiness distinct from timing, and preserve uncertainty. |
+| AR-1309 | EIOS-013 — Supply Network Intelligence | Supply Network Intelligence Assessments MAY influence assessments in other domains through the Intelligence Graph, preserving explicit justification, and SHALL NOT reach into how other domains form their understanding. |
+| AR-1310 | EIOS-013 — Supply Network Intelligence | Supply Network Intelligence Products SHALL be compositions of Supply Network Intelligence Assessments without independent canonical identity. |
+| AR-1311 | EIOS-013 — Supply Network Intelligence | Supply Network Intelligence SHALL express understanding only and SHALL NOT assign value, opportunity, or investability. |
+| AR-1312 | EIOS-013 — Supply Network Intelligence | Supply Network Intelligence SHALL maintain continuously evolving supply network understanding. |
+| AR-1313 | EIOS-013 — Supply Network Intelligence | Supply Network Intelligence SHALL provide Supply Network Intelligence Assessments and Products to the Intelligence Portfolio and to Genesis, grounding but not forming opportunities. |
+| AR-1314 | EIOS-013 — Supply Network Intelligence | Supply Network Intelligence SHALL remain implementation independent. |
 
-_299 rules._
+_313 rules._
