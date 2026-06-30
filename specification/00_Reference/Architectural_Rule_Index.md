@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 8.0
+book_version: 8.1
 generator_version: 1.1
-source_hash: 4cdb6027d88e169366bda765e798e0b89736cdf69b9d414ab02765dda0f32c20
-generated_at: 2026-06-30T10:20:30-05:00
+source_hash: a933047dda32c556bd4a519b5600ed6a49457c31ef284be5bf7cb3717961f534
+generated_at: 2026-06-30T10:39:40-05:00
 ---
 
 # Architectural Rule Index
@@ -383,6 +383,23 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-1618 | PROM-001 — Prometheus Capital Allocation Engine | Every Investment Thesis, Capital Allocation Recommendation, and Prometheus Decision Record SHALL be replayable and auditable, with prior versions preserved. |
 | AR-1619 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL recommend capital allocation and SHALL NOT execute trades, place orders, or operate live positions; execution belongs to consumers beyond this layer. |
 | AR-1620 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL remain implementation independent. |
+| AR-1801 | PROM-002 — Position Lifecycle Intelligence | Position Lifecycle Intelligence SHALL govern the full lifecycle of a position — enter, hold, add, trim, exit, avoid, wait, rotate — and SHALL NOT limit Prometheus to entry and allocation. |
+| AR-1802 | PROM-002 — Position Lifecycle Intelligence | Every position transition SHALL be a justified, recorded Investment Action; none SHALL be implicit. |
+| AR-1803 | PROM-002 — Position Lifecycle Intelligence | An Investment Action SHALL be a typed Prometheus Decision Record — a Decision (EIOS-002); PROM-002 SHALL introduce no new canonical object. |
+| AR-1804 | PROM-002 — Position Lifecycle Intelligence | The type of an Investment Action SHALL be one of enter, hold, add, trim, exit, avoid, wait, or rotate. |
+| AR-1805 | PROM-002 — Position Lifecycle Intelligence | Hold SHALL be a justified Investment Action, recorded with its reasoning; it SHALL NEVER be treated as the absence of action. |
+| AR-1806 | PROM-002 — Position Lifecycle Intelligence | Avoid and Wait SHALL each be recorded with their reasoning, so that positions not opened and actions deferred remain auditable. |
+| AR-1807 | PROM-002 — Position Lifecycle Intelligence | Exit SHALL be supported for, at least, stop loss, thesis invalidation, opportunity maturation, valuation exhaustion, risk/reward deterioration, superior opportunity emergence, bubble/hype-cycle risk, technical deterioration, and capital rotation; each exit SHALL record the trigger that fired. |
+| AR-1808 | PROM-002 — Position Lifecycle Intelligence | Rotation SHALL be a pairwise lifecycle action — exit A, enter B because B is superior to holding A — grounded in comparative ranking, opportunity aging, forward-return decay, conviction decay, and thesis supersession. |
+| AR-1809 | PROM-002 — Position Lifecycle Intelligence | PROM-002 SHALL NOT perform holistic, portfolio-wide optimization (full-book sizing, correlation budget, capital-efficiency optimization); that belongs to PROM-005. |
+| AR-1810 | PROM-002 — Position Lifecycle Intelligence | Position State SHALL be a derived view reconstructed from the Investment Action history and the live Investment Thesis; it SHALL NOT be stored as a new object. |
+| AR-1811 | PROM-002 — Position Lifecycle Intelligence | Every Investment Action SHALL bind its grounding — original Opportunity version, original Investment Thesis, updated Opportunity state, updated Prometheus assessment, changed risk and reward, changed valuation evidence, changed portfolio context, and changed personal constraints where applicable — and SHALL never be recommended without it. |
+| AR-1812 | PROM-002 — Position Lifecycle Intelligence | Every Investment Action SHALL be replayable and auditable; prior actions SHALL be preserved and the lifecycle SHALL never be rewritten. |
+| AR-1813 | PROM-002 — Position Lifecycle Intelligence | PROM-002 SHALL consume Genesis Opportunity evolution and PROM-001 assessments by version, reading them without mutating them. |
+| AR-1814 | PROM-002 — Position Lifecycle Intelligence | Genesis SHALL NOT recommend exit, trim, or rotation; Opportunity evolution is a signal, not an Investment Action. |
+| AR-1815 | PROM-002 — Position Lifecycle Intelligence | Prometheus SHALL recommend Investment Actions and SHALL NOT execute them. |
+| AR-1816 | PROM-002 — Position Lifecycle Intelligence | Personal CIO SHALL personalize Investment Actions and SHALL NOT originate lifecycle logic; Execution SHALL actuate Investment Actions and SHALL form none of them. |
+| AR-1817 | PROM-002 — Position Lifecycle Intelligence | Position Lifecycle Intelligence SHALL remain implementation independent. |
 | AR-1701 | CIO-001 — Personal CIO Engine | Personal CIO SHALL consume Prometheus outputs and adapt them to a single user's objectives, constraints, and preferences; it SHALL NOT form understanding, opportunities, investability, or the general capital-allocation machinery. |
 | AR-1702 | CIO-001 — Personal CIO Engine | Personalization SHALL begin at Personal CIO and SHALL NEVER flow downward into Prometheus, Genesis, Reality Intelligence, or Scientific Understanding. |
 | AR-1703 | CIO-001 — Personal CIO Engine | Personal CIO SHALL consume all ten Prometheus outputs by version and SHALL read them without ever mutating them. |
@@ -403,4 +420,4 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-1718 | CIO-001 — Personal CIO Engine | Personal CIO SHALL present and recommend and SHALL NOT execute trades, place orders, or operate live positions; execution belongs to consumers beyond this layer. |
 | AR-1719 | CIO-001 — Personal CIO Engine | Personal CIO SHALL remain implementation independent. |
 
-_386 rules._
+_403 rules._

@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-010
 slug: reality-intelligence
-book_version: 8.0
+book_version: 8.1
 generator_version: 1.1
-source_hash: 4cdb6027d88e169366bda765e798e0b89736cdf69b9d414ab02765dda0f32c20
-generated_at: 2026-06-30T10:20:30-05:00
+source_hash: a933047dda32c556bd4a519b5600ed6a49457c31ef284be5bf7cb3717961f534
+generated_at: 2026-06-30T10:39:40-05:00
 ---
 
 # EIOS-010 — Reality Intelligence
