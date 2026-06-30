@@ -4,13 +4,13 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: GEN-001
 slug: genesis
-book_version: 6.0
+book_version: 6.1
 generator_version: 1.1
-source_hash: d2dd124fa3a31084f90fbab5b6eca9e850bb5a290cea60145b2b165778479b0d
-generated_at: 2026-06-30T09:42:12-05:00
+source_hash: 39f43a7840bcec47bf13b4e849b2a303f402e415d8fc6ad978b5802045151fde
+generated_at: 2026-06-30T09:48:54-05:00
 ---
 
-# GEN-001 — Genesis
+# GEN-001 — Genesis Discovery Engine
 
 **Chapter Class:** Opportunity Generation
 
@@ -21,6 +21,8 @@ Genesis discovers opportunities within continuously evolving understanding of re
 Genesis is the first consumer of EIOS rather than a further chapter of it.
 
 Where the understanding architecture forms scientific and domain understanding, Genesis decides what within that understanding is worth pursuing.
+
+Opportunities are created by changing reality; Genesis discovers them as understanding of that change matures.
 
 The objective is the discovery of opportunity — emerging, evidence-grounded, and continuously revisable — before it becomes obvious.
 
@@ -138,6 +140,29 @@ Cross-Domain Opportunity Synthesis SHALL preserve the contribution of each parti
 
 ---
 
+### Opportunity Relationships
+
+Opportunities do not exist in isolation; they support, depend upon, compete with, and supersede one another.
+
+Genesis SHALL maintain explicit relationships among Opportunities in an Opportunity Graph.
+
+Nodes represent Opportunities.
+
+Edges represent:
+
+* supports
+* depends-on
+* competes-with
+* supersedes
+* complements
+* derives-from
+
+The Opportunity Graph SHALL also relate each Opportunity to the Intelligence Assessments that ground it.
+
+The Opportunity Graph SHALL remain continuously evolving and replayable.
+
+---
+
 ### Opportunity Timing
 
 Genesis SHALL assess the timing of every opportunity.
@@ -227,6 +252,27 @@ Opportunity Portfolios SHALL preserve diversity of opportunity and SHALL remain 
 
 ---
 
+### Opportunity Prioritization
+
+Not every Opportunity carries equal significance.
+
+Genesis SHALL continuously prioritize Opportunities according to their expected significance.
+
+Illustrative prioritization factors include:
+
+* magnitude
+* timing
+* confidence
+* breadth of impact
+* strength of grounding
+* uncertainty
+
+Prioritization SHALL remain continuously re-evaluable as understanding evolves.
+
+Prioritization SHALL express relative significance, not investment recommendation.
+
+---
+
 ### Continuous Opportunity Discovery
 
 Genesis SHALL discover opportunities continuously, not on demand.
@@ -251,7 +297,7 @@ Investment, allocation, and position belong to subsystems beyond Genesis.
 
 Genesis is not an investment engine.
 
-Genesis SHALL NOT allocate capital, take positions, construct investment portfolios, or execute decisions.
+Genesis SHALL NOT allocate capital, select securities, take positions, construct investment portfolios, or execute decisions.
 
 Genesis forms opportunities and hands them onward; acting upon them is the responsibility of consumers beyond this layer.
 
@@ -275,8 +321,10 @@ Genesis forms opportunities and hands them onward; acting upon them is the respo
 - **AR-1514** — Opportunity Portfolios SHALL be coordinated collections of evolving opportunities; they SHALL carry no allocation, position, or capital and SHALL NOT be investment portfolios.
 - **AR-1515** — Genesis SHALL discover opportunities continuously, not on demand.
 - **AR-1516** — Genesis SHALL provide Opportunity Hypotheses and Opportunity Portfolios to downstream investment and decision subsystems.
-- **AR-1517** — Genesis SHALL discover what is worth pursuing and SHALL NOT decide how to act upon it; it SHALL NOT allocate capital, take positions, construct investment portfolios, or execute decisions.
+- **AR-1517** — Genesis SHALL discover what is worth pursuing and SHALL NOT decide how to act upon it; it SHALL NOT allocate capital, select securities, take positions, construct investment portfolios, or execute decisions.
 - **AR-1518** — Genesis SHALL remain implementation independent.
+- **AR-1519** — Genesis SHALL maintain explicit Opportunity Relationships in an Opportunity Graph, relating Opportunities to one another and to the Intelligence Assessments that ground them; the Opportunity Graph SHALL remain continuously evolving and replayable.
+- **AR-1520** — Genesis SHALL continuously prioritize Opportunities by expected significance, re-evaluable as understanding evolves; prioritization SHALL express relative significance, not investment recommendation.
 
 ---
 
@@ -299,6 +347,8 @@ Genesis forms opportunities and hands them onward; acting upon them is the respo
 - **REQ-GEN-015** — Handoff to Investment
 - **REQ-GEN-016** — Purpose Boundary
 - **REQ-GEN-017** — Implementation Independence
+- **REQ-GEN-018** — Opportunity Relationships
+- **REQ-GEN-019** — Opportunity Prioritization
 
 ---
 
@@ -315,6 +365,8 @@ Provides:
 
 * Opportunity Hypotheses
 * Opportunity Portfolios
+* Opportunity Relationships (the Opportunity Graph)
+* Opportunity Prioritization
 * opportunity timing and magnitude understanding
 * continuously evolving, replayable opportunities
 
@@ -324,5 +376,5 @@ Provides:
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007; EIOS-008; EIOS-009; EIOS-010; EIOS-011; EIOS-012; EIOS-013; EIOS-014
 - **Builds Upon:** Reality Intelligence (EIOS-010); Intelligence Assessment (EIOS-010); Intelligence Portfolio (EIOS-010); Technology Intelligence (EIOS-011); Economic Intelligence (EIOS-012); Supply Network Intelligence (EIOS-013); Capital Intelligence (EIOS-014); Scientific Worldview (EIOS-009); Opportunity (EIOS-002)
-- **Defines:** Genesis; Opportunity Hypothesis; Opportunity Formation; Cross-Domain Opportunity Synthesis; Opportunity Timing; Opportunity Magnitude; Opportunity Adjudication; Opportunity Evolution; Opportunity Portfolio; Continuous Opportunity Discovery
+- **Defines:** Genesis; Opportunity Hypothesis; Opportunity Formation; Cross-Domain Opportunity Synthesis; Opportunity Relationships; Opportunity Graph; Opportunity Timing; Opportunity Magnitude; Opportunity Adjudication; Opportunity Evolution; Opportunity Portfolio; Opportunity Prioritization; Continuous Opportunity Discovery
 - **Referenced By:** Investment Thesis Engine, Portfolio Intelligence, Capital Allocation Intelligence, Personal CIO, and downstream investment and decision subsystems

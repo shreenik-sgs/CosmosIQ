@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 6.0
+book_version: 6.1
 generator_version: 1.1
-source_hash: d2dd124fa3a31084f90fbab5b6eca9e850bb5a290cea60145b2b165778479b0d
-generated_at: 2026-06-30T09:42:12-05:00
+source_hash: 39f43a7840bcec47bf13b4e849b2a303f402e415d8fc6ad978b5802045151fde
+generated_at: 2026-06-30T09:48:54-05:00
 ---
 
 # Architectural Rule Index
@@ -359,7 +359,9 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-1514 | GEN-001 — Genesis | Opportunity Portfolios SHALL be coordinated collections of evolving opportunities; they SHALL carry no allocation, position, or capital and SHALL NOT be investment portfolios. |
 | AR-1515 | GEN-001 — Genesis | Genesis SHALL discover opportunities continuously, not on demand. |
 | AR-1516 | GEN-001 — Genesis | Genesis SHALL provide Opportunity Hypotheses and Opportunity Portfolios to downstream investment and decision subsystems. |
-| AR-1517 | GEN-001 — Genesis | Genesis SHALL discover what is worth pursuing and SHALL NOT decide how to act upon it; it SHALL NOT allocate capital, take positions, construct investment portfolios, or execute decisions. |
+| AR-1517 | GEN-001 — Genesis | Genesis SHALL discover what is worth pursuing and SHALL NOT decide how to act upon it; it SHALL NOT allocate capital, select securities, take positions, construct investment portfolios, or execute decisions. |
 | AR-1518 | GEN-001 — Genesis | Genesis SHALL remain implementation independent. |
+| AR-1519 | GEN-001 — Genesis | Genesis SHALL maintain explicit Opportunity Relationships in an Opportunity Graph, relating Opportunities to one another and to the Intelligence Assessments that ground them; the Opportunity Graph SHALL remain continuously evolving and replayable. |
+| AR-1520 | GEN-001 — Genesis | Genesis SHALL continuously prioritize Opportunities by expected significance, re-evaluable as understanding evolves; prioritization SHALL express relative significance, not investment recommendation. |
 
-_345 rules._
+_347 rules._
