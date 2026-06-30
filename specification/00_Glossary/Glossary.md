@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 2.0
+book_version: 2.1
 generator_version: 1.1
-source_hash: 46ea030c01568337800330a59c111a38a6e153542ca68f59d4b1ba9b9f69735a
-generated_at: 2026-06-29T21:02:32-05:00
+source_hash: cec553cb61572d631e613f88755c64eb054695127d5aa62c951a904e93ffe724
+generated_at: 2026-06-29T21:07:44-05:00
 ---
 
 # Glossary
@@ -49,6 +49,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Decision Graph | A transient, goal-specific projection of feasible choices, consequences, trade-offs, and recommendations, derived exclusively from the Intelligence Graph; never a canonical representation of reality. | EIOS-006 | Intelligence Graph | Foundational |
 | Model Graph | The first-class graph of relationships among models — inheritance, specialization, composition, dependency, validation, refinement; the primary primitive for reasoning about models. The Model Registry is an index over it. | EIOS-007 | Model, Intelligence Graph | Cognitive Architecture |
 | Model Repository | The store of model definitions, implementations, artifacts, and historical versions; distinct from the Model Registry (the index) and the Model Graph (the relationships). | EIOS-007 | Model Graph, Model Registry | Cognitive Architecture |
+| Model Portfolio | A purpose-specific collection of cooperating models assembled for a reasoning objective; more than a set of models — a reusable reasoning strategy whose effectiveness the Experience Layer learns over time. | EIOS-007 | Model, Model Graph | Cognitive Architecture |
 | Genesis | Operational subsystem that discovers transformations in real-world systems rather than searching directly for securities. | EIOS-001 | Prometheus, Personal CIO | Operational |
 | Prometheus | Operational subsystem that evaluates the implications of validated knowledge for publicly traded entities. | EIOS-001 | Genesis, Personal CIO | Operational |
 | Personal CIO | Operational subsystem that explains causal chains, quantifies uncertainty, and retains human accountability for recommendations. | EIOS-001 | Genesis, Prometheus | Operational |

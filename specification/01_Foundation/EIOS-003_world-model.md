@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-003
 slug: world-model
-book_version: 2.0
+book_version: 2.1
 generator_version: 1.1
-source_hash: 46ea030c01568337800330a59c111a38a6e153542ca68f59d4b1ba9b9f69735a
-generated_at: 2026-06-29T21:02:32-05:00
+source_hash: cec553cb61572d631e613f88755c64eb054695127d5aa62c951a904e93ffe724
+generated_at: 2026-06-29T21:07:44-05:00
 ---
 
 # EIOS-003 — The World Model

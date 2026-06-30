@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 2.0
+book_version: 2.1
 generator_version: 1.1
-source_hash: 46ea030c01568337800330a59c111a38a6e153542ca68f59d4b1ba9b9f69735a
-generated_at: 2026-06-29T21:02:32-05:00
+source_hash: cec553cb61572d631e613f88755c64eb054695127d5aa62c951a904e93ffe724
+generated_at: 2026-06-29T21:07:44-05:00
 ---
 
 # Architectural Rule Index
@@ -107,5 +107,15 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-0728 | EIOS-007 — Models and Model Management | Model Fitness SHALL support comparative evaluation. |
 | AR-0729 | EIOS-007 — Models and Model Management | Repository, Registry, and Model Graph SHALL remain architecturally distinct. |
 | AR-0730 | EIOS-007 — Models and Model Management | Scientific progress SHALL occur through model evolution rather than replacement. |
+| AR-0731 | EIOS-007 — Models and Model Management | Complex reasoning SHALL support coordinated multi-model execution. |
+| AR-0732 | EIOS-007 — Models and Model Management | Model Portfolios SHALL be first-class architectural objects. |
+| AR-0733 | EIOS-007 — Models and Model Management | Model Orchestration SHALL remain deterministic. |
+| AR-0734 | EIOS-007 — Models and Model Management | Parallel execution SHALL preserve replayability. |
+| AR-0735 | EIOS-007 — Models and Model Management | Recursive reasoning SHALL detect dependency cycles. |
+| AR-0736 | EIOS-007 — Models and Model Management | Consensus SHALL preserve alternative explanations. |
+| AR-0737 | EIOS-007 — Models and Model Management | Contradictions SHALL become explicit reasoning objects. |
+| AR-0738 | EIOS-007 — Models and Model Management | Meta-Reasoning SHALL govern model selection. |
+| AR-0739 | EIOS-007 — Models and Model Management | Collective learning SHALL evaluate model portfolios. |
+| AR-0740 | EIOS-007 — Models and Model Management | Model Portfolio optimization SHALL remain evidence-driven. |
 
-_91 rules._
+_101 rules._
