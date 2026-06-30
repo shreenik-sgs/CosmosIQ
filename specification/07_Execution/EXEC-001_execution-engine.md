@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EXEC-001
 slug: execution-engine
-book_version: 9.1
+book_version: 9.2
 generator_version: 1.1
-source_hash: a28bdb4f6807ec3fa5d2ddabd2b9b703f59aa80a9486aeb29f42599108cd9ce7
-generated_at: 2026-06-30T11:21:33-05:00
+source_hash: 28c5d0f026395a370f47e347a08bfdff902d7d0863a94a8d5ff2908153606375
+generated_at: 2026-06-30T11:39:26-05:00
 ---
 
 # EXEC-001 — Execution Engine
@@ -75,6 +75,18 @@ Execution is the actuation engine.
 Execution SHALL carry out approved Investment Actions in the world, and SHALL do nothing else.
 
 Execution performs operational validation, not investment reasoning. It MAY validate account constraints, market-hours constraints, cancelability, order previews, slippage and fill risk, reconciliation, and kill-switch conditions. It SHALL NOT discover, understand, identify opportunities, construct theses, allocate capital, personalize counsel, or decide actions.
+
+---
+
+### The Actuator
+
+Execution may be realized through a human actuator or an automated actuator. The actuator is whoever, or whatever, performs the irreversible act of placing an order in the world; Execution governs that act without, in itself, fixing who performs it.
+
+In the current implementation, the human user is the actuator. The system prepares, validates, gates, records, reconciles, and audits the action; the user manually places the trade in the broker platform.
+
+The system SHALL NOT submit orders to a broker in the current implementation mode. The user's manual use of the broker platform lies outside the system's actuation mechanism; the system records and reconciles what the user did, and never acts in the user's place.
+
+A future automated actuator would have to pass through the same Actuation Gate and the same safeguards, and would require a separate implementation decision. Every safeguard of this layer applies identically regardless of actuator: the Actuation Gate becomes the user's checklist, the confirmation the user's explicit go, and the broker's authoritative record the statement the user reconciles against.
 
 ---
 
@@ -338,7 +350,7 @@ Execution SHALL hand the operational truth of the world back to understanding; i
 
 Referenced by:
 
-* broker adapters and venue integration modules (implementation)
+* the manual-execution implementation — trade tickets, checklists, fill records, reconciliation, and audit (implementation); broker adapters and venue integration are deferred indefinitely and not part of the current roadmap
 * portfolio management and operational subsystems
 * the cognitive layers, which consume returned Observations as evidence
 
@@ -359,4 +371,4 @@ Provides:
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007; EIOS-008; EIOS-009; EIOS-010; EIOS-011; EIOS-012; EIOS-013; EIOS-014; GEN-001; PROM-001; PROM-002; CIO-001
 - **Builds Upon:** Personal CIO (CIO-001); Personalized Action Queue (CIO-001); Personal CIO Decision Record (CIO-001); Investment Action (PROM-002); Prometheus Decision Record (PROM-001); Security and Instrument Mapping (PROM-001); Capital Allocation Recommendation (PROM-001); Timing-to-Action Assessment (PROM-001); Decision (EIOS-002); Observation (EIOS-002)
 - **Defines:** Execution; Order; Operational Object; Order Lifecycle; Execution Plan; Order Intent; Order Preview; Actuation Gate; User Confirmation Record; Executed Order Record; Fill Record; Position Reconciliation; Exception and Failure Record; Kill Switch
-- **Referenced By:** broker adapters and venue integration modules (implementation), portfolio management and operational subsystems, and the cognitive layers via returned Observations
+- **Referenced By:** the manual-execution implementation (broker adapters and venue integration deferred indefinitely, not in the current roadmap), portfolio management and operational subsystems, and the cognitive layers via returned Observations

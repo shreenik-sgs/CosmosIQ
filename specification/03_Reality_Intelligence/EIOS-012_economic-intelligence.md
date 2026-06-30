@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-012
 slug: economic-intelligence
-book_version: 9.1
+book_version: 9.2
 generator_version: 1.1
-source_hash: a28bdb4f6807ec3fa5d2ddabd2b9b703f59aa80a9486aeb29f42599108cd9ce7
-generated_at: 2026-06-30T11:21:33-05:00
+source_hash: 28c5d0f026395a370f47e347a08bfdff902d7d0863a94a8d5ff2908153606375
+generated_at: 2026-06-30T11:39:26-05:00
 ---
 
 # EIOS-012 — Economic Intelligence

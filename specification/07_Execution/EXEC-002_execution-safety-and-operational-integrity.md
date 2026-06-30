@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EXEC-002
 slug: execution-safety-and-operational-integrity
-book_version: 9.1
+book_version: 9.2
 generator_version: 1.1
-source_hash: a28bdb4f6807ec3fa5d2ddabd2b9b703f59aa80a9486aeb29f42599108cd9ce7
-generated_at: 2026-06-30T11:21:33-05:00
+source_hash: 28c5d0f026395a370f47e347a08bfdff902d7d0863a94a8d5ff2908153606375
+generated_at: 2026-06-30T11:39:26-05:00
 ---
 
 # EXEC-002 — Execution Safety & Operational Integrity
@@ -304,7 +304,7 @@ The operational history SHALL be preserved complete and SHALL never be rewritten
 
 Referenced by:
 
-* broker adapters and venue integration modules (implementation)
+* the manual-execution implementation — trade tickets, checklists, fill records, reconciliation, and audit (implementation); broker adapters and venue integration are deferred indefinitely and not part of the current roadmap
 * operational and reconciliation subsystems
 * the cognitive layers, via returned Observations
 
@@ -327,4 +327,4 @@ Provides:
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007; EIOS-008; EIOS-009; EIOS-010; EIOS-011; EIOS-012; EIOS-013; EIOS-014; GEN-001; PROM-001; PROM-002; CIO-001; EXEC-001
 - **Builds Upon:** Execution (EXEC-001); Order (EXEC-001); Actuation Gate (EXEC-001); Order Preview (EXEC-001); User Confirmation Record (EXEC-001); Investment Action (PROM-002); Decision (EIOS-002); Observation (EIOS-002)
 - **Defines:** Operational Integrity; At-Most-Once Actuation; the Indeterminate Order State; Stale-Action Revalidation; Confirmation-to-Preview Binding; the Single Actuation Chokepoint; Full-Chain Reconciliation; Cancel / Replace / Modify operations; Multi-Fill Completion; Order Expiration; Emergency Controls
-- **Referenced By:** broker adapters and venue integration modules (implementation), operational and reconciliation subsystems, and the cognitive layers via returned Observations
+- **Referenced By:** the manual-execution implementation (broker adapters and venue integration deferred indefinitely, not in the current roadmap), operational and reconciliation subsystems, and the cognitive layers via returned Observations
