@@ -126,6 +126,27 @@ class TestVerticalSliceIREN(unittest.TestCase):
         for term in ("buy", "sell", "price target", "investment", "opportunity", "thesis"):
             self.assertNotIn(term, blob)
 
+    # --- IMPLEMENTATION-003: Observation -> Assessment -> Opportunity ----------
+    def test_vertical_slice_iren_starts_from_observations_and_generates_opportunity(self):
+        # Begins from concrete Observations and a derived Assessment...
+        self.assertGreaterEqual(len(self.r.observations), 1)
+        self.assertEqual(self.r.assessment.domain, "ai-infrastructure")
+        # ...and produces a real Opportunity Hypothesis bound to that Assessment.
+        oh = self.r.hypothesis
+        self.assertEqual(oh.domain, "ai-infrastructure")
+        self.assertEqual(oh.opportunity_type, "capacity_expansion")
+        self.assertEqual(oh.triggering_assessment_ids, (self.r.assessment.id,))
+        self.assertIn(self.r.assessment.id, {r.object_id for r in oh.provenance.sources})
+        self.assertEqual(oh.triggering_assessment_versions, (self.r.assessment.version,))
+        self.assertIn(oh.opportunity_magnitude, ("moderate", "large", "transformational"))
+        self.assertEqual(oh.timing_window, "emerging")
+        self.assertGreater(oh.confidence, 0.0)
+        # Genesis says WHAT is emerging, never HOW to invest.
+        blob = " ".join([oh.opportunity_summary, oh.opportunity_mechanism,
+                         " ".join(oh.uncertainty)]).lower()
+        for term in ("buy", "sell", "allocat", "portfolio", "invest", "trade", "position size"):
+            self.assertNotIn(term, blob)
+
 
 if __name__ == "__main__":
     unittest.main()

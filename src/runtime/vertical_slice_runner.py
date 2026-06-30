@@ -22,7 +22,7 @@ from eios_core.provenance import make_provenance
 
 from reality_intelligence.source_observation import make_source_observation
 from reality_intelligence.intelligence_assessment import generate_intelligence_assessment
-from genesis.opportunity_hypothesis import make_opportunity_hypothesis
+from genesis.opportunity_hypothesis import generate_opportunity_hypothesis
 from prometheus.investment_thesis import make_investment_thesis
 from prometheus.investment_action import make_investment_action
 from prometheus.position_lifecycle import position_state
@@ -142,13 +142,11 @@ def run_iren_slice(
         actor="reality-intelligence",
         now=t0,
     )
-    hypothesis = make_opportunity_hypothesis(
-        assessment,
-        subject=instrument,
-        hypothesis="re-rating on AI datacenter buildout",
+    hypothesis = generate_opportunity_hypothesis(
+        [assessment],
+        domain="ai-infrastructure",
         actor="genesis",
         now=t0,
-        confidence=0.6,
     )
     thesis = make_investment_thesis(
         hypothesis,

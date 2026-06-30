@@ -52,6 +52,7 @@ class IntelligenceAssessment(ReasoningObject):
     assessment_type: str = "domain_state"
     domain: str = ""
     current_assessment: str = ""
+    direction: str = "mixed"  # improving | deteriorating | mixed
     significance: str = "low"  # low | moderate | high
     confidence: float = 0.0
     grounding_observation_ids: Tuple[str, ...] = field(default_factory=tuple)
@@ -168,6 +169,7 @@ def generate_intelligence_assessment(
         assessment_type=assessment_type,
         domain=str(domain),
         current_assessment=current_assessment,
+        direction=direction,
         significance=significance,
         confidence=round(float(confidence), 4),
         grounding_observation_ids=grounding_ids,
