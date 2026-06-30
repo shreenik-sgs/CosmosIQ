@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 5.4
+book_version: 5.5
 generator_version: 1.1
-source_hash: f15bf3e5573afcd36feadc5b9db597234d1ec4b94598cdf9d2e4ad6b822514c7
-generated_at: 2026-06-30T02:15:43-05:00
+source_hash: a6b7b41a07653594f5dba61d708d463b6e1e2c99db071a4b99e4cd45d572f8e4
+generated_at: 2026-06-30T02:18:41-05:00
 ---
 
 # Architectural Rule Index
@@ -329,5 +329,19 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-1312 | EIOS-013 — Supply Network Intelligence | Supply Network Intelligence SHALL maintain continuously evolving supply network understanding. |
 | AR-1313 | EIOS-013 — Supply Network Intelligence | Supply Network Intelligence SHALL provide Supply Network Intelligence Assessments and Products to the Intelligence Portfolio and to Genesis, grounding but not forming opportunities. |
 | AR-1314 | EIOS-013 — Supply Network Intelligence | Supply Network Intelligence SHALL remain implementation independent. |
+| AR-1401 | EIOS-014 — Capital Intelligence | Capital Intelligence SHALL form Intelligence Assessments about the capital domain, conforming to the Reality Intelligence contract (EIOS-010). |
+| AR-1402 | EIOS-014 — Capital Intelligence | Capital Intelligence SHALL reference the canonical Intelligence Assessment object and SHALL NOT redefine it, nor introduce new reasoning objects. |
+| AR-1403 | EIOS-014 — Capital Intelligence | Capital Intelligence assessments SHALL ground in the Scientific Worldview and the Experience Layer's capital, constraint, readiness, and timing understanding rather than recomputing them. |
+| AR-1404 | EIOS-014 — Capital Intelligence | Capital Structure Assessment SHALL ground in capital evolution and capital propagation and SHALL preserve the contribution of each participating component. |
+| AR-1405 | EIOS-014 — Capital Intelligence | Capital Cycle Assessment SHALL ground in historical capital evolution and Historical Analogs and SHALL preserve uncertainty rather than asserting periodicity. |
+| AR-1406 | EIOS-014 — Capital Intelligence | Capital Concentration Assessment SHALL ground in capital evolution and constraint understanding and SHALL express understanding of capital distribution, not allocation guidance. |
+| AR-1407 | EIOS-014 — Capital Intelligence | Capital Constraint Assessment SHALL ground in the constraint and bottleneck understanding of Systems Theory and the Experience Layer. |
+| AR-1408 | EIOS-014 — Capital Intelligence | Capital Readiness and Timing Assessment SHALL ground in constraint-release and timing assessments, keep readiness distinct from timing, and preserve uncertainty. |
+| AR-1409 | EIOS-014 — Capital Intelligence | Capital Intelligence Assessments MAY influence assessments in other domains through the Intelligence Graph, preserving explicit justification, and SHALL NOT reach into how other domains form their understanding. |
+| AR-1410 | EIOS-014 — Capital Intelligence | Capital Intelligence Products SHALL be compositions of Capital Intelligence Assessments without independent canonical identity. |
+| AR-1411 | EIOS-014 — Capital Intelligence | Capital Intelligence SHALL express understanding only and SHALL NOT assign value, opportunity, investability, or allocation guidance; this boundary SHALL be held with particular strictness. |
+| AR-1412 | EIOS-014 — Capital Intelligence | Capital Intelligence SHALL maintain continuously evolving capital understanding. |
+| AR-1413 | EIOS-014 — Capital Intelligence | Capital Intelligence SHALL provide Capital Intelligence Assessments and Products to the Intelligence Portfolio and to Genesis, grounding but not forming opportunities. |
+| AR-1414 | EIOS-014 — Capital Intelligence | Capital Intelligence SHALL remain implementation independent. |
 
-_313 rules._
+_327 rules._

@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-013
 slug: supply-network-intelligence
-book_version: 5.4
+book_version: 5.5
 generator_version: 1.1
-source_hash: f15bf3e5573afcd36feadc5b9db597234d1ec4b94598cdf9d2e4ad6b822514c7
-generated_at: 2026-06-30T02:15:43-05:00
+source_hash: a6b7b41a07653594f5dba61d708d463b6e1e2c99db071a4b99e4cd45d572f8e4
+generated_at: 2026-06-30T02:18:41-05:00
 ---
 
 # EIOS-013 — Supply Network Intelligence

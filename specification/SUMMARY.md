@@ -3,17 +3,17 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: summary
-book_version: 5.4
+book_version: 5.5
 generator_version: 1.1
-source_hash: f15bf3e5573afcd36feadc5b9db597234d1ec4b94598cdf9d2e4ad6b822514c7
-generated_at: 2026-06-30T02:15:43-05:00
+source_hash: a6b7b41a07653594f5dba61d708d463b6e1e2c99db071a4b99e4cd45d572f8e4
+generated_at: 2026-06-30T02:18:41-05:00
 ---
 
 # Economic Intelligence Operating System
 
 ## Architecture Book
 
-Version 5.4
+Version 5.5
 
 Compiled from `architecture/EIOS_Architecture_Book.md`.
 
@@ -46,6 +46,7 @@ Compiled from `architecture/EIOS_Architecture_Book.md`.
 - [EIOS-011 — Technology Intelligence](03_Reality_Intelligence/EIOS-011_technology-intelligence.md)
 - [EIOS-012 — Economic Intelligence](03_Reality_Intelligence/EIOS-012_economic-intelligence.md)
 - [EIOS-013 — Supply Network Intelligence](03_Reality_Intelligence/EIOS-013_supply-network-intelligence.md)
+- [EIOS-014 — Capital Intelligence](03_Reality_Intelligence/EIOS-014_capital-intelligence.md)
 
 ### Part IV — Applications
 

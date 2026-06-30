@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 5.4
+book_version: 5.5
 generator_version: 1.1
-source_hash: f15bf3e5573afcd36feadc5b9db597234d1ec4b94598cdf9d2e4ad6b822514c7
-generated_at: 2026-06-30T02:15:43-05:00
+source_hash: a6b7b41a07653594f5dba61d708d463b6e1e2c99db071a4b99e4cd45d572f8e4
+generated_at: 2026-06-30T02:18:41-05:00
 ---
 
 # Glossary
@@ -74,6 +74,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Technology Intelligence | The Reality Intelligence domain engine that continuously forms Intelligence Assessments about the technology domain — emergence, readiness, convergence, constraints, and evolution — grounded in the Scientific Worldview and the Experience Layer. Understanding only, never purpose. | EIOS-011 | Reality Intelligence, Intelligence Assessment | Reality Intelligence |
 | Economic Intelligence | The Reality Intelligence domain engine that continuously forms Intelligence Assessments about the economic domain — economic transitions, value networks, capital flows, constraints, and timing — grounded in the Scientific Worldview and the Experience Layer. Understanding only, never purpose. | EIOS-012 | Reality Intelligence, Intelligence Assessment | Reality Intelligence |
 | Supply Network Intelligence | The Reality Intelligence domain engine that continuously forms Intelligence Assessments about the supply network domain — structure, constraints, fragility, transitions, and timing — grounded in the Scientific Worldview and the Experience Layer. Understanding only, never purpose. | EIOS-013 | Reality Intelligence, Intelligence Assessment | Reality Intelligence |
+| Capital Intelligence | The Reality Intelligence domain engine that continuously forms Intelligence Assessments about the capital domain — capital structure, cycles, concentration, constraints, and timing — grounded in the Scientific Worldview and the Experience Layer. Understanding only — the boundary against allocation and investment is held with particular strictness. | EIOS-014 | Reality Intelligence, Intelligence Assessment | Reality Intelligence |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
