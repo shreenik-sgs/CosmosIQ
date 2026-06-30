@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 3.8 |
+| Version | 3.9 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -62,6 +62,9 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Question Graph | The first-class graph of relationships among active Research Questions — dependency, refinement, decomposition, contradiction, support, competition — over which Scientific Discovery reasons. | EIOS-009 | Research Agenda, Research Question | Cognitive Architecture |
 | Knowledge Gap | An explicit region of incomplete scientific understanding, preserved independently of existing hypotheses as a discovery asset. | EIOS-009 | Scientific Discovery, Research Question | Cognitive Architecture |
 | Discovery Readiness | An assessment of whether a Research Question is currently investigable (available evidence, models, experimental capability); independent of question priority. | EIOS-009 | Research Question, Scientific Discovery | Cognitive Architecture |
+| Hypothesis Graph | The first-class graph of relationships among Hypotheses — refinement, dependency, competition, support, contradiction, composition — over which Scientific Discovery reasons. | EIOS-009 | Hypothesis, Question Graph | Cognitive Architecture |
+| Hypothesis Portfolio | A coordinated collection of competing and cooperating candidate explanations for a Research Question; preserves diversity of scientific reasoning rather than converging prematurely. | EIOS-009 | Hypothesis, Research Program | Cognitive Architecture |
+| Research Program | A long-term scientific investigation organized around a coherent family of Research Questions and Hypotheses (with supporting models and evidence); replayable, and the unit an investment domain can map to. | EIOS-009 | Research Question, Hypothesis | Cognitive Architecture |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
@@ -108,7 +111,7 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 3.8
+version: 3.9
 authoritative: true
 target_generator: Claude Code
 -->
@@ -7314,6 +7317,21 @@ Research Programs SHALL remain replayable.
 - **AR-0913** — Scientific Curiosity SHALL continuously expand the institutional Research Agenda.
 - **AR-0914** — Scientific Discovery SHALL remain implementation independent.
 - **AR-0915** — Scientific Discovery SHALL provide prioritized Research Questions to Hypothesis Generation.
+- **AR-0916** — Scientific Discovery SHALL generate Hypotheses exclusively in response to Research Questions.
+- **AR-0917** — Every Hypothesis SHALL preserve explicit traceability to its originating Research Question.
+- **AR-0918** — Hypothesis Generation SHALL preserve complete provenance for all supporting observations, models, evidence, and reasoning.
+- **AR-0919** — Multiple competing Hypotheses SHALL be preserved until scientific investigation provides sufficient evidence for refinement or rejection.
+- **AR-0920** — Hypothesis Portfolios SHALL preserve diversity of scientific reasoning and SHALL NOT prematurely converge on a single explanation.
+- **AR-0921** — Multi-Model Hypothesis Generation SHALL preserve the independent reasoning contributed by each participating Model.
+- **AR-0922** — Analogical Hypothesis Generation SHALL preserve explicit relationships to the supporting Historical Cases, Historical Patterns, and Historical Analogs.
+- **AR-0923** — Knowledge-Gap Generation SHALL preserve explicit traceability between every Knowledge Gap and every generated Hypothesis.
+- **AR-0924** — Research Programs SHALL preserve the complete evolution of participating Research Questions, Hypotheses, Models, Evidence, and Investigations.
+- **AR-0925** — Hypothesis Quality SHALL remain continuously re-evaluable as new evidence becomes available.
+- **AR-0926** — Hypothesis Lineage SHALL preserve complete historical evolution and replayability.
+- **AR-0927** — The Hypothesis Graph SHALL remain a first-class architectural artifact supporting scientific reasoning.
+- **AR-0928** — Hypothesis Generation SHALL remain implementation independent.
+- **AR-0929** — Scientific Discovery SHALL continuously generate alternative explanations when existing Hypotheses fail to explain observed reality.
+- **AR-0930** — Scientific Discovery SHALL provide prioritized Hypothesis Portfolios to Scientific Investigation.
 
 ---
 
@@ -7334,6 +7352,21 @@ Research Programs SHALL remain replayable.
 - **REQ-SD-013** — Contradiction Management
 - **REQ-SD-014** — Research Agenda Evolution
 - **REQ-SD-015** — Prioritized Research Output
+- **REQ-SD-016** — Hypothesis Generation
+- **REQ-SD-017** — Evidence-Informed Generation
+- **REQ-SD-018** — Multi-Model Hypothesis Generation
+- **REQ-SD-019** — Analogical Hypothesis Generation
+- **REQ-SD-020** — Contradiction-Driven Generation
+- **REQ-SD-021** — Knowledge-Gap Generation
+- **REQ-SD-022** — Cross-Domain Generation
+- **REQ-SD-023** — Hypothesis Portfolio
+- **REQ-SD-024** — Hypothesis Quality
+- **REQ-SD-025** — Hypothesis Lineage
+- **REQ-SD-026** — Hypothesis Graph
+- **REQ-SD-027** — Research Program
+- **REQ-SD-028** — Research Program Evolution
+- **REQ-SD-029** — Competing Hypotheses
+- **REQ-SD-030** — Prioritized Hypothesis Output
 
 ---
 
@@ -7341,7 +7374,6 @@ Research Programs SHALL remain replayable.
 
 Referenced by:
 
-* Hypothesis Generation
 * Scientific Investigation
 * Validation & Falsification
 * Scientific Theory Evolution
@@ -7357,15 +7389,20 @@ Provides:
 * Discovery Readiness
 * Knowledge Gap identification
 * Research prioritization
+* Hypothesis Portfolios
+* Research Programs
+* Hypothesis Graph
+* Competing Hypotheses
+* Scientific Explanations
 
 ---
 
 ### Cross References
 
 - **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006; EIOS-007; EIOS-008
-- **Builds Upon:** Research Question (EIOS-002); Scientific Cognition; Computational Curiosity; Experience Layer
-- **Defines:** Scientific Discovery; Research Agenda; Question Prioritization; Question Dependencies; Question Decomposition; Question Graph; Knowledge Gaps; Discovery Readiness; Scientific Discovery Pipeline
-- **Referenced By:** Hypothesis Generation, Scientific Investigation, Technology Intelligence, Economic Intelligence, Genesis Discovery Engine, and autonomous scientific agents
+- **Builds Upon:** Research Question (EIOS-002); Scientific Cognition; Computational Curiosity; Experience Layer; Models & Model Management (EIOS-007)
+- **Defines:** Scientific Discovery; Research Agenda; Question Prioritization; Question Dependencies; Question Decomposition; Question Graph; Knowledge Gaps; Discovery Readiness; Scientific Discovery Pipeline; Hypothesis Generation; Hypothesis Portfolio; Hypothesis Graph; Hypothesis Quality; Hypothesis Lineage; Competing Hypotheses; Composite Hypotheses; Research Program; Multi-Model Hypothesis Generation; Analogical Hypothesis Generation
+- **Referenced By:** Scientific Investigation, Validation & Falsification, Technology Intelligence, Economic Intelligence, Genesis Discovery Engine, and autonomous scientific agents
 
 <!-- END:CHAPTER:EIOS-009 -->
 
