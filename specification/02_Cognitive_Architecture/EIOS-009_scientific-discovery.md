@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-009
 slug: scientific-discovery
-book_version: 4.6
+book_version: 4.7
 generator_version: 1.1
-source_hash: 4721184da43ce20daf99a06c276214f9250fb549b61a063b1dba282706769f81
-generated_at: 2026-06-29T23:45:56-05:00
+source_hash: 5b08bf04a84a449a46d82daa8a7ba8875338558dee0097ab7e215a4cb296c0bd
+generated_at: 2026-06-29T23:50:18-05:00
 ---
 
 # EIOS-009 — Scientific Discovery
@@ -1358,15 +1358,15 @@ Scientific Principles SHALL remain continuously replayable.
 
 Some Scientific Principles demonstrate broad explanatory power across diverse situations.
 
-Scientific Discovery MAY promote such Principles to Candidate Scientific Laws.
+The Experience Layer proposes such Principles as Candidate Scientific Laws; Scientific Discovery then evaluates and adjudicates them through Investigation and Validation.
 
 Candidate Scientific Laws represent the strongest currently available scientific explanations.
 
-Candidate Scientific Law is defined canonically in the Experience Layer (EIOS-008) — Experience proposes, Scientific Discovery validates; this section describes how Discovery validates and evolves them.
+Candidate Scientific Law is defined canonically in the Experience Layer (EIOS-008): Experience proposes; Scientific Discovery adjudicates — promotes, refines, defers, rejects, or returns for investigation. This section describes Discovery's role in that lifecycle.
 
 Candidate Scientific Laws SHALL remain continuously challengeable.
 
-Promotion SHALL never imply permanent truth.
+Adjudication SHALL never imply permanent truth.
 
 ---
 
@@ -1506,6 +1506,156 @@ Integration SHALL preserve:
 * uncertainty
 
 Scientific Knowledge Integration SHALL provide the primary input to the Experience Layer.
+
+---
+
+### Scientific Generalization
+
+Scientific Discovery SHALL continuously determine whether validated understanding extends beyond the specific situations in which it was originally observed.
+
+Generalization SHALL preserve:
+
+* supporting Evidence
+* supporting Investigations
+* applicability
+* limitations
+* uncertainty
+
+Generalization SHALL remain continuously challengeable.
+
+---
+
+### Scientific Specialization
+
+Validated understanding MAY become more specialized as additional evidence reveals domain-specific behavior.
+
+Scientific Discovery SHALL preserve both generalized and specialized explanations where scientifically justified.
+
+Specialization SHALL preserve complete lineage to the originating Scientific Principles.
+
+---
+
+### Knowledge Integration
+
+Scientific Discovery SHALL continuously integrate validated understanding across multiple scientific domains.
+
+Integration SHALL preserve:
+
+* participating Scientific Principles
+* participating Candidate Scientific Laws
+* participating Models
+* supporting Evidence
+
+Integration SHALL remain scientifically explainable.
+
+---
+
+### Cross-Domain Theory Formation
+
+Scientific understanding frequently spans multiple domains.
+
+Scientific Discovery SHALL support the formation of cross-domain Scientific Theories.
+
+Illustrative domains include:
+
+* technology
+* economics
+* biology
+* physics
+* complex systems
+
+Cross-domain theories SHALL preserve the contribution of every participating domain.
+
+---
+
+### Candidate Law Promotion
+
+The Experience Layer proposes Candidate Scientific Laws based upon accumulated historical scientific understanding.
+
+Scientific Discovery SHALL evaluate every proposed Candidate Scientific Law through Investigation and Validation.
+
+Candidate Scientific Laws MAY be:
+
+* promoted
+* refined
+* deferred
+* rejected
+* returned for additional investigation
+
+Every promotion decision SHALL preserve complete scientific justification.
+
+---
+
+### Theory Refinement
+
+Scientific Theories SHALL continuously evolve through refinement.
+
+Refinement SHALL preserve:
+
+* previous theory
+* revised theory
+* triggering Evidence
+* supporting Scientific Principles
+* scientific justification
+
+Theory refinement SHALL remain replayable.
+
+---
+
+### Scientific Coherence
+
+Scientific Discovery SHALL continuously evaluate coherence across:
+
+* Scientific Principles
+* Candidate Scientific Laws
+* Scientific Theories
+* Models
+
+Scientific coherence SHALL preserve competing explanations where necessary.
+
+Perfect coherence SHALL never be required.
+
+---
+
+### Theory Portfolio
+
+Scientific Discovery SHALL maintain Theory Portfolios.
+
+A Theory Portfolio represents a coordinated collection of Scientific Theories describing related aspects of reality.
+
+Theory Portfolios SHALL preserve:
+
+* participating theories
+* participating principles
+* participating candidate laws
+* participating models
+
+Theory Portfolios SHALL remain continuously evolving.
+
+---
+
+### Scientific Worldview
+
+The complete collection of validated Scientific Theories represents the organization's current Scientific Worldview.
+
+The Scientific Worldview SHALL remain:
+
+* evidence-based
+* explainable
+* replayable
+* continuously revisable
+
+No Scientific Worldview SHALL be considered permanently complete.
+
+---
+
+### Continuous Scientific Evolution
+
+Scientific Discovery SHALL continuously evolve the organization's Scientific Worldview as reality changes.
+
+Continuous Scientific Evolution SHALL remain one of the primary responsibilities of Scientific Discovery.
+
+Every validated improvement SHALL strengthen future scientific reasoning throughout EIOS.
 
 ---
 

@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 4.6
+book_version: 4.7
 generator_version: 1.1
-source_hash: 4721184da43ce20daf99a06c276214f9250fb549b61a063b1dba282706769f81
-generated_at: 2026-06-29T23:45:56-05:00
+source_hash: 5b08bf04a84a449a46d82daa8a7ba8875338558dee0097ab7e215a4cb296c0bd
+generated_at: 2026-06-29T23:50:18-05:00
 ---
 
 # Glossary
@@ -41,7 +41,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Historical Scientific Intelligence | The Experience Layer capability that extracts enduring, reusable scientific understanding from historical reality — cases, transitions, successes, and failures — rather than merely recording history. | EIOS-008 | Historical Case, Scientific Principle | Cognitive Architecture |
 | Historical Case | A bounded, replayable observation of reality over a defined period, preserving its full scientific context; the unit from which scientific principles are extracted. | EIOS-008 | Historical Scientific Intelligence, Scientific Principle | Cognitive Architecture |
 | Scientific Principle | A Principle (EIOS-002) generalized from recurring mechanisms across multiple independent Historical Cases; preserves supporting cases, evidence, models, confidence, applicability, and limits; continuously re-evaluable. | EIOS-008 | Principle, Candidate Scientific Law | Cognitive Architecture |
-| Candidate Scientific Law | A Scientific Principle showing persistent validity across many domains and long history, proposed with stronger evidence for validation. Experience proposes; Scientific Discovery validates. | EIOS-008 | Scientific Principle | Cognitive Architecture |
+| Candidate Scientific Law | A Scientific Principle showing persistent validity across many domains and long history, proposed with stronger evidence for validation. Experience (EIOS-008) proposes from accumulated historical evidence; Scientific Discovery (EIOS-009) adjudicates — promotes, refines, defers, rejects, or returns for investigation. | EIOS-008 | Scientific Principle | Cognitive Architecture |
 | Institutional Scientific Learning | The Experience Layer capability that turns accumulated scientific experience into enduring organizational intelligence — consolidation, confidence evolution, conflict preservation, maturity, continuity — so every validated discovery permanently improves future reasoning. | EIOS-008 | Institutional Intelligence, Institutional Wisdom | Cognitive Architecture |
 | Institutional Wisdom | The highest level of accumulated scientific understanding, emerging from long-term integration of validated experience, principles, candidate laws, and organizational learning; evidence-based and distinguished from opinion. | EIOS-008 | Institutional Scientific Learning, Scientific Principle | Cognitive Architecture |
 | Knowledge Consolidation | Combining related scientific understanding into coherent institutional knowledge while preserving provenance, uncertainty, and competing explanations; never discards contradictory evidence. | EIOS-008 | Institutional Scientific Learning | Cognitive Architecture |
