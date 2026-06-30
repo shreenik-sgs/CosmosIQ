@@ -1,6 +1,8 @@
 # ARB-012 — Intelligence Discipline Architecture (future review proposal)
 
-**Status:** Proposed — **deferred** (future architectural investigation) · **Recorded:** 2026-06-30
+**Status:** **Investigated** (Book v5.5, 2026-06-30) — reframed as a "canonical grammar of domain
+intelligence"; see `ARB-012_Investigation_Report.md`. Verdict: evidence compelling; recommendation
+recorded; **not implemented** — pending a governance decision (ADR-0009). · **Recorded:** 2026-06-30
 
 **This is not an implementation task and not an immediate backlog item.** It captures a possible
 architectural pattern for review *after several domain intelligence chapters have been authored*.
