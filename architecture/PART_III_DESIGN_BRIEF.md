@@ -244,12 +244,14 @@ the dependency.
 - **K7 — Scope explosion.** Reality Intelligence (EIOS-010) + four domain engines
   (EIOS-011–014) + Genesis + Prometheus is large. *Mitigation:* freeze the EIOS-010 contract
   before authoring domains.
-- **K8 — Forward-reference drift.** The Book's existing forward-references diverge from this
-  refined model on three points: Part III is named **"Platform Architecture"**, EIOS-010 is
-  **"World Intelligence"**, and Technology/Economic Intelligence are **GEN-002/GEN-003**. If
-  these are not reconciled **atomically** when Part III opens, the compiled spec will carry
-  conflicting names. *Mitigation:* fold all three renames into ADR-0008 and apply them in the
-  same change that opens Part III (see Q8).
+- **K8 — Forward-reference drift (partially resolved during authoring, v5.0).** Three
+  forward-references diverged from this model. Two were reconciled when Part III opened: Part III
+  **"Platform Architecture" → "Reality Intelligence"**, and EIOS-010 **"World Intelligence" →
+  "Reality Intelligence"** (the latter lived only in EIOS-009, which is not frozen). The third —
+  **Technology/Economic Intelligence GEN-002/003 → EIOS-011/012** — **cannot** be reconciled the
+  same way: those forward-references live in **frozen Part I** (EIOS-004/005/006), so renaming
+  them requires an ADR. *Mitigation applied:* EIOS-010 references future domain engines **by
+  name, not number**, deferring the numbering (see Q8).
 
 ---
 
@@ -261,12 +263,15 @@ the dependency.
 - **Q3 (K5):** Does the `Opportunity` lifecycle live in EIOS-010 or GEN-001?
 - **Q4 (resolved by this refinement):** Technology/Economic/Supply/Capital Intelligence are
   **first-class chapters** (EIOS-011–014), not sections of EIOS-010 — consistent with Model B.
-- **Q8 (reconciliation — must be settled in ADR-0008):** Adopting this model requires three
-  coordinated renames against the Book's current forward-references: Part III
-  **"Platform Architecture" → "Reality Intelligence"** (and a re-decision of the Part IV–V
-  names), **EIOS-010 "World Intelligence" → "Reality Intelligence"**, and
-  **Technology/Economic Intelligence GEN-002/003 → EIOS-011/012** (with Supply/Capital as
-  EIOS-013/014). These are name/placement decisions, not new architecture.
+- **Q8 (open governance decision — surfaced during EIOS-010 authoring).** The domain-engine
+  numbering is unresolved. §10 proposed Technology/Economic/Supply/Capital Intelligence as
+  first-class **EIOS-011–014**, but frozen Part I forward-references name Technology/Economic
+  Intelligence as **GEN-002/GEN-003**, and frozen chapters cannot be edited without an ADR. The
+  choice is therefore: (a) author them as **EIOS-011–014** and accept (or ADR-correct) the stale
+  frozen GEN-002/003 pointers; or (b) keep them as **GEN-002/003** within the Genesis-numbered
+  scheme while still treating them as first-class. A name/placement decision, not new
+  architecture; it does not block EIOS-010. The Part IV–V names ("Applications", "Engineering
+  Reference") remain a separate open re-decision.
 - **Q5 (BL-003/004/005):** Do the Intelligence and Opportunity portfolios become the 6th/7th
   portfolio abstractions, and which chapter owns each?
 - **Q6:** Part III REQ namespaces — e.g., `REQ-WI` (World Intelligence), `REQ-GEN` (Genesis)?
