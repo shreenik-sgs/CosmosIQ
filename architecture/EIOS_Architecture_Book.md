@@ -9,7 +9,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 1.7 |
+| Version | 1.8 |
 | Status | Canonical Source |
 | Authoritative | Yes |
 | Target Generator | Claude Code |
@@ -40,6 +40,7 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Confidence | The current scientific belief in an object or relationship; evolves continuously and is never silently overridden. | EIOS-002 | Evidence, Replay | Foundational |
 | Scientific Cognition | The architectural process turning knowledge into understanding: curiosity, mental modeling, inquiry, judgment, evolution. | EIOS-004 | Mental Model, Research Question | Foundational |
 | Mental Model | A temporary, domain-specific reasoning context derived from and synchronized with the World Model; never an independent source of truth. | EIOS-004 | World Model, Scientific Cognition | Foundational |
+| Model | A bounded, purpose-specific representation of part of reality, built to support explanation, prediction, simulation, reasoning, or decision; never reality itself. | EIOS-007 | Mental Model, World Model | Cognitive Architecture |
 | Replay | Historical replay: scientific re-validation against a point-in-time reconstruction of the world; a precondition of production. | EIOS-000 (CI-008) | Confidence, FI-002 | Constitutional |
 | Experience Layer | The accumulated record of past reasoning outcomes that continuously modifies future reasoning. | EIOS-003 (detailed in EIOS-008) | Scientific Cognition, Confidence | Foundational |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
@@ -71,17 +72,18 @@ Every architectural identifier belongs to exactly one namespace. New namespaces 
 |-----------|---------|------------------|---------|
 | CI | Constitutional Invariant | EIOS-000 (frozen; ADR-0006) | CI-008 Historical Replay Before Production |
 | FI | Foundational Principle (implements constitutional invariants) | EIOS-001 | FI-002 Replay-Driven Scientific Validation |
-| AR | Architectural Rule | EIOS-002 … EIOS-006 | AR-0609 Intelligence Graph derives from World Model |
+| AR | Architectural Rule | EIOS-002 … EIOS-007 | AR-0609 Intelligence Graph derives from World Model |
 | REQ-KO | Requirement — Knowledge Objects | EIOS-002 | REQ-KO-002 Provenance Tracking |
 | REQ-SC | Requirement — Scientific Cognition | EIOS-004 | REQ-SC-008 Scientific Judgment |
 | REQ-ST | Requirement — Systems Theory | EIOS-005 | REQ-ST-015 Bottleneck Analysis |
 | REQ-ISI | Requirement — Interconnected Systems Intelligence | EIOS-006 | REQ-ISI-011 Decision Graph Representation |
+| REQ-MD | Requirement — Models & Model Management | EIOS-007 | REQ-MD-005 Uncertainty Representation |
 
 ---
 
 <!-- BOOK-METADATA
 book_id: EIOS
-version: 1.7
+version: 1.8
 authoritative: true
 target_generator: Claude Code
 -->
@@ -3352,7 +3354,290 @@ Referenced by:
 
 <!-- BEGIN:PART:COGNITIVE_ARCHITECTURE -->
 
-_This Part is reserved. No chapters are defined yet._
+## CHAPTER EIOS-007 — Models & Model Management
+
+<!-- SLUG: models-and-model-management -->
+
+<!-- BEGIN:CHAPTER:EIOS-007 -->
+
+**Chapter Class:** Cognitive Architecture
+
+### Purpose
+
+The purpose of this chapter is to define the architectural foundation for models within EIOS.
+
+Every act of explanation, prediction, simulation, reasoning, or decision relies upon one or more models.
+
+Models are therefore first-class architectural objects.
+
+This chapter establishes what a model is, how it is represented, how it is governed, and the architectural principles that every model SHALL satisfy.
+
+Subsequent manuscript increments extend this chapter with taxonomy, lifecycle, composition, governance, validation, replay, and evolution.
+
+---
+
+### Conformance
+
+This chapter SHALL conform to:
+
+* EIOS-000 — Constitution
+* EIOS-001 — Purpose
+* EIOS-002 — Knowledge Model
+* EIOS-003 — World Model
+* EIOS-004 — Computational Scientific Cognition
+* EIOS-005 — Systems Theory
+* EIOS-006 — Interconnected Systems Intelligence
+
+---
+
+### Canonical Definition
+
+A Model is a bounded, purpose-specific computational or conceptual representation of one or more aspects of reality constructed to support explanation, prediction, simulation, reasoning, or decision making.
+
+Models are representations.
+
+They are never reality itself.
+
+---
+
+### Fundamental Properties
+
+Every model SHALL possess:
+
+* Identity
+* Purpose
+* Scope
+* Assumptions
+* Constraints
+* Inputs
+* Outputs
+* Validity Domain
+* Confidence
+* Provenance
+* Version
+* Owner
+* Lifecycle State
+
+These properties constitute the canonical architectural contract for models.
+
+---
+
+### Models as First-Class Objects
+
+Models SHALL be represented as canonical objects within the Knowledge Model.
+
+They SHALL possess stable identity independent of any implementation.
+
+A model MAY exist:
+
+* conceptually
+* mathematically
+* computationally
+* statistically
+* symbolically
+* procedurally
+
+The architectural definition remains independent of implementation technology.
+
+---
+
+### Bounded Representations
+
+Every model represents only part of reality.
+
+No model SHALL claim universal validity.
+
+Every model SHALL explicitly define:
+
+* what it explains
+* what it predicts
+* what it ignores
+* where it is applicable
+* where it is not applicable
+
+Explicit boundaries reduce misuse and overgeneralization.
+
+---
+
+### Assumptions
+
+Every model is built upon assumptions.
+
+Assumptions SHALL be explicit.
+
+Examples include:
+
+* linearity
+* market efficiency
+* rational behavior
+* fixed regulations
+* unlimited resources
+* stationary distributions
+
+Reasoning engines SHALL be able to inspect assumptions.
+
+---
+
+### Validity Domains
+
+Models remain valid only within specific domains.
+
+Illustrative validity domains include:
+
+* industries
+* technologies
+* geographic regions
+* historical periods
+* market regimes
+* scientific disciplines
+
+Use outside the declared validity domain SHALL reduce confidence.
+
+---
+
+### Uncertainty
+
+Every model contains uncertainty.
+
+Uncertainty SHALL be represented explicitly.
+
+Illustrative sources include:
+
+* incomplete observations
+* measurement error
+* unknown causal mechanisms
+* changing environments
+* stochastic behavior
+
+Absence of uncertainty representation SHALL be treated as an architectural defect.
+
+---
+
+### Explainability
+
+Every model SHALL produce explanations sufficient for replay and scientific review.
+
+Explanation SHALL include:
+
+* evidence utilized
+* assumptions applied
+* reasoning trace
+* confidence
+* principal contributing factors
+
+Opaque conclusions SHALL be considered incomplete.
+
+---
+
+### Replayability
+
+Every model SHALL support historical replay.
+
+Replay SHALL enable reconstruction of:
+
+* inputs
+* assumptions
+* evidence
+* intermediate reasoning
+* outputs
+
+Replay exists to support scientific validation rather than debugging alone.
+
+---
+
+### Competing Models
+
+Multiple models MAY coexist for the same phenomenon.
+
+The architecture SHALL encourage competing explanations.
+
+Selection among competing models SHALL be evidence-driven rather than predetermined.
+
+---
+
+### Model Independence
+
+Applications SHALL depend upon model interfaces rather than specific model implementations.
+
+Models MAY therefore be replaced, improved, or retired without architectural disruption.
+
+---
+
+### Separation of Representation and Execution
+
+A model definition is distinct from model execution.
+
+The architecture SHALL distinguish:
+
+Model Definition
+
+↓
+
+Model Instance
+
+↓
+
+Execution Context
+
+↓
+
+Execution Result
+
+This separation enables deterministic replay, simulation, comparison, and auditing.
+
+---
+
+### Architectural Rules
+
+- **AR-0701** — Every model SHALL possess a unique identity.
+- **AR-0702** — Every model SHALL declare its purpose.
+- **AR-0703** — Every model SHALL declare assumptions.
+- **AR-0704** — Every model SHALL define its validity domain.
+- **AR-0705** — Every model SHALL represent uncertainty explicitly.
+- **AR-0706** — Every model SHALL support explainability.
+- **AR-0707** — Every model SHALL support replay.
+- **AR-0708** — Competing models SHALL be permitted.
+- **AR-0709** — Model definition SHALL remain independent of execution.
+- **AR-0710** — Applications SHALL depend upon model interfaces rather than implementations.
+
+---
+
+### Requirements Introduced
+
+- **REQ-MD-001** — Canonical Model Definition
+- **REQ-MD-002** — Model Identity
+- **REQ-MD-003** — Assumption Representation
+- **REQ-MD-004** — Validity Domains
+- **REQ-MD-005** — Uncertainty Representation
+- **REQ-MD-006** — Explainability
+- **REQ-MD-007** — Replay Support
+- **REQ-MD-008** — Model Independence
+- **REQ-MD-009** — Model Interfaces
+- **REQ-MD-010** — Execution Separation
+
+---
+
+### Future Dependencies
+
+Referenced by:
+
+* EIOS-008 — Experience Layer
+* EIOS-009 — Scientific Discovery
+* GEN-001 — Genesis Discovery Engine
+* GEN-002 — Technology Intelligence Engine
+* GEN-003 — Economic Intelligence Engine
+* PROM-001 — Investment Thesis Engine
+* Personal CIO
+
+---
+
+### Cross References
+
+- **Conforms To:** EIOS-000; EIOS-001; EIOS-002; EIOS-003; EIOS-004; EIOS-005; EIOS-006
+- **Defines:** Model; Model Identity; Model Purpose; Model Assumptions; Validity Domain; Model Uncertainty; Explainability; Replayability; Model Interface; Model Execution
+- **Referenced By:** All reasoning, simulation, prediction, optimization, discovery, investment, orchestration, and autonomous intelligence subsystems
+
+<!-- END:CHAPTER:EIOS-007 -->
 
 <!-- END:PART:COGNITIVE_ARCHITECTURE -->
 
