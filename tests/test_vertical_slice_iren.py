@@ -112,17 +112,31 @@ class TestVerticalSliceIREN(unittest.TestCase):
         bound = {ref.object_id for ref in self.r.assessment.provenance.sources}
         self.assertEqual(bound, {o.id for o in self.r.observations})
 
-    def test_assessment_is_synthesised_from_observations(self):
+    def test_assessment_is_inferred_from_observations(self):
         ia = self.r.assessment
         self.assertEqual(ia.domain, "ai-infrastructure")
-        self.assertIn("improving", ia.current_assessment)  # 3 supportive vs 1 contradictory
-        self.assertTrue(ia.contradictions)                 # the analyst note contradicts
+        # The assessment INFERS typed signals from the structured observations...
+        self.assertGreaterEqual(len(ia.signals), 1)
+        # ...surfaces at least one weak signal (the novel, lightly-sourced constraint)...
+        self.assertGreaterEqual(len(ia.weak_signals), 1)
+        # ...detects a constraint OR readiness indicator...
+        self.assertTrue(ia.constraint_indicators or ia.readiness_indicators)
+        # ...and an adoption OR economic-inflection indicator...
+        self.assertTrue(ia.adoption_indicators or ia.economic_inflection_indicators)
+        # ...with exact version-bound provenance to the observations.
         self.assertEqual(len(ia.grounding_observation_ids), len(self.r.observations))
+        for o in self.r.observations:
+            ref = next(r for r in ia.provenance.sources if r.object_id == o.id)
+            self.assertEqual(ref.version, o.version)
 
     def test_assessment_has_no_investment_leakage(self):
         ia = self.r.assessment
-        blob = " ".join([ia.current_assessment, " ".join(ia.contradictions),
-                         " ".join(ia.uncertainty)]).lower()
+        blob = " ".join([
+            ia.current_assessment, ia.domain_reality_change,
+            " ".join(ia.constraint_indicators), " ".join(ia.readiness_indicators),
+            " ".join(ia.adoption_indicators), " ".join(ia.economic_inflection_indicators),
+            " ".join(ia.contradictions), " ".join(ia.uncertainty),
+        ]).lower()
         for term in ("buy", "sell", "price target", "investment", "opportunity", "thesis"):
             self.assertNotIn(term, blob)
 

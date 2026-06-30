@@ -71,40 +71,59 @@ class SliceResult:
 def iren_source_observations(now):
     """The concrete, manually-supplied source material the IREN slice begins from.
 
-    Four typed Observations in the AI-infrastructure / data-center power domain --
-    three supportive, one contradictory -- so the Intelligence Assessment is
-    genuinely synthesised (direction, significance, confidence, a contradiction
-    note), not pre-baked. The contradictory analyst note deliberately contains
-    investment language ("buy rating", "price target") in its raw excerpt to prove
-    the assessment never leaks it.
+    Five enriched Observations in the AI-infrastructure / data-center power domain.
+    None carries a hand-fed assessment verdict -- each carries only *structured raw
+    facts* (a metric move, an observed up/down/flat change, novelty / reliability
+    tags), from which Reality Intelligence INFERS the typed signals, the direction,
+    the significance, the confidence, the weak-signal set, and a contradiction note.
+
+    The set is constructed so the inference produces: a strong improving
+    readiness/capacity reading (metric value above prior), an improving readiness
+    milestone, a WEAK constraint signal (an observed deterioration that is highly
+    novel but only moderately reliable and uncorroborated), an improving adoption
+    signal, and a deteriorating economic-inflection reading that contradicts the
+    rest. The contradictory analyst note deliberately carries investment language
+    ("buy rating", "price target") in its raw excerpt to prove the assessment never
+    leaks it.
     """
     return (
         make_source_observation(
             source_type="earnings_excerpt", domain="ai-infrastructure", entity="IREN",
             excerpt=("Operating capacity expanded; contracted data-center power capacity "
                      "increased quarter over quarter, with AI cloud compute revenue ramping."),
-            polarity="supportive", signal_strength=1.0, as_of="2026-Q1",
+            signal_type_hint="readiness",
+            metric_name="contracted_power_capacity_mw", metric_value=240.0, prior_value=200.0,
+            metric_unit="MW", as_of="2026-Q1",
             source_ref="IREN FY26 Q1 results", actor="analyst", now=now,
         ),
         make_source_observation(
             source_type="infrastructure_milestone", domain="ai-infrastructure", entity="IREN",
             excerpt=("Additional grid-connected megawatts energized at the Texas site; "
                      "power-secured buildout ahead of prior schedule."),
-            polarity="supportive", signal_strength=1.0, metric={"power_mw_added": 200},
-            as_of="2026-05", source_ref="company infrastructure update", actor="analyst", now=now,
+            observed_change="up", metric_name="energized_power_mw", metric_value=200.0,
+            metric_unit="MW", as_of="2026-05",
+            source_ref="company infrastructure update", actor="analyst", now=now,
         ),
         make_source_observation(
             source_type="capacity_power_demand_signal", domain="ai-infrastructure", entity="IREN",
-            excerpt=("Demand for power-secured data-center capacity is rising while available "
-                     "grid power is the binding constraint across the sector."),
-            polarity="supportive", signal_strength=0.8, as_of="2026-06",
-            source_ref="sector capacity/power signal", actor="analyst", now=now,
+            excerpt=("Available grid power is tightening as a binding constraint while demand "
+                     "for power-secured data-center capacity keeps rising across the sector."),
+            observed_change="down", novelty="high", source_reliability="moderate",
+            as_of="2026-06", source_ref="sector capacity/power signal", actor="analyst", now=now,
+        ),
+        make_source_observation(
+            source_type="news_excerpt", domain="ai-infrastructure", entity="IREN",
+            excerpt=("Hyperscaler interest in contracted AI compute capacity is broadening; "
+                     "adoption of power-secured colocation is accelerating."),
+            observed_change="up", as_of="2026-06",
+            source_ref="trade press", actor="analyst", now=now,
         ),
         make_source_observation(
             source_type="analyst_note_excerpt", domain="ai-infrastructure", entity="IREN",
-            excerpt=("Note flags financing and dilution risk and bitcoin-linked revenue "
-                     "volatility; analysts reiterate a buy rating and raise the price target."),
-            polarity="contradictory", signal_strength=0.6, as_of="2026-06",
+            excerpt="Note flags financing and dilution risk and bitcoin-linked revenue volatility.",
+            raw_excerpt=("Note flags financing and dilution risk and bitcoin-linked revenue "
+                         "volatility; analysts reiterate a buy rating and raise the price target."),
+            observed_change="down", source_reliability="moderate", as_of="2026-06",
             source_ref="sell-side note", actor="analyst", now=now,
         ),
     )
