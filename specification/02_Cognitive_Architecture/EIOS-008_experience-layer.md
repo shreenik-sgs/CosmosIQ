@@ -4,10 +4,10 @@ do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 chapter: EIOS-008
 slug: experience-layer
-book_version: 3.4
+book_version: 3.5
 generator_version: 1.1
-source_hash: 08a97fa5ce617bc9d1d62fd9ffe8b3c2eab223560e16db3e50c6748dd77f377c
-generated_at: 2026-06-29T22:56:31-05:00
+source_hash: 0e052c47d8cf2f6871b67ec81269649be99025c28db386f7055731192e06b4d0
+generated_at: 2026-06-29T23:05:02-05:00
 ---
 
 # EIOS-008 — Experience Layer
