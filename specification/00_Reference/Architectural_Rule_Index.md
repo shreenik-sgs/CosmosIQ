@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 7.0
+book_version: 8.0
 generator_version: 1.1
-source_hash: f1c04395f7d4b05211dc15cb7eed14fb8d84ff7f26e7e1cb79ca993299ae24c1
-generated_at: 2026-06-30T10:08:04-05:00
+source_hash: 4cdb6027d88e169366bda765e798e0b89736cdf69b9d414ab02765dda0f32c20
+generated_at: 2026-06-30T10:20:30-05:00
 ---
 
 # Architectural Rule Index
@@ -383,5 +383,24 @@ defines it. Compiled directly from the chapters — do not edit by hand.
 | AR-1618 | PROM-001 — Prometheus Capital Allocation Engine | Every Investment Thesis, Capital Allocation Recommendation, and Prometheus Decision Record SHALL be replayable and auditable, with prior versions preserved. |
 | AR-1619 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL recommend capital allocation and SHALL NOT execute trades, place orders, or operate live positions; execution belongs to consumers beyond this layer. |
 | AR-1620 | PROM-001 — Prometheus Capital Allocation Engine | Prometheus SHALL remain implementation independent. |
+| AR-1701 | CIO-001 — Personal CIO Engine | Personal CIO SHALL consume Prometheus outputs and adapt them to a single user's objectives, constraints, and preferences; it SHALL NOT form understanding, opportunities, investability, or the general capital-allocation machinery. |
+| AR-1702 | CIO-001 — Personal CIO Engine | Personalization SHALL begin at Personal CIO and SHALL NEVER flow downward into Prometheus, Genesis, Reality Intelligence, or Scientific Understanding. |
+| AR-1703 | CIO-001 — Personal CIO Engine | Personal CIO SHALL consume all ten Prometheus outputs by version and SHALL read them without ever mutating them. |
+| AR-1704 | CIO-001 — Personal CIO Engine | Every Personal CIO output SHALL be replayable, explainable, and auditable, binding the profile, Prometheus, opportunity, and understanding versions it was formed against. |
+| AR-1705 | CIO-001 — Personal CIO Engine | When Prometheus updates a thesis, recommendation, or decision record, or when the Personal Investment Profile changes, every affected Personal CIO output SHALL be re-evaluated; none SHALL silently retain a superseded grounding or profile. |
+| AR-1706 | CIO-001 — Personal CIO Engine | Personal CIO SHALL apply user-specific constraints and preferences to Prometheus outputs and SHALL NOT redefine the general capital-allocation machinery. |
+| AR-1707 | CIO-001 — Personal CIO Engine | Holistic portfolio construction — sizing logic, correlation budget, rebalancing, and full position-set optimization — SHALL belong to Prometheus and SHALL NOT be performed by Personal CIO. |
+| AR-1708 | CIO-001 — Personal CIO Engine | Personal CIO SHALL consume and adapt upstream understanding, opportunity, and allocation and SHALL NEVER rewrite, restate, or redefine them. |
+| AR-1709 | CIO-001 — Personal CIO Engine | The Personal Investment Profile SHALL be a specialized Knowledge Object conforming to the canonical structure defined by the Knowledge Model; it SHALL reference, and SHALL NOT redefine, existing canonical objects, and it SHALL be the only new canonical object introduced by Personal CIO. |
+| AR-1710 | CIO-001 — Personal CIO Engine | The Personal Investment Profile SHALL be versioned, and every personalization SHALL bind the profile version it was formed against. |
+| AR-1711 | CIO-001 — Personal CIO Engine | The Personalized Thesis View SHALL present Prometheus Investment Theses filtered and framed for the user without altering the underlying theses, preserving a faithful link to them. |
+| AR-1712 | CIO-001 — Personal CIO Engine | The Personalized Allocation View SHALL apply the user's account structure, holdings, position limits, and exclusions to Capital Allocation Recommendations, and SHALL NOT reconstruct the portfolio or re-derive allocation. |
+| AR-1713 | CIO-001 — Personal CIO Engine | The Personalized Risk View SHALL express Risk and Reward relative to the user's tolerance, liquidity, and horizon, preserving upstream uncertainty and never understating downside to suit preference. |
+| AR-1714 | CIO-001 — Personal CIO Engine | The Personalized Action Queue SHALL order available actions by the user's prioritization and upstream Timing-to-Action, and SHALL NOT execute them. |
+| AR-1715 | CIO-001 — Personal CIO Engine | Personalized Explanations SHALL render upstream reasoning in the user's communication style and preferred depth, and SHALL NEVER alter substance. |
+| AR-1716 | CIO-001 — Personal CIO Engine | Every Personal CIO recommendation SHALL be recorded in a Personal CIO Decision Record, which SHALL be a Decision (EIOS-002), preserving the profile version, grounding Prometheus outputs and versions, what was presented, and the rationale, complete enough to reconstruct and audit the personalization exactly. |
+| AR-1717 | CIO-001 — Personal CIO Engine | Personal CIO presented outputs SHALL be replayable and auditable, with prior versions preserved. |
+| AR-1718 | CIO-001 — Personal CIO Engine | Personal CIO SHALL present and recommend and SHALL NOT execute trades, place orders, or operate live positions; execution belongs to consumers beyond this layer. |
+| AR-1719 | CIO-001 — Personal CIO Engine | Personal CIO SHALL remain implementation independent. |
 
-_367 rules._
+_386 rules._

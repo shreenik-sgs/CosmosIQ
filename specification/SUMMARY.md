@@ -3,17 +3,17 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: summary
-book_version: 7.0
+book_version: 8.0
 generator_version: 1.1
-source_hash: f1c04395f7d4b05211dc15cb7eed14fb8d84ff7f26e7e1cb79ca993299ae24c1
-generated_at: 2026-06-30T10:08:04-05:00
+source_hash: 4cdb6027d88e169366bda765e798e0b89736cdf69b9d414ab02765dda0f32c20
+generated_at: 2026-06-30T10:20:30-05:00
 ---
 
 # Economic Intelligence Operating System
 
 ## Architecture Book
 
-Version 7.0
+Version 8.0
 
 Compiled from `architecture/EIOS_Architecture_Book.md`.
 
@@ -55,3 +55,7 @@ Compiled from `architecture/EIOS_Architecture_Book.md`.
 ### Part V — Capital Allocation
 
 - [PROM-001 — Prometheus Capital Allocation Engine](05_Capital_Allocation/PROM-001_prometheus-capital-allocation-engine.md)
+
+### Part VI — Personal CIO
+
+- [CIO-001 — Personal CIO Engine](06_Personal_CIO/CIO-001_personal-cio-engine.md)

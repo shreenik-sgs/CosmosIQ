@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: glossary
-book_version: 7.0
+book_version: 8.0
 generator_version: 1.1
-source_hash: f1c04395f7d4b05211dc15cb7eed14fb8d84ff7f26e7e1cb79ca993299ae24c1
-generated_at: 2026-06-30T10:08:04-05:00
+source_hash: 4cdb6027d88e169366bda765e798e0b89736cdf69b9d414ab02765dda0f32c20
+generated_at: 2026-06-30T10:20:30-05:00
 ---
 
 # Glossary
@@ -83,6 +83,9 @@ This is the **Architectural Lexicon** of EIOS: every first-class architectural c
 | Investment Thesis | The canonical object of the capital-allocation layer: the reasoned, version-pinned, replayable case for whether, how, when, and through what instruments to invest in an Opportunity. A specialized Knowledge Object (EIOS-002); competing theses are preserved. | PROM-001 | Prometheus, Opportunity | Capital Allocation |
 | Capital Allocation Recommendation | Prometheus's recommendation of how much capital, in what structure, and under what conditions an Investment Thesis warrants; a recommendation only — Prometheus never executes it. | PROM-001 | Investment Thesis, Prometheus | Capital Allocation |
 | Prometheus Decision Record | The auditable record of a Prometheus investment decision — a Decision (EIOS-002) preserving the thesis, grounding versions, recommendation, rationale, and alternatives, complete enough to reconstruct and audit the decision. | PROM-001 | Investment Thesis, Decision | Capital Allocation |
+| Personal CIO | The Personalization engine (Part VI): the consumer of Prometheus that adapts investment outputs to the individual user — objectives, constraints, preferences, and voice. It personalizes; it never reconstructs the portfolio or rewrites upstream reasoning. | CIO-001 | Personal Investment Profile, Prometheus | Personal CIO |
+| Personal Investment Profile | The canonical object of the personalization layer: the versioned model of the user for investment — objectives, risk tolerance, liquidity, tax, horizon, account structure, holdings, limits, preferences and exclusions, communication style, action prioritization. A specialized Knowledge Object (EIOS-002). | CIO-001 | Personal CIO | Personal CIO |
+| Personal CIO Decision Record | The auditable record of a Personal CIO recommendation to a user — a Decision (EIOS-002) preserving the profile version, grounding Prometheus outputs and versions, what was presented, and the rationale. | CIO-001 | Personal Investment Profile, Decision | Personal CIO |
 | World Model | The continuously evolving cognitive representation of reality built from the Knowledge Graph; the primary product and sole authoritative representation of reality. | EIOS-003 | Knowledge Graph, Intelligence Graph | Foundational |
 | World Model View | A persistent projection of the World Model optimized for a class of investigations; derived from and subordinate to the World Model. | EIOS-003 | World Model | Foundational |
 | Event | A discrete occurrence that modifies system state; distinct from state (state is what exists, an event is what caused change). | EIOS-003 | World Model | Foundational |
