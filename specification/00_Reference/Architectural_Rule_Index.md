@@ -3,10 +3,10 @@ generated: true
 do_not_edit: true
 canonical_source: architecture/EIOS_Architecture_Book.md
 kind: ar-index
-book_version: 2.5
+book_version: 2.6
 generator_version: 1.1
-source_hash: 099df96e32a4a68ac604fafba178c216c8cbb03c2ebc7f88cae6b9ed0c3148d6
-generated_at: 2026-06-29T22:05:40-05:00
+source_hash: 14bd19f4ae1e9d3b63f4436b5bdd8937a5b98ad92395ce185afc66321e568adc
+generated_at: 2026-06-29T22:11:03-05:00
 ---
 
 # Architectural Rule Index
