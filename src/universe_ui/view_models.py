@@ -40,6 +40,17 @@ SECURITY_MAPPING_QUALIFIER = (
 )
 
 
+def planet_universe_path(galaxy_slug: str, value_chain_slug: str, star_slug: str,
+                         ticker: str) -> str:
+    """The canonical zoom path to a planet inside the single universe canvas.
+
+    Shared by the universe renderer (which builds the matching level-panel) and the
+    dashboard "Locate in Universe" link, so the two never drift.
+    """
+    return "universe/g:{0}/t:{0}/vc:{1}/st:{2}/pl:{3}".format(
+        galaxy_slug, value_chain_slug, star_slug, slugify(ticker))
+
+
 # --------------------------------------------------------------------------- #
 # Purely-visual size encoding -- a bounded formatting helper, NOT a ranking    #
 # input. Size encodes economic MAGNITUDE (market_cap / TAM / revenue_pool /    #
@@ -156,6 +167,9 @@ class NodeView:
     candidate_companies: Tuple[str, ...]
     has_dynamic_evidence: bool          # always False in demo (static-terrain seam)
     dynamic_evidence_note: str
+    dependency_exposure: Optional[float]  # visual magnitude only (moon)
+    visual_size_px: int
+    magnitude_missing: bool
     data_origin: str
 
 
@@ -187,6 +201,7 @@ class PlanetCandidateView:
     visual_size_px: int                 # bounded log-scaled size (NOT a ranking input)
     magnitude_missing: bool             # True -> neutral size + data-gap marker
     glow_level: int                     # brightness tier from status (NOT from size)
+    universe_path: str                  # canonical zoom path into the universe canvas
     data_origin: str
 
 
@@ -221,6 +236,7 @@ class CandidateCardView:
     visual_size_px: int                 # bounded log-scaled size (NOT a ranking input)
     magnitude_missing: bool
     glow_level: int                     # brightness tier from status (NOT from size)
+    universe_path: str                  # canonical zoom path (for "Locate in Universe")
     data_origin: str
 
 
@@ -269,6 +285,9 @@ class StarBottleneckView:
     resolution_risk: str
     evidence: Tuple[str, ...]
     data_gaps: Tuple[str, ...]
+    bottleneck_economic_importance: Optional[float]
+    visual_size_px: int
+    magnitude_missing: bool
     data_origin: str
 
 
@@ -282,6 +301,9 @@ class SolarSystemValueChainView:
     nodes: Tuple[NodeView, ...]
     security_mapping_qualifier: str
     node_ticker_map: Tuple[Tuple[str, Tuple[str, ...]], ...]  # (node role, tickers) AFTER chain
+    value_chain_revenue_pool: Optional[float]
+    visual_size_px: int
+    magnitude_missing: bool
     data_origin: str
 
 
@@ -434,8 +456,9 @@ def _iren_real_status(iren_slice) -> dict:
 # --------------------------------------------------------------------------- #
 # Builders                                                                     #
 # --------------------------------------------------------------------------- #
-def _planet_view(galaxy: DemoGalaxy, planet: DemoPlanet, iren_slice) -> PlanetCandidateView:
-    locate = "galaxy.html#g-{0}".format(galaxy.slug)
+def _planet_view(galaxy: DemoGalaxy, planet: DemoPlanet, iren_slice,
+                 universe_path: str = "") -> PlanetCandidateView:
+    locate = "universe.html#focus={0}".format(universe_path)
     magnitude_missing = planet.market_cap is None
     size_px = visual_size(planet.market_cap, "planet")
     if planet.is_real and iren_slice is not None:
@@ -461,6 +484,7 @@ def _planet_view(galaxy: DemoGalaxy, planet: DemoPlanet, iren_slice) -> PlanetCa
             glow_level=glow_level(investability_label=st["investability_label"],
                                   timing_label=st["timing_label"],
                                   recommendation_label=st["recommendation_label"]),
+            universe_path=universe_path,
             data_origin="LIVE-FIXTURE",
         )
     return PlanetCandidateView(
@@ -482,6 +506,7 @@ def _planet_view(galaxy: DemoGalaxy, planet: DemoPlanet, iren_slice) -> PlanetCa
         glow_level=glow_level(investability_label=planet.investability_label,
                               timing_label=planet.timing_label,
                               recommendation_label=planet.recommendation_label),
+        universe_path=universe_path,
         data_origin=planet.data_origin,
     )
 
@@ -495,6 +520,9 @@ def _node_view(node) -> NodeView:
         has_dynamic_evidence=bool(node.dynamic_evidence),
         dynamic_evidence_note=("live delta attached" if node.dynamic_evidence
                                else "static terrain — no dynamic evidence delta (demo)"),
+        dependency_exposure=node.dependency_exposure,
+        visual_size_px=visual_size(node.dependency_exposure, "moon"),
+        magnitude_missing=(node.dependency_exposure is None),
         data_origin=node.data_origin,
     )
 
@@ -508,7 +536,11 @@ def _solar_system_view(galaxy: DemoGalaxy, ss) -> SolarSystemValueChainView:
         name=ss.name, slug="{0}--{1}".format(galaxy.slug, slugify(ss.name)),
         description=ss.description, nodes=nodes,
         security_mapping_qualifier=SECURITY_MAPPING_QUALIFIER,
-        node_ticker_map=ticker_map, data_origin=ss.data_origin,
+        node_ticker_map=ticker_map,
+        value_chain_revenue_pool=ss.value_chain_revenue_pool,
+        visual_size_px=visual_size(ss.value_chain_revenue_pool, "solar_system"),
+        magnitude_missing=(ss.value_chain_revenue_pool is None),
+        data_origin=ss.data_origin,
     )
 
 
@@ -520,7 +552,11 @@ def _star_view(galaxy: DemoGalaxy, star, index: int) -> StarBottleneckView:
         severity=star.severity, duration=star.duration,
         beneficiaries=tuple(star.beneficiaries), losers=tuple(star.losers),
         resolution_risk=star.resolution_risk, evidence=tuple(star.evidence),
-        data_gaps=tuple(star.data_gaps), data_origin=star.data_origin,
+        data_gaps=tuple(star.data_gaps),
+        bottleneck_economic_importance=star.bottleneck_economic_importance,
+        visual_size_px=visual_size(star.bottleneck_economic_importance, "star"),
+        magnitude_missing=(star.bottleneck_economic_importance is None),
+        data_origin=star.data_origin,
     )
 
 
@@ -542,6 +578,15 @@ def _cluster_view(galaxy: DemoGalaxy) -> GalaxyClusterView:
 
 
 def _theme_view(galaxy: DemoGalaxy, iren_slice) -> GalaxyThemeView:
+    ss_views = tuple(_solar_system_view(galaxy, ss) for ss in galaxy.solar_systems)
+    star_views = tuple(_star_view(galaxy, s, i) for i, s in enumerate(galaxy.stars))
+    # All of a galaxy's planets hang off its first value chain + first bottleneck star.
+    vc0 = ss_views[0].slug if ss_views else "vc0"
+    star0 = star_views[0].slug if star_views else "star0"
+    planets = tuple(
+        _planet_view(galaxy, p, iren_slice,
+                     universe_path=planet_universe_path(galaxy.slug, vc0, star0, p.ticker))
+        for p in galaxy.planets)
     return GalaxyThemeView(
         cluster=_cluster_view(galaxy),
         why_now=galaxy.why_now, why_before_obvious=galaxy.why_before_obvious,
@@ -550,9 +595,7 @@ def _theme_view(galaxy: DemoGalaxy, iren_slice) -> GalaxyThemeView:
         positive_catalysts=tuple(galaxy.positive_catalysts),
         negative_catalysts=tuple(galaxy.negative_catalysts),
         red_team_notes=tuple(galaxy.red_team_notes), data_gaps=tuple(galaxy.data_gaps),
-        solar_systems=tuple(_solar_system_view(galaxy, ss) for ss in galaxy.solar_systems),
-        stars=tuple(_star_view(galaxy, s, i) for i, s in enumerate(galaxy.stars)),
-        planets=tuple(_planet_view(galaxy, p, iren_slice) for p in galaxy.planets),
+        solar_systems=ss_views, stars=star_views, planets=planets,
     )
 
 
@@ -577,6 +620,7 @@ def _card_from_planet(p: PlanetCandidateView) -> CandidateCardView:
         source_authority_badges=p.source_authority_badges,
         market_cap=p.market_cap, visual_size_px=p.visual_size_px,
         magnitude_missing=p.magnitude_missing, glow_level=p.glow_level,
+        universe_path=p.universe_path,
         data_origin=p.data_origin,
     )
 

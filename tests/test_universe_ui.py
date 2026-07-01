@@ -54,8 +54,12 @@ from universe_ui.view_models import (
 )
 from universe_ui.demo_universe import DemoPlanet, build_demo_universe
 
-_PAGES = ("universe.html", "galaxy.html", "solar_system.html", "star.html",
-          "cockpit.html", "dashboard.html", "data_quality.html")
+# Three top-level product sections + the cockpit (opened FROM a planet). Galaxy /
+# value-chain / bottleneck are zoom LEVELS inside universe.html, not separate pages.
+_PAGES = ("universe.html", "dashboard.html", "data_quality.html", "cockpit.html")
+
+# Pages that must NOT exist as separate primary pages any more.
+_REMOVED_PAGES = ("galaxy.html", "solar_system.html", "star.html")
 
 _UNIVERSE_UI_DIR = os.path.join(_SRC, "universe_ui")
 
@@ -85,13 +89,31 @@ class UniverseUIBuildTests(unittest.TestCase):
         cls.slice = load_iren_slice()
         cls.view = build_economic_universe_view(cls.slice)
 
-    # --- A-G: all seven pages produced ------------------------------------
-    def test_all_seven_pages_and_assets_written(self):
+    # --- four top-level artifacts produced --------------------------------
+    def test_all_pages_and_assets_written(self):
         for name in _PAGES:
             self.assertTrue(os.path.isfile(self.paths[name]), name)
         self.assertEqual(tuple(PAGE_ORDER), _PAGES)
         self.assertTrue(os.path.isfile(self.paths["assets/universe.css"]))
         self.assertTrue(os.path.isfile(self.paths["assets/universe.js"]))
+
+    # --- galaxy / value-chain / star are NOT separate primary pages -------
+    def test_entity_pages_are_not_top_level(self):
+        for name in _REMOVED_PAGES:
+            self.assertNotIn(name, self.paths)
+            self.assertFalse(os.path.isfile(os.path.join(self._tmp, name)),
+                             "{0} should not be generated".format(name))
+        # The top nav must list only Universe / Dashboard / Data-Quality.
+        for page, h in self.html.items():
+            if page == "cockpit.html":
+                continue  # cockpit has its own back-strip, checked separately
+            navbar = h.split('<div class="wrap">')[0]
+            for name in _REMOVED_PAGES:
+                self.assertNotIn('href="{0}"'.format(name), navbar,
+                                 "{0} nav lists {1}".format(page, name))
+            self.assertIn('href="universe.html"', navbar)
+            self.assertIn('href="dashboard.html"', navbar)
+            self.assertIn('href="data_quality.html"', navbar)
 
     # --- persistent status strip on EVERY page ----------------------------
     def test_every_page_has_status_strip(self):
@@ -111,11 +133,12 @@ class UniverseUIBuildTests(unittest.TestCase):
 
     # --- ticker/security mapping only AFTER value-chain/winner -------------
     def test_ticker_mapping_carries_after_value_chain_qualifier(self):
-        # The qualifier text is present on the value-chain and candidate views.
-        self.assertIn("derived after value-chain", self.html["solar_system.html"].lower())
+        # The qualifier appears at the value-chain zoom level inside the one universe
+        # page and on the candidate cards -- never as the entry point.
+        u = self.html["universe.html"].lower()
+        self.assertIn("derived after value-chain", u)
         self.assertIn("derived after value-chain", self.html["dashboard.html"].lower())
-        # And the qualifier explicitly marks it as NOT the entry point.
-        self.assertIn("never the entry point", self.html["solar_system.html"].lower())
+        self.assertIn("never the entry point", u)
 
     # --- data gaps / conflicts / authority badges render ------------------
     def test_data_gaps_and_conflicts_and_authority_badges(self):
@@ -128,11 +151,13 @@ class UniverseUIBuildTests(unittest.TestCase):
         self.assertIn("SEC canonical", dq)
         self.assertIn("FMP convenience", dq)
         self.assertIn("yfinance fallback", dq)
-        # gaps visible on galaxy + solar pages too
-        self.assertIn("Data gaps", self.html["galaxy.html"])
-        self.assertIn("Missing data", self.html["solar_system.html"])
-        # source-authority badges on the IREN dashboard card
+        # gaps + missing-data visible at the zoom levels inside the one universe page
+        u = self.html["universe.html"]
+        self.assertIn("Data gaps", u)
+        self.assertIn("Missing", u)
+        # source-authority badges on the IREN dashboard card AND in the universe pane
         self.assertIn("SEC canonical", self.html["dashboard.html"])
+        self.assertIn("SEC canonical", u)
 
     # --- cockpit page via the ACCEPTED renderer ---------------------------
     def test_cockpit_page_uses_accepted_renderer_markers(self):
@@ -213,6 +238,88 @@ class UniverseUIBuildTests(unittest.TestCase):
             evidence_count=2)
         self.assertEqual(primary, "Blocked/Avoid")
         self.assertIn("Red-Team Alerts", cross)
+
+
+class ZoomableUniverseTests(unittest.TestCase):
+    """The Economic Universe is ONE two-pane zoomable page (010A-R)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._tmp = tempfile.mkdtemp(prefix="universe_zoom_")
+        cls.paths = _build(cls._tmp)
+        with open(cls.paths["universe.html"], encoding="utf-8") as fh:
+            cls.u = fh.read()
+        with open(cls.paths["dashboard.html"], encoding="utf-8") as fh:
+            cls.d = fh.read()
+        cls.slice = load_iren_slice()
+        cls.view = build_economic_universe_view(cls.slice)
+
+    # --- two distinct panes in ONE page -----------------------------------
+    def test_two_pane_regions_present(self):
+        self.assertIn('id="top-canvas"', self.u)      # dominant interactive canvas
+        self.assertIn('id="intel-pane"', self.u)      # dynamic bottom intelligence pane
+        self.assertIn('id="intel-body"', self.u)
+
+    # --- all zoom levels embedded as level-panels in the ONE page ---------
+    def test_all_zoom_levels_present_in_one_page(self):
+        for level in range(0, 6):
+            self.assertIn('data-level="{0}"'.format(level), self.u,
+                          "missing zoom level {0}".format(level))
+        for kind in ("galaxy", "theme", "value_chain", "star", "planet", "moon"):
+            self.assertIn('data-kind="{0}"'.format(kind), self.u,
+                          "missing cosmic-object kind {0}".format(kind))
+
+    # --- breadcrumb + zoom-in objects + zoom-out/back control -------------
+    def test_breadcrumb_and_zoom_controls_render(self):
+        self.assertIn('id="breadcrumb"', self.u)
+        self.assertIn("data-crumb=", self.u)               # per-level breadcrumb labels
+        self.assertIn('id="zoom-back"', self.u)            # zoom-out / back control
+        self.assertIn("data-target-path=", self.u)         # zoom-in affordance on objects
+        self.assertIn("data-parent=", self.u)              # back walks the parent chain
+
+    # --- each object type has a bottom-pane intelligence template ---------
+    def test_each_object_type_has_intel_template(self):
+        # The intel templates carry per-type headings.
+        for marker in ("Universe — Intelligence Pane", "Galaxy / Megatrend",
+                       "Milky Way / Theme", "Solar System / Value Chain",
+                       "Bottleneck Star", "Planet / Company", "Moon / Supplier"):
+            self.assertIn(marker, self.u, "missing intel template: {0}".format(marker))
+        self.assertIn('class="intel-template"', self.u)
+
+    # --- bottom pane has diagram/table sections for value-chain + star ----
+    def test_bottom_pane_has_diagrams(self):
+        self.assertIn("flow-diagram", self.u)          # value-chain flow diagram
+        self.assertIn("bottleneck-diagram", self.u)    # bottleneck explanation diagram
+
+    # --- bottom pane surfaces data gaps AND source-authority badges -------
+    def test_bottom_pane_shows_gaps_and_authority(self):
+        self.assertIn("SEC canonical", self.u)         # source-authority coverage
+        self.assertIn("Data gaps", self.u)             # gaps never hidden
+
+    # --- dashboard Locate targets a planet path that exists in the canvas -
+    def test_dashboard_locate_targets_universe_path(self):
+        hrefs = re.findall(r'href="(universe\.html#focus=[^"]+)"', self.d)
+        iren = [h for h in hrefs if "pl:iren" in h]
+        self.assertTrue(iren, "no IREN Locate-in-Universe link on the dashboard")
+        path = iren[0].split("#focus=")[1]
+        # the focused path must exist as a level-panel in the one universe page
+        self.assertIn('data-path="{0}"'.format(path), self.u)
+        self.assertIn("Locate in Universe", self.d)
+
+    # --- the planet template exposes the accepted cockpit link ------------
+    def test_planet_template_exposes_cockpit_link(self):
+        self.assertIn("Open Cockpit", self.d)
+        self.assertIn('href="cockpit.html"', self.u)   # from the IREN planet template
+
+    # --- deep-link + hierarchy powered by navigation-only JS --------------
+    def test_zoom_js_is_navigation_only(self):
+        with open(self.paths["assets/universe.js"], encoding="utf-8") as fh:
+            js = fh.read().lower()
+        self.assertIn("addeventlistener", js)
+        self.assertIn("focus", js)                      # deep-link focus handler
+        for banned in ("fetch(", "xmlhttprequest", "websocket", ".submit(",
+                       "document.write", "eval("):
+            self.assertNotIn(banned, js, "zoom JS contains banned call: {0}".format(banned))
 
 
 class VisualSizeEncodingTests(unittest.TestCase):

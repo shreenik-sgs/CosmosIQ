@@ -18,9 +18,10 @@ from .iren_slice import load_iren_slice
 from .render import render_all_pages
 from .view_models import build_economic_universe_view
 
+# Three top-level sections + the cockpit (opened FROM a planet). Galaxy / value-chain
+# / bottleneck are zoom LEVELS inside universe.html, not separate pages.
 PAGE_ORDER = (
-    "universe.html", "galaxy.html", "solar_system.html", "star.html",
-    "cockpit.html", "dashboard.html", "data_quality.html",
+    "universe.html", "dashboard.html", "data_quality.html", "cockpit.html",
 )
 
 

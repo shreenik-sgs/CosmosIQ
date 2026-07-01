@@ -1,23 +1,31 @@
-"""Deterministic static-HTML renderer for the Economic Universe UI (010A).
+"""Deterministic static-HTML renderer for the Economic Universe UI (010A-R).
 
 PRESENTATION ONLY. Renders the read-only :mod:`universe_ui.view_models` projections
-into seven self-contained static HTML pages with a cosmic command-center theme. It
-copies and formats already-projected fields -- it scores nothing, reasons over
-nothing, ingests nothing, and originates no order.
+into four self-contained static pages with a cosmic command-center theme:
 
-Guarantees for every page it emits:
+* ``universe.html`` — ONE interactive, zoomable Economic Universe page using a
+  TWO-PANE model: a dominant TOP canvas (the Infinite Canvas: Universe → galaxy →
+  theme → value-chain → bottleneck star → planet → moon, as zoom LEVELS inside one
+  page) and a BOTTOM Intelligence Pane that re-renders for the currently selected
+  object. Galaxy / Value-Chain / Star are zoom levels here, NOT separate pages.
+* ``dashboard.html`` — the CIO candidate buckets (each card has "Locate in Universe"
+  + "Open Cockpit").
+* ``data_quality.html`` — provenance / source authority / gaps.
+* ``cockpit.html`` — the ACCEPTED ``render_cockpit_html`` output for the one real
+  planet (IREN), opened FROM a planet (not a top-level tab).
 
-* A persistent status strip: ``Mode: fixture/demo · Live data: not enabled ·
-  Scheduler: not enabled · Broker automation: disabled · Manual review required``.
+Guarantees for every page:
+
+* Persistent status strip (fixture/demo · live not enabled · scheduler off · broker
+  disabled · manual review).
 * NO ``<form>``, NO ``<button>``, no ``onclick``, no ``type="submit"``, no
-  ``fetch``/``XHR``, and no buy/sell/place-order affordance. Navigation is
-  ``<a href>`` links plus navigation-only JS (tab/collapse toggles).
-* Data gaps, conflicts, and source-authority badges are always rendered -- never
-  hidden inside a collapsible region.
-* Deterministic: a pure function of the view -- the same view renders byte-identically.
-
-The IREN cockpit page is the ACCEPTED ``render_cockpit_html`` output, wrapped with a
-status strip + nav (not reimplemented).
+  ``fetch``/``XHR``, no buy/sell/place-order affordance. Navigation is ``<a href>``
+  links plus navigation-only JS (zoom show/hide, breadcrumb, back, deep-link focus,
+  bottom-pane swap, collapse) — it copies pre-rendered DOM and can never hide a gap.
+* Visual object SIZE encodes economic magnitude (bounded log) and stays DECOUPLED
+  from ranking / heat / buckets.
+* Data gaps, conflicts and source-authority badges are always rendered.
+* Deterministic: a pure function of the view — byte-identical across builds.
 """
 
 from __future__ import annotations
@@ -36,6 +44,7 @@ from .view_models import (
     EconomicUniverseView,
     GalaxyClusterView,
     GalaxyThemeView,
+    NodeView,
     PlanetCandidateView,
     SolarSystemValueChainView,
     StarBottleneckView,
@@ -46,18 +55,14 @@ STATUS_STRIP_TEXT = (
     "· Broker automation: disabled · Manual review required"
 )
 
-# (label, filename) for the persistent nav.
+# Only THREE top-level product sections. The cockpit opens FROM a planet.
 _NAV = (
     ("Economic Universe", "universe.html"),
-    ("Galaxies", "galaxy.html"),
-    ("Value Chains", "solar_system.html"),
-    ("Bottleneck Stars", "star.html"),
-    ("IREN Cockpit", "cockpit.html"),
     ("CIO Dashboard", "dashboard.html"),
     ("Data Quality", "data_quality.html"),
 )
 
-_HEAT_CLASS = {"hot": "heat-hot", "warm": "heat-warm", "cool": "heat-cool", "dim": "heat-dim"}
+_HEAT_GLOW = {"hot": 3, "warm": 2, "cool": 2, "dim": 1}
 
 
 # --------------------------------------------------------------------------- #
@@ -75,6 +80,15 @@ def _quality_badge(quality: str) -> str:
     q = (quality or "").lower()
     cls = "q-{0}".format(q) if q in ("high", "medium", "low", "sparse") else ""
     return _badge("data quality: {0}".format(quality or "unknown"), cls)
+
+
+def _ev_class(quality: str) -> str:
+    q = (quality or "").lower()
+    if q == "sparse":
+        return "ev-sparse"
+    if q == "low":
+        return "ev-low"
+    return ""
 
 
 def _list(items: Iterable[Any], empty: str = "(none)") -> str:
@@ -106,6 +120,17 @@ def _command_bar(current_file: str) -> str:
     return '<div class="command-bar">{0}{1}</div>'.format(brand, "".join(links))
 
 
+def _footer() -> str:
+    return (
+        "<footer>"
+        "SUDARSHAN Economic Universe — IMPLEMENTATION-010A-R. Read-only projection of "
+        "existing pipeline statuses and hand-authored DEMO terrain. No live data, no "
+        "ranking, no scheduler, no broker, no order affordance. "
+        "Every candidate requires manual review."
+        "</footer>"
+    )
+
+
 def _page(title: str, current_file: str, body: str) -> str:
     parts = [
         "<!DOCTYPE html>",
@@ -131,17 +156,6 @@ def _page(title: str, current_file: str, body: str) -> str:
     return "\n".join(parts)
 
 
-def _footer() -> str:
-    return (
-        "<footer>"
-        "SUDARSHAN Economic Universe — IMPLEMENTATION-010A. Read-only projection of "
-        "existing pipeline statuses and hand-authored DEMO terrain. No live data, no "
-        "ranking, no scheduler, no broker, no order affordance. "
-        "Every candidate requires manual review."
-        "</footer>"
-    )
-
-
 def _money(value: Any) -> str:
     """Format a raw magnitude for the tooltip/card details (pure, deterministic)."""
     if value is None:
@@ -157,9 +171,9 @@ def _money(value: Any) -> str:
 
 
 def _orb(size_px: int, glow: int, dashed: bool, raw_label: str, raw_value: Any) -> str:
-    """A visual-size orb. SIZE encodes economic magnitude (bounded log scale);
-    GLOW encodes status; a dashed outline flags missing magnitude. The RAW value is
-    always shown in the details -- size is never the only signal, and never a ranking."""
+    """A visual-size orb. SIZE = economic magnitude (bounded log scale); GLOW = status;
+    a dashed outline flags missing magnitude. The RAW value is always shown — size is
+    never the only signal and never a ranking."""
     cls = "orb glow-{0}".format(int(glow) if glow in (1, 2, 3) else 1)
     if dashed:
         cls += " dashed"
@@ -173,297 +187,540 @@ def _orb(size_px: int, glow: int, dashed: bool, raw_label: str, raw_value: Any) 
     ).format(cls=cls, style=style, label=_esc(raw_label), raw=_esc(_money(raw_value)), gap=gap)
 
 
+def _mini_orb(size_px: int, glow: int, dashed: bool) -> str:
+    cls = "orb glow-{0}".format(int(glow) if glow in (1, 2, 3) else 1)
+    if dashed:
+        cls += " dashed"
+    return '<div class="{cls}" style="width:{s}px;height:{s}px"></div>'.format(
+        cls=cls, s=int(size_px))
+
+
 # --------------------------------------------------------------------------- #
-# A. Universe / Reality Map                                                   #
+# Zoom-path helpers (must match view_models.planet_universe_path)             #
 # --------------------------------------------------------------------------- #
-def _cluster_card(c: GalaxyClusterView) -> str:
-    classes = ["card", "galaxy-node", _HEAT_CLASS.get((c.heat_label or "").lower(), "heat-dim")]
-    if c.data_poor:
-        classes += ["heat-dim", "data-poor"]
-    if c.red_team_risk:
-        classes.append("blackhole")
-    if c.crowded_euphoric:
-        classes.append("euphoric")
-    markers = []
-    if c.red_team_risk:
-        markers.append(_badge("black-hole: red-team risk", "hazard"))
-    if c.crowded_euphoric:
-        markers.append(_badge("warning halo: crowded / euphoric", "gap"))
-    if c.data_poor:
-        markers.append(_badge("dim: data-poor", "q-low"))
-    rows = "".join([
-        "<tr><th>Megatrend</th><td>{0}</td></tr>".format(_esc(c.megatrend)),
-        "<tr><th>Capital cycle</th><td>{0}</td></tr>".format(_esc(c.capital_cycle)),
-        "<tr><th>Heat / priority</th><td>{0} · {1}</td></tr>".format(
-            _esc(c.heat_label), _esc(c.priority_label)),
-        "<tr><th>Signal convergence</th><td>{0}</td></tr>".format(_esc(c.signal_convergence)),
-        "<tr><th>Bottleneck severity</th><td>{0}</td></tr>".format(_esc(c.bottleneck_severity)),
-        "<tr><th>Candidates</th><td>{0}</td></tr>".format(_esc(c.candidate_count)),
-        "<tr><th>Evidence count</th><td>{0}</td></tr>".format(_esc(c.evidence_count)),
-        "<tr><th>Maturity / timing</th><td>{0}</td></tr>".format(_esc(c.maturity_timing)),
-    ])
-    if c.magnitude_missing:
+def _path_galaxy(gslug: str) -> str:
+    return "universe/g:{0}".format(gslug)
+
+
+def _path_theme(gslug: str) -> str:
+    return "universe/g:{0}/t:{0}".format(gslug)
+
+
+def _path_vc(gslug: str, vcslug: str) -> str:
+    return _path_theme(gslug) + "/vc:{0}".format(vcslug)
+
+
+def _path_star(gslug: str, vcslug: str, stslug: str) -> str:
+    return _path_vc(gslug, vcslug) + "/st:{0}".format(stslug)
+
+
+# --------------------------------------------------------------------------- #
+# Cosmic object (a clickable node in the top canvas)                          #
+# --------------------------------------------------------------------------- #
+def _cosmic_object(*, kind: str, path: str, target_path: str, target_level,
+                   title: str, sub: str, size_px: int, glow: int, dashed: bool,
+                   redshadow: bool, halo: bool, ev_class: str,
+                   size_label: str, size_raw: str, badges: str, intel_html: str) -> str:
+    classes = ["cosmic-object", "k-{0}".format(kind)]
+    if dashed:
         classes.append("dashed-outline")
-    orb = _orb(c.visual_size_px, 2, c.magnitude_missing, "theme TAM (DEMO)", c.theme_tam)
+    if redshadow:
+        classes.append("redshadow")
+    if halo:
+        classes.append("halo")
+    if ev_class:
+        classes.append(ev_class)
+    attrs = 'data-kind="{0}" data-path="{1}"'.format(_esc(kind), _esc(path))
+    if target_path:
+        attrs += ' data-target-path="{0}" data-target-level="{1}"'.format(
+            _esc(target_path), _esc(target_level))
+    gapbadge = (' <span class="badge gap">magnitude missing — neutral size</span>'
+                if dashed else "")
+    orb = (
+        '<div class="orb-wrap">{orb}<div class="orb-meta">'
+        'size ∝ {label} (not a ranking)<br><b>{label}: {raw}</b>{gap}</div></div>'
+    ).format(orb=_mini_orb(size_px, glow, dashed), label=_esc(size_label),
+             raw=_esc(size_raw), gap=gapbadge)
     return (
-        '<div class="{cls}">'
-        '<p class="title">{name}</p>'
-        '<p class="sub">{badges}</p>'
+        '<div class="{cls}" {attrs}>'
         "{orb}"
-        '<p>{markers}</p>'
-        '<table class="kv">{rows}</table>'
-        '<p>{q} {demo}</p>'
-        '<p><a href="galaxy.html#g-{slug}">Zoom into galaxy →</a></p>'
+        '<p class="co-title">{title}</p>'
+        '<p class="co-sub">{sub}</p>'
+        "<p>{badges}</p>"
+        '<div class="intel-template">{intel}</div>'
         "</div>"
-    ).format(
-        cls=" ".join(classes), name=_esc(c.theme_name),
-        badges=_quality_badge(c.data_quality), orb=orb,
-        markers=" ".join(markers) or _badge("nominal", "q-high"),
-        rows=rows, q=_badge("terrain: semi-static", ""),
-        demo=_badge("DEMO", "demo"), slug=_esc(c.slug))
+    ).format(cls=" ".join(classes), attrs=attrs, orb=orb, title=_esc(title),
+             sub=_esc(sub), badges=badges, intel=intel_html)
 
 
-def render_universe(view: EconomicUniverseView) -> str:
-    intro = (
-        "<h1>Economic Universe — Reality Map</h1>"
-        '<p class="lead">Every glowing cluster is a galaxy (an investment theme / '
-        "capital cycle). Heat shows priority; dim clusters are data-poor; a black-hole "
-        "marker flags red-team risk; a warning halo flags a crowded / euphoric trade. "
-        "This is a read-only projection — no ranking, no live data. Navigate inward: "
-        "galaxy → value chain → bottleneck star → candidate cockpit.</p>"
-    )
-    cards = "".join(_cluster_card(c) for c in view.clusters)
-    body = intro + '<div class="grid-cards">{0}</div>'.format(cards)
-    return _page("Economic Universe — Reality Map", "universe.html", body)
-
-
-# --------------------------------------------------------------------------- #
-# B. Galaxy (theme zoom) — tabbed by galaxy                                   #
-# --------------------------------------------------------------------------- #
-def _planet_mini(p: PlanetCandidateView) -> str:
-    origin = _badge("REAL evidence slice", "real") if p.is_real else _badge("DEMO", "demo")
-    cockpit = ('<a href="{0}">open cockpit →</a>'.format(_esc(p.cockpit_link))
-               if p.cockpit_link else '<span class="note">cockpit for real candidates only</span>')
-    rt = _badge("red-team: {0}".format(p.red_team_label), "hazard") if (
-        (p.red_team_label or "").lower() in ("concern", "fail")) else _badge(
-        "red-team: {0}".format(p.red_team_label or "n/a"))
-    orb = _orb(p.visual_size_px, p.glow_level, p.magnitude_missing,
-               "market cap (DEMO)", p.market_cap)
-    cls = "card dashed-outline" if p.magnitude_missing else "card"
+def _level_panel(*, level: int, path: str, parent: str, crumb: str, kind: str,
+                 title: str, objects_html: str, intel_html: str, active: bool) -> str:
+    parent_attr = ' data-parent="{0}"'.format(_esc(parent)) if parent else ""
+    head = '<p class="level-head">Level {0} · {1}</p>'.format(level, _esc(kind))
+    grid = ('<div class="object-grid">{0}</div>'.format(objects_html)
+            if objects_html else "")
     return (
-        '<div class="{cls}">'
-        '<p class="title">{company} {origin}</p>'
-        '<p class="sub">{role} · proximity: {prox}</p>'
-        "{orb}"
-        "<p>{inv} {timing} {rt} {rec}</p>"
-        '<p class="qualifier">{qual}: <b>{ticker}</b></p>'
-        "<p>{q} · evidence {ev} · {cockpit} · "
-        '<a href="{locate}">locate in universe →</a></p>'
-        "</div>"
-    ).format(
-        cls=cls, company=_esc(p.company), origin=origin, role=_esc(p.value_chain_role),
-        prox=_esc(p.proximity_to_bottleneck), orb=orb,
-        inv=_badge("investability: {0}".format(p.investability_label)),
-        timing=_badge(p.timing_label), rt=rt,
-        rec=_badge("recommendation: {0}".format(p.recommendation_label)),
-        qual=_esc(p.security_mapping_qualifier), ticker=_esc(p.ticker),
-        q=_quality_badge(p.data_quality), ev=_esc(p.evidence_count),
-        cockpit=cockpit, locate=_esc(p.locate_link))
-
-
-def _galaxy_section(t: GalaxyThemeView) -> str:
-    c = t.cluster
-    header = (
-        '<h2 id="g-{slug}">{name}</h2>'
-        "<p>{heat} {prio} {q} {demo}</p>"
-        '<table class="kv">'
-        "<tr><th>Megatrend</th><td>{mega}</td></tr>"
-        "<tr><th>Capital cycle</th><td>{cyc}</td></tr>"
-        "<tr><th>Why now</th><td>{now}</td></tr>"
-        "<tr><th>Why before obvious</th><td>{before}</td></tr>"
-        "<tr><th>Signal convergence</th><td>{conv}</td></tr>"
-        "<tr><th>Maturity / timing</th><td>{mat}</td></tr>"
-        "</table>"
-    ).format(
-        slug=_esc(c.slug), name=_esc(c.theme_name),
-        heat=_badge("heat: {0}".format(c.heat_label)),
-        prio=_badge(c.priority_label), q=_quality_badge(c.data_quality),
-        demo=_badge("DEMO terrain", "demo"), mega=_esc(c.megatrend), cyc=_esc(c.capital_cycle),
-        now=_esc(t.why_now), before=_esc(t.why_before_obvious), conv=_esc(c.signal_convergence),
-        mat=_esc(c.maturity_timing))
-
-    signals = (
-        "<h3>Signals — confirmed vs speculative</h3>"
-        "<h4>Confirmed</h4>{conf}<h4>Speculative / unconfirmed</h4>{spec}"
-    ).format(conf=_list(t.confirmed_signals), spec=_list(t.speculative_signals))
-
-    catalysts = (
-        "<h3>Catalysts</h3><h4>Positive</h4>{pos}<h4>Negative</h4>{neg}"
-    ).format(pos=_list(t.positive_catalysts), neg=_list(t.negative_catalysts))
-
-    redteam = '<div class="hazard-box"><h4>Red-team notes</h4>{0}</div>'.format(
-        _list(t.red_team_notes))
-    gaps = _gap_box("Data gaps", t.data_gaps)
-
-    links = ["<h3>Explore inward</h3><p>"]
-    for ss in t.solar_systems:
-        links.append('<a href="solar_system.html#ss-{0}">value chain: {1} →</a> '.format(
-            _esc(ss.slug), _esc(ss.name)))
-    for s in t.stars:
-        links.append('<a href="star.html#star-{0}">bottleneck star: {1} →</a> '.format(
-            _esc(s.slug), _esc(s.constrained_node)))
-    links.append("</p>")
-
-    planets = "<h3>Top candidate planets</h3>" + '<div class="grid-cards">{0}</div>'.format(
-        "".join(_planet_mini(p) for p in t.planets))
-
-    return header + signals + catalysts + redteam + gaps + "".join(links) + planets
-
-
-def render_galaxy(view: EconomicUniverseView) -> str:
-    tabs = []
-    panels = []
-    for i, t in enumerate(view.themes):
-        c = t.cluster
-        active = " active" if i == 0 else ""
-        shown = " shown" if i == 0 else ""
-        tabs.append(
-            '<span class="tab{active}" data-tab-group="galaxies" '
-            'data-tab-target="panel-{slug}">{name}</span>'.format(
-                active=active, slug=_esc(c.slug), name=_esc(c.theme_name)))
-        panels.append(
-            '<div id="panel-{slug}" data-tab-panel data-tab-group="galaxies"'
-            ' class="galaxy-panel{shown}">{body}</div>'.format(
-                slug=_esc(c.slug), shown=shown, body=_galaxy_section(t)))
-    intro = (
-        "<h1>Galaxies — Theme Zoom</h1>"
-        '<p class="lead">Each galaxy: megatrend, why-now, why-before-obvious, confirmed '
-        "vs speculative signals, positive and negative catalysts, red-team notes and data "
-        "gaps — with links inward to its value chains, bottleneck stars and candidate "
-        "planets. Use the galaxy filter tabs.</p>"
-    )
-    body = intro + '<div class="tabbar">{0}</div>'.format("".join(tabs)) + "".join(panels)
-    return _page("Galaxies — Theme Zoom", "galaxy.html", body)
+        '<section class="level-panel{act}" data-level="{lvl}" data-path="{path}"{par}'
+        ' data-crumb="{crumb}">'
+        "{head}<h2>{title}</h2>{grid}"
+        '<div class="intel-template">{intel}</div>'
+        "</section>"
+    ).format(act=" active" if active else "", lvl=level, path=_esc(path),
+             par=parent_attr, crumb=_esc(crumb), head=head, title=_esc(title),
+             grid=grid, intel=intel_html)
 
 
 # --------------------------------------------------------------------------- #
-# C. Solar System (value chain)                                              #
+# Bottom-pane Intelligence templates (organise existing data; compute nothing) #
 # --------------------------------------------------------------------------- #
-def _node_row(n) -> str:
-    missing = _badge("missing: {0}".format("; ".join(n.missing_data)), "gap") if n.missing_data else ""
-    dyn = _badge("dynamic-evidence: {0}".format(
-        "attached" if n.has_dynamic_evidence else "empty (static terrain)"), "")
-    return (
-        "<tr><td><span class='tier-tag'>{tier}</span><br>{nid}</td>"
-        "<td>{role}</td><td>{econ}</td><td>{exp}</td>"
-        "<td>{eq} {missing}</td><td>{dyn}</td></tr>"
-    ).format(
-        tier=_esc(n.tier), nid=_esc(n.node_id), role=_esc(n.role),
-        econ=_esc(n.economics_capture), exp=_esc(n.bottleneck_exposure),
-        eq=_esc(n.evidence_quality), missing=missing, dyn=dyn)
+def _authority_badges(p: PlanetCandidateView) -> str:
+    return " ".join(_badge(b, "") for b in p.source_authority_badges)
 
 
-def _solar_section(ss: SolarSystemValueChainView) -> str:
-    rows = "".join(_node_row(n) for n in ss.nodes)
-    table = (
-        '<table class="chain"><tr><th>node (tier)</th><th>role</th>'
-        "<th>economics capture</th><th>bottleneck exposure</th>"
-        "<th>evidence quality / missing</th><th>static/dynamic</th></tr>{0}</table>"
+def _intel_universe(view: EconomicUniverseView) -> str:
+    dq = view.data_quality
+    # Theme heat "map": galaxies with a compact heat bar (heat is an existing field,
+    # not a candidate ranking).
+    rows = ""
+    for c in view.clusters:
+        glow = _HEAT_GLOW.get((c.heat_label or "").lower(), 1)
+        bar = '<span class="heatbar g{0}"></span>'.format(glow)
+        marks = ""
+        if c.red_team_risk:
+            marks += _badge("red-team", "hazard")
+        if c.crowded_euphoric:
+            marks += _badge("crowded", "gap")
+        if c.data_poor:
+            marks += _badge("data-poor", "q-low")
+        rows += (
+            "<tr><td>{bar} {name}</td><td>{heat}</td><td>{prio}</td>"
+            "<td>{q}</td><td>{cand}</td><td>{marks}</td></tr>"
+        ).format(bar=bar, name=_esc(c.theme_name), heat=_esc(c.heat_label),
+                 prio=_esc(c.priority_label), q=_esc(c.data_quality),
+                 cand=_esc(c.candidate_count), marks=marks or "—")
+    heatmap = (
+        '<h4>Theme heat map (heat = existing signal heat, NOT a candidate ranking)</h4>'
+        '<table class="chain"><tr><th>galaxy / theme</th><th>heat</th><th>priority</th>'
+        "<th>data quality</th><th>candidates</th><th>flags</th></tr>{0}</table>"
     ).format(rows)
-    # Missing supplier / TAM / moat visibility.
-    all_missing = []
-    for n in ss.nodes:
-        for m in n.missing_data:
-            all_missing.append("{0}: {1}".format(n.node_id, m))
-    gaps = _gap_box("Missing data (supplier / TAM / moat visibility)", all_missing)
-    # Security / ticker mapping AFTER the value-chain / winner mapping.
-    mapping_rows = []
-    for role, tickers in ss.node_ticker_map:
-        mapping_rows.append("<tr><td>{0}</td><td>{1}</td></tr>".format(
-            _esc(role), _esc(", ".join(tickers))))
-    mapping_tbl = (
+    cycles = _list(("{0} — {1}".format(c.theme_name, c.capital_cycle) for c in view.clusters))
+    coverage = (
+        "<h4>Overall source coverage (real IREN slice)</h4>"
+        '<p>{sec} {fmp} {yf}</p>'.format(
+            sec=_badge("SEC canonical ×{0}".format(dq.canonical_count), "auth-canonical"),
+            fmp=_badge("FMP convenience ×{0}".format(dq.convenience_count), "auth-convenience"),
+            yf=_badge("yfinance fallback ×{0}".format(dq.fallback_count), "auth-fallback")))
+    big_gaps = []
+    for c in view.clusters:
+        if c.data_poor or c.magnitude_missing:
+            big_gaps.append("{0}: data-poor / magnitude gaps".format(c.theme_name))
+    redteam = [c.theme_name for c in view.clusters if c.red_team_risk]
+    return (
+        "<h3>Universe — Intelligence Pane</h3>"
+        '<p class="note">Read-only overview. No live ranking; no new score. '
+        "Select or zoom an object above to update this pane.</p>"
+        + heatmap
+        + "<h4>Capital-cycle summary</h4>" + cycles
+        + coverage
+        + _gap_box("Major data gaps", big_gaps)
+        + '<div class="hazard-box"><h4>Top red-team warnings</h4>{0}</div>'.format(
+            _list(("{0}: red-team risk flagged (demo)".format(n) for n in redteam),
+                  "none flagged"))
+    )
+
+
+def _intel_galaxy(t: GalaxyThemeView) -> str:
+    c = t.cluster
+    return (
+        "<h3>{name} — Galaxy / Megatrend</h3>".format(name=_esc(c.theme_name))
+        + "<p>{heat} {prio} {q} {demo}</p>".format(
+            heat=_badge("heat: {0}".format(c.heat_label)), prio=_badge(c.priority_label),
+            q=_quality_badge(c.data_quality), demo=_badge("DEMO terrain", "demo"))
+        + '<table class="kv">'
+        + "<tr><th>Megatrend thesis</th><td>{0}</td></tr>".format(_esc(c.megatrend))
+        + "<tr><th>Capital cycle</th><td>{0}</td></tr>".format(_esc(c.capital_cycle))
+        + "<tr><th>Why now</th><td>{0}</td></tr>".format(_esc(t.why_now))
+        + "<tr><th>Why before obvious</th><td>{0}</td></tr>".format(_esc(t.why_before_obvious))
+        + "<tr><th>Evidence convergence</th><td>{0}</td></tr>".format(_esc(c.signal_convergence))
+        + "</table>"
+        + "<h4>Child themes / Milky-Ways</h4>"
+        + _list(("{0} (theme)".format(c.theme_name),))
+        + "<h4>Positive catalysts</h4>" + _list(t.positive_catalysts)
+        + "<h4>Negative catalysts</h4>" + _list(t.negative_catalysts)
+        + '<div class="hazard-box"><h4>Red-team risks</h4>{0}</div>'.format(_list(t.red_team_notes))
+        + _gap_box("Data gaps", t.data_gaps)
+    )
+
+
+def _intel_theme(t: GalaxyThemeView) -> str:
+    c = t.cluster
+    timeline = tuple(list(t.positive_catalysts) + ["(negative) " + n for n in t.negative_catalysts])
+    return (
+        "<h3>{name} — Milky Way / Theme</h3>".format(name=_esc(c.theme_name))
+        + "<p>{0}</p>".format(_esc(c.megatrend))
+        + "<h4>Value-chain overview</h4>"
+        + _list(("{0} — {1}".format(ss.name, ss.description) for ss in t.solar_systems))
+        + '<table class="kv">'
+        + "<tr><th>Why now</th><td>{0}</td></tr>".format(_esc(t.why_now))
+        + "<tr><th>Why before obvious</th><td>{0}</td></tr>".format(_esc(t.why_before_obvious))
+        + "</table>"
+        + "<h4>Confirmed evidence</h4>" + _list(t.confirmed_signals)
+        + "<h4>Speculative / unconfirmed</h4>" + _list(t.speculative_signals)
+        + "<h4>Catalyst timeline</h4>" + _list(timeline)
+        + "<h4>Candidate planets</h4>"
+        + _list(("{0} ({1}) — {2}".format(p.company, p.ticker, p.investability_label)
+                 for p in t.planets))
+        + _gap_box("Data gaps", t.data_gaps)
+    )
+
+
+def _intel_value_chain(ss: SolarSystemValueChainView) -> str:
+    # A value-chain FLOW diagram: layers -> companies -> economics-capture -> exposure.
+    chips = []
+    for i, n in enumerate(ss.nodes):
+        missing = (_badge("missing: {0}".format("; ".join(n.missing_data)), "gap")
+                   if n.missing_data else "")
+        companies = ", ".join(n.candidate_companies) if n.candidate_companies else "(no named company)"
+        chips.append(
+            '<div class="flow-node">'
+            '<span class="tier-tag">{tier}</span><b>{role}</b>'
+            "<div class=\"fn-line\">capture: {econ}</div>"
+            "<div class=\"fn-line\">exposure: {exp}</div>"
+            "<div class=\"fn-line\">companies: {co}</div>{missing}</div>".format(
+                tier=_esc(n.tier), role=_esc(n.role), econ=_esc(n.economics_capture),
+                exp=_esc(n.bottleneck_exposure), co=_esc(companies), missing=missing))
+    flow = '<div class="flow-diagram">{0}</div>'.format(
+        '<span class="flow-arrow">→</span>'.join(chips))
+    # Economics-capture / bottleneck-exposure table.
+    trows = "".join(
+        "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td></tr>".format(
+            _esc(n.tier), _esc(n.role), _esc(n.economics_capture), _esc(n.bottleneck_exposure))
+        for n in ss.nodes)
+    table = (
+        '<table class="chain"><tr><th>tier</th><th>role</th>'
+        "<th>economics capture</th><th>bottleneck exposure</th></tr>{0}</table>".format(trows))
+    all_missing = ["{0}: {1}".format(n.node_id, m) for n in ss.nodes for m in n.missing_data]
+    mapping_rows = "".join(
+        "<tr><td>{0}</td><td>{1}</td></tr>".format(_esc(role), _esc(", ".join(tk)))
+        for role, tk in ss.node_ticker_map) or "<tr><td colspan='2'>(none mapped)</td></tr>"
+    mapping = (
         '<div class="warn-box"><h4>{qual}</h4>'
         '<table class="chain"><tr><th>value-chain node (winner context)</th>'
-        "<th>candidate tickers</th></tr>{rows}</table></div>"
-    ).format(qual=_esc(ss.security_mapping_qualifier),
-             rows="".join(mapping_rows) or "<tr><td colspan='2'>(none mapped)</td></tr>")
-    header = (
-        '<h2 id="ss-{slug}">{name} {demo}</h2>'
-        "<p>Galaxy: <a href='galaxy.html#g-{gslug}'>{galaxy}</a> · {desc}</p>"
-    ).format(slug=_esc(ss.slug), name=_esc(ss.name), demo=_badge("DEMO", "demo"),
-             gslug=_esc(ss.galaxy_slug), galaxy=_esc(ss.galaxy_name), desc=_esc(ss.description))
-    return header + table + gaps + mapping_tbl
-
-
-def render_solar_system(view: EconomicUniverseView) -> str:
-    intro = (
-        "<h1>Value Chains — Solar Systems</h1>"
-        '<p class="lead">Each solar system is a value chain: layered nodes from upstream '
-        "through infrastructure, enabling-tech, suppliers, supplier-of-supplier "
-        "placeholders, integrators, customers and downstream. Security / ticker mapping "
-        "is shown only AFTER the value-chain / winner context — never as the entry point. "
-        "Missing supplier / TAM / moat data stays visible.</p>"
+        "<th>candidate tickers</th></tr>{rows}</table></div>".format(
+            qual=_esc(ss.security_mapping_qualifier), rows=mapping_rows))
+    return (
+        "<h3>{name} — Solar System / Value Chain</h3>".format(name=_esc(ss.name))
+        + "<p>{0} {1}</p>".format(_esc(ss.description), _badge("DEMO", "demo"))
+        + "<h4>Value-chain flow diagram</h4>" + flow
+        + "<h4>Economics capture &amp; bottleneck exposure</h4>" + table
+        + _gap_box("Missing supplier / TAM / moat data", all_missing)
+        + mapping
+        + '<p class="note">Zoom to the bottleneck star and candidate planets from the '
+        "canvas above.</p>"
     )
-    sections = []
-    for t in view.themes:
-        for ss in t.solar_systems:
-            sections.append(_solar_section(ss))
-    body = intro + "".join(sections)
-    return _page("Value Chains — Solar Systems", "solar_system.html", body)
 
 
-# --------------------------------------------------------------------------- #
-# D. Star (bottleneck) — the 10x discovery layer                            #
-# --------------------------------------------------------------------------- #
-def _star_section(s: StarBottleneckView) -> str:
+def _intel_star(s: StarBottleneckView) -> str:
+    diagram = (
+        '<div class="bottleneck-diagram">'
+        '<div class="bd-side beneficiaries"><h4>Beneficiaries</h4>{ben}</div>'
+        '<div class="bd-core"><h4>Constrained node</h4><b>{node}</b>'
+        '<div class="fn-line">severity: {sev}</div></div>'
+        '<div class="bd-side losers"><h4>Losers / at risk</h4>{los}</div>'
+        "</div>"
+    ).format(ben=_list(s.beneficiaries), node=_esc(s.constrained_node),
+             sev=_esc(s.severity), los=_list(s.losers))
     rows = "".join([
         "<tr><th>Type</th><td>{0}</td></tr>".format(_esc(s.star_type)),
-        "<tr><th>Constrained node</th><td>{0}</td></tr>".format(_esc(s.constrained_node)),
         "<tr><th>Severity</th><td>{0}</td></tr>".format(_esc(s.severity)),
         "<tr><th>Expected duration</th><td>{0}</td></tr>".format(_esc(s.duration)),
         "<tr><th>Resolution risk</th><td>{0}</td></tr>".format(_esc(s.resolution_risk)),
     ])
     return (
-        '<h2 id="star-{slug}">Bottleneck: {node} {demo}</h2>'
-        "<p>Galaxy: <a href='galaxy.html#g-{gslug}'>{galaxy}</a> · "
-        "the 10x discovery layer — where a constrained node concentrates economics.</p>"
-        '<table class="kv">{rows}</table>'
-        "<h4>Beneficiaries</h4>{ben}"
-        "<h4>Losers (constrained / disadvantaged)</h4>{los}"
-        "<h4>Evidence</h4>{ev}"
-        "{gaps}"
-    ).format(
-        slug=_esc(s.slug), node=_esc(s.constrained_node), demo=_badge("DEMO", "demo"),
-        gslug=_esc(s.galaxy_slug), galaxy=_esc(s.galaxy_name), rows=rows,
-        ben=_list(s.beneficiaries), los=_list(s.losers), ev=_list(s.evidence),
-        gaps=_gap_box("Data gaps at this bottleneck", s.data_gaps))
-
-
-def render_star(view: EconomicUniverseView) -> str:
-    intro = (
-        "<h1>Bottleneck Stars — The 10x Discovery Layer</h1>"
-        '<p class="lead">Each star is a bottleneck: the constrained node whose scarcity '
-        "concentrates economics. Type, constrained node, severity, duration, beneficiaries, "
-        "losers, resolution risk, evidence and data gaps — the layer where asymmetric "
-        "opportunities are discovered before they are obvious.</p>"
+        "<h3>{node} — Bottleneck Star</h3>".format(node=_esc(s.constrained_node))
+        + "<p>The 10x discovery layer — where a constrained node concentrates economics. "
+        + _badge("source: demo terrain", "") + "</p>"
+        + "<h4>Bottleneck diagram</h4>" + diagram
+        + '<table class="kv">{0}</table>'.format(rows)
+        + "<h4>Evidence (quality)</h4>" + _list(s.evidence)
+        + _gap_box("Data gaps at this bottleneck", s.data_gaps)
     )
-    sections = []
-    for t in view.themes:
-        for s in t.stars:
-            sections.append(_star_section(s))
-    body = intro + "".join(sections)
-    return _page("Bottleneck Stars", "star.html", body)
+
+
+def _planet_reasons(p: PlanetCandidateView) -> Tuple[str, ...]:
+    out = [
+        "value-chain role: {0}".format(p.value_chain_role),
+        "proximity to bottleneck: {0}".format(p.proximity_to_bottleneck),
+        "investability: {0}".format(p.investability_label),
+    ]
+    if (p.catalyst_label or "").strip():
+        out.append("catalyst: {0}".format(p.catalyst_label))
+    return tuple(x for x in out if x)[:3]
+
+
+def _planet_risks(p: PlanetCandidateView) -> Tuple[str, ...]:
+    out = []
+    if (p.red_team_label or "").lower() in ("concern", "fail"):
+        out.append("red-team verdict: {0}".format(p.red_team_label))
+    if p.capital_structure_risk:
+        out.append("capital-structure / dilution risk flagged")
+    if (p.data_quality or "").lower() in ("low", "sparse"):
+        out.append("evidence-limited (data quality: {0})".format(p.data_quality))
+    out.append("manual review required before any action")
+    return tuple(out)[:3]
+
+
+def _intel_planet(p: PlanetCandidateView) -> str:
+    origin = _badge("REAL evidence slice", "real") if p.is_real else _badge("DEMO", "demo")
+    cockpit = (
+        '<a href="{0}">Open Cockpit (full accepted renderer) →</a>'.format(_esc(p.cockpit_link))
+        if p.cockpit_link
+        else '<span class="note">Open Cockpit available for real candidates only</span>')
+    caps = _badge("capital-structure / dilution risk", "hazard") if p.capital_structure_risk else ""
+    return (
+        "<h3>{company} ({ticker}) — Planet / Company {origin}</h3>".format(
+            company=_esc(p.company), ticker=_esc(p.ticker), origin=origin)
+        + '<table class="kv">'
+        + "<tr><th>Theme / galaxy</th><td>{0}</td></tr>".format(_esc(p.galaxy_name))
+        + "<tr><th>Value-chain role</th><td>{0}</td></tr>".format(_esc(p.value_chain_role))
+        + "<tr><th>Directness to bottleneck</th><td>{0}</td></tr>".format(
+            _esc(p.proximity_to_bottleneck))
+        + "<tr><th>Thesis status (investability)</th><td>{0}</td></tr>".format(
+            _esc(p.investability_label))
+        + "<tr><th>Timing-confirmation</th><td>{0}</td></tr>".format(_esc(p.timing_label))
+        + "<tr><th>Personalized / manual-review</th><td>{0}</td></tr>".format(
+            _esc(p.recommendation_label))
+        + "<tr><th>Catalyst status</th><td>{0}</td></tr>".format(
+            _esc(p.catalyst_label or "(none tracked)"))
+        + "</table>"
+        + "<h4>Top reasons (organised from existing signals)</h4>" + _list(_planet_reasons(p))
+        + "<h4>Top risks (organised from existing signals)</h4>" + _list(_planet_risks(p))
+        + "<p>{caps} {q}</p>".format(caps=caps, q=_quality_badge(p.data_quality))
+        + "<h4>Source authority</h4><p>{0}</p>".format(_authority_badges(p))
+        + '<p class="qualifier">{qual}: <b>{ticker}</b></p>'.format(
+            qual=_esc(p.security_mapping_qualifier), ticker=_esc(p.ticker))
+        + '<p class="cockpit-link">{0}</p>'.format(cockpit)
+    )
+
+
+def _intel_moon(n: NodeView) -> str:
+    dashed = _badge("dashed placeholder — missing data", "gap") if n.magnitude_missing else ""
+    return (
+        "<h3>{role} — Moon / Supplier · Dependency</h3>".format(role=_esc(n.role))
+        + '<table class="kv">'
+        + "<tr><th>Node</th><td>{0}</td></tr>".format(_esc(n.node_id))
+        + "<tr><th>Tier / relationship</th><td>{0}</td></tr>".format(_esc(n.tier))
+        + "<tr><th>Exposure type</th><td>{0}</td></tr>".format(_esc(n.bottleneck_exposure))
+        + "<tr><th>Economics capture</th><td>{0}</td></tr>".format(_esc(n.economics_capture))
+        + "<tr><th>Evidence quality</th><td>{0}</td></tr>".format(_esc(n.evidence_quality))
+        + "</table>{0}".format(dashed)
+        + _gap_box("Missing data", n.missing_data)
+        + '<p class="note">Possible effect on thesis: a constrained or data-dark '
+        "dependency here can gate the parent planet's economics (organised from existing "
+        "terrain; not a new conclusion).</p>"
+    )
 
 
 # --------------------------------------------------------------------------- #
-# E. Cockpit (IREN) — the ACCEPTED renderer, wrapped                         #
+# Object builders (compact clickable nodes carrying their intel template)      #
+# --------------------------------------------------------------------------- #
+def _galaxy_object(t: GalaxyThemeView, target_path: str) -> str:
+    c = t.cluster
+    badges = " ".join([
+        _badge("heat: {0}".format(c.heat_label)), _badge(c.priority_label),
+        _quality_badge(c.data_quality), _badge("candidates: {0}".format(c.candidate_count)),
+        _badge("DEMO", "demo")])
+    if c.red_team_risk:
+        badges += _badge("black-hole: red-team", "hazard")
+    if c.crowded_euphoric:
+        badges += _badge("halo: crowded/euphoric", "gap")
+    return _cosmic_object(
+        kind="galaxy", path=_path_galaxy(c.slug), target_path=target_path, target_level=1,
+        title=c.theme_name, sub=c.megatrend,
+        size_px=c.visual_size_px, glow=_HEAT_GLOW.get((c.heat_label or "").lower(), 1),
+        dashed=c.magnitude_missing, redshadow=c.red_team_risk, halo=c.crowded_euphoric,
+        ev_class=_ev_class(c.data_quality), size_label="theme TAM (DEMO)",
+        size_raw=_money(c.theme_tam), badges=badges, intel_html=_intel_galaxy(t))
+
+
+def _theme_object(t: GalaxyThemeView, target_path: str) -> str:
+    c = t.cluster
+    badges = " ".join([_badge("theme"), _badge("heat: {0}".format(c.heat_label)),
+                       _quality_badge(c.data_quality), _badge("DEMO", "demo")])
+    return _cosmic_object(
+        kind="theme", path=_path_theme(c.slug), target_path=target_path, target_level=2,
+        title="{0} — theme".format(c.theme_name), sub=c.signal_convergence,
+        size_px=c.visual_size_px, glow=_HEAT_GLOW.get((c.heat_label or "").lower(), 1),
+        dashed=c.magnitude_missing, redshadow=c.red_team_risk, halo=c.crowded_euphoric,
+        ev_class=_ev_class(c.data_quality), size_label="theme TAM (DEMO)",
+        size_raw=_money(c.theme_tam), badges=badges, intel_html=_intel_theme(t))
+
+
+def _value_chain_object(ss: SolarSystemValueChainView, target_path: str) -> str:
+    badges = " ".join([_badge("value chain"),
+                       _badge("nodes: {0}".format(len(ss.nodes))), _badge("DEMO", "demo")])
+    return _cosmic_object(
+        kind="value_chain", path=target_path, target_path=target_path, target_level=3,
+        title=ss.name, sub=ss.description, size_px=ss.visual_size_px, glow=2,
+        dashed=ss.magnitude_missing, redshadow=False, halo=False, ev_class="",
+        size_label="value-chain revenue pool (DEMO)", size_raw=_money(ss.value_chain_revenue_pool),
+        badges=badges, intel_html=_intel_value_chain(ss))
+
+
+def _star_object(s: StarBottleneckView, target_path: str) -> str:
+    high = (s.severity or "").lower() == "high"
+    badges = " ".join([_badge("bottleneck"), _badge("type: {0}".format(s.star_type)),
+                       _badge("severity: {0}".format(s.severity),
+                              "hazard" if high else ""), _badge("DEMO", "demo")])
+    return _cosmic_object(
+        kind="star", path=target_path, target_path=target_path, target_level=4,
+        title=s.constrained_node, sub="{0} · {1}".format(s.star_type, s.severity),
+        size_px=s.visual_size_px, glow=2, dashed=s.magnitude_missing, redshadow=high,
+        halo=False, ev_class="", size_label="bottleneck economic importance (DEMO)",
+        size_raw=("{0:.0f} / 100".format(s.bottleneck_economic_importance)
+                  if s.bottleneck_economic_importance is not None else "unknown (data gap)"),
+        badges=badges, intel_html=_intel_star(s))
+
+
+def _planet_object(p: PlanetCandidateView) -> str:
+    origin = _badge("REAL slice", "real") if p.is_real else _badge("DEMO", "demo")
+    rt_hazard = (p.red_team_label or "").lower() in ("concern", "fail")
+    badges = " ".join([
+        _badge("investability: {0}".format(p.investability_label)),
+        _badge(p.timing_label),
+        _badge("red-team: {0}".format(p.red_team_label or "n/a"), "hazard" if rt_hazard else ""),
+        _quality_badge(p.data_quality), origin])
+    if p.is_real:
+        badges += " " + _authority_badges(p)
+    return _cosmic_object(
+        kind="planet", path=p.universe_path, target_path=p.universe_path, target_level=5,
+        title="{0} ({1})".format(p.company, p.ticker), sub=p.value_chain_role,
+        size_px=p.visual_size_px, glow=p.glow_level, dashed=p.magnitude_missing,
+        redshadow=rt_hazard or p.capital_structure_risk, halo=bool((p.catalyst_label or "").strip()),
+        ev_class=_ev_class(p.data_quality), size_label="market cap (DEMO)",
+        size_raw=_money(p.market_cap), badges=badges, intel_html=_intel_planet(p))
+
+
+def _moon_object(n: NodeView) -> str:
+    missing = _badge("missing: {0}".format("; ".join(n.missing_data)), "gap") if n.missing_data else ""
+    badges = " ".join([_badge("moon / supplier"), _badge("tier: {0}".format(n.tier)),
+                       _badge("evidence: {0}".format(n.evidence_quality)), missing])
+    return _cosmic_object(
+        kind="moon", path="mo:{0}".format(n.node_id), target_path="", target_level=6,
+        title=n.role, sub="{0} · {1}".format(n.tier, n.node_id), size_px=n.visual_size_px,
+        glow=1, dashed=n.magnitude_missing, redshadow=False, halo=False,
+        ev_class=_ev_class(n.evidence_quality), size_label="dependency exposure (DEMO)",
+        size_raw=_money(n.dependency_exposure), badges=badges, intel_html=_intel_moon(n))
+
+
+# --------------------------------------------------------------------------- #
+# The single zoomable universe page                                          #
+# --------------------------------------------------------------------------- #
+def render_universe(view: EconomicUniverseView) -> str:
+    panels = []
+
+    # L0 Universe.
+    gslug_first = view.clusters[0].slug if view.clusters else ""
+    galaxy_objs = "".join(
+        _galaxy_object(t, _path_galaxy(t.cluster.slug)) for t in view.themes)
+    universe_intel = _intel_universe(view)
+    panels.append(_level_panel(
+        level=0, path="universe", parent="", crumb="Universe", kind="Universe",
+        title="Economic Universe — galaxy clusters", objects_html=galaxy_objs,
+        intel_html=universe_intel, active=True))
+
+    for t in view.themes:
+        c = t.cluster
+        gslug = c.slug
+        gp = _path_galaxy(gslug)
+        tp = _path_theme(gslug)
+        vc0 = t.solar_systems[0].slug if t.solar_systems else "vc0"
+        star0 = t.stars[0].slug if t.stars else "star0"
+
+        # L1 Galaxy -> theme object.
+        panels.append(_level_panel(
+            level=1, path=gp, parent="universe", crumb="{0} Galaxy".format(c.theme_name),
+            kind="Galaxy / megatrend", title="{0} — galaxy".format(c.theme_name),
+            objects_html=_theme_object(t, tp), intel_html=_intel_galaxy(t), active=False))
+
+        # L2 Theme -> value-chain objects.
+        vc_objs = "".join(
+            _value_chain_object(ss, _path_vc(gslug, ss.slug)) for ss in t.solar_systems)
+        panels.append(_level_panel(
+            level=2, path=tp, parent=gp, crumb="{0} Theme".format(c.theme_name),
+            kind="Milky Way / theme", title="{0} — theme".format(c.theme_name),
+            objects_html=vc_objs, intel_html=_intel_theme(t), active=False))
+
+        # L3 Value chain(s) -> star objects.
+        for ss in t.solar_systems:
+            vcp = _path_vc(gslug, ss.slug)
+            star_objs = "".join(
+                _star_object(s, _path_star(gslug, ss.slug, s.slug)) for s in t.stars)
+            panels.append(_level_panel(
+                level=3, path=vcp, parent=tp, crumb=ss.name, kind="Solar system / value chain",
+                title=ss.name, objects_html=star_objs, intel_html=_intel_value_chain(ss),
+                active=False))
+
+        # L4 Star(s) -> planet objects.
+        for ss in t.solar_systems:
+            for s in t.stars:
+                stp = _path_star(gslug, ss.slug, s.slug)
+                planet_objs = "".join(_planet_object(p) for p in t.planets)
+                panels.append(_level_panel(
+                    level=4, path=stp, parent=_path_vc(gslug, ss.slug),
+                    crumb=s.constrained_node, kind="Star / bottleneck",
+                    title="Bottleneck: {0}".format(s.constrained_node),
+                    objects_html=planet_objs, intel_html=_intel_star(s), active=False))
+
+        # L5 Planet(s) -> moon objects. Parent = the first star (matches planet path).
+        star0_path = _path_star(gslug, vc0, star0)
+        moon_objs_src = t.solar_systems[0].nodes if t.solar_systems else ()
+        moon_objs = "".join(_moon_object(n) for n in moon_objs_src)
+        for p in t.planets:
+            panels.append(_level_panel(
+                level=5, path=p.universe_path, parent=star0_path, crumb=p.company,
+                kind="Planet / company", title="{0} ({1})".format(p.company, p.ticker),
+                objects_html=moon_objs, intel_html=_intel_planet(p), active=False))
+
+    viewport = '<div id="viewport" class="viewport">{0}</div>'.format("".join(panels))
+    top = (
+        '<section id="top-canvas" class="top-canvas" aria-label="Infinite Canvas (top pane)">'
+        '<nav id="breadcrumb" class="breadcrumb">'
+        '<a class="crumb" data-goto="universe" href="#path=universe">Universe</a></nav>'
+        '<div class="zoom-controls">'
+        '<a id="zoom-back" class="zoom-ctrl" href="#" style="display:none">↑ Zoom out / Back</a>'
+        '<span class="hint">Click a cosmic object to zoom in; the bottom pane updates.</span>'
+        "</div>"
+        + viewport + "</section>")
+    bottom = (
+        '<section id="intel-pane" class="intel-pane" aria-label="Intelligence Pane (bottom)">'
+        '<div id="intel-body" class="detail-body">{0}</div></section>'.format(universe_intel))
+    intro = (
+        "<h1>Economic Universe</h1>"
+        '<p class="lead">One zoomable canvas. TOP pane = the Infinite Canvas '
+        "(Universe → galaxy → theme → value-chain → bottleneck star → planet → moon, "
+        "as zoom levels in this one page). BOTTOM pane = the Intelligence Pane, which "
+        "re-renders for the selected object. Object size ∝ economic magnitude (bounded "
+        "log) and is decoupled from ranking; heat/glow, colour, halo and red-shadow carry "
+        "status/risk. No live data, no ranking. Deep-link a planet with "
+        "<code>#focus=&lt;path&gt;</code>.</p>")
+    body = intro + '<div class="cosmos-vertical">{0}{1}</div>'.format(top, bottom)
+    return _page("Economic Universe", "universe.html", body)
+
+
+# --------------------------------------------------------------------------- #
+# Cockpit (IREN) — the ACCEPTED renderer, wrapped; opened FROM a planet       #
 # --------------------------------------------------------------------------- #
 def _cockpit_wrapper() -> str:
     strip = (
         '<div style="position:sticky;top:0;z-index:50;background:#0a0f24;color:#c7d0f5;'
         'padding:.5rem 1rem;font:600 13px sans-serif;border-bottom:1px solid #26315f">'
         '{0}</div>'.format(_esc(STATUS_STRIP_TEXT)))
-    links = []
+    links = [
+        '<a href="universe.html#focus=universe/g:ai-infrastructure/t:ai-infrastructure/'
+        'vc:ai-infrastructure--ai-compute-hosting-value-chain/st:ai-infrastructure--star-0/pl:iren"'
+        ' style="color:#7c8cff;text-decoration:none;margin-right:.9rem;font:600 13px sans-serif">'
+        '← Back to IREN planet in the Universe</a>']
     for label, fname in _NAV:
         links.append(
             '<a href="{0}" style="color:#7c8cff;text-decoration:none;'
@@ -475,9 +732,10 @@ def _cockpit_wrapper() -> str:
     note = (
         '<div style="background:#1a1030;color:#e3d9ff;padding:.6rem 1rem;'
         'font:600 13px sans-serif;border-bottom:1px solid #5a3fb0">'
-        'IREN planet — REAL evidence-alpha slice. Rendered by the ACCEPTED cockpit '
-        'renderer (render_cockpit_html). Ticker/security mapping is derived after '
-        'value-chain / winner mapping inside the cockpit. Manual review required.</div>')
+        'IREN planet — REAL evidence-alpha slice, opened FROM the planet as a deeper view. '
+        'Rendered by the ACCEPTED cockpit renderer (render_cockpit_html). Ticker/security '
+        'mapping is derived after value-chain / winner mapping inside the cockpit. '
+        'Manual review required.</div>')
     return strip + nav + note
 
 
@@ -487,12 +745,12 @@ def render_cockpit(iren_slice) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# F. CIO Dashboard                                                            #
+# CIO Dashboard                                                               #
 # --------------------------------------------------------------------------- #
 def _card(c: CandidateCardView) -> str:
     origin = _badge("REAL slice", "real") if c.is_real else _badge("DEMO", "demo")
-    cockpit = ('<a href="{0}">open cockpit →</a>'.format(_esc(c.cockpit_link))
-               if c.cockpit_link else '<span class="note">cockpit for real candidates only</span>')
+    cockpit = ('<a href="{0}">Open Cockpit →</a>'.format(_esc(c.cockpit_link))
+               if c.cockpit_link else '<span class="note">Open Cockpit for real candidates only</span>')
     cross = " ".join(_badge(b, "hazard" if "Red-Team" in b else "gap") for b in c.cross_cut_buckets)
     rt_cls = "hazard" if (c.red_team_label or "").lower() in ("concern", "fail") else ""
     capstruct = _badge("capital-structure risk", "hazard") if c.capital_structure_risk else ""
@@ -500,6 +758,10 @@ def _card(c: CandidateCardView) -> str:
     orb = _orb(c.visual_size_px, c.glow_level, c.magnitude_missing,
                "market cap (DEMO)", c.market_cap)
     cls = "card dashed-outline" if c.magnitude_missing else "card"
+    top_reason = "{0}; {1}".format(c.value_chain_role, c.proximity_to_bottleneck)
+    top_risk = ("capital-structure / dilution risk" if c.capital_structure_risk else
+                ("red-team: {0}".format(c.red_team_label) if rt_cls else
+                 "manual review required"))
     return (
         '<div class="{cls}">'
         '<p class="title">{label}: {company} {origin}</p>'
@@ -507,10 +769,16 @@ def _card(c: CandidateCardView) -> str:
         "{orb}"
         "<p>{inv} {timing} {rt} {rec} {caps}</p>"
         "<p>{cross}</p>"
+        '<table class="kv">'
+        "<tr><th>Timing-confirmation</th><td>{timing_txt}</td></tr>"
+        "<tr><th>Thesis status</th><td>{inv_txt}</td></tr>"
+        "<tr><th>Top reason</th><td>{reason}</td></tr>"
+        "<tr><th>Top risk</th><td>{risk}</td></tr>"
+        "<tr><th>Source coverage</th><td>{auth}</td></tr>"
+        "</table>"
         '<p class="qualifier">{qual}: <b>{ticker}</b></p>'
-        "<p>{auth}</p>"
-        '<p>{q} · evidence {ev} · {cockpit} · '
-        '<a href="{locate}">locate in universe →</a></p>'
+        '<p>{q} · evidence {ev} · '
+        '<a href="{locate}">Locate in Universe →</a> · {cockpit}</p>'
         "</div>"
     ).format(
         cls=cls, label=_esc(c.card_label), company=_esc(c.company), origin=origin,
@@ -521,7 +789,9 @@ def _card(c: CandidateCardView) -> str:
         rt=_badge("red-team: {0}".format(c.red_team_label or "n/a"), rt_cls),
         rec=_badge("recommendation: {0}".format(c.recommendation_label)), caps=capstruct,
         cross=cross or _badge("no cross-cut alerts", "q-high"),
-        qual=_esc(c.security_mapping_qualifier), ticker=_esc(c.ticker), auth=auth,
+        timing_txt=_esc(c.timing_label), inv_txt=_esc(c.investability_label),
+        reason=_esc(top_reason), risk=_esc(top_risk), auth=auth,
+        qual=_esc(c.security_mapping_qualifier), ticker=_esc(c.ticker),
         q=_quality_badge(c.data_quality), ev=_esc(c.evidence_count),
         cockpit=cockpit, locate=_esc(c.locate_link))
 
@@ -545,7 +815,8 @@ def render_dashboard(dash: CIODashboardView) -> str:
         "(investability_assessment / timing_confirmation / red-team verdict / "
         "recommendation_status). There is no composite ranking metric, no live "
         "ranking, and no trade-execution affordance — every card is a manual review "
-        "candidate. Cards link to the cockpit and to their location in the universe.</p>"
+        "candidate. Each card has Locate in Universe (zooms the canvas to the planet) "
+        "and Open Cockpit (the accepted renderer).</p>"
     )
     note = (
         '<p class="note">Buckets are read-only groupings of existing statuses. '
@@ -559,7 +830,7 @@ def render_dashboard(dash: CIODashboardView) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# G. Data Quality / Provenance                                               #
+# Data Quality / Provenance                                                   #
 # --------------------------------------------------------------------------- #
 def render_data_quality(dq: DataQualityView) -> str:
     rows = "".join([
@@ -612,13 +883,14 @@ def render_data_quality(dq: DataQualityView) -> str:
 # Convenience: render every page from one view                               #
 # --------------------------------------------------------------------------- #
 def render_all_pages(view: EconomicUniverseView, iren_slice) -> Tuple[Tuple[str, str], ...]:
-    """Return an ordered ((filename, html), ...) for all seven pages."""
+    """Return an ordered ((filename, html), ...) for all four pages.
+
+    Galaxy / value-chain / bottleneck are zoom LEVELS inside ``universe.html`` — not
+    separate pages. The cockpit is opened FROM a planet, not a top-level tab.
+    """
     return (
         ("universe.html", render_universe(view)),
-        ("galaxy.html", render_galaxy(view)),
-        ("solar_system.html", render_solar_system(view)),
-        ("star.html", render_star(view)),
-        ("cockpit.html", render_cockpit(iren_slice)),
         ("dashboard.html", render_dashboard(view.dashboard)),
         ("data_quality.html", render_data_quality(view.data_quality)),
+        ("cockpit.html", render_cockpit(iren_slice)),
     )
