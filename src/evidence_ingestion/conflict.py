@@ -146,3 +146,33 @@ def resolve_conflicts(
                 )
 
     return resolved, tuple(warnings)
+
+
+def winning_records(
+    normalized_records: Tuple[NormalizedEvidenceRecord, ...],
+) -> Dict[Tuple[Any, ...], NormalizedEvidenceRecord]:
+    """Return, per ``conflict_key``, the highest-authority winning RECORD.
+
+    This is an ADDITIVE convenience over the exact same family-scoped
+    ``_record_entries`` keys and ``authority_rank`` ordering that
+    ``resolve_conflicts`` uses. Where ``resolve_conflicts`` resolves the winning
+    *value* per key, this resolves the winning *record* per key, so a caller (the
+    ingestion vertical slice) can map ONLY the winning record for each semantic
+    fact and treat the losers as overridden evidence.
+
+    Ties (equal authority) keep first-seen order -- ``max`` returns the first
+    maximal element and ``normalized_records`` is iterated in order. The behaviour
+    of ``resolve_conflicts`` and ``_record_entries`` is unchanged; this reads them,
+    it does not alter them.
+    """
+    records = list(normalized_records)
+
+    grouped: Dict[Tuple[Any, ...], List[NormalizedEvidenceRecord]] = {}
+    for rec in records:
+        for key, _value in _record_entries(rec):
+            grouped.setdefault(key, []).append(rec)
+
+    winners: Dict[Tuple[Any, ...], NormalizedEvidenceRecord] = {}
+    for key, recs in grouped.items():
+        winners[key] = max(recs, key=lambda r: authority_rank(r.source_authority))
+    return winners

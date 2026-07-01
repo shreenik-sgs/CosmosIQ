@@ -30,7 +30,13 @@ from .adapters import (
     YFinanceAdapter,
 )
 from .mapper import map_to_observation
-from .conflict import resolve_conflicts
+from .conflict import resolve_conflicts, winning_records
+from .vertical_slice import (
+    run_fixture_ingestion_slice,
+    IngestionVerticalSliceResult,
+    ProvenanceChain,
+    ProvenanceTraceEntry,
+)
 from .sec_edgar import (
     SEC_SOURCE_NAME,
     SEC_PROVIDER,
@@ -84,6 +90,11 @@ __all__ = [
     "YFinanceAdapter",
     "map_to_observation",
     "resolve_conflicts",
+    "winning_records",
+    "run_fixture_ingestion_slice",
+    "IngestionVerticalSliceResult",
+    "ProvenanceChain",
+    "ProvenanceTraceEntry",
     "SEC_SOURCE_NAME",
     "SEC_PROVIDER",
     "sec_source",

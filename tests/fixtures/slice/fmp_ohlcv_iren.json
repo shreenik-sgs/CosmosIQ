@@ -1,0 +1,23 @@
+{
+  "symbol": "IREN",
+  "historical": [
+    {
+      "date": "2026-06-27",
+      "open": 21.20,
+      "high": 21.90,
+      "low": 21.00,
+      "close": 21.50,
+      "adjClose": 21.50,
+      "volume": 16100000
+    },
+    {
+      "date": "2026-06-26",
+      "open": 20.10,
+      "high": 21.40,
+      "low": 19.95,
+      "close": 21.10,
+      "adjClose": 21.10,
+      "volume": 15200000
+    }
+  ]
+}

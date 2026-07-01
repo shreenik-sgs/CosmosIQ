@@ -1,0 +1,20 @@
+[
+  {
+    "date": "2026-03-31",
+    "symbol": "IREN",
+    "revenue": 118000000,
+    "grossProfit": 60000000,
+    "operatingIncome": 22000000,
+    "netIncome": 14000000,
+    "weightedAverageShsOut": 209000000
+  },
+  {
+    "date": "2025-12-31",
+    "symbol": "IREN",
+    "revenue": 99000000,
+    "grossProfit": 48000000,
+    "operatingIncome": 16000000,
+    "netIncome": 9000000,
+    "weightedAverageShsOut": 200000000
+  }
+]

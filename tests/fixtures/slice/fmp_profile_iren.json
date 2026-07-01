@@ -1,0 +1,13 @@
+[
+  {
+    "symbol": "IREN",
+    "companyName": "IREN",
+    "exchange": "NASDAQ",
+    "sector": "Technology",
+    "industry": "Data Center Infrastructure",
+    "mktCap": 4200000000,
+    "sharesOutstanding": 210000000,
+    "website": "https://iren.example.invalid",
+    "description": "IREN operates data centers powered by renewable energy."
+  }
+]

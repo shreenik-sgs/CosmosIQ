@@ -1,0 +1,23 @@
+{
+  "cik": "0001878848",
+  "name": "IREN",
+  "tickers": ["IREN"],
+  "exchanges": ["NASDAQ"],
+  "filings": {
+    "recent": {
+      "accessionNumber": [
+        "0001878848-26-000045",
+        "0001878848-26-000032"
+      ],
+      "form": ["S-3", "8-K"],
+      "filingDate": ["2026-05-15", "2026-05-01"],
+      "reportDate": ["", "2026-05-01"],
+      "primaryDocument": ["irens3.htm", "iren8k.htm"],
+      "primaryDocDescription": [
+        "FORM S-3 SHELF REGISTRATION - PROSPECTUS SUPPLEMENT FOR AT-THE-MARKET OFFERING",
+        "FORM 8-K"
+      ],
+      "items": ["", "1.01"]
+    }
+  }
+}
