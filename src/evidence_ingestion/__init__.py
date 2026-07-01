@@ -41,6 +41,20 @@ from .sec_edgar import (
     parse_sec_companyfacts,
 )
 from .sec_client import SecEdgarClient
+from .fmp import (
+    FMP_SOURCE_NAME,
+    FMP_PROVIDER,
+    fmp_source,
+    parse_fmp_profile,
+    parse_fmp_income_statement,
+    parse_fmp_ohlcv,
+    parse_fmp_news,
+    parse_fmp_ownership,
+    map_fmp_record,
+    mapping_deferred_reason,
+    MappingDeferredError,
+)
+from .fmp_client import FmpClient
 
 __all__ = [
     "SOURCE_AUTHORITIES",
@@ -67,4 +81,16 @@ __all__ = [
     "parse_sec_submissions",
     "parse_sec_companyfacts",
     "SecEdgarClient",
+    "FMP_SOURCE_NAME",
+    "FMP_PROVIDER",
+    "fmp_source",
+    "parse_fmp_profile",
+    "parse_fmp_income_statement",
+    "parse_fmp_ohlcv",
+    "parse_fmp_news",
+    "parse_fmp_ownership",
+    "map_fmp_record",
+    "mapping_deferred_reason",
+    "MappingDeferredError",
+    "FmpClient",
 ]

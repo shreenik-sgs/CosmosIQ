@@ -276,7 +276,7 @@ class ConflictTests(unittest.TestCase):
     def _sec_revenue(self):
         return _by_type(parse_sec_companyfacts(_companyfacts(), now=0).records, "sec_xbrl_revenue")
 
-    def _convenience_record(self, source_name, source_class, value, normalized_type, subject):
+    def _convenience_record(self, source_name, source_class, value, normalized_type, subject, period_end):
         src = EvidenceSource(
             source_name=source_name,
             source_authority={"paid_api": "convenience", "free_api": "fallback"}[source_class],
@@ -287,28 +287,36 @@ class ConflictTests(unittest.TestCase):
             src, subject=subject, ticker="IREN", raw_type="quote",
             raw_payload={"revenue": value}, retrieved_at="t", as_of="d", now=0,
         )
+        # Same metric + period + unit ("USD") as the SEC companyfacts revenue record,
+        # so the family-scoped financial key matches and they actually arbitrate.
         return make_normalized_evidence_record(
             raw, normalized_type=normalized_type,
-            extracted_fields={"financial_metric": "revenue", "metric_value": value},
-            period_end="2026-03-31", evidence_quality=0.6, confidence=0.6, now=0,
+            extracted_fields={"financial_metric": "revenue", "metric_value": value, "metric_unit": "USD"},
+            period_end=period_end, evidence_quality=0.6, confidence=0.6, now=0,
         )
 
     def test_sec_canonical_beats_fmp_convenience_conflict(self):
-        sec = self._sec_revenue()
+        sec = self._sec_revenue()  # normalized_type "sec_xbrl_revenue", USD, 2026-03-31
+        period_end = sec.period_end
+        # FMP and yfinance carry SOURCE-SPECIFIC normalized_types (as the real
+        # adapters do) but the SAME financial_metric/period/unit + subject, so the
+        # resolver arbitrates them cross-source on the shared financial fact key.
         fmp = self._convenience_record(
             "Financial Modeling Prep", "paid_api", 118000000,
-            sec.normalized_type, sec.subject,
+            "fmp_financial_revenue", sec.subject, period_end,
         )
+        self.assertNotEqual(sec.normalized_type, fmp.normalized_type)
         resolved, warns = resolve_conflicts((sec, fmp))
-        key = (sec.subject, sec.normalized_type, "metric_value")
+        key = (sec.subject, "financial_fact", "revenue", period_end, "USD")
         self.assertEqual(resolved[key], 120000000)  # SEC canonical wins
         self.assertTrue(warns)
         self.assertTrue(any("conflict" in w for w in warns))
 
         # SEC is not overwritten by a fallback/yfinance record either.
         yf = self._convenience_record(
-            "yfinance", "free_api", 111000000, sec.normalized_type, sec.subject,
+            "yfinance", "free_api", 111000000, "yf_history_revenue", sec.subject, period_end,
         )
+        self.assertNotEqual(sec.normalized_type, yf.normalized_type)
         resolved2, _ = resolve_conflicts((sec, fmp, yf))
         self.assertEqual(resolved2[key], 120000000)
 

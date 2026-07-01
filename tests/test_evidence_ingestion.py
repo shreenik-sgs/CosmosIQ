@@ -79,11 +79,13 @@ SEC_FIXTURES = {
             "prior_value": 100.0,
         },
     },
-    # Same field, canonical value, for the conflict test.
+    # Same FACT (financial_metric "revenue"), canonical value, for the conflict
+    # test. Its SEC-specific normalized_type deliberately DIFFERS from the FMP
+    # record's -- arbitration must key on the shared metric, not the type.
     "IREN-REV": {
         "source_name": "SEC EDGAR",
         "raw_type": "10-Q",
-        "normalized_type": "10-Q",
+        "normalized_type": "sec_xbrl_revenue",
         "ticker": "IREN",
         "period_end": "2026-03-31",
         "evidence_quality": 0.95,
@@ -124,11 +126,13 @@ FMP_FIXTURES = {
             "prior_value": 100.0,
         },
     },
-    # Same field, a DIFFERENT (convenience) value, for the conflict test.
+    # Same FACT (financial_metric "revenue"), a DIFFERENT (convenience) value, for
+    # the conflict test. Its FMP-specific normalized_type deliberately DIFFERS from
+    # the SEC record's -- proving cross-source arbitration keys on the metric.
     "IREN-REV": {
         "source_name": "Financial Modeling Prep",
         "raw_type": "quote",
-        "normalized_type": "10-Q",
+        "normalized_type": "fmp_financial_revenue",
         "ticker": "IREN",
         "period_end": "2026-03-31",
         "evidence_quality": 0.6,
@@ -269,25 +273,33 @@ class ConflictTests(unittest.TestCase):
     def test_canonical_sec_value_wins_over_conflicting_fmp_value(self):
         sec = SecEdgarAdapter(SEC_FIXTURES).fetch({"subject": "IREN-REV", "now": 0}).records[0]
         fmp = FmpAdapter(FMP_FIXTURES).fetch({"subject": "IREN-REV", "now": 0}).records[0]
+        # The two records genuinely differ by normalized_type (sec_xbrl_revenue vs
+        # fmp_financial_revenue) but share metric + period -- arbitration keys on the
+        # family-scoped financial fact identity, not the source-specific type.
+        self.assertNotEqual(sec.normalized_type, fmp.normalized_type)
         resolved, warns = resolve_conflicts((sec, fmp))
-        key = ("IREN-REV", "10-Q", "metric_value")
+        key = ("IREN-REV", "financial_fact", "revenue", "2026-03-31", "")
         self.assertEqual(resolved[key], 120.0)  # SEC canonical value wins
         self.assertTrue(warns)
         self.assertIn("conflict", warns[0])
 
     def test_equal_values_are_not_a_conflict(self):
         sec = SecEdgarAdapter(SEC_FIXTURES).fetch({"subject": "IREN-REV", "now": 0}).records[0]
-        # yfinance fixture carrying the identical value
+        # A fallback record carrying the SAME metric/period ("revenue" @ 2026-03-31)
+        # and identical value under a DIFFERENT normalized_type -- it groups on the
+        # financial fact key, and equal values must NOT raise a conflict.
         yf_fixtures = {
             "IREN-REV": {
                 "source_name": "yfinance",
                 "raw_type": "history",
-                "normalized_type": "10-Q",
+                "normalized_type": "yf_history_revenue",
                 "ticker": "IREN",
-                "extracted_fields": {"metric_value": 120.0},
+                "period_end": "2026-03-31",
+                "extracted_fields": {"financial_metric": "revenue", "metric_value": 120.0},
             }
         }
         yf = YFinanceAdapter(yf_fixtures).fetch({"subject": "IREN-REV", "now": 0}).records[0]
+        self.assertNotEqual(sec.normalized_type, yf.normalized_type)
         _, warns = resolve_conflicts((sec, yf))
         self.assertEqual(warns, ())
 

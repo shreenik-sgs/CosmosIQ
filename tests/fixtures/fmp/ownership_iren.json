@@ -1,0 +1,17 @@
+{
+  "symbol": "IREN",
+  "ownership": [
+    {
+      "holder": "Example Asset Management LLC",
+      "shares": 12000000,
+      "dateReported": "2026-03-31",
+      "ownershipPercent": 5.7
+    },
+    {
+      "holder": "Example Index Funds Inc",
+      "shares": 8000000,
+      "dateReported": "2026-03-31",
+      "ownershipPercent": 3.8
+    }
+  ]
+}
