@@ -31,6 +31,7 @@ Guarantees for every page:
 from __future__ import annotations
 
 import html
+import math
 from typing import Any, Iterable, Tuple
 
 from infinite_canvas.render_html import render_cockpit_html
@@ -42,7 +43,6 @@ from .view_models import (
     CIODashboardView,
     DataQualityView,
     EconomicUniverseView,
-    GalaxyClusterView,
     GalaxyThemeView,
     NodeView,
     PlanetCandidateView,
@@ -187,14 +187,6 @@ def _orb(size_px: int, glow: int, dashed: bool, raw_label: str, raw_value: Any) 
     ).format(cls=cls, style=style, label=_esc(raw_label), raw=_esc(_money(raw_value)), gap=gap)
 
 
-def _mini_orb(size_px: int, glow: int, dashed: bool) -> str:
-    cls = "orb glow-{0}".format(int(glow) if glow in (1, 2, 3) else 1)
-    if dashed:
-        cls += " dashed"
-    return '<div class="{cls}" style="width:{s}px;height:{s}px"></div>'.format(
-        cls=cls, s=int(size_px))
-
-
 # --------------------------------------------------------------------------- #
 # Zoom-path helpers (must match view_models.planet_universe_path)             #
 # --------------------------------------------------------------------------- #
@@ -215,13 +207,78 @@ def _path_star(gslug: str, vcslug: str, stslug: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Cosmic object (a clickable node in the top canvas)                          #
+# Deep-space scene: deterministic starfield + object positioning              #
 # --------------------------------------------------------------------------- #
+_STAR_SEED = 20260701
+_STAR_COUNT = 240
+
+
+def _starfield() -> str:
+    """A dense, DETERMINISTIC starfield across 3 parallax depth layers.
+
+    Positions/sizes/opacities come from a fixed-seed pure LCG (no ``random``, no
+    clock) so two builds stay byte-identical. Twinkle is CSS-only.
+    """
+    state = _STAR_SEED
+
+    def nxt() -> float:
+        nonlocal state
+        state = (1103515245 * state + 12345) & 0x7FFFFFFF
+        return state / 0x7FFFFFFF
+
+    # (min px, max px, min opacity, max opacity) per depth layer.
+    layers = ((0.6, 1.3, 0.30, 0.65), (1.1, 1.9, 0.45, 0.85), (1.7, 2.9, 0.60, 1.0))
+    dots = []
+    for i in range(_STAR_COUNT):
+        layer = i % 3
+        mn, mx, omn, omx = layers[layer]
+        x = nxt() * 100.0
+        y = nxt() * 100.0
+        size = mn + (mx - mn) * nxt()
+        op = omn + (omx - omn) * nxt()
+        delay = nxt() * 4.5
+        dots.append(
+            '<div class="star sl{l}" style="left:{x:.3f}%;top:{y:.3f}%;'
+            'width:{s:.2f}px;height:{s:.2f}px;opacity:{o:.3f};'
+            'animation-delay:{d:.2f}s"></div>'.format(l=layer, x=x, y=y, s=size, o=op, d=delay))
+    return '<div class="starfield" aria-hidden="true">{0}</div>'.format("".join(dots))
+
+
+def _scene_position(index: int, total: int) -> Tuple[float, float]:
+    """A deterministic (left%, top%) for a body: a spaced golden-angle spiral.
+
+    Single-object levels are centred; multi-object levels spiral out from the centre
+    so bodies don't overlap into unreadability. Pure math -> byte-stable."""
+    if total <= 1:
+        return (50.0, 47.0)
+    golden = 2.399963229728653  # golden angle (radians)
+    ang = index * golden
+    r = 15.0 + 27.0 * math.sqrt((index + 1) / float(total))
+    left = 50.0 + r * math.cos(ang) * 1.18
+    top = 47.0 + r * math.sin(ang)
+    left = max(9.0, min(91.0, left))
+    top = max(12.0, min(85.0, top))
+    return (left, top)
+
+
+# --------------------------------------------------------------------------- #
+# Cosmic body (a luminous, absolutely-positioned object in the scene)          #
+# --------------------------------------------------------------------------- #
+_BODY_KIND = {"galaxy": "galaxy", "theme": "galaxy", "value_chain": "nebula",
+              "star": "star", "planet": "planet", "moon": "moon"}
+
+
 def _cosmic_object(*, kind: str, path: str, target_path: str, target_level,
                    title: str, sub: str, size_px: int, glow: int, dashed: bool,
-                   redshadow: bool, halo: bool, ev_class: str,
-                   size_label: str, size_raw: str, badges: str, intel_html: str) -> str:
-    classes = ["cosmic-object", "k-{0}".format(kind)]
+                   redshadow: bool, halo: bool, ev_class: str, size_label: str,
+                   size_raw: str, badges: str, intel_html: str,
+                   pos: Tuple[float, float], variant: str = "") -> str:
+    left, top = pos
+    classes = ["cosmic-object", "k-{0}".format(kind),
+               "body-{0}".format(_BODY_KIND.get(kind, "planet")),
+               "glow-{0}".format(int(glow) if glow in (1, 2, 3) else 1)]
+    if variant:
+        classes.append("variant-{0}".format(variant))
     if dashed:
         classes.append("dashed-outline")
     if redshadow:
@@ -236,38 +293,40 @@ def _cosmic_object(*, kind: str, path: str, target_path: str, target_level,
             _esc(target_path), _esc(target_level))
     gapbadge = (' <span class="badge gap">magnitude missing — neutral size</span>'
                 if dashed else "")
-    orb = (
-        '<div class="orb-wrap">{orb}<div class="orb-meta">'
-        'size ∝ {label} (not a ranking)<br><b>{label}: {raw}</b>{gap}</div></div>'
-    ).format(orb=_mini_orb(size_px, glow, dashed), label=_esc(size_label),
-             raw=_esc(size_raw), gap=gapbadge)
+    body = '<div class="body" style="width:{s}px;height:{s}px"></div>'.format(s=int(size_px))
+    tip = (
+        '<span class="body-tip">{sub}<br>size ∝ {label}: <b>{raw}</b> '
+        "(bounded log; not a ranking)<br>{badges}{gap}</span>"
+    ).format(sub=_esc(sub), label=_esc(size_label), raw=_esc(size_raw),
+             badges=badges, gap=gapbadge)
+    style = "left:{0:.2f}%;top:{1:.2f}%".format(left, top)
     return (
-        '<div class="{cls}" {attrs}>'
-        "{orb}"
-        '<p class="co-title">{title}</p>'
-        '<p class="co-sub">{sub}</p>'
-        "<p>{badges}</p>"
+        '<div class="{cls}" style="{style}" {attrs}>'
+        "{body}"
+        '<div class="body-label">{title}{tip}</div>'
         '<div class="intel-template">{intel}</div>'
         "</div>"
-    ).format(cls=" ".join(classes), attrs=attrs, orb=orb, title=_esc(title),
-             sub=_esc(sub), badges=badges, intel=intel_html)
+    ).format(cls=" ".join(classes), style=style, attrs=attrs, body=body,
+             title=_esc(title), tip=tip, intel=intel_html)
 
 
 def _level_panel(*, level: int, path: str, parent: str, crumb: str, kind: str,
                  title: str, objects_html: str, intel_html: str, active: bool) -> str:
     parent_attr = ' data-parent="{0}"'.format(_esc(parent)) if parent else ""
-    head = '<p class="level-head">Level {0} · {1}</p>'.format(level, _esc(kind))
-    grid = ('<div class="object-grid">{0}</div>'.format(objects_html)
-            if objects_html else "")
+    caption = (
+        '<div class="scene-caption"><p class="level-head">Level {0} · {1}</p>'
+        "<h2>{2}</h2></div>"
+    ).format(level, _esc(kind), _esc(title))
+    bodies = '<div class="scene-bodies">{0}</div>'.format(objects_html or "")
     return (
-        '<section class="level-panel{act}" data-level="{lvl}" data-path="{path}"{par}'
+        '<section class="level-panel scene-layer{act}" data-level="{lvl}" data-path="{path}"{par}'
         ' data-crumb="{crumb}">'
-        "{head}<h2>{title}</h2>{grid}"
+        "{caption}{bodies}"
         '<div class="intel-template">{intel}</div>'
         "</section>"
     ).format(act=" active" if active else "", lvl=level, path=_esc(path),
-             par=parent_attr, crumb=_esc(crumb), head=head, title=_esc(title),
-             grid=grid, intel=intel_html)
+             par=parent_attr, crumb=_esc(crumb), caption=caption, bodies=bodies,
+             intel=intel_html)
 
 
 # --------------------------------------------------------------------------- #
@@ -524,7 +583,7 @@ def _intel_moon(n: NodeView) -> str:
 # --------------------------------------------------------------------------- #
 # Object builders (compact clickable nodes carrying their intel template)      #
 # --------------------------------------------------------------------------- #
-def _galaxy_object(t: GalaxyThemeView, target_path: str) -> str:
+def _galaxy_object(t: GalaxyThemeView, target_path: str, pos: Tuple[float, float]) -> str:
     c = t.cluster
     badges = " ".join([
         _badge("heat: {0}".format(c.heat_label)), _badge(c.priority_label),
@@ -540,10 +599,11 @@ def _galaxy_object(t: GalaxyThemeView, target_path: str) -> str:
         size_px=c.visual_size_px, glow=_HEAT_GLOW.get((c.heat_label or "").lower(), 1),
         dashed=c.magnitude_missing, redshadow=c.red_team_risk, halo=c.crowded_euphoric,
         ev_class=_ev_class(c.data_quality), size_label="theme TAM (DEMO)",
-        size_raw=_money(c.theme_tam), badges=badges, intel_html=_intel_galaxy(t))
+        size_raw=_money(c.theme_tam), badges=badges, intel_html=_intel_galaxy(t),
+        pos=pos, variant="nebula" if c.data_poor else "")
 
 
-def _theme_object(t: GalaxyThemeView, target_path: str) -> str:
+def _theme_object(t: GalaxyThemeView, target_path: str, pos: Tuple[float, float]) -> str:
     c = t.cluster
     badges = " ".join([_badge("theme"), _badge("heat: {0}".format(c.heat_label)),
                        _quality_badge(c.data_quality), _badge("DEMO", "demo")])
@@ -553,10 +613,12 @@ def _theme_object(t: GalaxyThemeView, target_path: str) -> str:
         size_px=c.visual_size_px, glow=_HEAT_GLOW.get((c.heat_label or "").lower(), 1),
         dashed=c.magnitude_missing, redshadow=c.red_team_risk, halo=c.crowded_euphoric,
         ev_class=_ev_class(c.data_quality), size_label="theme TAM (DEMO)",
-        size_raw=_money(c.theme_tam), badges=badges, intel_html=_intel_theme(t))
+        size_raw=_money(c.theme_tam), badges=badges, intel_html=_intel_theme(t),
+        pos=pos, variant="nebula" if c.data_poor else "")
 
 
-def _value_chain_object(ss: SolarSystemValueChainView, target_path: str) -> str:
+def _value_chain_object(ss: SolarSystemValueChainView, target_path: str,
+                        pos: Tuple[float, float]) -> str:
     badges = " ".join([_badge("value chain"),
                        _badge("nodes: {0}".format(len(ss.nodes))), _badge("DEMO", "demo")])
     return _cosmic_object(
@@ -564,10 +626,10 @@ def _value_chain_object(ss: SolarSystemValueChainView, target_path: str) -> str:
         title=ss.name, sub=ss.description, size_px=ss.visual_size_px, glow=2,
         dashed=ss.magnitude_missing, redshadow=False, halo=False, ev_class="",
         size_label="value-chain revenue pool (DEMO)", size_raw=_money(ss.value_chain_revenue_pool),
-        badges=badges, intel_html=_intel_value_chain(ss))
+        badges=badges, intel_html=_intel_value_chain(ss), pos=pos)
 
 
-def _star_object(s: StarBottleneckView, target_path: str) -> str:
+def _star_object(s: StarBottleneckView, target_path: str, pos: Tuple[float, float]) -> str:
     high = (s.severity or "").lower() == "high"
     badges = " ".join([_badge("bottleneck"), _badge("type: {0}".format(s.star_type)),
                        _badge("severity: {0}".format(s.severity),
@@ -575,16 +637,19 @@ def _star_object(s: StarBottleneckView, target_path: str) -> str:
     return _cosmic_object(
         kind="star", path=target_path, target_path=target_path, target_level=4,
         title=s.constrained_node, sub="{0} · {1}".format(s.star_type, s.severity),
-        size_px=s.visual_size_px, glow=2, dashed=s.magnitude_missing, redshadow=high,
-        halo=False, ev_class="", size_label="bottleneck economic importance (DEMO)",
+        size_px=s.visual_size_px, glow=3 if high else 2, dashed=s.magnitude_missing,
+        redshadow=high, halo=False, ev_class="",
+        size_label="bottleneck economic importance (DEMO)",
         size_raw=("{0:.0f} / 100".format(s.bottleneck_economic_importance)
                   if s.bottleneck_economic_importance is not None else "unknown (data gap)"),
-        badges=badges, intel_html=_intel_star(s))
+        badges=badges, intel_html=_intel_star(s), pos=pos)
 
 
-def _planet_object(p: PlanetCandidateView) -> str:
+def _planet_object(p: PlanetCandidateView, pos: Tuple[float, float]) -> str:
     origin = _badge("REAL slice", "real") if p.is_real else _badge("DEMO", "demo")
     rt_hazard = (p.red_team_label or "").lower() in ("concern", "fail")
+    severe = rt_hazard or p.capital_structure_risk
+    has_catalyst = bool((p.catalyst_label or "").strip())
     badges = " ".join([
         _badge("investability: {0}".format(p.investability_label)),
         _badge(p.timing_label),
@@ -592,16 +657,18 @@ def _planet_object(p: PlanetCandidateView) -> str:
         _quality_badge(p.data_quality), origin])
     if p.is_real:
         badges += " " + _authority_badges(p)
+    variant = "blackhole" if severe else ("comet" if has_catalyst else "")
     return _cosmic_object(
         kind="planet", path=p.universe_path, target_path=p.universe_path, target_level=5,
         title="{0} ({1})".format(p.company, p.ticker), sub=p.value_chain_role,
         size_px=p.visual_size_px, glow=p.glow_level, dashed=p.magnitude_missing,
-        redshadow=rt_hazard or p.capital_structure_risk, halo=bool((p.catalyst_label or "").strip()),
+        redshadow=severe, halo=has_catalyst,
         ev_class=_ev_class(p.data_quality), size_label="market cap (DEMO)",
-        size_raw=_money(p.market_cap), badges=badges, intel_html=_intel_planet(p))
+        size_raw=_money(p.market_cap), badges=badges, intel_html=_intel_planet(p),
+        pos=pos, variant=variant)
 
 
-def _moon_object(n: NodeView) -> str:
+def _moon_object(n: NodeView, pos: Tuple[float, float]) -> str:
     missing = _badge("missing: {0}".format("; ".join(n.missing_data)), "gap") if n.missing_data else ""
     badges = " ".join([_badge("moon / supplier"), _badge("tier: {0}".format(n.tier)),
                        _badge("evidence: {0}".format(n.evidence_quality)), missing])
@@ -610,7 +677,10 @@ def _moon_object(n: NodeView) -> str:
         title=n.role, sub="{0} · {1}".format(n.tier, n.node_id), size_px=n.visual_size_px,
         glow=1, dashed=n.magnitude_missing, redshadow=False, halo=False,
         ev_class=_ev_class(n.evidence_quality), size_label="dependency exposure (DEMO)",
-        size_raw=_money(n.dependency_exposure), badges=badges, intel_html=_intel_moon(n))
+        size_raw=_money(n.dependency_exposure), badges=badges, intel_html=_intel_moon(n),
+        pos=pos)
+
+
 
 
 # --------------------------------------------------------------------------- #
@@ -619,10 +689,11 @@ def _moon_object(n: NodeView) -> str:
 def render_universe(view: EconomicUniverseView) -> str:
     panels = []
 
-    # L0 Universe.
-    gslug_first = view.clusters[0].slug if view.clusters else ""
+    # L0 Universe — galaxies scattered on a deterministic scene spiral.
+    ntheme = len(view.themes)
     galaxy_objs = "".join(
-        _galaxy_object(t, _path_galaxy(t.cluster.slug)) for t in view.themes)
+        _galaxy_object(t, _path_galaxy(t.cluster.slug), _scene_position(i, ntheme))
+        for i, t in enumerate(view.themes))
     universe_intel = _intel_universe(view)
     panels.append(_level_panel(
         level=0, path="universe", parent="", crumb="Universe", kind="Universe",
@@ -637,52 +708,65 @@ def render_universe(view: EconomicUniverseView) -> str:
         vc0 = t.solar_systems[0].slug if t.solar_systems else "vc0"
         star0 = t.stars[0].slug if t.stars else "star0"
 
-        # L1 Galaxy -> theme object.
+        # L1 Galaxy -> the theme (a single central body).
         panels.append(_level_panel(
             level=1, path=gp, parent="universe", crumb="{0} Galaxy".format(c.theme_name),
             kind="Galaxy / megatrend", title="{0} — galaxy".format(c.theme_name),
-            objects_html=_theme_object(t, tp), intel_html=_intel_galaxy(t), active=False))
+            objects_html=_theme_object(t, tp, _scene_position(0, 1)),
+            intel_html=_intel_galaxy(t), active=False))
 
-        # L2 Theme -> value-chain objects.
+        # L2 Theme -> value-chain bodies.
+        nvc = len(t.solar_systems)
         vc_objs = "".join(
-            _value_chain_object(ss, _path_vc(gslug, ss.slug)) for ss in t.solar_systems)
+            _value_chain_object(ss, _path_vc(gslug, ss.slug), _scene_position(i, nvc))
+            for i, ss in enumerate(t.solar_systems))
         panels.append(_level_panel(
             level=2, path=tp, parent=gp, crumb="{0} Theme".format(c.theme_name),
             kind="Milky Way / theme", title="{0} — theme".format(c.theme_name),
             objects_html=vc_objs, intel_html=_intel_theme(t), active=False))
 
-        # L3 Value chain(s) -> star objects.
+        # L3 Value chain(s) -> bottleneck-star bodies.
+        nstar = len(t.stars)
         for ss in t.solar_systems:
-            vcp = _path_vc(gslug, ss.slug)
             star_objs = "".join(
-                _star_object(s, _path_star(gslug, ss.slug, s.slug)) for s in t.stars)
+                _star_object(s, _path_star(gslug, ss.slug, s.slug), _scene_position(i, nstar))
+                for i, s in enumerate(t.stars))
             panels.append(_level_panel(
-                level=3, path=vcp, parent=tp, crumb=ss.name, kind="Solar system / value chain",
-                title=ss.name, objects_html=star_objs, intel_html=_intel_value_chain(ss),
-                active=False))
+                level=3, path=_path_vc(gslug, ss.slug), parent=tp, crumb=ss.name,
+                kind="Solar system / value chain", title=ss.name, objects_html=star_objs,
+                intel_html=_intel_value_chain(ss), active=False))
 
-        # L4 Star(s) -> planet objects.
+        # L4 Star(s) -> planet bodies.
+        nplanet = len(t.planets)
         for ss in t.solar_systems:
             for s in t.stars:
-                stp = _path_star(gslug, ss.slug, s.slug)
-                planet_objs = "".join(_planet_object(p) for p in t.planets)
+                planet_objs = "".join(
+                    _planet_object(p, _scene_position(i, nplanet))
+                    for i, p in enumerate(t.planets))
                 panels.append(_level_panel(
-                    level=4, path=stp, parent=_path_vc(gslug, ss.slug),
-                    crumb=s.constrained_node, kind="Star / bottleneck",
-                    title="Bottleneck: {0}".format(s.constrained_node),
+                    level=4, path=_path_star(gslug, ss.slug, s.slug),
+                    parent=_path_vc(gslug, ss.slug), crumb=s.constrained_node,
+                    kind="Star / bottleneck", title="Bottleneck: {0}".format(s.constrained_node),
                     objects_html=planet_objs, intel_html=_intel_star(s), active=False))
 
-        # L5 Planet(s) -> moon objects. Parent = the first star (matches planet path).
+        # L5 Planet(s) -> moon bodies. Parent = the first star (matches planet path).
         star0_path = _path_star(gslug, vc0, star0)
-        moon_objs_src = t.solar_systems[0].nodes if t.solar_systems else ()
-        moon_objs = "".join(_moon_object(n) for n in moon_objs_src)
+        moon_src = t.solar_systems[0].nodes if t.solar_systems else ()
+        nmoon = len(moon_src)
+        moon_objs = "".join(
+            _moon_object(n, _scene_position(i, nmoon)) for i, n in enumerate(moon_src))
         for p in t.planets:
             panels.append(_level_panel(
                 level=5, path=p.universe_path, parent=star0_path, crumb=p.company,
                 kind="Planet / company", title="{0} ({1})".format(p.company, p.ticker),
                 objects_html=moon_objs, intel_html=_intel_planet(p), active=False))
 
-    viewport = '<div id="viewport" class="viewport">{0}</div>'.format("".join(panels))
+    scene_bg = (
+        _starfield()
+        + '<div class="nebula neb-1"></div><div class="nebula neb-2"></div>'
+        + '<div class="nebula neb-3"></div><div class="vignette"></div>')
+    viewport = '<div id="viewport" class="viewport">{0}{1}</div>'.format(
+        scene_bg, "".join(panels))
     top = (
         '<section id="top-canvas" class="top-canvas" aria-label="Infinite Canvas (top pane)">'
         '<nav id="breadcrumb" class="breadcrumb">'

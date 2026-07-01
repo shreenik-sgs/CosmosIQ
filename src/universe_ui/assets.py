@@ -176,26 +176,7 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
   background:var(--panel);color:#cdd6ff;font-size:.82rem;font-weight:700;cursor:pointer}
 .zoom-ctrl:hover{border-color:var(--accent);text-decoration:none}
 .hint{color:var(--muted);font-size:.78rem}
-.viewport{position:relative;min-height:340px;background:
-    radial-gradient(700px 400px at 30% 0%, rgba(60,80,180,.18), rgba(5,6,13,0) 60%),
-    #070a16;border:1px solid var(--line);border-radius:16px;padding:1rem}
-.level-panel{display:none}
-.level-panel.active{display:block}
 .level-head{font-size:.72rem;letter-spacing:1.5px;text-transform:uppercase;color:#7f8bc0;margin:0 0 .4rem}
-.object-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.9rem;margin:.6rem 0}
-.cosmic-object{position:relative;cursor:pointer;background:linear-gradient(160deg,var(--panel),var(--panel2));
-  border:1px solid var(--line);border-radius:14px;padding:.8rem .9rem;overflow:hidden;
-  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
-.cosmic-object:hover{transform:translateY(-2px) scale(1.015);border-color:var(--accent);
-  box-shadow:0 8px 30px rgba(80,110,255,.2)}
-.cosmic-object .co-title{font-weight:800;font-size:1rem;margin:0 0 .15rem}
-.cosmic-object .co-sub{color:var(--muted);font-size:.8rem;margin:0 0 .4rem}
-.cosmic-object.k-star{border-color:#7a6320}
-.cosmic-object.redshadow{box-shadow:inset 0 0 40px rgba(255,46,99,.25);border-color:var(--hazard)}
-.cosmic-object.halo{box-shadow:0 0 0 1px #b5651d,0 0 26px rgba(181,101,29,.28)}
-.cosmic-object.dashed-outline{border-style:dashed;border-color:#ffbf87}
-.cosmic-object.ev-low{opacity:.75}.cosmic-object.ev-sparse{opacity:.55}
-.co-orbit{font-size:.72rem;color:#8b96c8}
 .object-detail{display:none}
 .detail-panel{position:sticky;top:64px;background:linear-gradient(160deg,#0c1130,#141a3d);
   border:1px solid var(--line);border-radius:14px;padding:1rem}
@@ -205,10 +186,8 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
 
 /* ---- two-pane: dominant top canvas + dynamic bottom intelligence pane ---- */
 .cosmos-vertical{display:flex;flex-direction:column;gap:1rem}
-.top-canvas{background:
-    radial-gradient(700px 380px at 30% 0%, rgba(60,80,180,.16), rgba(5,6,13,0) 60%),
-    #070a16;border:1px solid var(--line);border-radius:16px;padding:1rem;min-height:56vh}
-.top-canvas .viewport{background:transparent;border:0;padding:0;min-height:auto}
+.top-canvas{position:relative;border:1px solid #1c2350;border-radius:16px;padding:.9rem;
+  min-height:60vh;overflow:hidden}
 .intel-pane{background:linear-gradient(160deg,#0c1130,#141a3d);border:1px solid var(--line);
   border-radius:16px;padding:1rem 1.2rem}
 .intel-pane h3{margin-top:0}
@@ -237,6 +216,108 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
 .bd-side h4{margin-top:0}
 @media(max-width:700px){.bottleneck-diagram{grid-template-columns:1fr}}
 .cockpit-link a{font-weight:700}
+
+/* ==================================================================== */
+/* IMMERSIVE DEEP-SPACE SCENE (top canvas). CSS-only motion; no random.  */
+/* ==================================================================== */
+.viewport{position:relative;overflow:hidden;min-height:64vh;border:0;padding:0;border-radius:14px;
+  background:
+    radial-gradient(130% 100% at 50% 12%, #241155 0%, #140a3a 32%, #08061c 62%, #030210 88%, #010007 100%)}
+.starfield{position:absolute;inset:0;z-index:0;pointer-events:none}
+.star{position:absolute;border-radius:50%;background:#ffffff;
+  box-shadow:0 0 3px 1px rgba(180,205,255,.55);animation:twinkle 4.5s ease-in-out infinite}
+.star.sl0{background:#cfe0ff}
+.star.sl2{background:#fff4e0;box-shadow:0 0 5px 1px rgba(255,225,180,.6)}
+@keyframes twinkle{0%,100%{transform:scale(1)}50%{transform:scale(.45)}}
+.nebula{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:0}
+.neb-1{width:46%;height:52%;left:-8%;top:-12%;opacity:.38;
+  background:radial-gradient(circle,#7b3ff2 0%,rgba(123,63,242,0) 66%)}
+.neb-2{width:54%;height:56%;right:-12%;top:14%;opacity:.30;
+  background:radial-gradient(circle,#2f6bd0 0%,rgba(47,107,208,0) 66%)}
+.neb-3{width:44%;height:50%;left:26%;bottom:-16%;opacity:.28;
+  background:radial-gradient(circle,#c0397a 0%,rgba(192,57,122,0) 66%)}
+.vignette{position:absolute;inset:0;z-index:1;pointer-events:none;
+  box-shadow:inset 0 0 200px 70px rgba(0,0,0,.78)}
+
+.scene-layer{position:absolute;inset:0;z-index:2}
+.scene-caption{position:absolute;left:1rem;top:.7rem;z-index:6;max-width:64%}
+.scene-caption h2{margin:.1rem 0;font-size:1.1rem;text-shadow:0 2px 14px #000}
+.scene-caption .level-head{margin:0}
+.scene-bodies{position:absolute;inset:0;z-index:3}
+
+/* a cosmic body positioned in space (absolute; NOT a grid card) */
+.cosmic-object{position:absolute;transform:translate(-50%,-50%);cursor:pointer;
+  text-align:center;z-index:3}
+.cosmic-object:hover{z-index:9}
+.cosmic-object .body{position:relative;margin:0 auto;border-radius:50%;
+  transition:box-shadow .2s ease,transform .2s ease}
+.cosmic-object:hover .body{transform:scale(1.14);
+  box-shadow:0 0 46px 14px rgba(150,185,255,.55)}
+.cosmic-object.ev-low{opacity:.72}.cosmic-object.ev-sparse{opacity:.5}
+.cosmic-object.dashed-outline .body{outline:2px dashed #ffbf87;outline-offset:3px}
+
+.body-label{margin-top:.35rem;font-size:.72rem;font-weight:700;color:#e4ebff;
+  text-shadow:0 1px 8px #000,0 0 3px #000;position:relative;white-space:nowrap}
+.body-tip{display:none;position:absolute;left:50%;top:130%;transform:translateX(-50%);
+  background:#0b1130;border:1px solid var(--line);border-radius:8px;padding:.45rem .6rem;
+  width:230px;font-weight:600;font-size:.7rem;color:#cdd6ff;white-space:normal;
+  text-shadow:none;z-index:30}
+.body-tip .badge{margin:.1rem .15rem}
+.cosmic-object:hover .body-tip{display:block}
+
+/* GLOW tiers (brightness = heat/status) */
+.glow-3 .body{box-shadow:0 0 34px 10px rgba(255,150,90,.55),0 0 12px 3px rgba(255,230,190,.7)}
+.glow-2 .body{box-shadow:0 0 24px 7px rgba(255,210,120,.42)}
+.glow-1 .body{box-shadow:0 0 14px 4px rgba(150,170,230,.32)}
+
+/* GALAXY = luminous spiral disc with a bright core + faint arms + slow rotation */
+.body-galaxy .body{
+  background:radial-gradient(circle at 50% 50%,#fff 0%,#ffe9b8 12%,#ffb454 26%,
+    rgba(180,90,220,.5) 52%,rgba(90,70,200,.18) 74%,rgba(20,16,60,0) 100%);
+  filter:drop-shadow(0 0 18px rgba(200,140,255,.5));animation:spin 90s linear infinite}
+.body-galaxy .body::before{content:"";position:absolute;inset:-18%;border-radius:50%;
+  background:conic-gradient(from 0deg,rgba(255,255,255,.28),rgba(120,90,255,0) 30%,
+    rgba(255,180,120,.22) 55%,rgba(120,90,255,0) 78%,rgba(255,255,255,.28));
+  filter:blur(6px);opacity:.7}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* PLANET = lit sphere (upper-left light) + halo; hot ones gently pulse */
+.body-planet .body{
+  background:radial-gradient(circle at 34% 30%,#dbe6ff 0%,#7d90d8 32%,#3a4790 62%,#1a2054 100%)}
+.body-planet.glow-3 .body{animation:pulse 4.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 30px 8px rgba(255,160,100,.5)}
+  50%{box-shadow:0 0 46px 16px rgba(255,190,130,.72)}}
+.body-planet .body::after{content:"";position:absolute;left:-32%;right:-32%;top:44%;height:14%;
+  border-radius:50%;border:1px solid rgba(180,200,255,.28);transform:rotate(-16deg)}
+
+/* STAR / bottleneck = bright point + strong bloom + cross-flare */
+.body-star .body{background:radial-gradient(circle,#ffffff 0%,#ffe6a8 32%,#ff9a3c 66%,rgba(255,120,40,0) 100%);
+  box-shadow:0 0 40px 12px rgba(255,180,90,.6)}
+.body-star .body::before,.body-star .body::after{content:"";position:absolute;left:50%;top:50%;
+  background:linear-gradient(rgba(255,235,190,0),rgba(255,235,190,.85),rgba(255,235,190,0))}
+.body-star .body::before{width:2px;height:260%;transform:translate(-50%,-50%)}
+.body-star .body::after{width:260%;height:2px;transform:translate(-50%,-50%)}
+
+/* NEBULA = soft large blurred colored cloud (weak-signal / emerging / value-chain) */
+.body-nebula .body,.variant-nebula .body{
+  background:radial-gradient(circle,rgba(120,200,255,.55) 0%,rgba(160,90,230,.32) 45%,
+    rgba(60,40,120,0) 78%);
+  filter:blur(6px);box-shadow:0 0 40px 16px rgba(120,150,255,.28);border-radius:48% 52% 55% 45%}
+
+/* COMET = catalyst: bright head + gradient tail */
+.variant-comet .body::before{content:"";position:absolute;right:60%;top:38%;width:180%;height:22%;
+  border-radius:50%;transform:rotate(8deg);
+  background:linear-gradient(90deg,rgba(180,220,255,0),rgba(180,220,255,.7));filter:blur(3px)}
+
+/* BLACK HOLE = severe risk: dark core ringed by red accretion glow */
+.variant-blackhole .body{background:radial-gradient(circle,#000 0%,#0a0206 46%,#3a0a16 60%,rgba(58,10,22,0) 100%);
+  box-shadow:0 0 30px 6px rgba(255,40,90,.6),inset 0 0 12px 2px #000}
+.variant-blackhole .body::before{content:"";position:absolute;inset:-26%;border-radius:50%;
+  border:2px solid rgba(255,60,100,.55);filter:blur(2px)}
+.redshadow .body{box-shadow:0 0 28px 8px rgba(255,46,99,.5)}
+
+/* MOON = tiny pale sphere */
+.body-moon .body{background:radial-gradient(circle at 36% 32%,#e8ecff,#8b93c0 60%,#41476e 100%)}
 """
 
 

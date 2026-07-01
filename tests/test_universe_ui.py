@@ -311,6 +311,38 @@ class ZoomableUniverseTests(unittest.TestCase):
         self.assertIn("Open Cockpit", self.d)
         self.assertIn('href="cockpit.html"', self.u)   # from the IREN planet template
 
+    # --- the top canvas is an immersive deep-space SCENE, not a card grid -
+    def test_top_canvas_is_a_starfield_scene(self):
+        self.assertIn('class="starfield"', self.u)
+        # a dense starfield (many deterministic star elements)
+        self.assertGreaterEqual(self.u.count('class="star '), 150)
+        self.assertIn('class="nebula', self.u)      # nebula wash
+        self.assertIn('class="vignette"', self.u)   # vignette
+        # the old card-grid layout must be gone from the top canvas
+        self.assertNotIn("object-grid", self.u)
+        self.assertIn('class="scene-bodies"', self.u)
+
+    def test_objects_are_positioned_luminous_bodies(self):
+        for cls in ("body-galaxy", "body-planet", "body-star", "body-nebula", "body-moon"):
+            self.assertIn(cls, self.u, "missing luminous body class {0}".format(cls))
+        # bodies are absolutely positioned in space (inline left%/top%)
+        self.assertIsNotNone(
+            re.search(r'class="cosmic-object[^"]*" style="left:[0-9.]+%;top:[0-9.]+%"', self.u),
+            "cosmic objects are not absolutely positioned in the scene")
+        # the body diameter is driven by the magnitude-derived visual size
+        self.assertIn('class="body" style="width:', self.u)
+        # positioned bodies still drive zoom + intel pane
+        self.assertIn("data-target-path=", self.u)
+        self.assertIn('class="intel-template"', self.u)
+
+    def test_scene_is_deterministic(self):
+        # starfield + positions come from fixed seeds, so a second build matches.
+        tmp = tempfile.mkdtemp(prefix="universe_scene2_")
+        paths = _build(tmp)
+        with open(paths["universe.html"], encoding="utf-8") as fh:
+            u2 = fh.read()
+        self.assertEqual(self.u, u2)
+
     # --- deep-link + hierarchy powered by navigation-only JS --------------
     def test_zoom_js_is_navigation_only(self):
         with open(self.paths["assets/universe.js"], encoding="utf-8") as fh:
