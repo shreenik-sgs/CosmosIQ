@@ -353,6 +353,19 @@ class DataQualityView:
 
 
 @dataclass(frozen=True)
+class ThemeEdgeView:
+    """A validated semantic relationship between two galaxies (both must exist)."""
+    source_slug: str
+    target_slug: str
+    source_name: str
+    target_name: str
+    type: str
+    reason: str
+    strength: str
+    evidence_quality: str
+
+
+@dataclass(frozen=True)
 class EconomicUniverseView:
     mode: str
     live_enabled: bool
@@ -360,6 +373,7 @@ class EconomicUniverseView:
     broker_automation_enabled: bool
     clusters: Tuple[GalaxyClusterView, ...]
     themes: Tuple[GalaxyThemeView, ...]
+    edges: Tuple[ThemeEdgeView, ...]
     dashboard: CIODashboardView
     data_quality: DataQualityView
     real_subject: str
@@ -696,10 +710,19 @@ def build_economic_universe_view(iren_slice, universe: Optional[DemoUniverse] = 
     clusters = tuple(t.cluster for t in themes)
     dashboard = build_cio_dashboard_view(themes)
     data_quality = build_data_quality_view(iren_slice)
+    # Only keep an edge when BOTH endpoints are real galaxies in the terrain.
+    by_name = {g.theme_name: g.slug for g in universe.galaxies}
+    edges = tuple(
+        ThemeEdgeView(
+            source_slug=by_name[e.source], target_slug=by_name[e.target],
+            source_name=e.source, target_name=e.target, type=e.type, reason=e.reason,
+            strength=e.strength, evidence_quality=e.evidence_quality)
+        for e in universe.edges
+        if e.source in by_name and e.target in by_name and e.source != e.target)
     return EconomicUniverseView(
         mode=universe.mode, live_enabled=universe.live_enabled,
         scheduler_enabled=universe.scheduler_enabled,
         broker_automation_enabled=universe.broker_automation_enabled,
-        clusters=clusters, themes=themes, dashboard=dashboard,
+        clusters=clusters, themes=themes, edges=edges, dashboard=dashboard,
         data_quality=data_quality, real_subject=iren_slice.subject,
     )

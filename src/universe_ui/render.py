@@ -303,6 +303,56 @@ def _orbit_svg(positions, focal: Tuple[float, float] = (50.0, 47.0)) -> str:
     ).format("".join(segs))
 
 
+def _universe_scatter(index: int, total: int) -> Tuple[float, float]:
+    """Deterministic WIDE scatter for the L0 galaxies across an open field.
+
+    NO centre anchor and NO spiral-from-centre: galaxies float as a field of regions
+    across a canvas wider than the viewport, so the Universe level has no 'centre of
+    the universe'. Pure integer math (a jittered grid; no random, no clock) -> byte
+    stable."""
+    if total <= 1:
+        return (50.0, 47.0)
+    cols = int(math.ceil(math.sqrt(total)))
+    rows = int(math.ceil(total / float(cols)))
+    col = index % cols
+    row = index // cols
+    x = 8.0 + (col + 0.5) * (84.0 / cols)
+    y = 16.0 + (row + 0.5) * (68.0 / rows)
+    # deterministic per-index jitter (fixed integer hash; no random/clock)
+    jx = (((index * 2654435761) % 1000) / 1000.0) - 0.5
+    jy = (((index * 40503 + 7) % 1000) / 1000.0) - 0.5
+    x += jx * (52.0 / cols)
+    y += jy * (44.0 / rows)
+    return (max(5.0, min(95.0, x)), max(12.0, min(88.0, y)))
+
+
+def _edge_svg(edges, pos_by_slug) -> str:
+    """Semantic economic-relationship lines between related galaxies at the UNIVERSE
+    level. Draws ONE line per explicit edge whose BOTH endpoints exist -- never a line
+    to a centre, never hub-and-spoke, never a line for an unrelated pair. If an edge
+    references a missing galaxy it is skipped. Deterministic."""
+    segs = []
+    for e in edges:
+        a = pos_by_slug.get(e.source_slug)
+        b = pos_by_slug.get(e.target_slug)
+        if not a or not b:
+            continue
+        strength = (e.strength or "").lower()
+        cls = "rel-" + (strength if strength in ("strong", "medium", "weak") else "weak")
+        title = "{0} ↔ {1} — {2}: {3} (DEMO · strength {4} · evidence {5})".format(
+            e.source_name, e.target_name, e.type, e.reason, e.strength, e.evidence_quality)
+        segs.append(
+            '<line class="{cls}" x1="{0:.2f}" y1="{1:.2f}" x2="{2:.2f}" y2="{3:.2f}">'
+            "<title>{title}</title></line>".format(
+                a[0], a[1], b[0], b[1], cls=cls, title=_esc(title)))
+    if not segs:
+        return ""
+    return (
+        '<svg class="rel-lines" viewBox="0 0 100 100" preserveAspectRatio="none" '
+        'aria-hidden="true">{0}</svg>'
+    ).format("".join(segs))
+
+
 # Directional economic-FLOW layout (value-chain level): upstream -> ... -> customers.
 _TIER_RANK = {"upstream": 0, "supplier-of-supplier": 1, "suppliers": 2,
               "enabling-tech": 3, "infrastructure": 4, "integrators": 5,
@@ -996,10 +1046,12 @@ def render_universe(view: EconomicUniverseView) -> str:
             store.append('<div class="intel-template" id="{0}">{1}</div>'.format(
                 _esc(intel_id), html_blob))
 
-    # L0 Universe — galaxies scattered on a deterministic scene spiral.
+    # L0 Universe — galaxies float in an OPEN field (NO centre, NO hub-and-spoke).
+    # Only explicit SEMANTIC relationship edges are drawn, between related galaxies.
     ntheme = len(view.themes)
-    gpos = [_scene_position(i, ntheme) for i in range(ntheme)]
-    galaxy_objs = _orbit_svg(gpos) + "".join(
+    gpos = [_universe_scatter(i, ntheme) for i in range(ntheme)]
+    pos_by_slug = {t.cluster.slug: gpos[i] for i, t in enumerate(view.themes)}
+    galaxy_objs = _edge_svg(view.edges, pos_by_slug) + "".join(
         _galaxy_object(t, _path_galaxy(t.cluster.slug), gpos[i])
         for i, t in enumerate(view.themes))
     universe_intel = _intel_universe(view)
@@ -1042,8 +1094,9 @@ def render_universe(view: EconomicUniverseView) -> str:
             add_intel(_intel_id_star(s.slug), _intel_star(s))
         for p in t.planets:
             add_intel(_intel_id_planet(p), _intel_planet(p))
-        for n in (t.solar_systems[0].nodes if t.solar_systems else ()):
-            add_intel(_intel_id_moon(n.node_id), _intel_moon(n))
+        for ss in t.solar_systems:
+            for n in ss.nodes:
+                add_intel(_intel_id_moon(n.node_id), _intel_moon(n))
 
         # L3 Value chain = a legible left->right economic FLOW: upstream inputs ->
         # ... -> customers, with the bottleneck STAR centred and dominant among them.
@@ -1100,6 +1153,8 @@ def render_universe(view: EconomicUniverseView) -> str:
         '<a id="zoom-back" class="zoom-ctrl" href="#" style="display:none">↑ Back</a>'
         '<a id="zoom-in" class="zoom-ctrl" href="#" aria-label="zoom in">+</a>'
         '<a id="zoom-out" class="zoom-ctrl" href="#" aria-label="zoom out">−</a>'
+        '<a id="zoom-fit" class="zoom-ctrl" href="#">Fit all</a>'
+        '<a id="zoom-locate" class="zoom-ctrl" href="#">Locate</a>'
         '<a id="zoom-reset" class="zoom-ctrl" href="#">Reset</a>'
         '<span class="hint">scroll = zoom · drag = pan · click = descend</span>'
         "</div></div>"
@@ -1113,7 +1168,7 @@ def render_universe(view: EconomicUniverseView) -> str:
         " · read-only projection · size ∝ magnitude (not a ranking) · no live data"
         " · scroll = zoom · drag = pan · click = descend</div>")
     body = (
-        '<div class="fullscreen-main">'
+        '<div class="fullscreen-main universe-app">'
         + note
         + '<div class="cosmos-vertical">{0}{1}</div>'.format(top, bottom)
         + "</div>"

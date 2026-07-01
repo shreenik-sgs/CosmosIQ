@@ -512,6 +512,21 @@ body.fullscreen .command-bar{flex:none;max-width:none;width:100%;
 .fullscreen-main .top-canvas{flex:1 1 63%;min-height:0}
 .fullscreen-main .top-canvas .viewport{height:100%}
 .fullscreen-main .intel-pane{flex:0 0 37%;min-height:0;max-height:none;overflow:auto}
+
+/* ==================================================================== */
+/* 010A-FIX: no false universe centre; panoramic L0 field; semantic edges */
+/* ==================================================================== */
+/* full-width app shell for the Economic Universe page (never a 1200px wrap) */
+.universe-app{width:100vw;max-width:none}
+/* the UNIVERSE (L0) field is WIDER than the viewport -> the user pans across space.
+   Galaxies float here with NO centre; only semantic edges connect related pairs. */
+.level-universe .scene-transform{width:150%;height:126%;left:-25%;top:-13%}
+/* semantic relationship edges (L0 only) -- styled by strength; NOT hub-and-spoke */
+.rel-lines{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.rel-lines line{fill:none;stroke-linecap:round;pointer-events:stroke}
+.rel-lines line.rel-strong{stroke:rgba(120,210,255,.42);stroke-width:.34}
+.rel-lines line.rel-medium{stroke:rgba(130,150,255,.30);stroke-width:.24}
+.rel-lines line.rel-weak{stroke:rgba(150,160,220,.18);stroke-width:.16;stroke-dasharray:.7 .9}
 """
 
 
@@ -546,11 +561,15 @@ NAV_JS = """
         }
         return null;
       }
-      /* copy a pre-rendered intel template (by id) into the bottom pane */
+      /* copy a pre-rendered intel template (by id) into the bottom pane; if the id
+         is missing show a visible fallback -- never blank, never a silent failure */
       function setIntel(id){
-        if(!id||!intelBody){return;}
+        if(!intelBody){return;}
+        if(!id){return;}
         var el=document.getElementById(id);
         if(el){intelBody.innerHTML=el.innerHTML;}
+        else{intelBody.innerHTML='<div class="brief-card risk"><p class="micro">'
+          +'Missing intelligence template: '+id+'</p></div>';}
       }
       function activeTransform(){
         var a=document.querySelector('.level-panel.active .scene-transform');
@@ -588,9 +607,12 @@ NAV_JS = """
         objs[i].addEventListener('click',function(){
           for(var s=0;s<objs.length;s++){objs[s].classList.remove('selected');}
           this.classList.add('selected');       /* persistent SELECTED state */
-          setIntel(this.getAttribute('data-intel'));  /* this object's intel -> bottom pane */
+          var myIntel=this.getAttribute('data-intel');
           var tp=this.getAttribute('data-target-path');
           if(tp && panelByPath(tp)){showLevel(tp);}
+          /* the clicked object's OWN intel wins -- set AFTER any level change so a
+             level's intel can never overwrite the explicitly selected object */
+          setIntel(myIntel);
         });
       }
       document.addEventListener('click',function(e){
@@ -615,6 +637,40 @@ NAV_JS = """
       if(zout){zout.addEventListener('click',function(e){e.preventDefault();
         view.scale=clamp(view.scale/1.2,0.6,6);applyTransform();});}
       if(zreset){zreset.addEventListener('click',function(e){e.preventDefault();resetView();});}
+      /* Fit-to-all: frame every body in the active level within the viewport */
+      var zfit=document.getElementById('zoom-fit');
+      var zloc=document.getElementById('zoom-locate');
+      function fitToAll(){
+        resetView();
+        var t=activeTransform(); if(!t||!viewport){return;}
+        var os=t.querySelectorAll('.cosmic-object'); if(!os.length){return;}
+        var vr=viewport.getBoundingClientRect();
+        var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9,any=false;
+        for(var k=0;k<os.length;k++){var r=os[k].getBoundingClientRect();
+          if(r.width===0&&r.height===0){continue;} any=true;
+          minx=Math.min(minx,r.left);miny=Math.min(miny,r.top);
+          maxx=Math.max(maxx,r.right);maxy=Math.max(maxy,r.bottom);}
+        var bw=maxx-minx,bh=maxy-miny; if(!any||bw<=0||bh<=0){return;}
+        var s=clamp(Math.min(vr.width*0.82/bw,vr.height*0.82/bh),0.6,6);
+        var bcx=(minx+maxx)/2-vr.left-vr.width/2;
+        var bcy=(miny+maxy)/2-vr.top-vr.height/2;
+        view.scale=s;view.tx=-bcx*s;view.ty=-bcy*s;applyTransform();
+      }
+      /* Locate: centre + zoom to the currently selected object (or first body) */
+      function locateSelected(){
+        if(!viewport){return;}
+        var sel=document.querySelector('.level-panel.active .cosmic-object.selected')
+              ||document.querySelector('.level-panel.active .cosmic-object');
+        if(!sel){return;}
+        resetView();
+        var vr=viewport.getBoundingClientRect();var r=sel.getBoundingClientRect();
+        var cx=(r.left+r.right)/2-vr.left-vr.width/2;
+        var cy=(r.top+r.bottom)/2-vr.top-vr.height/2;
+        var s=clamp(2.2,0.6,6);
+        view.scale=s;view.tx=-cx*s;view.ty=-cy*s;applyTransform();
+      }
+      if(zfit){zfit.addEventListener('click',function(e){e.preventDefault();fitToAll();});}
+      if(zloc){zloc.addEventListener('click',function(e){e.preventDefault();locateSelected();});}
       if(viewport){
         viewport.addEventListener('wheel',function(e){
           e.preventDefault();

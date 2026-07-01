@@ -517,7 +517,8 @@ class ZoomableUniverseTests(unittest.TestCase):
     # --- the universe page is a full-bleed full-screen shell --------------
     def test_universe_page_is_full_screen(self):
         self.assertIn('<body class="fullscreen">', self.u)
-        self.assertIn('class="fullscreen-main"', self.u)
+        self.assertIn('fullscreen-main', self.u)
+        self.assertIn('universe-app', self.u)     # full-width 100vw shell (010A-FIX)
         self.assertNotIn('class="wrap"', self.u)           # no 1200px document width
         self.assertNotIn("<h1>Economic Universe</h1>", self.u)  # big intro trimmed
         self.assertIn('class="canvas-note"', self.u)       # compact one-line note
@@ -723,3 +724,80 @@ class UniverseUISafetyGuardTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class UniverseCenterFixTests(unittest.TestCase):
+    """010A-FIX: no false 'centre of the universe'; semantic edges; full-width shell;
+    reliable bottom pane; pan/zoom/fit/locate."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._tmp = tempfile.mkdtemp(prefix="universe_fix_")
+        cls.paths = _build(cls._tmp)
+        with open(cls.paths["universe.html"], encoding="utf-8") as fh:
+            cls.u = fh.read()
+        with open(cls.paths["dashboard.html"], encoding="utf-8") as fh:
+            cls.d = fh.read()
+        with open(os.path.join(cls._tmp, "assets", "universe.css"), encoding="utf-8") as fh:
+            cls.css = fh.read()
+        with open(os.path.join(cls._tmp, "assets", "universe.js"), encoding="utf-8") as fh:
+            cls.js = fh.read()
+        cls.view = build_economic_universe_view(load_iren_slice())
+
+    def _l0(self):
+        m = re.search(r'data-level="0"[^>]*>(.*?)</section>', self.u, re.S)
+        self.assertIsNotNone(m, "no L0 universe panel")
+        return m.group(1)
+
+    def test_universe_level_has_no_hub_and_spoke(self):
+        l0 = self._l0()
+        # the centre-spoke SVG must NOT be at the Universe level; semantic edges instead
+        self.assertNotIn('class="orbit-lines"', l0)
+        self.assertIn('class="rel-lines"', l0)
+        # endpoints must be varied -- a hub would share ONE common source coordinate
+        x1s = re.findall(r'<line[^>]*x1="([0-9.]+)"', l0)
+        self.assertGreater(len(set(x1s)), 1, "L0 lines share a common centre (hub-and-spoke)")
+        # no line to the old artificial centre (50.00, 47.00)
+        self.assertNotIn('x2="50.00" y2="47.00"', l0)
+
+    def test_universe_lines_are_the_semantic_edges(self):
+        l0 = self._l0()
+        self.assertEqual(l0.count("<line "), len(self.view.edges),
+                         "L0 must draw exactly one line per valid semantic edge")
+        # a named related pair is present (HTML-escaped &); an unrelated pair is not
+        self.assertIn("AI Infrastructure ↔ Power &amp; Grid", self.u)
+        self.assertNotIn("Robotics ↔ Nuclear", self.u)
+        self.assertNotIn("Nuclear &amp; Energy ↔ Robotics", self.u)
+
+    def test_deeper_levels_keep_focus_lines(self):
+        # the selected-object local focus IS allowed inside deeper levels
+        self.assertIn('class="orbit-lines"', self.u)
+
+    def test_full_width_universe_app_shell(self):
+        self.assertIn("universe-app", self.u)
+        self.assertNotIn('class="wrap"', self.u)                 # not a 1200px document
+        self.assertIn(".universe-app{width:100vw;max-width:none}", self.css)
+        self.assertIn('class="wrap"', self.d)                    # dashboard stays document-style
+
+    def test_pan_zoom_fit_locate_controls(self):
+        for cid in ('id="zoom-in"', 'id="zoom-out"', 'id="zoom-reset"',
+                    'id="zoom-fit"', 'id="zoom-locate"'):
+            self.assertIn(cid, self.u)
+        self.assertIn("fitToAll", self.js)
+        self.assertIn("locateSelected", self.js)
+        self.assertIn("wheel", self.js)
+
+    def test_every_data_intel_resolves_to_a_template(self):
+        ids = set(re.findall(r'id="(intel-[^"]+)"', self.u))
+        refs = set(re.findall(r'data-intel="(intel-[^"]+)"', self.u))
+        self.assertTrue(refs, "no data-intel hooks found")
+        self.assertEqual(refs - ids, set(),
+                         "unresolved data-intel: {0}".format(sorted(refs - ids)))
+
+    def test_bottom_pane_reliability(self):
+        # visible fallback instead of a blank/silent pane
+        self.assertIn("Missing intelligence template:", self.js)
+        # the clicked object's OWN intel wins -- set AFTER any level change
+        self.assertIsNotNone(
+            re.search(r"showLevel\(tp\);.*?setIntel\(myIntel\);", self.js, re.S),
+            "object click must set its own intel after showLevel (no level overwrite)")

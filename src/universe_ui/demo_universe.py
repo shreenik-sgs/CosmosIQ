@@ -176,9 +176,51 @@ class DemoGalaxy:
 
 
 @dataclass(frozen=True)
+class DemoThemeEdge:
+    """An explicit SEMANTIC economic relationship between two galaxies/themes.
+
+    Hand-authored DEMO terrain -- these are the only lines drawn at the Universe (L0)
+    level. Unrelated galaxies are NOT connected, and there is NO edge to any centre.
+    """
+    source: str            # galaxy theme_name
+    target: str            # galaxy theme_name
+    type: str
+    reason: str
+    strength: str          # strong / medium / weak
+    evidence_quality: str  # high / medium / low
+    demo: bool = True
+    data_origin: str = DATA_ORIGIN
+
+
+def build_theme_edges() -> Tuple[DemoThemeEdge, ...]:
+    """The explicit related-pair edges (DEMO). Only real, named relationships."""
+    return (
+        DemoThemeEdge("AI Infrastructure", "Power & Grid", "power-dependency",
+                      "AI compute hosting is gated by grid power & interconnection",
+                      "strong", "medium"),
+        DemoThemeEdge("AI Infrastructure", "Data Centers", "co-location",
+                      "neocloud hosting runs inside data-center capacity", "strong", "high"),
+        DemoThemeEdge("AI Infrastructure", "Optics & Networking", "interconnect",
+                      "clusters need optical bandwidth to scale out", "medium", "high"),
+        DemoThemeEdge("AI Infrastructure", "Semiconductors", "accelerator-supply",
+                      "hosting depends on allocation-constrained accelerators", "strong", "medium"),
+        DemoThemeEdge("Data Centers", "Semiconductors", "compute-supply",
+                      "data-center compute is gated by advanced packaging / HBM", "medium", "high"),
+        DemoThemeEdge("Power & Grid", "Nuclear & Energy", "firm-power",
+                      "nuclear supplies firm baseload into the grid", "medium", "low"),
+        DemoThemeEdge("Physical AI", "Robotics", "embodiment",
+                      "physical-AI models are deployed through robotics platforms", "medium", "low"),
+        DemoThemeEdge("Space & Defense", "Semiconductors", "rad-hard-supply",
+                      "space / defense systems depend on specialized semiconductors",
+                      "weak", "medium"),
+    )
+
+
+@dataclass(frozen=True)
 class DemoUniverse:
-    """The whole frozen terrain: an ordered set of galaxies + a mode label."""
+    """The whole frozen terrain: galaxies + semantic edges + a mode label."""
     galaxies: Tuple[DemoGalaxy, ...]
+    edges: Tuple[DemoThemeEdge, ...] = ()
     mode: str = "fixture/demo"
     live_enabled: bool = False
     scheduler_enabled: bool = False
@@ -799,4 +841,5 @@ def build_demo_universe() -> DemoUniverse:
             _robotics(),
             _space_defense(),
         ),
+        edges=build_theme_edges(),
     )
