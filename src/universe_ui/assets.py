@@ -493,6 +493,25 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
 @media(max-width:640px){.exec-line{grid-template-columns:1fr}}
 .exec-frame{color:var(--cyan)}
 .exec-text{color:#e2e9ff;font-size:12.5px;line-height:1.4}
+
+/* ==================================================================== */
+/* 010A-S2b: the Economic Universe page fills the screen (no page scroll) */
+/* ==================================================================== */
+body.fullscreen{height:100vh;max-height:100vh;overflow:hidden;
+  display:flex;flex-direction:column}
+body.fullscreen .status-strip{flex:none}
+body.fullscreen .command-bar{flex:none;max-width:none;width:100%;
+  padding:.45rem 1rem .3rem}
+/* full-bleed flex main that fills the remaining height; no .wrap max-width */
+.fullscreen-main{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;
+  gap:.5rem;padding:.35rem .8rem .7rem}
+.canvas-note{flex:none;color:var(--muted);font-size:11.5px;letter-spacing:.2px;padding:0 .1rem}
+.canvas-note .micro{color:#cdd6ff}
+.fullscreen-main .cosmos-vertical{flex:1 1 auto;min-height:0;gap:.6rem}
+/* top canvas is DOMINANT and grows; bottom pane scrolls internally */
+.fullscreen-main .top-canvas{flex:1 1 63%;min-height:0}
+.fullscreen-main .top-canvas .viewport{height:100%}
+.fullscreen-main .intel-pane{flex:0 0 37%;min-height:0;max-height:none;overflow:auto}
 """
 
 

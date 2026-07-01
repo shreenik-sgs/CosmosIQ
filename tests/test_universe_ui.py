@@ -497,16 +497,38 @@ class ZoomableUniverseTests(unittest.TestCase):
                      "missing data"):
             self.assertIn(term, low, "legend missing channel: {0}".format(term))
 
-    # --- design system + layout dominance ---------------------------------
+    # --- design system + FULL-SCREEN layout -------------------------------
     def test_design_system_and_layout(self):
         with open(self.paths["assets/universe.css"], encoding="utf-8") as fh:
             css = fh.read()
         self.assertIn("backdrop-filter:blur", css)         # glassmorphism
         self.assertIn("--mono:", css)                      # monospace stack for numbers
         self.assertIn(".micro{", css)                      # uppercase micro-labels
-        # top canvas dominant (~60vh), bottom pane independently scrollable
-        self.assertIn("height:60vh", css)
+        # the Economic Universe page fills the screen with NO page scroll ...
+        self.assertIn("body.fullscreen{height:100vh", css)
+        self.assertIn("overflow:hidden", css)              # no page-level scroll
+        self.assertIn("flex-direction:column", css)        # status -> nav -> panes column
+        # ... the top canvas is dominant and grows, the viewport fills it ...
+        self.assertIn(".fullscreen-main .top-canvas{flex:1 1", css)
+        self.assertIn(".fullscreen-main .top-canvas .viewport{height:100%}", css)
+        # ... and the bottom pane scrolls INTERNALLY (never the page)
         self.assertIn("overflow:auto", css)
+
+    # --- the universe page is a full-bleed full-screen shell --------------
+    def test_universe_page_is_full_screen(self):
+        self.assertIn('<body class="fullscreen">', self.u)
+        self.assertIn('class="fullscreen-main"', self.u)
+        self.assertNotIn('class="wrap"', self.u)           # no 1200px document width
+        self.assertNotIn("<h1>Economic Universe</h1>", self.u)  # big intro trimmed
+        self.assertIn('class="canvas-note"', self.u)       # compact one-line note
+        # status strip + 3-item command bar are still present above the canvas
+        self.assertIn('class="status-strip"', self.u)
+        self.assertIn('class="command-bar"', self.u)
+        # dashboard / data-quality stay document-style (their own width + scroll)
+        with open(self.paths["dashboard.html"], encoding="utf-8") as fh:
+            dash = fh.read()
+        self.assertIn('class="wrap"', dash)
+        self.assertNotIn('<body class="fullscreen">', dash)
 
     def test_objects_are_positioned_luminous_bodies(self):
         for cls in ("body-galaxy", "body-planet", "body-star", "body-nebula", "body-moon"):

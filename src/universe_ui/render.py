@@ -134,8 +134,11 @@ def _footer() -> str:
     )
 
 
-def _page(title: str, current_file: str, body: str) -> str:
-    parts = [
+def _page(title: str, current_file: str, body: str, full_screen: bool = False) -> str:
+    """Render a full page. ``full_screen`` gives the Economic Universe page a
+    100vh, no-page-scroll, full-bleed shell (status strip + command bar + a flex
+    main that fills the rest); other pages keep the document ``.wrap`` layout."""
+    head = [
         "<!DOCTYPE html>",
         '<html lang="en">',
         "<head>",
@@ -144,19 +147,31 @@ def _page(title: str, current_file: str, body: str) -> str:
         "<title>{0}</title>".format(_esc(title)),
         "<style>{0}</style>".format(COSMIC_CSS),
         "</head>",
-        "<body>",
-        _status_strip(),
-        _command_bar(current_file),
-        '<div class="wrap">',
-        body,
-        _footer(),
-        "</div>",
+    ]
+    if full_screen:
+        middle = [
+            '<body class="fullscreen">',
+            _status_strip(),
+            _command_bar(current_file),
+            body,  # body is the .fullscreen-main flex container
+        ]
+    else:
+        middle = [
+            "<body>",
+            _status_strip(),
+            _command_bar(current_file),
+            '<div class="wrap">',
+            body,
+            _footer(),
+            "</div>",
+        ]
+    tail = [
         "<script>{0}</script>".format(NAV_JS),
         "</body>",
         "</html>",
         "",
     ]
-    return "\n".join(parts)
+    return "\n".join(head + middle + tail)
 
 
 def _money(value: Any) -> str:
@@ -1092,13 +1107,18 @@ def render_universe(view: EconomicUniverseView) -> str:
     bottom = (
         '<section id="intel-pane" class="intel-pane" aria-label="Intelligence Pane (bottom)">'
         '<div id="intel-body" class="detail-body">{0}</div></section>'.format(universe_intel))
-    intro = (
-        "<h1>Economic Universe</h1>"
-        '<p class="lead">Zoomable deep-space map — object size ∝ economic magnitude '
-        "(bounded log; not a ranking), no live data. Click a body to descend; scroll / "
-        "drag to zoom &amp; pan. Mode: fixture/demo · live ranking not enabled.</p>")
-    body = intro + '<div class="cosmos-vertical">{0}{1}</div>'.format(top, bottom) + intel_store
-    return _page("Economic Universe", "universe.html", body)
+    # Compact one-line note (no big H1 / lead eating vertical space).
+    note = (
+        '<div class="canvas-note"><span class="micro">Economic Universe</span>'
+        " · read-only projection · size ∝ magnitude (not a ranking) · no live data"
+        " · scroll = zoom · drag = pan · click = descend</div>")
+    body = (
+        '<div class="fullscreen-main">'
+        + note
+        + '<div class="cosmos-vertical">{0}{1}</div>'.format(top, bottom)
+        + "</div>"
+        + intel_store)
+    return _page("Economic Universe", "universe.html", body, full_screen=True)
 
 
 # --------------------------------------------------------------------------- #
