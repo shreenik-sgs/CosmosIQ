@@ -377,6 +377,8 @@ class EconomicUniverseView:
     dashboard: CIODashboardView
     data_quality: DataQualityView
     real_subject: str
+    # The typed knowledge terrain this view was PROJECTED FROM (source of truth).
+    terrain: object = None
 
 
 # --------------------------------------------------------------------------- #
@@ -471,63 +473,68 @@ def _iren_real_status(iren_slice) -> dict:
 # Builders                                                                     #
 # --------------------------------------------------------------------------- #
 def _planet_view(galaxy: DemoGalaxy, planet: DemoPlanet, iren_slice,
-                 universe_path: str = "") -> PlanetCandidateView:
+                 universe_path: str = "", enc=None,
+                 source_badges: Optional[Tuple[str, ...]] = None) -> PlanetCandidateView:
+    """Project a candidate planet view.
+
+    ``enc`` (a terrain :class:`VisualEncoding`) and ``source_badges`` (a terrain
+    company node's ``source_refs``) are supplied by the terrain projection so the view's
+    visual size / glow / dashed marker and source-authority badges DERIVE FROM the
+    terrain. When they are absent (e.g. an ad-hoc unit-test planet not in any terrain)
+    the same values are computed from the existing helpers, so behaviour is unchanged.
+    """
     locate = "universe.html#focus={0}".format(universe_path)
-    magnitude_missing = planet.market_cap is None
-    size_px = visual_size(planet.market_cap, "planet")
     if planet.is_real and iren_slice is not None:
         st = _iren_real_status(iren_slice)
-        return PlanetCandidateView(
-            candidate_id="{0}--{1}".format(galaxy.slug, slugify(planet.ticker)),
-            ticker=planet.ticker, company=planet.company,
-            galaxy_name=galaxy.theme_name, galaxy_slug=galaxy.slug,
-            value_chain_role=planet.value_chain_role,
-            proximity_to_bottleneck=planet.proximity_to_bottleneck,
-            investability_label=st["investability_label"],
-            timing_label=st["timing_label"], red_team_label=st["red_team_label"],
-            recommendation_label=st["recommendation_label"],
-            catalyst_label=st["catalyst_label"],
-            capital_structure_risk=st["capital_structure_risk"],
-            evidence_count=planet.evidence_count, data_quality=planet.data_quality,
-            is_real=True, security_mapping_qualifier=SECURITY_MAPPING_QUALIFIER,
-            cockpit_link="cockpit.html", locate_link=locate,
-            provenance_available=True, ordering_value=st["ordering_value"],
-            source_authority_badges=st["source_authority_badges"],
-            market_cap=planet.market_cap, visual_size_px=size_px,
-            magnitude_missing=magnitude_missing,
-            glow_level=glow_level(investability_label=st["investability_label"],
-                                  timing_label=st["timing_label"],
-                                  recommendation_label=st["recommendation_label"]),
-            universe_path=universe_path,
-            data_origin="LIVE-FIXTURE",
-        )
+        investability = st["investability_label"]; timing = st["timing_label"]
+        red_team = st["red_team_label"]; recommendation = st["recommendation_label"]
+        catalyst = st["catalyst_label"]; cap_risk = st["capital_structure_risk"]
+        ordering = st["ordering_value"]; badges = st["source_authority_badges"]
+        is_real = True; cockpit = "cockpit.html"; provenance = True
+        data_origin = "LIVE-FIXTURE"
+    else:
+        investability = planet.investability_label; timing = planet.timing_label
+        red_team = planet.red_team_label; recommendation = planet.recommendation_label
+        catalyst = planet.catalyst_label; cap_risk = planet.capital_structure_risk
+        ordering = float(planet.evidence_count)
+        badges = ("demo terrain — no live sources",)
+        is_real = False; cockpit = None; provenance = False
+        data_origin = planet.data_origin
+    if source_badges is not None:
+        badges = tuple(source_badges)
+    if enc is not None:
+        size_px = enc.size_value; glow = enc.glow_level; magnitude_missing = enc.dashed_outline
+    else:
+        size_px = visual_size(planet.market_cap, "planet")
+        glow = glow_level(investability_label=investability, timing_label=timing,
+                          recommendation_label=recommendation)
+        magnitude_missing = planet.market_cap is None
     return PlanetCandidateView(
         candidate_id="{0}--{1}".format(galaxy.slug, slugify(planet.ticker)),
         ticker=planet.ticker, company=planet.company,
         galaxy_name=galaxy.theme_name, galaxy_slug=galaxy.slug,
         value_chain_role=planet.value_chain_role,
         proximity_to_bottleneck=planet.proximity_to_bottleneck,
-        investability_label=planet.investability_label, timing_label=planet.timing_label,
-        red_team_label=planet.red_team_label, recommendation_label=planet.recommendation_label,
-        catalyst_label=planet.catalyst_label, capital_structure_risk=planet.capital_structure_risk,
-        evidence_count=planet.evidence_count, data_quality=planet.data_quality,
-        is_real=False, security_mapping_qualifier=SECURITY_MAPPING_QUALIFIER,
-        cockpit_link=None, locate_link=locate, provenance_available=False,
-        ordering_value=float(planet.evidence_count),
-        source_authority_badges=("demo terrain — no live sources",),
-        market_cap=planet.market_cap, visual_size_px=size_px,
-        magnitude_missing=magnitude_missing,
-        glow_level=glow_level(investability_label=planet.investability_label,
-                              timing_label=planet.timing_label,
-                              recommendation_label=planet.recommendation_label),
-        universe_path=universe_path,
-        data_origin=planet.data_origin,
+        investability_label=investability, timing_label=timing, red_team_label=red_team,
+        recommendation_label=recommendation, catalyst_label=catalyst,
+        capital_structure_risk=cap_risk, evidence_count=planet.evidence_count,
+        data_quality=planet.data_quality, is_real=is_real,
+        security_mapping_qualifier=SECURITY_MAPPING_QUALIFIER, cockpit_link=cockpit,
+        locate_link=locate, provenance_available=provenance, ordering_value=ordering,
+        source_authority_badges=badges, market_cap=planet.market_cap,
+        visual_size_px=size_px, magnitude_missing=magnitude_missing, glow_level=glow,
+        universe_path=universe_path, data_origin=data_origin,
     )
 
 
-def _node_view(node) -> NodeView:
+def _node_view(node, enc=None, node_id: Optional[str] = None) -> NodeView:
+    if enc is not None:
+        size_px = enc.size_value; magnitude_missing = enc.dashed_outline
+    else:
+        size_px = visual_size(node.dependency_exposure, "moon")
+        magnitude_missing = (node.dependency_exposure is None)
     return NodeView(
-        node_id=node.node_id, tier=node.tier, role=node.role,
+        node_id=node_id or node.node_id, tier=node.tier, role=node.role,
         economics_capture=node.economics_capture, bottleneck_exposure=node.bottleneck_exposure,
         evidence_quality=node.evidence_quality, missing_data=tuple(node.missing_data),
         candidate_companies=tuple(node.candidate_companies),
@@ -535,48 +542,54 @@ def _node_view(node) -> NodeView:
         dynamic_evidence_note=("live delta attached" if node.dynamic_evidence
                                else "static terrain — no dynamic evidence delta (demo)"),
         dependency_exposure=node.dependency_exposure,
-        visual_size_px=visual_size(node.dependency_exposure, "moon"),
-        magnitude_missing=(node.dependency_exposure is None),
+        visual_size_px=size_px, magnitude_missing=magnitude_missing,
         data_origin=node.data_origin,
     )
 
 
-def _solar_system_view(galaxy: DemoGalaxy, ss) -> SolarSystemValueChainView:
-    nodes = tuple(_node_view(n) for n in ss.nodes)
+def _solar_system_view(galaxy: DemoGalaxy, ss, enc=None, slug: Optional[str] = None,
+                       dep_encs=None) -> SolarSystemValueChainView:
+    dep_encs = dep_encs or {}
+    nodes = tuple(_node_view(n, enc=dep_encs.get(n.node_id)) for n in ss.nodes)
     ticker_map = tuple(
         (n.role, tuple(n.candidate_companies)) for n in ss.nodes if n.candidate_companies)
     return SolarSystemValueChainView(
         galaxy_name=galaxy.theme_name, galaxy_slug=galaxy.slug,
-        name=ss.name, slug="{0}--{1}".format(galaxy.slug, slugify(ss.name)),
+        name=ss.name, slug=slug or "{0}--{1}".format(galaxy.slug, slugify(ss.name)),
         description=ss.description, nodes=nodes,
         security_mapping_qualifier=SECURITY_MAPPING_QUALIFIER,
         node_ticker_map=ticker_map,
         value_chain_revenue_pool=ss.value_chain_revenue_pool,
-        visual_size_px=visual_size(ss.value_chain_revenue_pool, "solar_system"),
-        magnitude_missing=(ss.value_chain_revenue_pool is None),
+        visual_size_px=(enc.size_value if enc is not None
+                        else visual_size(ss.value_chain_revenue_pool, "solar_system")),
+        magnitude_missing=(enc.dashed_outline if enc is not None
+                           else (ss.value_chain_revenue_pool is None)),
         data_origin=ss.data_origin,
     )
 
 
-def _star_view(galaxy: DemoGalaxy, star, index: int) -> StarBottleneckView:
+def _star_view(galaxy: DemoGalaxy, star, index: int, enc=None,
+               slug: Optional[str] = None) -> StarBottleneckView:
     return StarBottleneckView(
         galaxy_name=galaxy.theme_name, galaxy_slug=galaxy.slug,
-        slug="{0}--star-{1}".format(galaxy.slug, index),
+        slug=slug or "{0}--star-{1}".format(galaxy.slug, index),
         star_type=star.star_type, constrained_node=star.constrained_node,
         severity=star.severity, duration=star.duration,
         beneficiaries=tuple(star.beneficiaries), losers=tuple(star.losers),
         resolution_risk=star.resolution_risk, evidence=tuple(star.evidence),
         data_gaps=tuple(star.data_gaps),
         bottleneck_economic_importance=star.bottleneck_economic_importance,
-        visual_size_px=visual_size(star.bottleneck_economic_importance, "star"),
-        magnitude_missing=(star.bottleneck_economic_importance is None),
+        visual_size_px=(enc.size_value if enc is not None
+                        else visual_size(star.bottleneck_economic_importance, "star")),
+        magnitude_missing=(enc.dashed_outline if enc is not None
+                           else (star.bottleneck_economic_importance is None)),
         data_origin=star.data_origin,
     )
 
 
-def _cluster_view(galaxy: DemoGalaxy) -> GalaxyClusterView:
+def _cluster_view(galaxy: DemoGalaxy, enc=None, slug: Optional[str] = None) -> GalaxyClusterView:
     return GalaxyClusterView(
-        theme_name=galaxy.theme_name, slug=galaxy.slug, megatrend=galaxy.megatrend,
+        theme_name=galaxy.theme_name, slug=slug or galaxy.slug, megatrend=galaxy.megatrend,
         capital_cycle=galaxy.capital_cycle, heat_label=galaxy.heat_label,
         priority_label=galaxy.priority_label, signal_convergence=galaxy.signal_convergence,
         evidence_count=galaxy.evidence_count, data_quality=galaxy.data_quality,
@@ -585,24 +598,62 @@ def _cluster_view(galaxy: DemoGalaxy) -> GalaxyClusterView:
         red_team_risk=galaxy.red_team_risk,
         data_poor=(galaxy.data_quality or "").lower() in ("low", "sparse"),
         theme_tam=galaxy.theme_tam, megatrend_magnitude=galaxy.megatrend_magnitude,
-        visual_size_px=visual_size(galaxy.theme_tam, "galaxy"),
-        magnitude_missing=(galaxy.theme_tam is None),
+        visual_size_px=(enc.size_value if enc is not None
+                        else visual_size(galaxy.theme_tam, "galaxy")),
+        magnitude_missing=(enc.dashed_outline if enc is not None
+                           else (galaxy.theme_tam is None)),
         data_origin=galaxy.data_origin,
     )
 
 
-def _theme_view(galaxy: DemoGalaxy, iren_slice) -> GalaxyThemeView:
-    ss_views = tuple(_solar_system_view(galaxy, ss) for ss in galaxy.solar_systems)
-    star_views = tuple(_star_view(galaxy, s, i) for i, s in enumerate(galaxy.stars))
+def _theme_view(galaxy: DemoGalaxy, iren_slice, gnode=None) -> GalaxyThemeView:
+    """Project a galaxy's theme view.
+
+    When ``gnode`` (a terrain :class:`GalaxyNode`) is supplied, ids, visual encodings
+    and source-authority badges DERIVE FROM the terrain nodes; without it the same
+    values are computed from the demo record so the builder stays usable stand-alone.
+    """
+    theme_node = gnode.themes[0] if gnode is not None else None
+    vc_by_slug = ({vc.id: vc for vc in theme_node.value_chains} if theme_node else {})
+    bn_by_slug = ({bn.id: bn for vc in theme_node.value_chains for bn in vc.bottlenecks}
+                  if theme_node else {})
+    co_by_ticker = ({co.ticker: co for co in theme_node.candidate_planets}
+                    if theme_node else {})
+
+    ss_views = []
+    for ss in galaxy.solar_systems:
+        vc_slug = "{0}--{1}".format(galaxy.slug, slugify(ss.name))
+        vcnode = vc_by_slug.get(vc_slug)
+        dep_encs = ({dep.id: dep.visual_encoding for dep in vcnode.dependencies}
+                    if vcnode else None)
+        ss_views.append(_solar_system_view(
+            galaxy, ss, enc=(vcnode.visual_encoding if vcnode else None),
+            slug=(vcnode.id if vcnode else None), dep_encs=dep_encs))
+    ss_views = tuple(ss_views)
+
+    star_views = []
+    for i, s in enumerate(galaxy.stars):
+        bnnode = bn_by_slug.get("{0}--star-{1}".format(galaxy.slug, i))
+        star_views.append(_star_view(
+            galaxy, s, i, enc=(bnnode.visual_encoding if bnnode else None),
+            slug=(bnnode.id if bnnode else None)))
+    star_views = tuple(star_views)
+
     # All of a galaxy's planets hang off its first value chain + first bottleneck star.
     vc0 = ss_views[0].slug if ss_views else "vc0"
     star0 = star_views[0].slug if star_views else "star0"
-    planets = tuple(
-        _planet_view(galaxy, p, iren_slice,
-                     universe_path=planet_universe_path(galaxy.slug, vc0, star0, p.ticker))
-        for p in galaxy.planets)
+    planets = []
+    for p in galaxy.planets:
+        conode = co_by_ticker.get(p.ticker)
+        upath = conode.id if conode else planet_universe_path(galaxy.slug, vc0, star0, p.ticker)
+        planets.append(_planet_view(
+            galaxy, p, iren_slice, universe_path=upath,
+            enc=(conode.visual_encoding if conode else None),
+            source_badges=(conode.source_refs if conode else None)))
+    planets = tuple(planets)
     return GalaxyThemeView(
-        cluster=_cluster_view(galaxy),
+        cluster=_cluster_view(galaxy, enc=(gnode.visual_encoding if gnode else None),
+                              slug=(gnode.id if gnode else None)),
         why_now=galaxy.why_now, why_before_obvious=galaxy.why_before_obvious,
         confirmed_signals=tuple(galaxy.confirmed_signals),
         speculative_signals=tuple(galaxy.speculative_signals),
@@ -664,25 +715,25 @@ def build_cio_dashboard_view(themes: Tuple[GalaxyThemeView, ...]) -> CIODashboar
     )
 
 
-def build_data_quality_view(iren_slice) -> DataQualityView:
-    ing = iren_slice.ingestion_result
-    ia = iren_slice.intelligence_assessment
-    authority = getattr(ing, "authority_summary", {}) or {}
+def build_data_quality_view(iren_slice, terrain=None) -> DataQualityView:
+    """Build the Data-Quality control panel view.
+
+    Source coverage counts, data gaps and the provenance chain are read FROM the
+    terrain (``terrain.source_coverage`` / ``terrain.data_gaps`` /
+    ``terrain.provenance_refs``) -- the same content as before, now sourced through the
+    typed terrain. Overridden facts + the real subject are read directly from the slice.
+    When ``terrain`` is omitted the terrain is built from the slice.
+    """
+    if terrain is None:
+        from .demo_terrain import build_demo_terrain
+        terrain = build_demo_terrain(iren_slice)
+    coverage = terrain.source_coverage or {}
 
     overridden = tuple(
         "{0}: {1} ({2}) — {3}".format(
             f.get("normalized_type", ""), f.get("source_name", ""),
             f.get("source_authority", ""), f.get("reason", ""))
         for f in iren_slice.provenance_chain.get("overridden_facts", ()))
-
-    gaps = tuple("{0}: {1}".format(kind, detail) for kind, detail in iren_slice.data_gaps)
-
-    chain = tuple(
-        "{0}. {1} {2} (v{3})".format(i + 1, r.kind, r.object_id, r.version)
-        for i, r in enumerate(getattr(iren_slice.cockpit_view, "provenance_chain", ()) or ()))
-
-    signal_n = len(getattr(ia, "signals", ()) or ()) if ia is not None else 0
-    factual_n = len(getattr(ia, "factual_observation_ids", ()) or ()) if ia is not None else 0
 
     return DataQualityView(
         run_mode="fixture/demo (deterministic replay of local IREN fixtures)",
@@ -692,37 +743,52 @@ def build_data_quality_view(iren_slice) -> DataQualityView:
         broker_automation_status="disabled",
         manual_review_required=True,
         source_hierarchy="SEC EDGAR (canonical) > FMP (convenience) > yfinance (fallback)",
-        canonical_count=int(authority.get("canonical", 0)),
-        convenience_count=int(authority.get("convenience", 0)),
-        fallback_count=int(authority.get("fallback", 0)),
-        signal_observation_count=signal_n, factual_observation_count=factual_n,
+        canonical_count=int(coverage.get("canonical", 0)),
+        convenience_count=int(coverage.get("convenience", 0)),
+        fallback_count=int(coverage.get("fallback", 0)),
+        signal_observation_count=int(coverage.get("signal", 0)),
+        factual_observation_count=int(coverage.get("factual", 0)),
         conflict_warnings=tuple(iren_slice.conflict_warnings),
-        overridden_facts=overridden, data_gaps=gaps, provenance_chain=chain,
+        overridden_facts=overridden, data_gaps=tuple(terrain.data_gaps),
+        provenance_chain=tuple(terrain.provenance_refs),
         real_subject=iren_slice.subject,
     )
 
 
-def build_economic_universe_view(iren_slice, universe: Optional[DemoUniverse] = None
-                                 ) -> EconomicUniverseView:
-    """Assemble the whole read-only Economic Universe view (pure projection)."""
-    universe = universe or build_demo_universe()
-    themes = tuple(_theme_view(g, iren_slice) for g in universe.galaxies)
+def build_economic_universe_view(iren_slice, terrain=None) -> EconomicUniverseView:
+    """Assemble the whole read-only Economic Universe view by PROJECTING the typed
+    terrain (the source of truth). If ``terrain`` is None it is built from the slice.
+
+    The renderer keeps consuming the same ``*View`` dataclasses, but their ids, visual
+    encodings, source badges, data gaps and semantic edges now DERIVE FROM the terrain.
+    The terrain itself is attached to the returned view (``view.terrain``).
+    """
+    from .demo_terrain import build_demo_terrain
+    universe = build_demo_universe()
+    terrain = terrain or build_demo_terrain(iren_slice, universe)
+
+    gnode_by_id = {g.id: g for g in terrain.galaxies}
+    themes = tuple(_theme_view(g, iren_slice, gnode=gnode_by_id.get(g.slug))
+                   for g in universe.galaxies)
     clusters = tuple(t.cluster for t in themes)
     dashboard = build_cio_dashboard_view(themes)
-    data_quality = build_data_quality_view(iren_slice)
-    # Only keep an edge when BOTH endpoints are real galaxies in the terrain.
-    by_name = {g.theme_name: g.slug for g in universe.galaxies}
+    data_quality = build_data_quality_view(iren_slice, terrain)
+
+    # Semantic edges come straight from the terrain's validated RelationshipEdges.
+    name_by_slug = {g.id: g.name for g in terrain.galaxies}
     edges = tuple(
         ThemeEdgeView(
-            source_slug=by_name[e.source], target_slug=by_name[e.target],
-            source_name=e.source, target_name=e.target, type=e.type, reason=e.reason,
+            source_slug=e.source_id, target_slug=e.target_id,
+            source_name=name_by_slug.get(e.source_id, e.source_id),
+            target_name=name_by_slug.get(e.target_id, e.target_id),
+            type=e.relationship_type, reason=e.description,
             strength=e.strength, evidence_quality=e.evidence_quality)
-        for e in universe.edges
-        if e.source in by_name and e.target in by_name and e.source != e.target)
+        for e in terrain.relationship_edges
+        if e.source_id in name_by_slug and e.target_id in name_by_slug
+        and e.source_id != e.target_id)
     return EconomicUniverseView(
-        mode=universe.mode, live_enabled=universe.live_enabled,
-        scheduler_enabled=universe.scheduler_enabled,
-        broker_automation_enabled=universe.broker_automation_enabled,
+        mode="fixture/demo", live_enabled=False, scheduler_enabled=False,
+        broker_automation_enabled=False,
         clusters=clusters, themes=themes, edges=edges, dashboard=dashboard,
-        data_quality=data_quality, real_subject=iren_slice.subject,
+        data_quality=data_quality, real_subject=iren_slice.subject, terrain=terrain,
     )
