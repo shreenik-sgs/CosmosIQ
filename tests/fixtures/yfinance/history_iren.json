@@ -1,0 +1,39 @@
+{
+  "IREN": {
+    "history": [
+      {
+        "date": "2026-06-24",
+        "Open": 18.90,
+        "High": 19.70,
+        "Low": 18.75,
+        "Close": 19.45,
+        "Adj Close": 19.45,
+        "Volume": 11100000,
+        "Dividends": 0.0,
+        "Stock Splits": 2.0
+      },
+      {
+        "date": "2026-06-25",
+        "Open": 19.50,
+        "High": 20.30,
+        "Low": 19.20,
+        "Close": 20.05,
+        "Adj Close": 20.05,
+        "Volume": 12800000,
+        "Dividends": 0.0,
+        "Stock Splits": 0.0
+      },
+      {
+        "date": "2026-06-26",
+        "Open": 20.10,
+        "High": 21.40,
+        "Low": 19.95,
+        "Close": 21.10,
+        "Adj Close": 21.10,
+        "Volume": 15200000,
+        "Dividends": 0.15,
+        "Stock Splits": 0.0
+      }
+    ]
+  }
+}

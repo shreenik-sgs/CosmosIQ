@@ -55,6 +55,17 @@ from .fmp import (
     MappingDeferredError,
 )
 from .fmp_client import FmpClient
+from .yfinance_adapter import (
+    YF_SOURCE_NAME,
+    YF_PROVIDER,
+    YF_RESEARCH_NOTE,
+    yf_source,
+    parse_yfinance_history,
+    parse_yfinance_quote,
+    map_yfinance_record,
+    mapping_deferred_reason as yf_mapping_deferred_reason,
+)
+from .yfinance_client import YFinanceClient
 
 __all__ = [
     "SOURCE_AUTHORITIES",
@@ -93,4 +104,13 @@ __all__ = [
     "mapping_deferred_reason",
     "MappingDeferredError",
     "FmpClient",
+    "YF_SOURCE_NAME",
+    "YF_PROVIDER",
+    "YF_RESEARCH_NOTE",
+    "yf_source",
+    "parse_yfinance_history",
+    "parse_yfinance_quote",
+    "map_yfinance_record",
+    "yf_mapping_deferred_reason",
+    "YFinanceClient",
 ]
