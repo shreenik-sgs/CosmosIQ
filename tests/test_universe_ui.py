@@ -943,3 +943,60 @@ class TelescopeVisualAssetTests(unittest.TestCase):
         for bad in ("<button", "<form", "onclick", "type=\"submit\"", "place order",
                     " buy ", " sell ", "fetch(", "master score"):
             self.assertNotIn(bad, low)
+
+
+class VisualReferenceAlignmentTests(unittest.TestCase):
+    """010A-SKY-VISUAL-REF: Data Quality control panel, corrected EIOS labels, executive
+    dashboard cards, and a cockpit action on the floating preview."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._tmp = tempfile.mkdtemp(prefix="universe_ref_")
+        cls.paths = _build(cls._tmp)
+        with open(cls.paths["data_quality.html"], encoding="utf-8") as fh:
+            cls.dq = fh.read()
+        with open(cls.paths["dashboard.html"], encoding="utf-8") as fh:
+            cls.dash = fh.read()
+        with open(cls.paths["universe.html"], encoding="utf-8") as fh:
+            cls.u = fh.read()
+
+    def test_data_quality_has_source_hierarchy_pipeline(self):
+        self.assertIn('class="dq-pipeline"', self.dq)
+        for src in ("SEC EDGAR", "FMP", "yfinance", "manual / other"):
+            self.assertIn(src, self.dq)
+
+    def test_data_quality_has_authority_matrix(self):
+        self.assertIn('class="chain matrix"', self.dq)
+        for col in ("source", "authority", "coverage", "conflicts",
+                    "overridden", "data gaps", "red-team"):
+            self.assertIn(col, self.dq)
+        self.assertIn('class="cov-bar"', self.dq)          # coverage bars
+
+    def test_data_quality_has_quality_summary_cards(self):
+        self.assertIn('class="stat-grid"', self.dq)
+        self.assertIn('class="stat-card', self.dq)
+        for label in ("canonical records", "convenience records", "fallback records",
+                      "factual observations", "signal observations", "conflicts",
+                      "data gaps", "stale / missing sources"):
+            self.assertIn(label, self.dq)
+
+    def test_corrected_eios_labels_present(self):
+        self.assertIn('class="layer-map', self.dq)
+        self.assertIn("Nivesha", self.dq)
+        self.assertIn("Investment Diligence / Capital Candidate", self.dq)
+        self.assertIn("Personal CIO / Portfolio Fit / Sizing Guardrails", self.dq)
+        self.assertIn("Manual Execution Preview", self.dq)
+        # the retired "Capital Allocation" wording is not used for Nivesha in the label map
+        self.assertNotIn("Nivesha</span><span class=\"layer-label\">Capital Allocation", self.dq)
+
+    def test_dashboard_executive_candidate_cards(self):
+        self.assertIn('class="card', self.dash)            # glass candidate cards
+        self.assertIn("Locate in Universe", self.dash)
+        self.assertIn("Open Cockpit", self.dash)
+        self.assertIn("Demo candidate dashboard", self.dash)
+        for bad in ("<button", "<form", " buy ", " sell "):
+            self.assertNotIn(bad, self.dash.lower())
+
+    def test_floating_preview_has_cockpit_action_for_planet(self):
+        self.assertIn('id="fp-cockpit"', self.u)           # Open-cockpit button
+        self.assertIn("data-cockpit=", self.u)             # a planet carries a cockpit link

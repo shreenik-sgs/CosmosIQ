@@ -613,6 +613,63 @@ body.sky .command-bar{max-width:none;width:100%;padding:.4rem 1rem .3rem}
   background:radial-gradient(circle,#000 0%,#050308 44%,#25060f 58%,rgba(37,6,15,0) 100%);
   box-shadow:0 0 26px 5px rgba(230,60,90,.5),inset 0 0 14px 3px #000}
 .variant-blackhole .body::before{border-color:rgba(220,70,95,.5)}
+
+/* ==================================================================== */
+/* 010A-SKY-VISUAL-REF: data-quality control panel + EIOS layer map      */
+/* ==================================================================== */
+.glass-panel{background:var(--glass);-webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);border:1px solid var(--glass-line);
+  border-radius:var(--r-lg);box-shadow:var(--shadow);padding:1rem 1.1rem;margin:.5rem 0 1rem}
+.dq-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
+/* A. source-hierarchy pipeline */
+.dq-pipeline{display:flex;align-items:stretch;gap:.5rem;flex-wrap:wrap}
+.pipe-stage{flex:1 1 140px;min-width:118px;text-align:center;background:rgba(12,16,36,.5);
+  border:1px solid var(--glass-line);border-radius:var(--r);padding:.7rem .6rem}
+.pipe-name{font-weight:800;margin:.3rem 0 .1rem;font-size:13px}
+.pipe-count{font-size:22px;color:#fff}
+.pipe-arrow{align-self:center;color:var(--cyan);font-weight:800;font-size:1.3rem}
+/* C. quality stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:.7rem;margin:.4rem 0 1rem}
+.stat-card{background:var(--glass);border:1px solid var(--glass-line);border-radius:var(--r);
+  padding:.75rem .85rem;border-left:3px solid var(--glass-line);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.stat-card.auth-canonical{border-left-color:#4fe0ff}
+.stat-card.auth-convenience{border-left-color:#ffb03a}
+.stat-card.auth-fallback{border-left-color:#ff9db4}
+.stat-card.real{border-left-color:#39e0a0}
+.stat-card.warn{border-left-color:#ffb03a}
+.stat-card.gap{border-left-color:#b5651d}
+.stat-card.hazard{border-left-color:#ff4d6d}
+.stat-n{font-size:26px;color:#fff}.stat-l{margin-top:.2rem}
+/* B. source authority matrix */
+table.matrix td,table.matrix th{vertical-align:middle}
+.cov-bar{display:inline-block;width:80px;height:8px;border-radius:5px;background:#1a2145;
+  vertical-align:middle;overflow:hidden;margin-right:.4rem}
+.cov-bar span{display:block;height:100%;background:linear-gradient(90deg,#4fe0ff,#8b7bff)}
+.cov-n{font-family:var(--mono);color:#cdd6ff}
+.mx-flag{font-family:var(--mono);font-weight:700;padding:.05rem .4rem;border-radius:6px}
+.mx-flag.warn{color:#ffd79a;background:rgba(255,176,58,.14)}
+.mx-flag.gap{color:#ffbf87;background:rgba(181,101,29,.16)}
+.mx-flag.hazard{color:#ff9db4;background:rgba(255,77,109,.16)}
+.mx-ok{color:var(--faint)}
+/* EIOS platform layer map (corrected labels; diagram colour groups) */
+.layer-map .layer-rows{display:grid;gap:.3rem;margin:.5rem 0}
+.layer-row{display:grid;grid-template-columns:26px 118px 1fr;gap:.7rem;align-items:center;
+  padding:.34rem .5rem;border-radius:8px;background:rgba(12,16,36,.45);
+  border-left:3px solid var(--glass-line)}
+.layer-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-family:var(--mono);font-weight:800;font-size:12px;color:#04121a}
+.layer-name{font-weight:800;color:#fff}
+.layer-label{color:var(--muted);font-size:12px}
+.grp-reason{border-left-color:#ffb03a}.grp-reason .layer-num{background:#ffb03a}
+.grp-cap{border-left-color:#39e0a0}.grp-cap .layer-num{background:#39e0a0}
+.grp-op{border-left-color:#4fe0ff}.grp-op .layer-num{background:#4fe0ff}
+.layer-legend{color:var(--muted);font-size:11px;margin-top:.5rem}
+.lg-dot{display:inline-block;width:9px;height:9px;border-radius:50%;
+  margin:0 .2rem 0 .5rem;vertical-align:middle}
+.lg-dot.grp-reason{background:#ffb03a}.lg-dot.grp-cap{background:#39e0a0}
+.lg-dot.grp-op{background:#4fe0ff}
 """
 
 
@@ -645,6 +702,7 @@ NAV_JS = """
       var fpType=document.getElementById('fp-type');
       var fpBody=document.getElementById('fp-body');
       var fpZoom=document.getElementById('fp-zoom');
+      var fpCockpit=document.getElementById('fp-cockpit');
       var fpDetails=document.getElementById('fp-details');
       var fpClose=document.getElementById('fp-close');
       var current='universe';
@@ -690,6 +748,12 @@ NAV_JS = """
         if(fpZoom){
           if(tp){fpZoom.style.display='inline-block';fpZoom.setAttribute('data-goto',tp);}
           else{fpZoom.style.display='none';fpZoom.removeAttribute('data-goto');}
+        }
+        /* Open cockpit only for a planet that carries a cockpit link */
+        var ck=obj.getAttribute('data-cockpit');
+        if(fpCockpit){
+          if(ck){fpCockpit.style.display='inline-block';fpCockpit.setAttribute('href',ck);}
+          else{fpCockpit.style.display='none';fpCockpit.setAttribute('href','#');}
         }
       }
       if(fpDetails){fpDetails.addEventListener('click',function(e){

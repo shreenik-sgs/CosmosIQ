@@ -438,7 +438,8 @@ def _cosmic_object(*, kind: str, path: str, target_path: str, target_level,
                    redshadow: bool, halo: bool, ev_class: str, size_label: str,
                    size_raw: str, badges: str, intel_id: str,
                    pos: Tuple[float, float], variant: str = "",
-                   extra_class: str = "", marker: str = "", preview_html: str = "") -> str:
+                   extra_class: str = "", marker: str = "", preview_html: str = "",
+                   cockpit: str = "") -> str:
     """A luminous body positioned in the scene. It carries ONLY its glowing shape +
     a small NAME label + a hover preview chip; its full intelligence lives (once) in
     the hidden intel store and is referenced by ``data-intel`` for the bottom pane."""
@@ -463,6 +464,8 @@ def _cosmic_object(*, kind: str, path: str, target_path: str, target_level,
     if target_path:
         attrs += ' data-target-path="{0}" data-target-level="{1}"'.format(
             _esc(target_path), _esc(target_level))
+    if cockpit:
+        attrs += ' data-cockpit="{0}"'.format(_esc(cockpit))
     gapbadge = (' <span class="badge gap">magnitude missing — neutral size</span>'
                 if dashed else "")
     body = '<div class="body" style="width:{s}px;height:{s}px"></div>'.format(s=int(size_px))
@@ -1006,7 +1009,8 @@ def _planet_object(p: PlanetCandidateView, pos: Tuple[float, float]) -> str:
         redshadow=severe, halo=has_catalyst,
         ev_class=_ev_class(p.data_quality), size_label="market cap (DEMO)",
         size_raw=_money(p.market_cap), badges=badges, intel_id=_intel_id_planet(p),
-        pos=pos, variant=variant, preview_html=_planet_preview(p))
+        pos=pos, variant=variant, preview_html=_planet_preview(p),
+        cockpit=(p.cockpit_link or ""))
 
 
 def _moon_object(n: NodeView, pos: Tuple[float, float]) -> str:
@@ -1164,6 +1168,7 @@ def render_universe(view: EconomicUniverseView) -> str:
         '<div class="fp-actions">'
         '<a id="fp-details" class="fp-btn" href="#intel-pane">View details below ↓</a>'
         '<a id="fp-zoom" class="fp-btn" href="#" style="display:none">Zoom in ⤢</a>'
+        '<a id="fp-cockpit" class="fp-btn" href="#" style="display:none">Open cockpit ↗</a>'
         "</div></div>")
     viewport = '<div id="viewport" class="viewport">{0}{1}{2}{3}</div>'.format(
         _space_background(), "".join(panels), floating, _legend())
@@ -1319,46 +1324,159 @@ def render_dashboard(dash: CIODashboardView) -> str:
 # --------------------------------------------------------------------------- #
 # Data Quality / Provenance                                                   #
 # --------------------------------------------------------------------------- #
+# EIOS platform layers (Sudarshan) — the CORRECTED namespace labels. Grouped like the
+# architecture diagram: reasoning (1-2), opportunity & capital (3-5), operational (6-8).
+_PLATFORM_LAYERS = (
+    ("1", "Adhāra", "Foundation", "grp-reason"),
+    ("2", "Buddhi", "Cognitive Architecture", "grp-reason"),
+    ("3", "Tattva", "Reality Intelligence", "grp-cap"),
+    ("4", "Sphurana", "Opportunity Generation / Genesis", "grp-cap"),
+    ("5", "Nivesha", "Investment Diligence / Capital Candidate", "grp-cap"),
+    ("6", "Saarathi", "Personal CIO / Portfolio Fit / Sizing Guardrails", "grp-op"),
+    ("7", "Kriya", "Manual Execution Preview", "grp-op"),
+    ("8", "Anubhava", "Feedback / Learning", "grp-op"),
+)
+
+
+def _platform_layer_map() -> str:
+    """The EIOS layer map with the corrected labels (Nivesha = Investment Diligence /
+    Capital Candidate; Saarathi = Personal CIO / Portfolio Fit / Sizing Guardrails;
+    Kriya = Manual Execution Preview) — matches the architecture diagram."""
+    rows = "".join(
+        '<div class="layer-row {grp}"><span class="layer-num">{n}</span>'
+        '<span class="layer-name">{name}</span>'
+        '<span class="layer-label">{label}</span></div>'.format(
+            grp=grp, n=n, name=_esc(name), label=_esc(label))
+        for n, name, label, grp in _PLATFORM_LAYERS)
+    return (
+        '<div class="layer-map glass-panel">'
+        '<div class="micro">EIOS Platform Layers · Sudarshan</div>'
+        '<div class="layer-rows">{0}</div>'
+        '<div class="layer-legend"><span class="lg-dot grp-reason"></span>Reasoning (1–2)'
+        ' · <span class="lg-dot grp-cap"></span>Opportunity &amp; Capital (3–5)'
+        ' · <span class="lg-dot grp-op"></span>Operational (6–8)</div></div>'
+    ).format(rows)
+
+
+def _coverage_bar(count: int, top: int) -> str:
+    pct = 0 if top <= 0 else int(round(100.0 * float(count) / float(top)))
+    return ('<div class="cov-bar"><span style="width:{0}%"></span></div>'
+            '<span class="cov-n">{1}</span>').format(max(0, min(100, pct)), _esc(count))
+
+
+def _dq_pipeline(dq: DataQualityView) -> str:
+    """Source-hierarchy PIPELINE: SEC EDGAR -> FMP -> yfinance -> manual/other."""
+    stages = (
+        ("SEC EDGAR", "canonical", dq.canonical_count, "auth-canonical"),
+        ("FMP", "convenience", dq.convenience_count, "auth-convenience"),
+        ("yfinance", "fallback", dq.fallback_count, "auth-fallback"),
+        ("manual / other", "unverified", "—", "gap"),
+    )
+    cells = []
+    for i, (name, auth, cnt, cls) in enumerate(stages):
+        if i:
+            cells.append('<span class="pipe-arrow">→</span>')
+        cells.append(
+            '<div class="pipe-stage">{badge}<div class="pipe-name">{name}</div>'
+            '<div class="pipe-count num">{cnt}</div>'
+            '<div class="micro">records</div></div>'.format(
+                badge=_badge(auth, cls), name=_esc(name), cnt=_esc(cnt)))
+    return '<div class="dq-pipeline">{0}</div>'.format("".join(cells))
+
+
+def _authority_matrix(dq: DataQualityView) -> str:
+    """Authority MATRIX: source · authority · coverage · conflicts · overridden · gaps
+    · red-team flags (aggregate demo view of the real IREN slice)."""
+    nconf = len(dq.conflict_warnings)
+    nover = len(dq.overridden_facts)
+    ngap = len(dq.data_gaps)
+    top = max(dq.canonical_count, dq.convenience_count, dq.fallback_count, 1)
+    # (source, authority, count, conflicts, overridden, gaps, redteam)
+    matrix = (
+        ("SEC EDGAR", "canonical", dq.canonical_count, 0, 0, 0, 0),
+        ("FMP", "convenience", dq.convenience_count, nconf, nover, 0, 0),
+        ("yfinance", "fallback", dq.fallback_count, 0, 0, ngap, 0),
+        ("manual / other", "unverified", 0, 0, 0, ngap, 0),
+    )
+    rows = ""
+    for src, auth, cnt, cf, ov, gp, rt in matrix:
+        acls = {"canonical": "auth-canonical", "convenience": "auth-convenience",
+                "fallback": "auth-fallback"}.get(auth, "gap")
+        flag = (lambda n, cls: '<span class="mx-flag {1}">{0}</span>'.format(n, cls)
+                if n else '<span class="mx-ok">—</span>')
+        rows += (
+            "<tr><td>{src}</td><td>{auth}</td><td>{cov}</td>"
+            "<td>{cf}</td><td>{ov}</td><td>{gp}</td><td>{rt}</td></tr>"
+        ).format(src=_esc(src), auth=_badge(auth, acls), cov=_coverage_bar(cnt, top),
+                 cf=flag(cf, "warn"), ov=flag(ov, "warn"), gp=flag(gp, "gap"),
+                 rt=flag(rt, "hazard"))
+    return (
+        '<table class="chain matrix"><tr><th>source</th><th>authority</th>'
+        "<th>coverage</th><th>conflicts</th><th>overridden</th><th>data gaps</th>"
+        "<th>red-team</th></tr>{0}</table>".format(rows))
+
+
+def _quality_cards(dq: DataQualityView) -> str:
+    """Quality summary stat CARDS."""
+    stale = 1  # manual / other evidence source not yet wired (demo)
+    cards = (
+        ("canonical records", dq.canonical_count, "auth-canonical"),
+        ("convenience records", dq.convenience_count, "auth-convenience"),
+        ("fallback records", dq.fallback_count, "auth-fallback"),
+        ("factual observations", dq.factual_observation_count, ""),
+        ("signal observations", dq.signal_observation_count, "real"),
+        ("conflicts", len(dq.conflict_warnings), "warn"),
+        ("data gaps", len(dq.data_gaps), "gap"),
+        ("stale / missing sources", stale, "hazard"),
+    )
+    items = "".join(
+        '<div class="stat-card {cls}"><div class="stat-n num">{n}</div>'
+        '<div class="stat-l micro">{label}</div></div>'.format(
+            cls=cls, n=_esc(n), label=_esc(label)) for label, n, cls in cards)
+    return '<div class="stat-grid">{0}</div>'.format(items)
+
+
 def render_data_quality(dq: DataQualityView) -> str:
-    rows = "".join([
+    boundary = "".join([
         "<tr><th>Run mode</th><td>{0}</td></tr>".format(_esc(dq.run_mode)),
-        "<tr><th>Fixture / demo status</th><td>{0}</td></tr>".format(_esc(dq.fixture_demo_status)),
+        "<tr><th>Fixture / demo</th><td>{0}</td></tr>".format(_esc(dq.fixture_demo_status)),
         "<tr><th>Live data</th><td>not enabled</td></tr>",
-        "<tr><th>Scheduler status</th><td>{0}</td></tr>".format(_esc(dq.scheduler_status)),
-        "<tr><th>Broker automation status</th><td>{0}</td></tr>".format(
+        "<tr><th>Scheduler</th><td>{0}</td></tr>".format(_esc(dq.scheduler_status)),
+        "<tr><th>Broker automation</th><td>{0}</td></tr>".format(
             _esc(dq.broker_automation_status)),
         "<tr><th>Manual review required</th><td>{0}</td></tr>".format(
             "yes" if dq.manual_review_required else "no"),
-        "<tr><th>Source hierarchy</th><td>{0}</td></tr>".format(_esc(dq.source_hierarchy)),
-    ])
-    counts = "".join([
-        "<tr><th>SEC canonical observations</th><td>{0}</td></tr>".format(_esc(dq.canonical_count)),
-        "<tr><th>FMP convenience observations</th><td>{0}</td></tr>".format(
-            _esc(dq.convenience_count)),
-        "<tr><th>yfinance fallback observations</th><td>{0}</td></tr>".format(
-            _esc(dq.fallback_count)),
-        "<tr><th>Signal observations (inferred)</th><td>{0}</td></tr>".format(
-            _esc(dq.signal_observation_count)),
-        "<tr><th>Factual observations (OHLCV/profile/ownership/quote)</th><td>{0}</td></tr>".format(
-            _esc(dq.factual_observation_count)),
     ])
     body = (
-        "<h1>Data Quality &amp; Provenance</h1>"
-        '<p class="lead">Run mode, source hierarchy, conflict resolution, overridden facts, '
-        "data gaps and the provenance chain for the one real candidate (IREN). Live data, "
-        "scheduler and broker automation are all off.</p>"
-        + _badge("REAL subject: {0}".format(dq.real_subject), "real") + " "
-        + _badge("DEMO terrain for all other planets", "demo")
-        + '<h2>Run &amp; boundary status</h2><table class="kv">{run}</table>'.format(run=rows)
-        + '<h2>Source hierarchy — authority counts</h2>'
-        + '<p class="note">SEC canonical &gt; FMP convenience &gt; yfinance fallback. '
-        "Signal observations drive reasoning; factual observations stay partitioned.</p>"
-        + '<table class="kv">{counts}</table>'.format(counts=counts)
-        + "<h2>Conflict warnings (arbitration)</h2>" + _list(dq.conflict_warnings, "no conflicts")
-        + "<h2>Overridden facts (lost arbitration)</h2>" + _list(dq.overridden_facts, "none overridden")
+        '<div class="dq-head"><div><h1>Data Quality &amp; Provenance</h1>'
+        '<p class="lead">Evidence sources, authority, coverage, conflicts, overridden '
+        "facts, data gaps and the provenance chain for the one real candidate (IREN). A "
+        "control panel over existing pipeline state — no live data, scheduler or broker.</p>"
+        "</div><div>" + _badge("REAL subject: {0}".format(dq.real_subject), "real")
+        + " " + _badge("DEMO terrain", "demo") + "</div></div>"
+        # A. source hierarchy pipeline
+        + '<h2>Source hierarchy pipeline</h2>'
+        + '<div class="glass-panel">' + _dq_pipeline(dq)
+        + '<p class="note">Authority order: SEC canonical (EDGAR) &gt; FMP convenience &gt; '
+        "yfinance fallback &gt; manual / other (unverified). Signal observations drive "
+        "reasoning; factual observations stay partitioned.</p></div>"
+        # C. quality summary cards
+        + "<h2>Quality summary</h2>" + _quality_cards(dq)
+        # B. source authority matrix
+        + "<h2>Source authority matrix</h2>"
+        + '<div class="glass-panel">' + _authority_matrix(dq) + "</div>"
+        # warnings + provenance
+        + "<h2>Conflicts, overrides &amp; gaps</h2>"
+        + '<div class="cols">'
+        + '<div class="brief-card"><div class="brief-label micro">Conflict warnings (arbitration)</div>'
+        + _list(dq.conflict_warnings, "no conflicts") + "</div>"
+        + '<div class="brief-card"><div class="brief-label micro">Overridden facts (lost arbitration)</div>'
+        + _list(dq.overridden_facts, "none overridden") + "</div></div>"
         + _gap_box("Data gaps", dq.data_gaps)
-        + "<h2>Provenance chain (Observation → … → Ticket preview)</h2>"
-        + _list(dq.provenance_chain, "no chain")
+        + '<h2>Provenance chain</h2><div class="glass-panel">'
+        + _list(dq.provenance_chain, "no chain") + "</div>"
+        # platform layer map (corrected labels) + automation boundary
+        + "<h2>EIOS platform layers</h2>" + _platform_layer_map()
         + '<div class="hazard-box"><h4>Automation boundary</h4>'
         + "<p>Scheduler: not enabled. Broker automation: disabled. No order is placed, "
         "routed, or recorded anywhere in this UI. Manual review required.</p></div>"

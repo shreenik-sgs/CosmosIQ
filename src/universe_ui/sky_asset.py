@@ -107,12 +107,19 @@ def deep_space_background_svg() -> str:
                  'transform="rotate(-14 1150 800)" opacity="0.4"/>')
     parts.append("</g>")
 
-    # ---- a faint distant galaxy ----
-    parts.append(
-        '<g transform="translate(1240 250) rotate(24)">'
-        '<ellipse cx="0" cy="0" rx="150" ry="54" fill="url(#galaxy)"/>'
-        '<ellipse cx="0" cy="0" rx="60" ry="60" fill="url(#galaxy)" opacity="0.7"/>'
-        "</g>")
+    # ---- elegant distant galaxy CLUSTERS (soft luminous spiral discs) ----
+    galaxies = (
+        (1240, 250, 24, 150, 54, 1.0),    # large, top-right
+        (330, 690, -18, 96, 36, 0.7),     # mid, lower-left
+        (860, 190, 8, 66, 26, 0.55),      # small, upper-mid
+        (1360, 720, 40, 78, 30, 0.6),     # small, lower-right
+    )
+    for cx, cy, rot, rx, ry, op in galaxies:
+        parts.append(
+            '<g transform="translate({cx} {cy}) rotate({rot})" opacity="{op}">'
+            '<ellipse cx="0" cy="0" rx="{rx}" ry="{ry}" fill="url(#galaxy)"/>'
+            '<ellipse cx="0" cy="0" rx="{cr}" ry="{cr}" fill="url(#galaxy)" opacity="0.7"/>'
+            "</g>".format(cx=cx, cy=cy, rot=rot, rx=rx, ry=ry, op=op, cr=ry * 1.05))
 
     # ---- dense star field (deterministic) ----
     parts.append("<g>")
