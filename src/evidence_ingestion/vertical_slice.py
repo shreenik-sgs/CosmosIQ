@@ -9,10 +9,12 @@ that wires the EXISTING ingestion pieces together and STOPS AT TATTVA:
    (``resolve_conflicts`` + the additive ``winning_records``): a canonical SEC
    filing beats an FMP convenience row beats a yfinance fallback row for the same
    semantic fact / period / unit.
-3. **Map** each SUPPORTED, WINNING record into a canonical Tattva ``Observation``
-   via the existing ``map_to_observation`` -- overridden financial facts and
-   Tattva-vocabulary-less categories (OHLCV / profile / ownership / quote) are
-   DEFERRED, never mapped, never hidden.
+3. **Map** each WINNING record into a canonical Tattva ``Observation`` (vocabulary-
+   driven: attempt to map, defer only on ``MappingDeferredError``). Financial reports
+   / catalysts map to SIGNAL-bearing Observations; OHLCV / profile / ownership / quote
+   / share counts map to NEUTRAL FACTUAL Observations (raw facts, no inferred signal).
+   Overridden financial facts (a higher-authority source owns them) are DEFERRED,
+   never mapped, never hidden.
 4. **Assess** the produced Observations with the EXISTING, unchanged Reality
    Intelligence (Tattva) layer (``generate_intelligence_assessment``).
 
@@ -61,14 +63,21 @@ from .yfinance_adapter import (
 )
 
 
-# Categories with NO Tattva signal vocabulary -- kept as evidence, mapping DEFERRED.
-_FMP_DEFERRED_TYPES = frozenset({"fmp_ohlcv", "fmp_profile", "fmp_ownership"})
+def _map_record(
+    rec: NormalizedEvidenceRecord, *, domain: str, actor: str, now: float
+) -> Tuple[Any, Tuple[str, ...]]:
+    """Vocabulary-driven map: dispatch to the record's own adapter map function.
 
-
-def _is_deferred_type(rec: NormalizedEvidenceRecord) -> bool:
-    """True when a record's category has no Tattva vocabulary (never mapped)."""
+    Each adapter maps a supported record (signal-bearing OR neutral factual) to a
+    canonical Tattva Observation, or raises ``MappingDeferredError`` for a category
+    that still has no safe Tattva representation. SEC records map directly.
+    """
     nt = str(rec.normalized_type or "")
-    return nt in _FMP_DEFERRED_TYPES or nt.startswith("yf_")
+    if nt.startswith("yf_"):
+        return map_yfinance_record(rec, domain=domain, actor=actor, now=now)
+    if nt.startswith("fmp_"):
+        return map_fmp_record(rec, domain=domain, actor=actor, now=now)
+    return map_to_observation(rec, domain=domain, actor=actor, now=now)
 
 
 def _financial_key(rec: NormalizedEvidenceRecord) -> Optional[Tuple[Any, ...]]:
@@ -246,28 +255,12 @@ def run_fixture_ingestion_slice(
     for rec in all_normalized_t:
         src = rec.source
         src_name = src.source_name if src is not None else ""
+        nt = str(rec.normalized_type or "")
 
-        # (a) Deferred category -- no Tattva vocabulary. Exercise the record's own
-        #     map_*_record so the deferral reason is the real one, then keep it as
-        #     evidence. NEVER hidden; deferred-because-unsupported is not a failure.
-        if _is_deferred_type(rec):
-            nt = str(rec.normalized_type or "")
-            try:
-                if nt.startswith("yf_"):
-                    map_yfinance_record(rec, domain=domain, actor=actor, now=now)
-                else:
-                    map_fmp_record(rec, domain=domain, actor=actor, now=now)
-                reason = "mapping deferred (no Tattva vocabulary)"
-            except MappingDeferredError as exc:
-                reason = str(exc)
-            deferred_records.append(rec)
-            deferred_reasons.append(reason)
-            data_gaps.append(("tattva_vocabulary_deferred",
-                              "{0} [{1}]: {2}".format(nt, src_name, reason)))
-            continue
-
-        # (b) Financial fact that LOST arbitration -- overridden by a
-        #     higher-authority source. Do NOT map; record it as overridden.
+        # (a) Financial fact that LOST arbitration -- overridden by a
+        #     higher-authority source. Do NOT map; record it as overridden. This
+        #     holds for BOTH signal-bearing financial facts and the neutral factual
+        #     share-count fact (shares_outstanding), which still arbitrates.
         fkey = _financial_key(rec)
         if fkey is not None:
             winner = winners.get(fkey)
@@ -283,8 +276,22 @@ def run_fixture_ingestion_slice(
                 ))
                 continue
 
-        # (c) Supported + winner / non-conflicting -> Tattva Observation.
-        obs, warns = map_to_observation(rec, domain=domain, actor=actor, now=now)
+        # (b) Vocabulary-driven map-or-defer. Attempt to map; a record whose category
+        #     still has no safe Tattva representation raises MappingDeferredError and
+        #     is kept as evidence with its real reason (NEVER hidden). Formerly-deferred
+        #     OHLCV / profile / ownership / quote now map to NEUTRAL factual Observations.
+        try:
+            obs, warns = _map_record(rec, domain=domain, actor=actor, now=now)
+        except MappingDeferredError as exc:
+            reason = str(exc)
+            deferred_records.append(rec)
+            deferred_reasons.append(reason)
+            data_gaps.append((
+                "tattva_vocabulary_deferred",
+                "{0} [{1}]: {2}".format(nt, src_name, reason),
+            ))
+            continue
+
         observations.append(obs)
         for w in warns:
             mapper_warnings.append("map[{0}]: {1}".format(rec.normalized_type, w))

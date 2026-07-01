@@ -19,10 +19,12 @@ Discipline (matches the 009A layer, carrying forward the 009B/009C corrections):
   does NOT compute EMA / VWAP / breakout / compression / relative-strength / timing /
   signal from OHLCV (raw bars only), and does NOT infer moat / TAM / thesis / quality /
   crowding / recognition from any quote or profile field.
-* yfinance data is raw price / quote / profile -- Tattva has NO signal vocabulary for
-  any of it. So EVERY yfinance normalized_type has its mapping DEFERRED:
-  ``map_yfinance_record`` always raises ``MappingDeferredError`` -- never a silent or
-  forced map, never a spurious Tattva Observation. yfinance produces evidence only.
+* yfinance data is raw price / quote / profile / share counts. As of 009F these map
+  to NEUTRAL FACTUAL Tattva Observations (raw facts only -- never a signal, direction,
+  technical, or investment read) via ``map_yfinance_record`` -> ``map_to_observation``.
+  Those Observations stay FALLBACK authority and add grounding but NO confidence; no
+  spurious signal is ever fabricated. ``MappingDeferredError`` is retained for any
+  future yfinance evidence type with no safe factual representation.
 * Absent fields become explicit warnings / errors -- never fabricated values.
 """
 
@@ -37,6 +39,7 @@ from .evidence_records import (
     make_normalized_evidence_record,
 )
 from .adapters import AdapterResult
+from .mapper import map_to_observation
 # Reuse the FMP deferral exception so the whole ingestion layer speaks one language.
 from .fmp import MappingDeferredError
 
@@ -389,26 +392,26 @@ def parse_yfinance_quote(
 
 
 # --------------------------------------------------------------------------- #
-# Mapping to Tattva: ALL DEFERRED.                                            #
+# Mapping to Tattva: FACTUAL (raw facts only), never a signal.                #
 # --------------------------------------------------------------------------- #
 
-# Every yfinance normalized_type has its mapping DEFERRED: Tattva has no signal
-# vocabulary for raw price / quote / profile / share counts, and yfinance is a
-# fallback feed. Forcing a map would fabricate a spurious signal, so we keep
-# yfinance as evidence and refuse to map (never silently, never a forced Observation).
-_DEFERRED_MAPPINGS = {
-    "yf_ohlcv": "Tattva has no raw price/OHLCV signal vocabulary",
-    "yf_quote": "Tattva has no quote/profile signal vocabulary",
-    "yf_quote_shares_outstanding": "Tattva has no raw share-count signal vocabulary",
-    "yf_profile": "Tattva has no company-profile signal vocabulary",
-}
+# As of IMPLEMENTATION-009F Tattva carries a FACTUAL-only observation vocabulary
+# (ohlcv_bar / quote_snapshot / company_profile_observation /
+# shares_outstanding_observation). yfinance OHLCV / quote / profile / share-count
+# records now map to NEUTRAL factual Observations (raw facts only -- NO EMA / VWAP /
+# breakout / compression / relative-strength / timing / accumulation / recognition /
+# thesis inference) via ``map_to_observation``. Those Observations stay FALLBACK
+# authority, so Tattva records them as grounding and adds NO confidence from them.
+# No yfinance category remains without a safe factual home, so this table is empty;
+# the deferral machinery is retained for any future unsupported evidence type.
+_DEFERRED_MAPPINGS = {}
 
 
 def mapping_deferred_reason(record: NormalizedEvidenceRecord) -> Optional[str]:
-    """Return the deferral reason for a yfinance record (all are DEFERRED), else None.
-
-    A non-None result means ``map_yfinance_record`` will refuse to map it. Every
-    yfinance normalized_type resolves to a reason here.
+    """Return the deferral reason for a yfinance record whose mapping is DEFERRED,
+    else None. As of 009F every yfinance category maps factually, so this returns
+    None for all current normalized_types; a non-None result means
+    ``map_yfinance_record`` will refuse to map it.
     """
     return _DEFERRED_MAPPINGS.get(str(record.normalized_type or ""))
 
@@ -420,18 +423,19 @@ def map_yfinance_record(
     actor: str = "evidence-ingestion",
     now: float,
 ) -> Tuple[Any, Tuple[str, ...]]:
-    """ALWAYS raise ``MappingDeferredError`` -- yfinance produces evidence only.
+    """Map a yfinance record to a NEUTRAL FACTUAL Tattva Observation (raw facts only).
 
-    yfinance data (raw price / quote / profile / share count) has NO Tattva signal
-    vocabulary, so no yfinance record is ever mapped into an Observation. The
-    signature mirrors ``map_fmp_record`` for a uniform ingestion interface, but there
-    is no supported branch: yfinance yields NO Observations.
+    yfinance OHLCV / quote / profile / share-count records now carry as factual
+    Observations (no inferred signal / direction / technical / investment read). The
+    Observation stays FALLBACK authority (source_reliability "low"), so it adds
+    grounding but no confidence downstream. The ``MappingDeferredError`` path is kept
+    for any future yfinance evidence type with no safe factual representation.
     """
-    reason = mapping_deferred_reason(record) or (
-        "yfinance is a fallback source with no Tattva signal vocabulary"
-    )
-    raise MappingDeferredError(
-        "mapping deferred for normalized_type={0!r}: {1}".format(
-            record.normalized_type, reason
+    reason = mapping_deferred_reason(record)
+    if reason is not None:
+        raise MappingDeferredError(
+            "mapping deferred for normalized_type={0!r}: {1}".format(
+                record.normalized_type, reason
+            )
         )
-    )
+    return map_to_observation(record, domain=domain, actor=actor, now=now)

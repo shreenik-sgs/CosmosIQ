@@ -19,10 +19,11 @@ Discipline (matches the 009A layer):
   EMA / VWAP / technical conclusions from OHLCV, and does NOT infer
   crowding / obviousness from ownership. Downstream ``map_to_observation`` turns
   a *supported* record into a Tattva Observation and nothing else.
-* Only records whose category has an existing Tattva signal vocabulary are
-  mapped (financial reports, news / press releases). OHLCV, profile, and
-  ownership have NO Tattva vocabulary and are kept as evidence with mapping
-  explicitly DEFERRED (``map_fmp_record`` raises for them -- never a silent map).
+* Financial reports and news / press releases map to SIGNAL-bearing Tattva
+  Observations. OHLCV, profile, and ownership map to NEUTRAL FACTUAL Observations
+  (raw facts only -- no inferred signal / direction / technical / thesis) via the
+  factual vocabulary added in IMPLEMENTATION-009F. No FMP category is deferred;
+  the ``MappingDeferredError`` path is retained for any future unsupported type.
 * Absent fields become explicit warnings / errors -- never fabricated values.
 """
 
@@ -669,14 +670,14 @@ def parse_fmp_ownership(
 # Mapping to Tattva: supported vs DEFERRED.                                    #
 # --------------------------------------------------------------------------- #
 
-# normalized_type -> reason mapping is DEFERRED. These categories have NO Tattva
-# signal vocabulary; forcing a map would fabricate a spurious signal or require
-# alpha changes, so we keep them as evidence and refuse to map (never silently).
-_DEFERRED_MAPPINGS = {
-    "fmp_ohlcv": "Tattva has no raw price/OHLCV signal vocabulary",
-    "fmp_profile": "Tattva has no company-profile signal vocabulary",
-    "fmp_ownership": "Tattva has no ownership signal vocabulary",
-}
+# normalized_type -> reason mapping is DEFERRED. As of IMPLEMENTATION-009F Tattva has
+# a FACTUAL-only observation vocabulary (ohlcv_bar / company_profile_observation /
+# ownership_observation / shares_outstanding_observation), so FMP OHLCV, profile, and
+# ownership now map to NEUTRAL factual Observations (no inferred signal/direction) via
+# ``map_to_observation`` rather than deferring. No FMP category remains without a safe
+# factual representation, so this table is empty -- the deferral machinery is retained
+# for any future evidence type that genuinely has no honest Tattva home.
+_DEFERRED_MAPPINGS = {}
 
 
 class MappingDeferredError(Exception):

@@ -211,26 +211,94 @@ class MissingFieldTests(unittest.TestCase):
 
 
 # --------------------------------------------------------------------------- #
-# Mapping: ALL DEFERRED -- yfinance produces NO Observation.                    #
+# Factual mapping (009F): yfinance maps to NEUTRAL FACTUAL Observations,        #
+# stays FALLBACK, and adds NO confidence -- never a signal.                     #
 # --------------------------------------------------------------------------- #
 
-class DeferredMappingTests(unittest.TestCase):
-    def test_ohlcv_mapping_is_deferred(self):
+_BANNED_INFERENCE = (
+    "ema", "vwap", "breakout", "compression", "relative_strength", "rsi", "macd",
+    "slope", "trend", "momentum", "accumulation", "crowding", "under_recognition",
+    "obviousness", "sponsorship", "moat", "tam", "thesis", "signal", "buy", "sell",
+)
+
+
+def _assert_no_inference(testcase, obs):
+    # No catalyst / direction / change was inferred onto a factual observation.
+    for k in ("catalyst_type", "catalyst_status", "expected_direction",
+              "observed_change"):
+        testcase.assertIsNone(obs.content.get(k))
+    # The carried raw facts + the neutral excerpt contain NO technical / market-
+    # recognition / investment term (structural schema keys are not inspected).
+    ff = obs.content.get("factual_fields") or {}
+    blob = " ".join(str(k).lower() for k in ff.keys())
+    blob += " " + " ".join(str(v).lower() for v in ff.values())
+    blob += " " + str(obs.content.get("excerpt", "")).lower()
+    for banned in _BANNED_INFERENCE:
+        testcase.assertNotIn(banned, blob)
+
+
+class FactualMappingTests(unittest.TestCase):
+    def test_ohlcv_maps_to_factual_ohlcv_bar_fallback(self):
         rec = parse_yfinance_history(_history(), now=0).records[0]
-        self.assertIsNotNone(yf_mapping_deferred_reason(rec))
-        with self.assertRaises(MappingDeferredError):
-            map_yfinance_record(rec, domain="ai-infrastructure", now=0)
+        self.assertIsNone(yf_mapping_deferred_reason(rec))  # no longer deferred
+        obs, _ = map_yfinance_record(rec, domain="ai-infrastructure", now=0)
+        self.assertIsInstance(obs, Observation)
+        self.assertEqual(obs.content["source_type"], "ohlcv_bar")
+        # yfinance factual observations stay FALLBACK / low reliability.
+        self.assertEqual(obs.content["source_authority"], "fallback")
+        self.assertEqual(obs.content["source_reliability"], "low")
+        _assert_no_inference(self, obs)
 
-    def test_quote_mapping_is_deferred(self):
-        recs = parse_yfinance_quote(_quote(), now=0, as_of="2026-03-31").records
-        for nt in ("yf_quote", "yf_quote_shares_outstanding"):
-            rec = _by_type(recs, nt)
-            self.assertIsNotNone(yf_mapping_deferred_reason(rec))
-            with self.assertRaises(MappingDeferredError):
-                map_yfinance_record(rec, domain="ai-infrastructure", now=0)
+    def test_quote_maps_to_factual_quote_snapshot(self):
+        rec = _by_type(parse_yfinance_quote(_quote(), now=0, as_of="2026-03-31").records,
+                       "yf_quote")
+        self.assertIsNone(yf_mapping_deferred_reason(rec))
+        obs, _ = map_yfinance_record(rec, domain="ai-infrastructure", now=0)
+        self.assertEqual(obs.content["source_type"], "quote_snapshot")
+        self.assertEqual(obs.content["source_authority"], "fallback")
+        ff = obs.content["factual_fields"]
+        self.assertEqual(ff["current_price"], 21.10)
+        self.assertEqual(ff["previous_close"], 20.05)
+        _assert_no_inference(self, obs)
 
-    def test_yfinance_produces_only_evidence_records(self):
-        # Every parsed record is an evidence record and NOTHING downstream.
+    def test_shares_outstanding_maps_to_factual_share_count(self):
+        rec = _by_type(parse_yfinance_quote(_quote(), now=0, as_of="2026-03-31").records,
+                       "yf_quote_shares_outstanding")
+        obs, _ = map_yfinance_record(rec, domain="ai-infrastructure", now=0)
+        self.assertEqual(obs.content["source_type"], "shares_outstanding_observation")
+        # financial_metric retained so cross-source arbitration still ranks SEC/FMP over yf.
+        self.assertEqual(obs.content["financial_metric"], "shares_outstanding")
+        self.assertEqual(obs.content["source_authority"], "fallback")
+        _assert_no_inference(self, obs)
+
+    def test_yfinance_factual_observation_adds_no_confidence(self):
+        # A real (SEC-style) signal observation alone vs the same PLUS a yfinance
+        # factual observation: identical signals / direction / significance / confidence.
+        from reality_intelligence.source_observation import make_source_observation
+        from reality_intelligence.intelligence_assessment import (
+            generate_intelligence_assessment,
+        )
+        real = make_source_observation(
+            source_type="financial_report", domain="ai-infrastructure", entity="IREN",
+            excerpt="revenue grew", as_of="2026-03-31", financial_metric="revenue",
+            metric_value=120.0, prior_value=100.0, source_reliability="high",
+            actor="analyst", now=0,
+        )
+        yf_ohlcv = parse_yfinance_history(_history(), now=0).records[0]
+        factual, _ = map_yfinance_record(yf_ohlcv, domain="ai-infrastructure", now=0)
+        ia_real = generate_intelligence_assessment([real], domain="ai-infrastructure", now=0)
+        ia_both = generate_intelligence_assessment([real, factual], domain="ai-infrastructure", now=0)
+        self.assertEqual(len(ia_real.signals), len(ia_both.signals))
+        self.assertEqual(ia_real.direction, ia_both.direction)
+        self.assertEqual(ia_real.significance, ia_both.significance)
+        self.assertEqual(ia_real.confidence, ia_both.confidence)
+        # the factual observation IS recorded as grounding, just carries no signal.
+        self.assertIn(factual.id, ia_both.grounding_observation_ids)
+        self.assertIn(factual.id, ia_both.factual_observation_ids)
+
+    def test_yfinance_parser_output_is_evidence_records(self):
+        # The PARSER still yields evidence records (mapping to Observations is a
+        # separate downstream step).
         recs = list(parse_yfinance_history(_history(), now=0).records)
         recs += list(parse_yfinance_quote(_quote(), now=0, as_of="2026-03-31").records)
         for rec in recs:

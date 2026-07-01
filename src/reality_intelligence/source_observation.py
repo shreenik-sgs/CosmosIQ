@@ -51,6 +51,16 @@ SOURCE_TYPES = frozenset({
     "product_launch",
     "capital_structure_event",
     "financial_report",
+    # Factual-only source material (raw facts, NO inferred signal/direction). These
+    # carry OHLCV / profile / ownership / quote / share-count evidence honestly as
+    # Observations; the Intelligence Assessment records them as grounding but never
+    # extracts a RealitySignal from them (see intelligence_assessment.FACTUAL_SOURCE_TYPES).
+    "market_data_observation",
+    "ohlcv_bar",
+    "quote_snapshot",
+    "company_profile_observation",
+    "ownership_observation",
+    "shares_outstanding_observation",
 })
 
 # A catalyst's confirmation discipline (how settled the event is).
@@ -101,6 +111,8 @@ def make_source_observation(
     affected_value_chain_node: Optional[str] = None,
     affected_domain: Optional[str] = None,
     financial_metric: Optional[str] = None,
+    # --- factual-only raw fields (neutral facts; NO inferred signal) -------
+    factual_fields: Optional[dict] = None,
     # --- provenance --------------------------------------------------------
     source_ref: str = "",
     actor: str = "analyst",
@@ -188,6 +200,8 @@ def make_source_observation(
         "affected_value_chain_node": affected_value_chain_node,
         "affected_domain": affected_domain,
         "financial_metric": financial_metric,
+        # factual-only raw facts (present only for factual source types)
+        "factual_fields": dict(factual_fields) if factual_fields else None,
         "as_of": as_of,
         "source_ref": source_ref,
     }

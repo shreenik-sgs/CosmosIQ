@@ -250,6 +250,78 @@ class TestIntelligenceAssessment(unittest.TestCase):
         ia_low = generate_intelligence_assessment([low], domain="ai-infrastructure", now=0)
         self.assertLess(ia_low.confidence, ia_high.confidence)
 
+    # --- factual-only observations: grounding, but NEVER a signal --------------
+    def _factual(self, source_type, now=0.0, **factual_fields):
+        return make_source_observation(
+            source_type=source_type, domain="ai-infrastructure", entity="IREN",
+            excerpt="{0} reported for IREN on 2026-06-26".format(source_type),
+            as_of="2026-06-26", source_ref="test", actor="analyst", now=now,
+            factual_fields=factual_fields,
+        )
+
+    def test_factual_observation_produces_no_signal(self):
+        # An OHLCV bar and a company profile are raw facts -- neither yields a
+        # RealitySignal, so an IA over them alone has ZERO signals.
+        ohlcv = self._factual("ohlcv_bar", open=20.0, high=21.5, low=19.9,
+                              close=21.10, volume=15200000)
+        profile = self._factual("company_profile_observation", sector="Technology",
+                                industry="Data Center Infrastructure")
+        ia = generate_intelligence_assessment([ohlcv, profile],
+                                              domain="ai-infrastructure", now=0)
+        self.assertEqual(len(ia.signals), 0)
+        # they ARE recorded as grounding + factual audit ids.
+        self.assertEqual(set(ia.grounding_observation_ids), {ohlcv.id, profile.id})
+        self.assertEqual(set(ia.factual_observation_ids), {ohlcv.id, profile.id})
+
+    def test_factual_observations_add_grounding_but_not_signal(self):
+        # THE load-bearing invariant: an IA over {a real signal obs} + {OHLCV/profile
+        # factual obs} has the SAME signals / direction / significance / confidence as
+        # over the real observation ALONE. Facts add grounding, never inference.
+        real = _obs(source_type="financial_report", financial_metric="revenue",
+                    metric_value=120.0, prior_value=100.0, source_reliability="high",
+                    excerpt="revenue grew")
+        ohlcv = self._factual("ohlcv_bar", open=20.0, high=21.5, low=19.9,
+                              close=21.10, volume=15200000)
+        profile = self._factual("company_profile_observation", sector="Technology")
+        ownership = self._factual("ownership_observation", holder="Vanguard",
+                                  shares=1000000)
+
+        ia_real = generate_intelligence_assessment([real], domain="ai-infrastructure", now=0)
+        ia_both = generate_intelligence_assessment(
+            [real, ohlcv, profile, ownership], domain="ai-infrastructure", now=0)
+
+        self.assertEqual([s.signal_id for s in ia_real.signals],
+                         [s.signal_id for s in ia_both.signals])
+        self.assertEqual(ia_real.direction, ia_both.direction)
+        self.assertEqual(ia_real.significance, ia_both.significance)
+        self.assertEqual(ia_real.confidence, ia_both.confidence)
+        self.assertEqual(ia_real.signal_novelty, ia_both.signal_novelty)
+        self.assertEqual(ia_real.evidence_quality, ia_both.evidence_quality)
+        # the factual observations still count as grounding.
+        for o in (ohlcv, profile, ownership):
+            self.assertIn(o.id, ia_both.grounding_observation_ids)
+            self.assertNotIn(o.id, [sid for s in ia_both.signals
+                                    for sid in s.supporting_evidence_ids])
+
+    def test_factual_only_ia_carries_no_technical_or_investment_language(self):
+        # An IA built purely from factual observations synthesises NO EMA / VWAP /
+        # breakout / timing / relative-strength / accumulation / crowding text and NO
+        # investment conclusion.
+        ohlcv = self._factual("ohlcv_bar", open=20.0, high=21.5, low=19.9, close=21.10)
+        quote = self._factual("quote_snapshot", current_price=21.10, previous_close=20.05)
+        ia = generate_intelligence_assessment([ohlcv, quote],
+                                              domain="ai-infrastructure", now=0)
+        blob = " ".join([
+            ia.current_assessment, ia.domain_reality_change,
+            " ".join(ia.uncertainty), ia.assessment_type,
+        ]).lower()
+        for banned in ("ema", "vwap", "breakout", "compression", "relative strength",
+                       "accumulation", "crowding", "under-recognition", "momentum",
+                       "slope", "timing", "buy", "sell", "obviousness"):
+            self.assertNotIn(banned, blob)
+        for term in _FORBIDDEN:
+            self.assertNotIn(term, blob)
+
     # --- invariants (kept) -----------------------------------------------------
     def test_missing_observation_rejected(self):
         with self.assertRaises(ValueError):

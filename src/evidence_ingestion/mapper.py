@@ -26,6 +26,7 @@ from eios_core.ids import iso_from_epoch
 from eios_core.provenance import make_provenance
 
 from reality_intelligence.source_observation import make_source_observation, SOURCE_TYPES
+from reality_intelligence.intelligence_assessment import FACTUAL_SOURCE_TYPES
 
 from .evidence_records import NormalizedEvidenceRecord
 
@@ -78,8 +79,21 @@ def _pick_source_type(normalized_type: str, source_class: str) -> str:
     def has(*needles: str) -> bool:
         return any(n in nt for n in needles)
 
+    # Factual-only categories (NEUTRAL facts -- no direction / catalyst / signal).
+    # These are matched FIRST so a factual raw-fact record (e.g. a share count that
+    # also contains "financial") routes to its factual home rather than a signal type.
+    if has("ohlcv"):
+        st = "ohlcv_bar"
+    elif has("shares_outstanding"):
+        st = "shares_outstanding_observation"
+    elif has("profile"):
+        st = "company_profile_observation"
+    elif has("ownership"):
+        st = "ownership_observation"
+    elif has("quote"):
+        st = "quote_snapshot"
     # Capital-structure events (dilution / shelf / ATM / offerings).
-    if has("s-3", "s3", "424b", "atm", "shelf", "capital", "offering", "dilut"):
+    elif has("s-3", "s3", "424b", "atm", "shelf", "capital", "offering", "dilut"):
         st = "capital_structure_event"
     # Financial reports (periodic financials / XBRL).
     elif has("10-k", "10k", "10-q", "10q", "xbrl", "financial", "earnings"):
@@ -137,6 +151,21 @@ def map_to_observation(
 
     source_type = _pick_source_type(norm.normalized_type, source_class)
     source_reliability = _AUTHORITY_TO_RELIABILITY.get(authority, "low")
+
+    # Factual-only category -- carry raw facts as a NEUTRAL Observation with NO
+    # inferred catalyst / direction / observed_change / metric direction. Downstream
+    # Tattva records it as grounding but extracts no signal from it.
+    if source_type in FACTUAL_SOURCE_TYPES:
+        return _map_factual_observation(
+            norm,
+            source_type=source_type,
+            source_reliability=source_reliability,
+            domain=domain,
+            fields=fields,
+            warnings=warnings,
+            actor=actor,
+            now=now,
+        )
 
     is_catalyst = source_type in _CATALYST_SOURCE_TYPES or bool(
         fields.get("catalyst_type") or fields.get("expected_direction")
@@ -204,6 +233,128 @@ def map_to_observation(
 
     # Enrich content + rebind provenance to the evidence record WITHOUT touching
     # Tattva. Extra content keys are ignored by the assessment generator.
+    enriched_content = dict(obs.content)
+    enriched_content.update(
+        {
+            "source_authority": norm.source_authority,
+            "source_class": norm.source_class,
+            "source_name": source_name,
+            "provider": provider,
+            "normalized_record_id": norm.id,
+        }
+    )
+    prov = make_provenance(
+        actor=actor,
+        created_at=iso_from_epoch(now),
+        sources=(norm.ref("NormalizedEvidenceRecord"),),
+    )
+    obs = dataclasses.replace(obs, content=enriched_content, provenance=prov)
+    return obs, tuple(warnings)
+
+
+# --------------------------------------------------------------------------- #
+# Factual-only mapping (raw facts -> NEUTRAL Observation, NO inference).       #
+# --------------------------------------------------------------------------- #
+
+# Per factual source_type: which extracted_fields we carry verbatim as raw facts.
+# Nothing here is a direction, a catalyst, a technical, or an investment conclusion --
+# only the raw numbers/labels the source reported.
+_FACTUAL_CARRY_FIELDS = {
+    "ohlcv_bar": ("open", "high", "low", "close", "adj_close", "volume",
+                  "dividends", "stock_splits", "date"),
+    "quote_snapshot": ("current_price", "previous_close", "market_cap", "sector",
+                       "industry", "currency", "exchange", "symbol"),
+    "company_profile_observation": ("company_name", "name", "sector", "industry",
+                                    "exchange", "currency", "market_cap",
+                                    "shares_outstanding", "website", "symbol"),
+    "ownership_observation": ("holder", "shares", "date_reported",
+                              "ownership_percent"),
+    "shares_outstanding_observation": ("shares_outstanding", "metric_value",
+                                       "metric_unit", "period_end"),
+    "market_data_observation": ("open", "high", "low", "close", "adj_close",
+                                "volume", "date"),
+}
+
+
+def _factual_excerpt(source_type: str, source_name: str, entity: str,
+                     as_of: str, fields: Dict[str, Any]) -> str:
+    """Build a strictly NEUTRAL excerpt for a factual observation.
+
+    Phrasing states only what was reported -- never a direction, momentum, breakout,
+    accumulation, under-recognition, or any investment/technical read.
+    """
+    who = source_name or "source"
+    subj = entity or "the subject"
+    when = " on {0}".format(as_of) if as_of else ""
+    if source_type in ("ohlcv_bar", "market_data_observation"):
+        return "{0} reported OHLCV bar for {1}{2}".format(who, subj, when)
+    if source_type == "quote_snapshot":
+        return "{0} reported quote snapshot for {1}{2}".format(who, subj, when)
+    if source_type == "company_profile_observation":
+        return "{0} reported company profile for {1}".format(who, subj)
+    if source_type == "ownership_observation":
+        holder = fields.get("holder") or "an institutional holder"
+        shares = fields.get("shares")
+        tail = " with {0} shares".format(shares) if shares is not None else ""
+        return "{0} reported institutional holder {1}{2}".format(who, holder, tail)
+    if source_type == "shares_outstanding_observation":
+        val = fields.get("metric_value")
+        tail = " of {0}".format(val) if val is not None else ""
+        return "{0} reported shares outstanding{1} for {2}".format(who, tail, subj)
+    return "{0} reported a market-data fact for {1}{2}".format(who, subj, when)
+
+
+def _map_factual_observation(
+    norm: NormalizedEvidenceRecord,
+    *,
+    source_type: str,
+    source_reliability: str,
+    domain: str,
+    fields: Dict[str, Any],
+    warnings: List[str],
+    actor: str,
+    now: float,
+) -> Tuple[Any, Tuple[str, ...]]:
+    """Map a factual record into a NEUTRAL Tattva Observation (raw facts only).
+
+    Sets NO catalyst_type / catalyst_status / expected_direction / observed_change and
+    infers NO metric direction. Carries the raw factual fields into ``content
+    ["factual_fields"]``, preserves source authority / class / provider / reliability /
+    evidence quality, and rebinds provenance to the NormalizedEvidenceRecord.
+    """
+    entity = norm.ticker or norm.subject
+    as_of = norm.event_date or norm.period_end or ""
+
+    carry = _FACTUAL_CARRY_FIELDS.get(source_type, tuple(fields.keys()))
+    factual_fields: Dict[str, Any] = {
+        k: fields.get(k) for k in carry if fields.get(k) is not None
+    }
+    # A share-count fact keeps its financial_metric so cross-source conflict
+    # arbitration still ranks SEC / FMP over yfinance -- but the source_type is the
+    # NEUTRAL shares_outstanding_observation, so it produces no signal.
+    financial_metric = None
+    if source_type == "shares_outstanding_observation":
+        financial_metric = fields.get("financial_metric") or "shares_outstanding"
+
+    source_name = norm.source.source_name if norm.source is not None else ""
+    provider = norm.source.provider if norm.source is not None else ""
+    excerpt = _factual_excerpt(source_type, source_name, entity, as_of, fields)
+
+    obs = make_source_observation(
+        source_type=source_type,
+        domain=domain,
+        entity=entity,
+        excerpt=excerpt,
+        as_of=as_of,
+        source_ref=source_name,
+        source_reliability=source_reliability,
+        evidence_quality=norm.evidence_quality,
+        financial_metric=financial_metric,
+        factual_fields=factual_fields,
+        actor=actor,
+        now=now,
+    )
+
     enriched_content = dict(obs.content)
     enriched_content.update(
         {

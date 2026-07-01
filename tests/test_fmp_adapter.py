@@ -262,33 +262,90 @@ class MapperTests(unittest.TestCase):
 
 
 # --------------------------------------------------------------------------- #
-# Deferred mapping: OHLCV / profile / ownership are NOT forced.                #
+# Factual mapping (009F): OHLCV / profile / ownership -> NEUTRAL Observations.  #
 # --------------------------------------------------------------------------- #
 
-class DeferredMappingTests(unittest.TestCase):
-    def test_ohlcv_mapping_is_deferred(self):
+# Field names / phrasing that would betray a technical / market-recognition /
+# investment conclusion. A factual Observation must carry NONE of these.
+_BANNED_INFERENCE = (
+    "ema", "vwap", "breakout", "compression", "relative_strength", "rsi", "macd",
+    "slope", "trend", "momentum", "accumulation", "crowding", "under_recognition",
+    "obviousness", "sponsorship", "moat", "tam", "thesis", "signal", "buy", "sell",
+)
+
+
+class FactualMappingTests(unittest.TestCase):
+    """OHLCV / profile / ownership now map to NEUTRAL factual Observations -- raw
+    facts only, with NO catalyst / direction / technical / investment inference."""
+
+    def _assert_no_inference(self, obs):
+        # No catalyst / direction / change fields set.
+        for k in ("catalyst_type", "catalyst_status", "expected_direction",
+                  "observed_change"):
+            self.assertIsNone(obs.content.get(k),
+                              "factual obs leaked {0}".format(k))
+        # No inference term in the carried raw facts (keys + values) or the neutral
+        # excerpt (structural schema keys are not inspected).
+        ff = obs.content.get("factual_fields") or {}
+        blob = " ".join(str(k).lower() for k in ff.keys())
+        blob += " " + " ".join(str(v).lower() for v in ff.values())
+        blob += " " + str(obs.content.get("excerpt", "")).lower()
+        for banned in _BANNED_INFERENCE:
+            self.assertNotIn(banned, blob, "factual obs carries {0}".format(banned))
+
+    def test_ohlcv_maps_to_factual_ohlcv_bar(self):
         rec = parse_fmp_ohlcv(_ohlcv(), now=0).records[0]
-        self.assertIsNotNone(mapping_deferred_reason(rec))
-        with self.assertRaises(MappingDeferredError):
-            map_fmp_record(rec, domain="ai-infrastructure", now=0)
+        self.assertIsNone(mapping_deferred_reason(rec))  # no longer deferred
+        obs, _ = map_fmp_record(rec, domain="ai-infrastructure", now=0)
+        self.assertIsInstance(obs, Observation)
+        self.assertEqual(obs.content["source_type"], "ohlcv_bar")
+        self.assertEqual(obs.content["source_authority"], "convenience")
+        self.assertEqual(obs.content["source_reliability"], "moderate")
+        # raw OHLCV facts carried verbatim.
+        ff = obs.content["factual_fields"]
+        self.assertIn("close", ff)
+        self.assertEqual(ff["close"], rec.extracted_fields["close"])
+        self._assert_no_inference(obs)
 
-    def test_profile_mapping_is_deferred(self):
+    def test_profile_maps_to_company_profile_observation(self):
         rec = parse_fmp_profile(_profile(), now=0).records[0]
-        self.assertIsNotNone(mapping_deferred_reason(rec))
-        with self.assertRaises(MappingDeferredError):
-            map_fmp_record(rec, domain="ai-infrastructure", now=0)
+        self.assertIsNone(mapping_deferred_reason(rec))
+        obs, _ = map_fmp_record(rec, domain="ai-infrastructure", now=0)
+        self.assertEqual(obs.content["source_type"], "company_profile_observation")
+        self.assertEqual(obs.content["source_authority"], "convenience")
+        ff = obs.content["factual_fields"]
+        self.assertIn("sector", ff)
+        self._assert_no_inference(obs)
 
-    def test_ownership_mapping_is_deferred(self):
+    def test_ownership_maps_to_ownership_observation(self):
         rec = parse_fmp_ownership(_ownership(), now=0).records[0]
-        self.assertIsNotNone(mapping_deferred_reason(rec))
-        with self.assertRaises(MappingDeferredError):
-            map_fmp_record(rec, domain="ai-infrastructure", now=0)
+        self.assertIsNone(mapping_deferred_reason(rec))
+        obs, _ = map_fmp_record(rec, domain="ai-infrastructure", now=0)
+        self.assertEqual(obs.content["source_type"], "ownership_observation")
+        ff = obs.content["factual_fields"]
+        self.assertIn("holder", ff)
+        # neutral phrasing names the holder, never "accumulation" / "crowding".
+        self.assertIn("holder", obs.content["excerpt"].lower())
+        self._assert_no_inference(obs)
 
-    def test_supported_records_are_not_deferred(self):
+    def test_supported_signal_records_are_not_deferred(self):
         rev = _by_type(parse_fmp_income_statement(_income(), now=0).records, "fmp_financial_revenue")
         news = parse_fmp_news(_news(), now=0).records[0]
         self.assertIsNone(mapping_deferred_reason(rev))
         self.assertIsNone(mapping_deferred_reason(news))
+
+    def test_no_fmp_category_remains_deferred(self):
+        # Every FMP record now maps -- none raises MappingDeferredError.
+        recs = []
+        recs += list(parse_fmp_ohlcv(_ohlcv(), now=0).records)
+        recs += list(parse_fmp_profile(_profile(), now=0).records)
+        recs += list(parse_fmp_ownership(_ownership(), now=0).records)
+        recs += list(parse_fmp_income_statement(_income(), now=0).records)
+        recs += list(parse_fmp_news(_news(), now=0).records)
+        for rec in recs:
+            self.assertIsNone(mapping_deferred_reason(rec))
+            obs, _ = map_fmp_record(rec, domain="ai-infrastructure", now=0)
+            self.assertIsInstance(obs, Observation)
 
 
 # --------------------------------------------------------------------------- #

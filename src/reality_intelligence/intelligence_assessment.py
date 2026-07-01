@@ -52,6 +52,22 @@ ALLOWED_ASSESSMENT_TYPES = frozenset({
     "readiness_timing",
 })
 
+# Factual-only source types. An Observation whose content ``source_type`` is one of
+# these is REAL evidence (recorded in grounding + provenance) but carries NO inferred
+# signal: it is a raw fact (an OHLCV bar, a quote snapshot, a company profile, an
+# ownership line, a share count). Such observations are SKIPPED in signal extraction,
+# so they never produce a RealitySignal and therefore never contribute to direction,
+# significance, confidence, indicators, weak-signals, or catalysts. They add grounding,
+# not inference -- adding them must not change the assessment over the same real signals.
+FACTUAL_SOURCE_TYPES = frozenset({
+    "market_data_observation",
+    "ohlcv_bar",
+    "quote_snapshot",
+    "company_profile_observation",
+    "ownership_observation",
+    "shares_outstanding_observation",
+})
+
 # The typed reality signals this MVP can extract.
 SIGNAL_TYPES = frozenset({
     "constraint",
@@ -190,6 +206,9 @@ class IntelligenceAssessment(ReasoningObject):
     significance: str = "low"  # low | moderate | high
     confidence: float = 0.0
     grounding_observation_ids: Tuple[str, ...] = field(default_factory=tuple)
+    # Factual-only grounding observations (raw facts that produced NO signal). They
+    # are recorded here purely for auditability; they never feed the inference above.
+    factual_observation_ids: Tuple[str, ...] = field(default_factory=tuple)
     uncertainty: Tuple[str, ...] = field(default_factory=tuple)
     contradictions: Tuple[str, ...] = field(default_factory=tuple)
     # --- inferred structured products --------------------------------------
@@ -398,8 +417,24 @@ def generate_intelligence_assessment(
 
     entities = tuple(sorted({c.get("entity") for c in contents if c.get("entity")}))
 
-    # --- 1. extract one typed signal per observation -----------------------
-    extracted = [_extract_signal(o, c) for o, c in zip(obs, contents)]
+    # --- 0. partition factual-only observations OUT of signal extraction ---
+    # A factual observation (OHLCV / quote / profile / ownership / share count) is
+    # REAL evidence -- it stays in grounding_observation_ids and provenance (below) --
+    # but it carries NO signal, so it is excluded here. It never reaches _extract_signal
+    # (and thus never falls through _TYPE_BY_SOURCE to fabricate an "adoption" signal),
+    # so it cannot change direction / significance / confidence / indicators.
+    signal_items = [
+        (o, c) for o, c in zip(obs, contents)
+        if c.get("source_type") not in FACTUAL_SOURCE_TYPES
+    ]
+    factual_observation_ids = tuple(
+        getattr(o, "id", "") for o, c in zip(obs, contents)
+        if c.get("source_type") in FACTUAL_SOURCE_TYPES
+    )
+    sig_contents = [c for _o, c in signal_items]
+
+    # --- 1. extract one typed signal per (non-factual) observation ---------
+    extracted = [_extract_signal(o, c) for o, c in signal_items]
     base = [s for s, _ in extracted]
     sig_entities = [e for _, e in extracted]
 
@@ -455,7 +490,7 @@ def generate_intelligence_assessment(
     catalysts = []
     capital_structure_risks = []
     monitoring_signals = []
-    for s, c in zip(signals, contents):
+    for s, c in zip(signals, sig_contents):
         if s.signal_type == "catalyst":
             catalysts.append({
                 "catalyst_type": c.get("catalyst_type"),
@@ -609,6 +644,7 @@ def generate_intelligence_assessment(
         significance=significance,
         confidence=round(float(confidence), 4),
         grounding_observation_ids=grounding_ids,
+        factual_observation_ids=factual_observation_ids,
         uncertainty=uncertainty,
         contradictions=contradictions,
         signals=signals,

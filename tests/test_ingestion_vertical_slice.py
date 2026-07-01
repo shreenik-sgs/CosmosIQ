@@ -118,9 +118,14 @@ class SliceRunTests(unittest.TestCase):
         self.assertIn("SEC EDGAR", cov)
         self.assertIn("FMP", cov)
         self.assertIn("yfinance", cov)
-        # yfinance contributes evidence but zero Observations (all deferred).
-        self.assertEqual(cov["yfinance"]["observations"], 0)
+        # yfinance now contributes NEUTRAL factual Observations (ohlcv_bar / quote
+        # snapshot) as well as evidence -- but they remain FALLBACK authority.
+        self.assertGreater(cov["yfinance"]["observations"], 0)
         self.assertGreater(cov["yfinance"]["records"], 0)
+        yf_obs = [o for o in self.r.observations
+                  if o.content.get("source_name") == "yfinance"]
+        self.assertTrue(all(o.content.get("source_authority") == "fallback"
+                            for o in yf_obs))
         # SEC contributes Observations; FMP has overridden financial facts.
         self.assertGreater(cov["SEC EDGAR"]["observations"], 0)
         self.assertGreater(cov["FMP"]["overridden"], 0)
@@ -167,9 +172,10 @@ class SliceRunTests(unittest.TestCase):
         winners = winning_records(self.r.normalized_records)
         self.assertEqual(winners[key].source_authority, "convenience")
         self.assertEqual(winners[key].source.source_name, "FMP")
-        # Both remain DEFERRED evidence -- neither becomes an Observation.
-        self.assertNotIn("fmp_ohlcv",
-                         {o.content.get("source_type") for o in self.r.observations})
+        # Both bars now map to NEUTRAL factual ohlcv_bar Observations (raw facts),
+        # while arbitration still names FMP the winner of the shared price fact.
+        self.assertIn("ohlcv_bar",
+                      {o.content.get("source_type") for o in self.r.observations})
 
     def test_yfinance_fills_gap_only_when_sec_fmp_absent(self):
         # 2026-06-24 exists only in the yfinance history -> yfinance wins by default.
@@ -216,22 +222,36 @@ class SliceRunTests(unittest.TestCase):
         for o in self.r.observations:
             self.assertIsInstance(o, Observation)
 
-    def test_unsupported_categories_are_deferred_with_reasons(self):
+    def test_formerly_deferred_categories_now_map_to_factual_observations(self):
+        # OHLCV / profile / ownership / quote now become NEUTRAL factual Observations
+        # (raw facts, no inferred signal) instead of being deferred.
+        stypes = {o.content.get("source_type") for o in self.r.observations}
+        for factual in ("ohlcv_bar", "company_profile_observation",
+                        "ownership_observation", "quote_snapshot",
+                        "shares_outstanding_observation"):
+            self.assertIn(factual, stypes, "missing factual {0}".format(factual))
+        # None of the formerly-deferred vocabulary categories are deferred anymore.
+        deferred_types = {rec.normalized_type for rec in self.r.deferred_records}
+        for nt in ("fmp_ohlcv", "fmp_profile", "fmp_ownership", "yf_ohlcv", "yf_quote"):
+            self.assertNotIn(nt, deferred_types)
+
+    def test_true_remaining_gaps_still_reported(self):
+        # The genuinely-deferred records are the OVERRIDDEN financial facts (a
+        # higher-authority source owns them) -- still surfaced with a reason, never hidden.
         deferred = dict(zip(
             [rec.normalized_type for rec in self.r.deferred_records],
             self.r.deferred_reasons,
         ))
-        for nt in ("fmp_ohlcv", "fmp_profile", "fmp_ownership",
-                   "yf_ohlcv", "yf_quote", "yf_quote_shares_outstanding"):
-            self.assertIn(nt, deferred, "missing deferred {0}".format(nt))
-            self.assertTrue(deferred[nt])  # a non-empty explicit reason
-        # deferred evidence is NOT hidden: every deferred record is retained.
+        for nt in ("fmp_financial_revenue", "fmp_financial_shares_outstanding",
+                   "yf_quote_shares_outstanding"):
+            self.assertIn(nt, deferred, "missing overridden {0}".format(nt))
+            self.assertIn("overridden", deferred[nt])
         self.assertEqual(len(self.r.deferred_records), len(self.r.deferred_reasons))
         self.assertGreater(len(self.r.deferred_records), 0)
 
     def test_data_gaps_labelled_by_kind(self):
         kinds = {g[0] for g in self.r.data_gaps}
-        self.assertIn("tattva_vocabulary_deferred", kinds)
+        # Overridden financial facts remain a true, labelled gap.
         self.assertIn("overridden_financial_fact", kinds)
         # each gap entry is (kind, detail) with a non-empty detail.
         for kind, detail in self.r.data_gaps:
@@ -253,14 +273,29 @@ class SliceRunTests(unittest.TestCase):
         self.assertEqual(bound, {o.id for o in self.r.observations})
 
     def test_no_assessment_when_no_observations(self):
+        # With NO fixtures there is no evidence, no Observation, and no assessment.
         r = run_fixture_ingestion_slice(
-            subject="IREN", domain="ai-infrastructure",
-            fmp_ohlcv=_load("fmp_ohlcv_iren.json"),  # deferred-only input
-            now=_NOW,
+            subject="IREN", domain="ai-infrastructure", now=_NOW,
         )
         self.assertEqual(len(r.observations), 0)
         self.assertIsNone(r.intelligence_assessment)
-        self.assertGreater(len(r.deferred_records), 0)  # still not hidden
+
+    def test_factual_only_input_yields_factual_observations_and_signalless_ia(self):
+        # OHLCV-only input now yields NEUTRAL factual Observations and an
+        # IntelligenceAssessment that carries ZERO signals (facts, not inference).
+        r = run_fixture_ingestion_slice(
+            subject="IREN", domain="ai-infrastructure",
+            fmp_ohlcv=_load("fmp_ohlcv_iren.json"),
+            now=_NOW,
+        )
+        self.assertGreater(len(r.observations), 0)
+        self.assertTrue(all(o.content.get("source_type") == "ohlcv_bar"
+                            for o in r.observations))
+        ia = r.intelligence_assessment
+        self.assertIsInstance(ia, IntelligenceAssessment)
+        self.assertEqual(len(ia.signals), 0)  # no signal fabricated from raw bars
+        self.assertEqual(set(ia.factual_observation_ids),
+                         {o.id for o in r.observations})
 
     def test_stops_at_tattva_no_downstream_objects(self):
         # No field on the result is a genesis/prometheus/personal_cio/kriya object.
