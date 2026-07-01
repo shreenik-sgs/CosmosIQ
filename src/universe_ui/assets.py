@@ -21,22 +21,32 @@ from __future__ import annotations
 
 COSMIC_CSS = """
 :root{
-  --bg:#05060d; --bg2:#0a0e1c; --panel:#0e1330; --panel2:#131a3d;
-  --ink:#e7ecff; --muted:#9aa6d6; --line:#26315f;
+  /* --- 010A-S design system: near-black indigo base, glass surfaces --- */
+  --bg:#060814; --bg2:#0a0e1e; --panel:#0e1330; --panel2:#131a3d;
+  --glass:rgba(18,24,48,.55); --glass-line:rgba(140,160,255,.14);
+  --ink:#eef2ff; --muted:#9aa6d6; --faint:#5c6690; --line:#26315f;
+  /* restrained, purposeful accents: colour == meaning */
+  --accent:#8b7bff; --cyan:#4fe0ff;
   --heat-hot:#ff5d3b; --heat-warm:#ffb03a; --heat-cool:#4ad6ff; --heat-dim:#5b6690;
-  --good:#38e08a; --warn:#ffcf4d; --bad:#ff5470; --hazard:#ff2e63;
-  --badge:#1b234d; --accent:#7c8cff;
+  --good:#39e0a0; --confirmed:#39e0a0; --warn:#ffb03a; --bad:#ff4d6d; --hazard:#ff4d6d;
+  --badge:#1b234d;
+  --mono:ui-monospace,"SF Mono",Menlo,"Cascadia Code",Consolas,monospace;
+  --shadow:0 10px 40px rgba(0,0,0,.45);
+  --r-sm:10px; --r:14px; --r-lg:18px;
 }
+.micro{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--faint)}
+.num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:0}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
   font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   color:var(--ink);
   background:
-    radial-gradient(1200px 700px at 20% -5%, #16204d 0%, rgba(5,6,13,0) 55%),
-    radial-gradient(900px 600px at 90% 10%, #241640 0%, rgba(5,6,13,0) 50%),
+    radial-gradient(1100px 650px at 18% -8%, #1a2350 0%, rgba(6,8,20,0) 55%),
+    radial-gradient(900px 600px at 92% 8%, #241a4a 0%, rgba(6,8,20,0) 52%),
     var(--bg);
-  line-height:1.5; letter-spacing:.1px;
+  line-height:1.5; letter-spacing:.1px; font-size:13px;
 }
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
@@ -45,10 +55,10 @@ a:hover{text-decoration:underline}
 /* ---- persistent status strip (never collapsible) ---- */
 .status-strip{
   position:sticky;top:0;z-index:50;
-  background:linear-gradient(90deg,#0a0f24,#131a3d);
-  border-bottom:1px solid var(--line);
-  color:var(--muted);font-size:.82rem;font-weight:600;
-  padding:.5rem 1.25rem;letter-spacing:.3px;
+  background:rgba(8,11,26,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--glass-line);
+  color:var(--muted);font-size:12px;font-weight:600;
+  padding:.5rem 1.25rem;letter-spacing:.4px;
 }
 .status-strip .sep{color:#465086;margin:0 .35rem}
 .status-strip b{color:#cdd6ff}
@@ -61,17 +71,18 @@ a:hover{text-decoration:underline}
 .brand{font-size:1.15rem;font-weight:800;letter-spacing:.5px;margin-right:1rem}
 .brand small{display:block;font-size:.68rem;font-weight:600;color:var(--muted);letter-spacing:1.5px}
 .navlink{
-  padding:.35rem .7rem;border:1px solid var(--line);border-radius:999px;
-  background:var(--panel);color:var(--muted);font-size:.8rem;font-weight:600;
+  padding:.4rem .85rem;border:1px solid var(--glass-line);border-radius:999px;
+  background:var(--glass);backdrop-filter:blur(10px);color:var(--muted);
+  font-size:12px;font-weight:600;letter-spacing:.2px;
 }
-.navlink:hover{color:var(--ink);border-color:var(--accent);text-decoration:none}
-.navlink.here{color:#fff;border-color:var(--accent);background:var(--panel2)}
+.navlink:hover{color:var(--ink);border-color:var(--cyan);text-decoration:none}
+.navlink.here{color:#fff;border-color:var(--cyan);background:rgba(79,224,255,.12)}
 
-h1{font-size:1.7rem;margin:.6rem 0 .2rem}
-h2{font-size:1.25rem;margin:1.6rem 0 .5rem;border-bottom:1px solid var(--line);padding-bottom:.3rem}
-h3{font-size:1.02rem;margin:1.1rem 0 .35rem;color:#cdd6ff}
-h4{font-size:.9rem;margin:.7rem 0 .3rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-.lead{color:var(--muted);max-width:70ch}
+h1{font-size:30px;letter-spacing:-.6px;margin:.4rem 0 .25rem;font-weight:800}
+h2{font-size:20px;letter-spacing:-.2px;margin:1.4rem 0 .5rem;border-bottom:1px solid var(--line);padding-bottom:.35rem}
+h3{font-size:15px;margin:.9rem 0 .35rem;color:#dfe6ff;font-weight:700}
+h4{font-size:11px;margin:.7rem 0 .3rem;color:var(--faint);text-transform:uppercase;letter-spacing:1.5px}
+.lead{color:var(--muted);max-width:74ch;font-size:13px}
 
 /* ---- badges ---- */
 .badge{display:inline-block;padding:.12rem .5rem;border-radius:999px;font-size:.72rem;
@@ -91,14 +102,19 @@ h4{font-size:.9rem;margin:.7rem 0 .3rem;color:var(--muted);text-transform:upperc
 /* ---- heat / node cards ---- */
 .grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
 .card{
-  background:linear-gradient(160deg,var(--panel),var(--panel2));
-  border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem;
+  position:relative;background:var(--glass);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--glass-line);border-radius:var(--r);padding:1rem 1.1rem;
+  box-shadow:var(--shadow);
   transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
-.card:hover{transform:translateY(-3px) scale(1.012);border-color:var(--accent);
-  box-shadow:0 10px 40px rgba(80,110,255,.18)}
-.card .title{font-size:1.05rem;font-weight:800;margin:0 0 .2rem}
-.card .sub{color:var(--muted);font-size:.82rem;margin:0 0 .5rem}
+.card::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  border-radius:var(--r) var(--r) 0 0;
+  background:linear-gradient(90deg,transparent,rgba(180,200,255,.28),transparent)}
+.card:hover{transform:translateY(-3px);border-color:var(--cyan);
+  box-shadow:0 16px 50px rgba(0,0,0,.5)}
+.card .title{font-size:15px;font-weight:800;margin:0 0 .2rem;letter-spacing:-.2px}
+.card .sub{color:var(--muted);font-size:12px;margin:0 0 .5rem}
 
 /* heat glow rings on the galaxy nodes */
 .galaxy-node{position:relative;overflow:hidden}
@@ -186,10 +202,11 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
 
 /* ---- two-pane: dominant top canvas + dynamic bottom intelligence pane ---- */
 .cosmos-vertical{display:flex;flex-direction:column;gap:1rem}
-.top-canvas{position:relative;border:1px solid #1c2350;border-radius:16px;padding:.9rem;
-  min-height:60vh;overflow:hidden}
-.intel-pane{background:linear-gradient(160deg,#0c1130,#141a3d);border:1px solid var(--line);
-  border-radius:16px;padding:1rem 1.2rem}
+.top-canvas{position:relative;border:1px solid var(--glass-line);border-radius:var(--r-lg);
+  overflow:hidden;box-shadow:var(--shadow)}
+.intel-pane{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-line);border-radius:var(--r-lg);padding:1rem 1.2rem;
+  max-height:44vh;overflow:auto;box-shadow:var(--shadow)}
 .intel-pane h3{margin-top:0}
 .intel-pane .badge{margin-bottom:.3rem}
 .heatbar{display:inline-block;width:34px;height:9px;border-radius:5px;vertical-align:middle;
@@ -220,26 +237,46 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
 /* ==================================================================== */
 /* IMMERSIVE DEEP-SPACE SCENE (top canvas). CSS-only motion; no random.  */
 /* ==================================================================== */
-.viewport{position:relative;overflow:hidden;min-height:64vh;border:0;padding:0;border-radius:14px;
+/* Intel is data-only: it lives in the hidden store + bottom pane, NEVER the canvas */
+.intel-template{display:none !important}
+.intel-store{display:none}
+.scene-caption{display:none}
+/* top canvas ~60vh dominant; background is CSS layers only (no star divs) */
+.viewport{position:relative;overflow:hidden;height:60vh;border:0;padding:0;
+  cursor:grab;touch-action:none;
   background:
-    radial-gradient(130% 100% at 50% 12%, #241155 0%, #140a3a 32%, #08061c 62%, #030210 88%, #010007 100%)}
-.starfield{position:absolute;inset:0;z-index:0;pointer-events:none}
-.star{position:absolute;border-radius:50%;background:#ffffff;
-  box-shadow:0 0 3px 1px rgba(180,205,255,.55);animation:twinkle 4.5s ease-in-out infinite}
-.star.sl0{background:#cfe0ff}
-.star.sl2{background:#fff4e0;box-shadow:0 0 5px 1px rgba(255,225,180,.6)}
-@keyframes twinkle{0%,100%{transform:scale(1)}50%{transform:scale(.45)}}
-.nebula{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:0}
-.neb-1{width:46%;height:52%;left:-8%;top:-12%;opacity:.38;
+    radial-gradient(135% 105% at 50% 8%, #1a1048 0%, #100a30 30%, #0a0820 55%, #050414 80%, #020109 100%)}
+.viewport.grabbing{cursor:grabbing}
+/* the pan/zoom transform layer -- JS applies translate()+scale() to the ACTIVE one */
+.scene-transform{position:absolute;inset:0;transform-origin:center center;
+  transition:transform .12s ease;will-change:transform}
+/* deep-space backdrop: a soft galactic glow + one tiled star texture + nebulae + vignette */
+.space-glow{position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(58% 44% at 38% 30%, rgba(130,120,255,.20), rgba(6,8,20,0) 70%),
+    radial-gradient(52% 42% at 74% 70%, rgba(70,150,220,.13), rgba(6,8,20,0) 72%)}
+.space-stars{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.55;
+  background-image:
+    radial-gradient(1px 1px at 24px 32px, rgba(255,255,255,.75), transparent),
+    radial-gradient(1px 1px at 88px 120px, rgba(200,220,255,.6), transparent),
+    radial-gradient(1.4px 1.4px at 150px 60px, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 190px 170px, rgba(220,230,255,.5), transparent),
+    radial-gradient(1px 1px at 250px 100px, rgba(255,245,225,.45), transparent);
+  background-size:280px 280px;background-repeat:repeat}
+.nebula{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+.neb-1{width:48%;height:54%;left:-10%;top:-14%;opacity:.34;
   background:radial-gradient(circle,#7b3ff2 0%,rgba(123,63,242,0) 66%)}
-.neb-2{width:54%;height:56%;right:-12%;top:14%;opacity:.30;
+.neb-2{width:56%;height:58%;right:-14%;top:16%;opacity:.24;
   background:radial-gradient(circle,#2f6bd0 0%,rgba(47,107,208,0) 66%)}
-.neb-3{width:44%;height:50%;left:26%;bottom:-16%;opacity:.28;
-  background:radial-gradient(circle,#c0397a 0%,rgba(192,57,122,0) 66%)}
 .vignette{position:absolute;inset:0;z-index:1;pointer-events:none;
-  box-shadow:inset 0 0 200px 70px rgba(0,0,0,.78)}
+  box-shadow:inset 0 0 220px 80px rgba(0,0,0,.82)}
 
-.scene-layer{position:absolute;inset:0;z-index:2}
+.scene-layer{position:absolute;inset:0;z-index:2;opacity:0;transition:opacity .32s ease}
+.scene-layer.active{opacity:1}
+/* faint SVG relationship / orbit lines connecting parent -> child bodies */
+.orbit-lines{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.orbit-lines line{stroke:rgba(150,170,255,.16);stroke-width:.14;
+  stroke-dasharray:.6 .8;stroke-linecap:round}
 .scene-caption{position:absolute;left:1rem;top:.7rem;z-index:6;max-width:64%}
 .scene-caption h2{margin:.1rem 0;font-size:1.1rem;text-shadow:0 2px 14px #000}
 .scene-caption .level-head{margin:0}
@@ -251,18 +288,26 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
 .cosmic-object:hover{z-index:9}
 .cosmic-object .body{position:relative;margin:0 auto;border-radius:50%;
   transition:box-shadow .2s ease,transform .2s ease}
-.cosmic-object:hover .body{transform:scale(1.14);
-  box-shadow:0 0 46px 14px rgba(150,185,255,.55)}
+.cosmic-object:hover .body{transform:scale(1.16)}
 .cosmic-object.ev-low{opacity:.72}.cosmic-object.ev-sparse{opacity:.5}
 .cosmic-object.dashed-outline .body{outline:2px dashed #ffbf87;outline-offset:3px}
+/* persistent SELECTED state: a cyan accent halo ring */
+.cosmic-object.selected .body{box-shadow:0 0 0 2px var(--cyan),0 0 26px 8px rgba(79,224,255,.5)}
+.cosmic-object.selected .body-label{color:#fff;border-color:var(--cyan)}
 
-.body-label{margin-top:.35rem;font-size:.72rem;font-weight:700;color:#e4ebff;
-  text-shadow:0 1px 8px #000,0 0 3px #000;position:relative;white-space:nowrap}
-.body-tip{display:none;position:absolute;left:50%;top:130%;transform:translateX(-50%);
-  background:#0b1130;border:1px solid var(--line);border-radius:8px;padding:.45rem .6rem;
-  width:230px;font-weight:600;font-size:.7rem;color:#cdd6ff;white-space:normal;
-  text-shadow:none;z-index:30}
-.body-tip .badge{margin:.1rem .15rem}
+/* name chip under the body (clean, legible) */
+.body-label{margin-top:.5rem;font-size:11px;font-weight:700;color:#e9edff;letter-spacing:.2px;
+  position:relative;white-space:nowrap;display:inline-block;
+  background:rgba(8,11,26,.72);border:1px solid var(--glass-line);border-radius:999px;
+  padding:.12rem .55rem;text-shadow:0 1px 4px #000}
+/* floating PREVIEW chip on hover (name + 2-3 stats) */
+.body-tip{display:none;position:absolute;left:50%;top:150%;transform:translateX(-50%);
+  background:rgba(10,14,32,.92);backdrop-filter:blur(10px);
+  border:1px solid var(--glass-line);border-radius:var(--r-sm);padding:.5rem .65rem;
+  width:236px;font-weight:600;font-size:11px;color:#cdd6ff;white-space:normal;
+  letter-spacing:.1px;box-shadow:var(--shadow);z-index:30}
+.body-tip b{color:#eaf6ff;font-family:var(--mono)}
+.body-tip .badge{margin:.12rem .15rem;font-size:10px}
 .cosmic-object:hover .body-tip{display:block}
 
 /* GLOW tiers (brightness = heat/status) */
@@ -318,35 +363,120 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
 
 /* MOON = tiny pale sphere */
 .body-moon .body{background:radial-gradient(circle at 36% 32%,#e8ecff,#8b93c0 60%,#41476e 100%)}
+.cosmic-object:hover .body{filter:brightness(1.18) saturate(1.05)}
+
+/* ==================================================================== */
+/* Executive chrome: canvas bar, legend, briefing cards, dashboard glass */
+/* ==================================================================== */
+.canvas-bar{position:absolute;top:0;left:0;right:0;z-index:12;display:flex;
+  align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap;
+  padding:.7rem .9rem;
+  background:linear-gradient(180deg,rgba(6,8,20,.75),rgba(6,8,20,0));
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem;
+  background:rgba(10,14,32,.6);border:1px solid var(--glass-line);border-radius:999px;
+  padding:.4rem .9rem;font-size:12px;font-weight:600;margin:0;letter-spacing:.2px}
+.breadcrumb .crumb{color:var(--cyan)}
+.breadcrumb .crumb:last-child{color:#fff}
+.crumb-sep{color:var(--faint)}
+.zoom-controls{display:flex;align-items:center;gap:.4rem;margin:0}
+.zoom-ctrl{padding:.32rem .7rem;border:1px solid var(--glass-line);border-radius:var(--r-sm);
+  background:rgba(10,14,32,.6);color:#cdd6ff;font-size:12px;font-weight:700;cursor:pointer;
+  font-family:var(--mono)}
+.zoom-ctrl:hover{border-color:var(--cyan);color:#fff;text-decoration:none}
+.hint{color:var(--faint);font-size:11px;letter-spacing:.3px}
+
+/* legend card (corner, collapsible) */
+.legend{position:absolute;right:.9rem;bottom:.9rem;z-index:12;width:210px;
+  background:var(--glass);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border:1px solid var(--glass-line);border-radius:var(--r);box-shadow:var(--shadow);
+  overflow:hidden;font-size:11px}
+.legend-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;
+  padding:.5rem .7rem;user-select:none}
+.lg-toggle{color:var(--faint)}
+.legend-body{padding:.2rem .7rem .6rem;display:grid;gap:.28rem}
+.legend-body.collapsed{display:none}
+.lg-row{display:flex;justify-content:space-between;gap:.6rem;color:var(--muted)}
+.lg-key{color:#cdd6ff;font-weight:700}
+.lg-val{color:var(--faint);text-align:right}
+
+/* executive briefing (bottom pane) */
+.brief-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;
+  flex-wrap:wrap;padding-bottom:.6rem;margin-bottom:.6rem;
+  border-bottom:1px solid var(--glass-line)}
+.brief-eyebrow{margin-bottom:.15rem}
+.brief-title{margin:0;font-size:20px;letter-spacing:-.3px;color:#fff}
+.brief-badges{display:flex;flex-wrap:wrap;gap:.2rem;align-items:flex-start;justify-content:flex-end}
+.brief-card{background:rgba(12,16,36,.5);border:1px solid var(--glass-line);
+  border-radius:var(--r);padding:.7rem .85rem;margin:.55rem 0}
+.brief-card.risk{border-color:rgba(255,77,109,.28);background:rgba(42,13,23,.35)}
+.brief-label{margin-bottom:.4rem;color:var(--faint)}
+.brief-body p{margin:.25rem 0}
+.cockpit-cta-wrap{margin:.4rem 0 .2rem}
+.cockpit-cta{display:inline-block;font-weight:800;font-size:13px;color:#04121a;
+  background:linear-gradient(180deg,#7ff0ff,#3fc6e6);border-radius:999px;
+  padding:.45rem 1rem;box-shadow:0 6px 22px rgba(79,224,255,.3)}
+.cockpit-cta:hover{text-decoration:none;filter:brightness(1.06)}
+.timeline{display:flex;flex-wrap:wrap;gap:.35rem;margin:.3rem 0}
+.tl-chip{font-size:11px;font-weight:600;color:#dfe6ff;background:rgba(79,224,255,.08);
+  border:1px solid rgba(79,224,255,.22);border-radius:999px;padding:.18rem .6rem}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+@media(max-width:640px){.cols{grid-template-columns:1fr}}
+.kv td,.chain td.num,.chain th.num,td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.chain .num{text-align:right}
+
+/* dashboard executive cards get a status accent rail */
+.bucket .card{border-left:3px solid var(--glass-line)}
+.legend-body,.brief-card,.tl-chip,.cockpit-cta{will-change:auto}
 """
 
 
 NAV_JS = """
-/* Universe UI -- navigation-ONLY behaviour. Zoom-state transitions, breadcrumb
-   push/pop, back/up, selected-object detail panel, hover/click highlight,
-   expand/collapse, hash/query deep-link focus. NO network, NO form, NO submit,
-   NO trade-execution affordance, NO scoring, NO data mutation. It only shows/hides pre-rendered
-   DOM and copies pre-rendered detail text -- it can never hide a data gap. */
+/* Universe UI -- navigation-ONLY behaviour: level zoom (show/hide), breadcrumb
+   push/pop, back/up, bottom Intelligence Pane swap (copies a pre-rendered .intel-template
+   by id into #intel-body), hash/query deep-link focus, AND continuous view zoom+pan
+   (mouse wheel / +- buttons / drag) applied as a CSS transform on the active level's
+   .scene-transform. NO network, NO form, NO submit, NO trade-execution affordance, NO
+   scoring, NO random, NO data mutation. It only toggles visibility, copies pre-rendered
+   DOM, and transforms the view -- it can never hide a data gap. */
 (function(){
   function ready(fn){
     if(document.readyState!=='loading'){fn();}
     else{document.addEventListener('DOMContentLoaded',fn);}
   }
+  function clamp(v,lo,hi){return v<lo?lo:(v>hi?hi:v);}
   ready(function(){
     /* ---- one zoomable cosmos canvas (only present on universe.html) ---- */
     var panels=document.querySelectorAll('.level-panel');
     if(panels.length){
       var breadcrumb=document.getElementById('breadcrumb');
-      var detailBody=document.getElementById('detail-body');
+      var intelBody=document.getElementById('intel-body');
       var backBtn=document.getElementById('zoom-back');
+      var viewport=document.getElementById('viewport');
       var current='universe';
+      var view={scale:1,tx:0,ty:0};
+
       function panelByPath(p){
         for(var i=0;i<panels.length;i++){
           if(panels[i].getAttribute('data-path')===p){return panels[i];}
         }
         return null;
       }
-      function setDetail(html){ if(detailBody){detailBody.innerHTML=html;} }
+      /* copy a pre-rendered intel template (by id) into the bottom pane */
+      function setIntel(id){
+        if(!id||!intelBody){return;}
+        var el=document.getElementById(id);
+        if(el){intelBody.innerHTML=el.innerHTML;}
+      }
+      function activeTransform(){
+        var a=document.querySelector('.level-panel.active .scene-transform');
+        return a;
+      }
+      function applyTransform(){
+        var el=activeTransform();
+        if(el){el.style.transform='translate('+view.tx+'px,'+view.ty+'px) scale('+view.scale+')';}
+      }
+      function resetView(){view.scale=1;view.tx=0;view.ty=0;applyTransform();}
       function buildCrumb(path){
         if(!breadcrumb){return;}
         var chain=[]; var node=panelByPath(path);
@@ -365,14 +495,16 @@ NAV_JS = """
         for(var i=0;i<panels.length;i++){panels[i].classList.remove('active');}
         target.classList.add('active');
         current=path; buildCrumb(path);
-        var det=target.querySelector('.level-detail'); if(det){setDetail(det.innerHTML);}
+        setIntel(target.getAttribute('data-intel'));  /* level's own intel -> bottom pane */
         if(backBtn){backBtn.style.display=target.getAttribute('data-parent')?'inline-block':'none';}
-        if(window.scrollTo){window.scrollTo(0,0);}
+        resetView();  /* reset zoom/pan when the level changes */
       }
       var objs=document.querySelectorAll('.cosmic-object');
       for(var i=0;i<objs.length;i++){
         objs[i].addEventListener('click',function(){
-          var det=this.querySelector('.object-detail'); if(det){setDetail(det.innerHTML);}
+          for(var s=0;s<objs.length;s++){objs[s].classList.remove('selected');}
+          this.classList.add('selected');       /* persistent SELECTED state */
+          setIntel(this.getAttribute('data-intel'));  /* this object's intel -> bottom pane */
           var tp=this.getAttribute('data-target-path');
           if(tp && panelByPath(tp)){showLevel(tp);}
         });
@@ -389,6 +521,50 @@ NAV_JS = """
           if(par){showLevel(par);}
         });
       }
+
+      /* ---- continuous view ZOOM + PAN (Google-Earth feel), all CSS transforms ---- */
+      var zin=document.getElementById('zoom-in');
+      var zout=document.getElementById('zoom-out');
+      var zreset=document.getElementById('zoom-reset');
+      if(zin){zin.addEventListener('click',function(e){e.preventDefault();
+        view.scale=clamp(view.scale*1.2,0.6,6);applyTransform();});}
+      if(zout){zout.addEventListener('click',function(e){e.preventDefault();
+        view.scale=clamp(view.scale/1.2,0.6,6);applyTransform();});}
+      if(zreset){zreset.addEventListener('click',function(e){e.preventDefault();resetView();});}
+      if(viewport){
+        viewport.addEventListener('wheel',function(e){
+          e.preventDefault();
+          var rect=viewport.getBoundingClientRect();
+          var cx=e.clientX-rect.left-rect.width/2;
+          var cy=e.clientY-rect.top-rect.height/2;
+          var factor=(e.deltaY<0)?1.12:(1/1.12);
+          var ns=clamp(view.scale*factor,0.6,6);
+          var k=ns/view.scale;
+          view.tx=cx-k*(cx-view.tx);   /* zoom toward the cursor */
+          view.ty=cy-k*(cy-view.ty);
+          view.scale=ns; applyTransform();
+        },{passive:false});
+        var dragging=false,sx=0,sy=0,moved=false;
+        viewport.addEventListener('pointerdown',function(e){
+          dragging=true;moved=false;sx=e.clientX;sy=e.clientY;
+          viewport.classList.add('grabbing');
+          if(viewport.setPointerCapture){try{viewport.setPointerCapture(e.pointerId);}catch(_e){}}
+        });
+        viewport.addEventListener('pointermove',function(e){
+          if(!dragging){return;}
+          var dx=e.clientX-sx,dy=e.clientY-sy; sx=e.clientX; sy=e.clientY;
+          if(Math.abs(dx)+Math.abs(dy)>2){moved=true;}
+          view.tx+=dx; view.ty+=dy; applyTransform();
+        });
+        function endDrag(){if(dragging){dragging=false;viewport.classList.remove('grabbing');}}
+        viewport.addEventListener('pointerup',endDrag);
+        viewport.addEventListener('pointerleave',endDrag);
+        /* a pan drag must not also trigger click-to-descend */
+        viewport.addEventListener('click',function(e){
+          if(moved){e.stopPropagation();e.preventDefault();moved=false;}
+        },true);
+      }
+
       function focusFromLocation(){
         var h=window.location.hash||''; var q=window.location.search||''; var path=null;
         var m=h.match(/(?:focus|path)=([^&]+)/); if(m){path=decodeURIComponent(m[1]);}
@@ -401,8 +577,8 @@ NAV_JS = """
 
     /* ---- expand / collapse -- visibility only; data gaps live outside these ---- */
     var heads=document.querySelectorAll('[data-collapse-target]');
-    for(var m=0;m<heads.length;m++){
-      heads[m].addEventListener('click',function(){
+    for(var mm=0;mm<heads.length;mm++){
+      heads[mm].addEventListener('click',function(){
         var el=document.getElementById(this.getAttribute('data-collapse-target'));
         if(el){el.classList.toggle('collapsed');}
       });

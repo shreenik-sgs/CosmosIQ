@@ -286,6 +286,72 @@ class ZoomableUniverseTests(unittest.TestCase):
             self.assertIn(marker, self.u, "missing intel template: {0}".format(marker))
         self.assertIn('class="intel-template"', self.u)
 
+    def _top_canvas(self):
+        """The top-canvas region only (excludes the bottom intelligence pane)."""
+        return self.u.split('id="top-canvas"')[1].split('id="intel-pane"')[0]
+
+    # --- the TOP CANVAS shows ONLY luminous bodies (no tables/captions/intel) --
+    def test_top_canvas_shows_only_bodies_no_text_blocks(self):
+        with open(self.paths["assets/universe.css"], encoding="utf-8") as fh:
+            css = fh.read()
+        # intel templates are hidden data carriers, never shown
+        self.assertIn(".intel-template{display:none !important}", css)
+        # no visible captions / tables / headings / diagrams inside the canvas
+        top = self._top_canvas()
+        self.assertNotIn('class="scene-caption"', self.u)
+        self.assertNotIn("<table", top)
+        self.assertNotIn("<h2", top)
+        self.assertNotIn("<h3", top)
+        self.assertNotIn("<h4", top)
+        self.assertNotIn("flow-diagram", top)
+        self.assertNotIn("gap-box", top)
+        self.assertNotIn("intel-template", top)   # intel lives in the hidden store
+        # scene-bodies carry no tables either
+        for block in re.findall(r'<div class="scene-bodies">.*?</section>', top, re.DOTALL):
+            self.assertNotIn("<table", block)
+        # but bodies + their name labels ARE present
+        self.assertIn('class="cosmic-object', top)
+        self.assertIn('class="body-label"', top)
+
+    # --- bottom-pane wiring: object/level -> #intel-body via data-intel + store -
+    def test_bottom_pane_wiring_is_correct(self):
+        with open(self.paths["assets/universe.js"], encoding="utf-8") as fh:
+            js = fh.read()
+        self.assertIn("getElementById('intel-body')", js)
+        self.assertIn("getAttribute('data-intel')", js)
+        # the buggy stale ids must be gone
+        for stale in ("detail-body", "level-detail", "object-detail"):
+            self.assertNotIn(stale, js)
+        # a hidden intel store exists; the IREN planet body points at its blob, and
+        # that blob holds IREN's company table -> clicking fills the bottom pane.
+        self.assertIn('class="intel-store"', self.u)
+        m = re.search(r'data-kind="planet"[^>]*data-path="[^"]*pl:iren"[^>]*'
+                      r'data-intel="([^"]+)"', self.u)
+        self.assertIsNotNone(m, "IREN planet body has no data-intel hook")
+        blob_id = m.group(1)
+        blob = re.search(
+            r'<div class="intel-template" id="{0}">(.*?)</div>\s*'
+            r'(?:<div class="intel-template"|</div>\s*</div>\s*</body)'.format(re.escape(blob_id)),
+            self.u, re.DOTALL)
+        self.assertIsNotNone(blob, "no intel blob for IREN")
+        self.assertIn("IREN", blob.group(1))
+        self.assertIn("<table", blob.group(1))    # the company detail table
+
+    # --- continuous ZOOM + PAN on the canvas (Google-Earth feel) ----------
+    def test_zoom_and_pan_controls_present(self):
+        # a transform layer wraps the bodies at every level
+        self.assertIn('<div class="scene-bodies"><div class="scene-transform">', self.u)
+        # +/- and reset controls (anchors, never <button>)
+        for cid in ("zoom-in", "zoom-out", "zoom-reset", "zoom-back"):
+            self.assertIn('id="{0}"'.format(cid), self.u)
+        with open(self.paths["assets/universe.js"], encoding="utf-8") as fh:
+            js = fh.read()
+        self.assertIn("'wheel'", js)          # wheel zoom
+        self.assertIn("scale", js)            # scale transform
+        self.assertIn("'pointermove'", js)    # drag to pan
+        self.assertIn("view.tx", js)          # translate/pan state
+        self.assertIn("scene-transform", js)  # applied to the active level
+
     # --- bottom pane has diagram/table sections for value-chain + star ----
     def test_bottom_pane_has_diagrams(self):
         self.assertIn("flow-diagram", self.u)          # value-chain flow diagram
@@ -311,16 +377,64 @@ class ZoomableUniverseTests(unittest.TestCase):
         self.assertIn("Open Cockpit", self.d)
         self.assertIn('href="cockpit.html"', self.u)   # from the IREN planet template
 
-    # --- the top canvas is an immersive deep-space SCENE, not a card grid -
-    def test_top_canvas_is_a_starfield_scene(self):
-        self.assertIn('class="starfield"', self.u)
-        # a dense starfield (many deterministic star elements)
-        self.assertGreaterEqual(self.u.count('class="star '), 150)
-        self.assertIn('class="nebula', self.u)      # nebula wash
-        self.assertIn('class="vignette"', self.u)   # vignette
-        # the old card-grid layout must be gone from the top canvas
-        self.assertNotIn("object-grid", self.u)
+    # --- the top canvas is an immersive CSS deep-space scene (no star-div flood) -
+    def test_top_canvas_is_a_css_space_scene(self):
+        # the hundreds of star divs are GONE; the backdrop is CSS layers
+        self.assertLess(self.u.count('class="star '), 10)
+        self.assertIn('class="space-glow"', self.u)   # galactic glow (CSS)
+        self.assertIn('class="space-stars"', self.u)  # single tiled star texture (CSS)
+        self.assertIn('class="nebula', self.u)        # nebula wash
+        self.assertIn('class="vignette"', self.u)     # vignette
+        self.assertNotIn("object-grid", self.u)       # not a card grid
         self.assertIn('class="scene-bodies"', self.u)
+
+    # --- faint SVG relationship / orbit lines connect parent -> children ---
+    def test_orbit_relationship_lines_present(self):
+        self.assertIn('class="orbit-lines"', self.u)
+        self.assertIn("<line ", self.u)               # actual connecting segments
+        # orbit lines are inside the pan/zoom transform layer (move with bodies)
+        self.assertIsNotNone(
+            re.search(r'<div class="scene-transform">\s*<svg class="orbit-lines"', self.u))
+
+    # --- a compact collapsible LEGEND card exists -------------------------
+    def test_legend_card_present(self):
+        self.assertIn('class="legend"', self.u)
+        self.assertIn('data-collapse-target="legend-body"', self.u)
+        low = self.u.lower()
+        for key in ("magnitude", "heat", "exposure", "catalyst", "evidence"):
+            self.assertIn(key, low, "legend missing mapping term {0}".format(key))
+
+    # --- polished states: hover preview chip + persistent selected state ---
+    def test_object_states_present(self):
+        with open(self.paths["assets/universe.css"], encoding="utf-8") as fh:
+            css = fh.read()
+        self.assertIn('class="body-tip"', self.u)          # hover preview chip
+        self.assertIn(".cosmic-object:hover .body-tip", css)
+        self.assertIn(".cosmic-object.selected", css)      # persistent selected ring
+        with open(self.paths["assets/universe.js"], encoding="utf-8") as fh:
+            js = fh.read()
+        self.assertIn("classList.add('selected')", js)     # JS applies selection
+
+    # --- bottom pane is an executive BRIEFING (sectioned cards) -----------
+    def test_bottom_pane_is_executive_briefing(self):
+        self.assertIn('class="brief-header"', self.u)
+        self.assertIn('class="brief-card', self.u)
+        self.assertIn("Executive summary", self.u)
+        self.assertIn("Why now", self.u)
+        self.assertIn("Provenance", self.u)                # planet briefing provenance
+        self.assertIn("cockpit-cta", self.u)               # prominent Open Cockpit CTA
+        self.assertIn('class="timeline"', self.u)          # catalyst timeline chips
+
+    # --- design system + layout dominance ---------------------------------
+    def test_design_system_and_layout(self):
+        with open(self.paths["assets/universe.css"], encoding="utf-8") as fh:
+            css = fh.read()
+        self.assertIn("backdrop-filter:blur", css)         # glassmorphism
+        self.assertIn("--mono:", css)                      # monospace stack for numbers
+        self.assertIn(".micro{", css)                      # uppercase micro-labels
+        # top canvas dominant (~60vh), bottom pane independently scrollable
+        self.assertIn("height:60vh", css)
+        self.assertIn("overflow:auto", css)
 
     def test_objects_are_positioned_luminous_bodies(self):
         for cls in ("body-galaxy", "body-planet", "body-star", "body-nebula", "body-moon"):
