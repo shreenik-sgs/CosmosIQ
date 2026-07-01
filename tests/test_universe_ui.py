@@ -425,6 +425,78 @@ class ZoomableUniverseTests(unittest.TestCase):
         self.assertIn("cockpit-cta", self.u)               # prominent Open Cockpit CTA
         self.assertIn('class="timeline"', self.u)          # catalyst timeline chips
 
+    # === 010A-S2: seven UX cleanups ======================================
+
+    # 1. each zoom level is visually differentiated by a level class
+    def test_levels_visually_differentiated(self):
+        for cls in ("level-universe", "level-galaxy", "level-theme",
+                    "level-valuechain", "level-star", "level-planet"):
+            self.assertIn(cls, self.u, "missing level class {0}".format(cls))
+        with open(self.paths["assets/universe.css"], encoding="utf-8") as fh:
+            css = fh.read()
+        self.assertIn(".scene-layer::before", css)         # per-level accent rail
+
+    # 2. theme / Milky-Way is its own body kind, distinct from galaxy
+    def test_theme_is_milkyway_body(self):
+        self.assertIn("body-milkyway", self.u)
+        self.assertIn('data-kind="theme"', self.u)
+        with open(self.paths["assets/universe.css"], encoding="utf-8") as fh:
+            css = fh.read()
+        self.assertIn(".body-milkyway .body", css)
+        self.assertIn(".body-galaxy .body", css)           # still distinct from galaxy
+
+    # 3. value-chain level = a legible directional economic flow
+    def test_value_chain_directional_flow(self):
+        self.assertIn("flow-lines", self.u)                # directional connectors
+        self.assertIn("<polygon", self.u)                  # flow arrowheads
+        # flow bodies laid left->right (multiple distinct left% positions in a band)
+        lefts = re.findall(r'style="left:([0-9.]+)%;top:66\.\d+%"', self.u) \
+            + re.findall(r'style="left:([0-9.]+)%;top:69\.\d+%"', self.u) \
+            + re.findall(r'style="left:([0-9.]+)%;top:62\.\d+%"', self.u)
+        self.assertGreaterEqual(len(set(lefts)), 3, "value-chain not laid out as a flow")
+
+    # 4. bottleneck star is central + dominant, losers separated
+    def test_bottleneck_central_and_dominant(self):
+        self.assertIn("bottleneck-central", self.u)
+        self.assertIn("scarce node", self.u)               # dominance marker label
+        with open(self.paths["assets/universe.css"], encoding="utf-8") as fh:
+            css = fh.read()
+        self.assertIn(".bottleneck-central .body", css)    # stronger glow/rays
+        # a red-shadowed (loser) planet is pushed to the separated right edge (85%)
+        self.assertIn('redshadow', self.u)
+        self.assertIn('style="left:85.00%', self.u)
+
+    # 5. candidate planet hover summary carries the required existing fields
+    def test_planet_hover_summary_fields(self):
+        i = self.u.find("<b>(IREN)</b>")
+        self.assertGreater(i, 0, "IREN preview chip not found")
+        seg = self.u[i:i + 800]
+        for field in ("theme/galaxy", "value-chain role", "candidate bucket",
+                      "top reason", "top risk", "market cap"):
+            self.assertIn(field, seg, "planet hover missing {0}".format(field))
+        self.assertIn("Timing-Confirmed", seg)             # its EXISTING status bucket
+        self.assertIn("AI Infrastructure", seg)
+
+    # 6. every briefing OPENS with the five-line executive header
+    def test_exec_header_five_frames(self):
+        self.assertIn('class="exec-header"', self.u)
+        for frame in ("What this is", "Why it matters", "Where the alpha could be",
+                      "What could go wrong", "What to inspect next"):
+            self.assertIn(frame, self.u, "missing exec frame {0}".format(frame))
+        # the exec header precedes the diagrams/tables in a briefing blob
+        blob = self.u.split('id="intel-universe">')[1].split("</div>")[0] \
+            if 'id="intel-universe">' in self.u else self.u
+        self.assertIn("exec-header", self.u.split('id="intel-universe">')[1][:400])
+
+    # 7. legend explains all EIGHT visual channels
+    def test_legend_lists_eight_channels(self):
+        low = self.u.lower()
+        for term in ("economic magnitude", "signal convergence", "status / risk",
+                     "directness of exposure", "catalyst / crowding",
+                     "red-team / dilution / insolvency", "evidence quality",
+                     "missing data"):
+            self.assertIn(term, low, "legend missing channel: {0}".format(term))
+
     # --- design system + layout dominance ---------------------------------
     def test_design_system_and_layout(self):
         with open(self.paths["assets/universe.css"], encoding="utf-8") as fh:

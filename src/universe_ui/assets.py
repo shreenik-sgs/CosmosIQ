@@ -428,6 +428,71 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
 /* dashboard executive cards get a status accent rail */
 .bucket .card{border-left:3px solid var(--glass-line)}
 .legend-body,.brief-card,.tl-chip,.cockpit-cta{will-change:auto}
+
+/* ==================================================================== */
+/* 010A-S2: distinct levels, milky-way body, flow, bottleneck, previews  */
+/* ==================================================================== */
+/* each zoom level reads distinctly at a glance (left accent rail + hue tint) */
+.level-universe{--lvl:#8b7bff}
+.level-galaxy{--lvl:#b07bff}
+.level-theme{--lvl:#7b9cff}
+.level-valuechain{--lvl:#4fe0ff}
+.level-star{--lvl:#ffb03a}
+.level-planet{--lvl:#39e0a0}
+.scene-layer::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--lvl);opacity:.7;z-index:6;pointer-events:none}
+.scene-layer::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background:radial-gradient(70% 55% at 50% 42%,color-mix(in srgb,var(--lvl) 12%,transparent),transparent 72%)}
+.level-valuechain .scene-transform{--flowhint:1}
+
+/* MILKY WAY (theme) = concentrated thematic cloud w/ a visible center + band --
+   clearly different from the galaxy disc */
+.body-milkyway .body{
+  background:radial-gradient(circle at 50% 50%,#ffffff 0%,#bcdcff 15%,
+    rgba(120,140,255,.42) 42%,rgba(60,50,160,.14) 70%,rgba(20,16,60,0) 100%);
+  filter:drop-shadow(0 0 14px rgba(140,160,255,.45))}
+.body-milkyway .body::before{content:"";position:absolute;inset:-8% -32%;border-radius:50%;
+  border:1px solid rgba(150,180,255,.4);transform:rotate(-18deg)}
+.body-milkyway .body::after{content:"";position:absolute;inset:34%;border-radius:50%;
+  background:#fff;box-shadow:0 0 10px 3px rgba(200,220,255,.7)}
+
+/* small orbiting evidence/catalyst/risk markers around the milky-way center */
+.body-milkyway.halo .body{box-shadow:0 0 0 1px rgba(181,101,29,.5),0 0 22px rgba(181,101,29,.3)}
+
+/* directional FLOW connectors (value-chain level) */
+.flow-lines line{stroke:rgba(79,224,255,.4);stroke-width:.22;stroke-dasharray:none}
+.flow-lines polygon{fill:rgba(79,224,255,.7)}
+
+/* small node marker label above a flow node */
+.body-marker{position:absolute;left:50%;top:-1.35rem;transform:translateX(-50%);
+  white-space:nowrap;color:#ffd79a;font-size:10px;text-shadow:0 1px 4px #000;z-index:5}
+
+/* BOTTLENECK STAR central + DOMINANT (glow/rays, not by faking magnitude size) */
+.bottleneck-central{z-index:8}
+.bottleneck-central .body{
+  box-shadow:0 0 64px 22px rgba(255,180,90,.55),0 0 0 2px rgba(255,210,140,.55)}
+.bottleneck-central .body::after{content:"";position:absolute;inset:-70%;border-radius:50%;
+  border:1px dashed rgba(255,200,120,.42);animation:scarce 16s linear infinite}
+.bottleneck-central .body-marker{color:#ffcf8a;font-weight:800}
+@keyframes scarce{to{transform:rotate(360deg)}}
+
+/* candidate planet HOVER SUMMARY (compact) */
+.pv-name{font-size:12px;color:#fff;margin-bottom:.28rem}
+.pv-name b{font-family:var(--mono)}
+.pv-row{display:flex;justify-content:space-between;gap:.7rem;color:var(--muted);
+  font-size:11px;padding:.05rem 0}
+.pv-row span{color:var(--faint)}
+.pv-row b{color:#eaf0ff;text-align:right;font-family:var(--mono);font-weight:600}
+.pv-foot{margin-top:.32rem;color:var(--faint);font-size:10px}
+
+/* five-line EXECUTIVE HEADER (bottom pane opens with this) */
+.exec-header{display:grid;gap:.3rem;margin:0 0 .75rem;padding:.75rem .85rem;
+  background:linear-gradient(160deg,rgba(79,224,255,.06),rgba(139,123,255,.07));
+  border:1px solid var(--glass-line);border-radius:var(--r)}
+.exec-line{display:grid;grid-template-columns:158px 1fr;gap:.7rem;align-items:baseline}
+@media(max-width:640px){.exec-line{grid-template-columns:1fr}}
+.exec-frame{color:var(--cyan)}
+.exec-text{color:#e2e9ff;font-size:12.5px;line-height:1.4}
 """
 
 
