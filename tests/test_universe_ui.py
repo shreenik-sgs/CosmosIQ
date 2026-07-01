@@ -876,3 +876,70 @@ class TelescopeSkyTests(unittest.TestCase):
         # the deep-field background parallaxes a fraction of the pan/zoom (depth)
         self.assertIn(".sky-bg", self.css)
         self.assertIn("skybg.style.transform", self.js)
+
+
+class TelescopeVisualAssetTests(unittest.TestCase):
+    """010A-SKY-VISUAL: a LOCAL, deterministic deep-space asset upgrades the sky;
+    the accepted SKY layout + semantic lines + no-centre are all preserved."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._tmp = tempfile.mkdtemp(prefix="universe_visual_")
+        cls.paths = _build(cls._tmp)
+        with open(cls.paths["universe.html"], encoding="utf-8") as fh:
+            cls.u = fh.read()
+        cls.svg_path = os.path.join(cls._tmp, "assets", "deep_space_background.svg")
+        with open(cls.svg_path, encoding="utf-8") as fh:
+            cls.svg = fh.read()
+        with open(os.path.join(cls._tmp, "assets", "universe.css"), encoding="utf-8") as fh:
+            cls.css = fh.read()
+
+    def test_local_deep_space_asset_written_and_referenced(self):
+        self.assertIn("assets/deep_space_background.svg", self.paths)
+        self.assertTrue(os.path.isfile(self.svg_path))
+        self.assertIn("deep_space_background.svg", self.css)   # referenced as a bg image
+        self.assertIn('class="deep-space-bg"', self.u)         # base layer in the hero
+
+    def test_asset_is_a_rich_deterministic_svg(self):
+        import xml.dom.minidom as minidom
+        minidom.parseString(self.svg)                          # valid XML
+        self.assertGreater(self.svg.count("<circle"), 300)     # dense star field
+        self.assertIn("<ellipse", self.svg)                    # nebula clouds / galaxy
+        self.assertIn("url(#nVio)", self.svg)                  # nebula gradient fills
+        self.assertIn('filter id="soft"', self.svg)            # blur/bloom
+        # deterministic across builds
+        other = tempfile.mkdtemp(prefix="universe_visual2_")
+        p2 = _build(other)
+        with open(p2["assets/deep_space_background.svg"], encoding="utf-8") as fh:
+            self.assertEqual(self.svg, fh.read())
+
+    def test_asset_is_local_only_no_network_no_runtime_gen(self):
+        # no remote image / href / fetchable url (the w3 SVG namespace is not a fetch)
+        remote = re.findall(r'(?:href|xlink:href|src)="https?://[^"]+"', self.svg)
+        self.assertEqual(remote, [], "asset must not reference a remote resource")
+        self.assertNotIn("<image", self.svg)                   # no embedded raster/remote image
+        self.assertNotIn("<script", self.svg)                  # no runtime generation in the asset
+        # the app pages introduce no fetchable http(s) resource either
+        page_remote = re.findall(r'(?:href|src)="https?://[^"]+"', self.u)
+        self.assertEqual(page_remote, [])
+
+    def test_sky_layout_and_semantics_unchanged(self):
+        # SKY layout preserved (no split-pane regression)
+        self.assertIn('<body class="sky">', self.u)
+        self.assertIn('class="universe-hero"', self.u)
+        self.assertIn('class="intel-pane intel-section"', self.u)
+        self.assertLess(self.u.index('class="universe-hero"'), self.u.index('id="intel-pane"'))
+        self.assertIn('id="floating-preview"', self.u)
+        # semantic relationship lines remain; NO centre hub restored
+        l0 = re.search(r'data-level="0"[^>]*>(.*?)</section>', self.u, re.S).group(1)
+        self.assertIn('class="rel-lines"', l0)
+        self.assertNotIn('class="orbit-lines"', l0)
+        # object visual encoding still exists
+        for cls in ("body-galaxy", "body-milkyway", "body-star", "body-planet"):
+            self.assertIn(cls, self.u)
+
+    def test_no_affordance_or_scoring_regression(self):
+        low = self.u.lower()
+        for bad in ("<button", "<form", "onclick", "type=\"submit\"", "place order",
+                    " buy ", " sell ", "fetch(", "master score"):
+            self.assertNotIn(bad, low)

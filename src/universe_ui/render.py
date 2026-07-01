@@ -261,6 +261,8 @@ def _space_background() -> str:
     Byte-stable; the background recedes so the economic objects lead."""
     return (
         '<div class="sky-bg" aria-hidden="true">'
+        # the LOCAL telescope deep-field asset (dense stars / nebulae / dust / glow)
+        '<div class="deep-space-bg"></div>'
         '<div class="space-glow"></div>'
         '<div class="star-far"></div>'
         '<div class="star-mid"></div>'

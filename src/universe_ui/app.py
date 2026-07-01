@@ -16,6 +16,7 @@ from typing import Dict, Optional
 from .assets import COSMIC_CSS, NAV_JS
 from .iren_slice import load_iren_slice
 from .render import render_all_pages
+from .sky_asset import deep_space_background_svg
 from .view_models import build_economic_universe_view
 
 # Three top-level sections + the cockpit (opened FROM a planet). Galaxy / value-chain
@@ -53,8 +54,11 @@ def build_universe_app(output_dir: str, iren_slice: Optional[object] = None,
     # Local assets (also inlined in every page -- these are the standalone copies).
     css_path = os.path.join(assets_dir, "universe.css")
     js_path = os.path.join(assets_dir, "universe.js")
+    svg_path = os.path.join(assets_dir, "deep_space_background.svg")
     _write(css_path, COSMIC_CSS)
     _write(js_path, NAV_JS)
+    _write(svg_path, deep_space_background_svg())  # local deep-space asset (no network)
     paths["assets/universe.css"] = css_path
     paths["assets/universe.js"] = js_path
+    paths["assets/deep_space_background.svg"] = svg_path
     return paths

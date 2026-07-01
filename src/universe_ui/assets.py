@@ -585,6 +585,34 @@ body.sky .command-bar{max-width:none;width:100%;padding:.4rem 1rem .3rem}
 .rel-lines line.rel-strong{stroke:rgba(120,210,255,.42);stroke-width:.34}
 .rel-lines line.rel-medium{stroke:rgba(130,150,255,.30);stroke-width:.24}
 .rel-lines line.rel-weak{stroke:rgba(150,160,220,.18);stroke-width:.16;stroke-dasharray:.7 .9}
+
+/* ==================================================================== */
+/* 010A-SKY-VISUAL: telescope deep-field LOCAL asset + richer bodies      */
+/* ==================================================================== */
+/* the LOCAL, deterministic deep-space SVG leads the backdrop; the CSS star
+   layers below become a subtle parallax shimmer on top of it. */
+.deep-space-bg{position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:#02010a url("assets/deep_space_background.svg") center center / cover no-repeat}
+.star-far{opacity:.32}.star-mid{opacity:.4}.star-near{opacity:.55}
+.sky-bg .nebula{opacity:.2}.sky-bg .neb-2{opacity:.16}.sky-bg .neb-3{opacity:.12}
+
+/* GALAXY: brighter luminous core + deeper bloom */
+.body-galaxy .body{filter:drop-shadow(0 0 26px rgba(210,160,255,.6))}
+/* PLANET: a polished sphere -- specular highlight, terminator, thin atmosphere rim */
+.body-planet .body{
+  background:
+    radial-gradient(circle at 30% 26%, rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 18%),
+    radial-gradient(circle at 36% 32%, #cfe0ff 0%, #7d90d8 34%, #38468e 64%, #141a44 100%)}
+.body-planet .body::before{content:"";position:absolute;inset:-6%;border-radius:50%;
+  box-shadow:inset 0 0 12px 2px rgba(120,150,255,.45),0 0 10px rgba(120,150,255,.25);
+  pointer-events:none}
+/* BOTTLENECK STAR: powerful, scarce -- tighter white-hot core + wide corona */
+.body-star .body{box-shadow:0 0 52px 16px rgba(255,180,90,.6),0 0 16px 4px rgba(255,240,200,.8)}
+/* BLACK HOLE: dangerous but not cartoonish -- desaturated void + thin red accretion */
+.variant-blackhole .body{
+  background:radial-gradient(circle,#000 0%,#050308 44%,#25060f 58%,rgba(37,6,15,0) 100%);
+  box-shadow:0 0 26px 5px rgba(230,60,90,.5),inset 0 0 14px 3px #000}
+.variant-blackhole .body::before{border-color:rgba(220,70,95,.5)}
 """
 
 
