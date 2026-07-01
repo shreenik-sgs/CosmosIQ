@@ -1,0 +1,802 @@
+"""Demo terrain for the Economic Universe UI (IMPLEMENTATION-010A).
+
+A FROZEN, hand-authored knowledge module describing several galaxies (investment
+themes / capital cycles), each with solar systems (value chains), bottleneck stars
+(the 10x discovery layer), and company planets. It is **semi-static terrain**: the
+kind of slow-moving map an analyst curates, distinct from the fast dynamic
+evidence that a live pipeline would attach.
+
+Discipline:
+
+* **Everything here is DEMO.** Every record carries ``data_origin="DEMO"``. None of
+  it is live, none of it is a recommendation, and no field here is computed by any
+  reasoning layer. The status labels on demo planets are HAND-AUTHORED strings that
+  imitate the pipeline's own status vocabulary -- they are illustrative only.
+* **IREN is the one real anchor.** Exactly one planet -- ``IREN`` in the AI
+  Infrastructure galaxy -- is marked ``is_real=True``. Its cockpit and its dashboard
+  statuses are filled at view-model build time from the REAL evidence-alpha slice
+  (``run_evidence_alpha_slice``); the placeholder status fields on its demo record
+  are ignored in favour of the live-fixture output.
+* **Static terrain vs dynamic delta is explicit in the shape.** Every node carries a
+  ``dynamic_evidence`` slot -- EMPTY in this demo -- so a future live delta can attach
+  to the static map without either being confused for the other. This module builds
+  NO live refresh; the slot is a documented seam, nothing more.
+* **Economic-magnitude fields are PURELY VISUAL sizing inputs.** ``market_cap`` /
+  ``theme_tam`` / ``value_chain_revenue_pool`` / ``bottleneck_economic_importance``
+  drive a bounded visual SIZE only (see :func:`universe_ui.view_models.visual_size`).
+  They feed NO ranking, NO score, NO CIO bucket and NO ordering -- a trillion-dollar
+  planet is drawn larger but is not any more of a candidate for it. A missing
+  magnitude is a data gap, never a fabricated size.
+* **Not IREN-first.** The galaxy ordering deliberately leads with power / energy /
+  data-center terrain; AI Infrastructure (which contains IREN) is one galaxy among
+  many, and IREN is one planet within it.
+* Deterministic and stdlib-only: plain frozen dataclasses, Python 3.9. No clock, no
+  randomness, no I/O.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Optional, Tuple
+
+DATA_ORIGIN = "DEMO"
+
+
+def slugify(text: str) -> str:
+    """Deterministic kebab-case slug for anchors/ids (pure, stdlib-only)."""
+    out = []
+    prev_dash = False
+    for ch in str(text).lower():
+        if ch.isalnum():
+            out.append(ch)
+            prev_dash = False
+        else:
+            if not prev_dash:
+                out.append("-")
+                prev_dash = True
+    return "".join(out).strip("-")
+
+
+# --------------------------------------------------------------------------- #
+# Frozen record types                                                         #
+# --------------------------------------------------------------------------- #
+@dataclass(frozen=True)
+class DemoNode:
+    """One node (layer) in a value chain (solar system).
+
+    ``dynamic_evidence`` is the static-terrain / dynamic-delta seam: it stays EMPTY
+    in the demo. ``dependency_exposure`` is a purely-visual magnitude (a 'moon').
+    """
+    node_id: str
+    tier: str                       # upstream / infrastructure / enabling-tech / ...
+    role: str
+    economics_capture: str
+    bottleneck_exposure: str
+    evidence_quality: str
+    missing_data: Tuple[str, ...] = ()
+    candidate_companies: Tuple[str, ...] = ()
+    dependency_exposure: Optional[float] = None   # visual magnitude only (moon)
+    dynamic_evidence: Tuple[object, ...] = ()     # EMPTY in demo -- future live delta seam
+    data_origin: str = DATA_ORIGIN
+
+
+@dataclass(frozen=True)
+class DemoSolarSystem:
+    """A value chain: an ordered set of layered nodes upstream -> downstream."""
+    name: str
+    description: str
+    nodes: Tuple[DemoNode, ...] = ()
+    value_chain_revenue_pool: Optional[float] = None   # visual magnitude only
+    data_origin: str = DATA_ORIGIN
+
+
+@dataclass(frozen=True)
+class DemoStar:
+    """A bottleneck star -- the constrained node that concentrates economics (10x)."""
+    star_type: str
+    constrained_node: str
+    severity: str
+    duration: str
+    beneficiaries: Tuple[str, ...] = ()
+    losers: Tuple[str, ...] = ()
+    resolution_risk: str = ""
+    evidence: Tuple[str, ...] = ()
+    data_gaps: Tuple[str, ...] = ()
+    bottleneck_economic_importance: Optional[float] = None  # visual magnitude only
+    data_origin: str = DATA_ORIGIN
+
+
+@dataclass(frozen=True)
+class DemoPlanet:
+    """A company planet placed by value-chain role and proximity to a bottleneck.
+
+    The status fields are HAND-AUTHORED demo labels imitating the pipeline vocabulary
+    (investability_assessment / timing_confirmation / red-team verdict /
+    recommendation_status). For ``is_real=True`` planets they are overridden at
+    view-model build time by the real evidence-alpha slice output.
+
+    ``market_cap`` (and the optional ``catalyst_impact`` comet / ``risk_severity``
+    black-hole magnitudes) drive a bounded visual SIZE only -- never ranking/bucketing.
+    ``market_cap=None`` means a data gap: render a neutral size + a gap marker, never a
+    fabricated size.
+    """
+    ticker: str
+    company: str
+    value_chain_role: str
+    proximity_to_bottleneck: str
+    investability_label: str = "watch"          # imitates investability_assessment
+    timing_label: str = "timing not confirmed"  # imitates timing_confirmation
+    red_team_label: str = "pass"                # imitates red_team verdict
+    recommendation_label: str = "monitor_only"  # imitates recommendation_status
+    catalyst_label: str = ""
+    capital_structure_risk: bool = False
+    evidence_count: int = 0
+    data_quality: str = "medium"
+    market_cap: Optional[float] = None          # visual magnitude only (USD, DEMO)
+    catalyst_impact: Optional[float] = None      # visual magnitude only (comet)
+    risk_severity: Optional[float] = None        # visual magnitude only (black-hole)
+    is_real: bool = False
+    data_origin: str = DATA_ORIGIN
+
+
+@dataclass(frozen=True)
+class DemoGalaxy:
+    """A galaxy: an investment theme / megatrend with its own capital cycle."""
+    theme_name: str
+    megatrend: str
+    capital_cycle: str
+    heat_label: str                 # hot / warm / cool / dim
+    priority_label: str
+    signal_convergence: str
+    why_now: str
+    why_before_obvious: str
+    evidence_count: int
+    data_quality: str
+    bottleneck_severity: str
+    candidate_count: int
+    maturity_timing: str
+    confirmed_signals: Tuple[str, ...] = ()
+    speculative_signals: Tuple[str, ...] = ()
+    positive_catalysts: Tuple[str, ...] = ()
+    negative_catalysts: Tuple[str, ...] = ()
+    red_team_notes: Tuple[str, ...] = ()
+    data_gaps: Tuple[str, ...] = ()
+    crowded_euphoric: bool = False   # -> warning halo
+    red_team_risk: bool = False      # -> black-hole / hazard marker
+    theme_tam: Optional[float] = None          # visual magnitude only (galaxy size)
+    megatrend_magnitude: Optional[float] = None # visual magnitude only (cluster size)
+    solar_systems: Tuple[DemoSolarSystem, ...] = ()
+    stars: Tuple[DemoStar, ...] = ()
+    planets: Tuple[DemoPlanet, ...] = ()
+    data_origin: str = DATA_ORIGIN
+
+    @property
+    def slug(self) -> str:
+        return slugify(self.theme_name)
+
+
+@dataclass(frozen=True)
+class DemoUniverse:
+    """The whole frozen terrain: an ordered set of galaxies + a mode label."""
+    galaxies: Tuple[DemoGalaxy, ...]
+    mode: str = "fixture/demo"
+    live_enabled: bool = False
+    scheduler_enabled: bool = False
+    broker_automation_enabled: bool = False
+    data_origin: str = DATA_ORIGIN
+
+
+# --------------------------------------------------------------------------- #
+# The terrain (hand-authored; leads with power/energy, NOT AI-infra/IREN)      #
+# --------------------------------------------------------------------------- #
+def _power_grid() -> DemoGalaxy:
+    ss = DemoSolarSystem(
+        name="Grid interconnection & transmission",
+        description="From primary equipment to the interconnection queue to the load.",
+        value_chain_revenue_pool=2.0e11,
+        nodes=(
+            DemoNode("grid-upstream-copper", "upstream", "Copper & grain-oriented electrical steel",
+                     "commodity-priced, cyclical", "indirect", "medium",
+                     missing_data=("supplier-of-supplier ore contracts",),
+                     candidate_companies=("(demo) integrated miners",), dependency_exposure=6.0e10),
+            DemoNode("grid-transformers", "suppliers", "Large power transformers & switchgear",
+                     "high — multi-year backlog pricing power", "direct", "high",
+                     candidate_companies=("(demo) transformer OEMs",), dependency_exposure=9.0e10),
+            DemoNode("grid-sos-bushings", "supplier-of-supplier", "HV bushings / tap-changers (placeholder)",
+                     "unknown — thin coverage", "indirect", "sparse",
+                     missing_data=("named vendors", "capacity data", "lead-time series")),
+            DemoNode("grid-infra-interconnect", "infrastructure", "Interconnection queue / substations",
+                     "gatekeeper — controls time-to-energize", "direct", "medium",
+                     missing_data=("queue-position dataset",)),
+            DemoNode("grid-integrators", "integrators", "EPC & grid integrators",
+                     "project-margin, execution-risk", "direct", "medium",
+                     candidate_companies=("(demo) grid EPCs",), dependency_exposure=1.2e10),
+            DemoNode("grid-customers", "customers", "Utilities, hyperscale & industrial load",
+                     "pass-through demand", "downstream", "high"),
+        ),
+    )
+    star = DemoStar(
+        star_type="supply bottleneck",
+        constrained_node="Large power transformers (multi-year backlog)",
+        severity="high", duration="3-5 years (demo estimate)",
+        beneficiaries=("(demo) transformer OEMs", "(demo) switchgear suppliers"),
+        losers=("(demo) merchant developers waiting on energization",),
+        resolution_risk="new capacity slow to permit & commission",
+        evidence=("backlog commentary (demo)", "lead-time anecdotes (demo)"),
+        data_gaps=("no structured backlog-quarters series", "vendor-level capacity unknown"),
+        bottleneck_economic_importance=88.0,
+    )
+    planets = (
+        DemoPlanet("(demo) GRIDX", "Demo Transformer OEM", "critical supplier at the bottleneck",
+                   "at the bottleneck", investability_label="thesis_worthy",
+                   timing_label="timing not confirmed", red_team_label="pass",
+                   recommendation_label="suitable_candidate",
+                   catalyst_label="capacity-expansion announcement (possible)",
+                   evidence_count=6, data_quality="medium", market_cap=8.0e10, catalyst_impact=40.0),
+        DemoPlanet("(demo) LOADX", "Demo Grid EPC", "integrator, one hop from bottleneck",
+                   "one hop", investability_label="watch",
+                   recommendation_label="monitor_only", evidence_count=3, data_quality="medium",
+                   market_cap=1.2e10),
+    )
+    return DemoGalaxy(
+        theme_name="Power & Grid",
+        megatrend="Electrification + AI load growth straining a decades-underbuilt grid",
+        capital_cycle="Early up-cycle: under-invested capacity meeting step-change demand",
+        heat_label="hot", priority_label="high priority",
+        signal_convergence="Load growth + interconnection backlog + equipment lead-times converge",
+        why_now="First sustained US load growth in ~20 years collides with a thin equipment base.",
+        why_before_obvious="Attention is on the AI chips; the grid that powers them is the quieter choke.",
+        evidence_count=22, data_quality="medium", bottleneck_severity="high",
+        candidate_count=2, maturity_timing="early-to-mid cycle",
+        confirmed_signals=("utility capex guides raised (demo)", "transformer lead-times extended (demo)"),
+        speculative_signals=("rumored mega-backlog at one OEM (demo, unconfirmed)",),
+        positive_catalysts=("multi-year utility capex plans (demo)",),
+        negative_catalysts=("rate-case / permitting delays (demo)",),
+        red_team_notes=("commodity-cost pass-through may cap margins (demo)",),
+        data_gaps=("no structured interconnection-queue dataset", "supplier-of-supplier tier thin"),
+        theme_tam=8.0e11, megatrend_magnitude=9.0e11,
+        solar_systems=(ss,), stars=(star,), planets=planets,
+    )
+
+
+def _nuclear_energy() -> DemoGalaxy:
+    ss = DemoSolarSystem(
+        name="Nuclear fuel & SMR value chain",
+        description="Enrichment upstream through reactors to firm baseload offtake.",
+        value_chain_revenue_pool=6.0e10,
+        nodes=(
+            DemoNode("nuc-upstream-uranium", "upstream", "Uranium mining & conversion",
+                     "commodity + contract mix", "indirect", "medium",
+                     candidate_companies=("(demo) uranium producers",), dependency_exposure=3.0e10),
+            DemoNode("nuc-enrichment", "enabling-tech", "Enrichment (HALEU) capacity",
+                     "high — Western capacity scarce", "direct", "low",
+                     missing_data=("HALEU capacity build schedule",)),
+            DemoNode("nuc-sos-centrifuge", "supplier-of-supplier", "Centrifuge components (placeholder)",
+                     "unknown", "indirect", "sparse",
+                     missing_data=("named vendors", "throughput data")),
+            DemoNode("nuc-smr", "integrators", "SMR designers & builders",
+                     "pre-revenue optionality", "direct", "low",
+                     candidate_companies=("(demo) SMR developers",)),
+            DemoNode("nuc-customers", "customers", "Data centers seeking firm 24/7 power",
+                     "long-dated PPAs", "downstream", "medium"),
+        ),
+    )
+    star = DemoStar(
+        star_type="capability bottleneck",
+        constrained_node="Western HALEU enrichment capacity",
+        severity="high", duration="unknown (policy-dependent, demo)",
+        beneficiaries=("(demo) enrichers with Western capacity",),
+        losers=("(demo) SMR designs dependent on scarce fuel",),
+        resolution_risk="capacity build is slow and politically contingent",
+        evidence=("policy commentary (demo)",),
+        data_gaps=("build schedules undisclosed", "TAM highly speculative"),
+        bottleneck_economic_importance=72.0,
+    )
+    planets = (
+        DemoPlanet("(demo) FUELX", "Demo Enrichment Co", "scarce enabling-tech at the bottleneck",
+                   "at the bottleneck", investability_label="watch",
+                   recommendation_label="wait_for_user",
+                   catalyst_label="government offtake (rumored, unconfirmed)",
+                   evidence_count=4, data_quality="low", market_cap=2.0e10),
+        DemoPlanet("(demo) SMRX", "Demo SMR Developer", "pre-revenue integrator",
+                   "downstream of bottleneck", investability_label="watch",
+                   red_team_label="concern", recommendation_label="blocked_for_user",
+                   capital_structure_risk=True, evidence_count=2, data_quality="low",
+                   market_cap=3.0e9, risk_severity=80.0),
+    )
+    return DemoGalaxy(
+        theme_name="Nuclear & Energy",
+        megatrend="Firm, carbon-free baseload for AI & electrification",
+        capital_cycle="Very early: optionality-rich, cash-flow-poor",
+        heat_label="warm", priority_label="watch — speculative",
+        signal_convergence="Data-center firm-power demand + fuel scarcity + policy tailwinds",
+        why_now="Hyperscalers signing nuclear PPAs turned a slow theme into a live one.",
+        why_before_obvious="The fuel-cycle choke (enrichment) is upstream of the reactor headlines.",
+        evidence_count=9, data_quality="low", bottleneck_severity="high",
+        candidate_count=2, maturity_timing="very early / pre-revenue",
+        confirmed_signals=("hyperscaler nuclear PPA signed (demo)",),
+        speculative_signals=("rumored HALEU offtake award (demo, unconfirmed)",
+                             "speculative SMR backlog pipeline (demo)"),
+        positive_catalysts=("policy support for domestic enrichment (demo)",),
+        negative_catalysts=("dilution risk at pre-revenue developers (demo)",
+                            "permitting timelines (demo)"),
+        red_team_notes=("capital-structure risk: repeated equity raises likely (demo)",
+                       "valuation rests on speculative TAM (demo)"),
+        data_gaps=("TAM is speculative", "capacity schedules undisclosed"),
+        crowded_euphoric=True, red_team_risk=True,
+        theme_tam=3.0e11, megatrend_magnitude=4.0e11,
+        solar_systems=(ss,), stars=(star,), planets=planets,
+    )
+
+
+def _data_centers() -> DemoGalaxy:
+    ss = DemoSolarSystem(
+        name="Data-center build value chain",
+        description="From cooling & power kit through construction to compute tenants.",
+        value_chain_revenue_pool=3.5e11,
+        nodes=(
+            DemoNode("dc-upstream-power", "upstream", "On-site power & backup (gensets, UPS)",
+                     "supply-constrained", "direct", "medium", dependency_exposure=4.0e10),
+            DemoNode("dc-cooling", "enabling-tech", "Liquid cooling & thermal management",
+                     "high — rising with rack density", "direct", "medium",
+                     candidate_companies=("(demo) cooling specialists",), dependency_exposure=4.5e10),
+            DemoNode("dc-sos-coldplate", "supplier-of-supplier", "Cold-plate / CDU parts (placeholder)",
+                     "unknown", "indirect", "sparse",
+                     missing_data=("named vendors", "unit economics")),
+            DemoNode("dc-construction", "integrators", "Hyperscale construction & fit-out",
+                     "project-margin", "indirect", "medium",
+                     candidate_companies=("(demo) DC builders",), dependency_exposure=2.0e10),
+            DemoNode("dc-customers", "customers", "Hyperscalers & neoclouds",
+                     "demand engine", "downstream", "high"),
+        ),
+    )
+    star = DemoStar(
+        star_type="thermal bottleneck",
+        constrained_node="Liquid cooling capacity at high rack density",
+        severity="medium", duration="1-3 years (demo)",
+        beneficiaries=("(demo) liquid-cooling vendors",),
+        losers=("(demo) air-cooled-only designs",),
+        resolution_risk="fast-follow competition compresses margins",
+        evidence=("rack-density trend (demo)",),
+        data_gaps=("moat durability unclear", "TAM split by cooling type missing"),
+        bottleneck_economic_importance=70.0,
+    )
+    planets = (
+        DemoPlanet("(demo) COOLX", "Demo Liquid Cooling Co", "enabling-tech near bottleneck",
+                   "at the bottleneck", investability_label="thesis_worthy_timing_confirmed",
+                   timing_label="timing confirmed", red_team_label="pass",
+                   recommendation_label="priority_candidate",
+                   catalyst_label="design-win ramp (confirmed, demo)",
+                   evidence_count=8, data_quality="high", market_cap=4.0e10, catalyst_impact=65.0),
+        DemoPlanet("(demo) BLDX", "Demo DC Builder", "integrator",
+                   "one hop", investability_label="watch",
+                   recommendation_label="monitor_only", evidence_count=4, data_quality="medium",
+                   market_cap=1.5e10),
+    )
+    return DemoGalaxy(
+        theme_name="Data Centers",
+        megatrend="Compute build-out demanding power-dense, liquid-cooled facilities",
+        capital_cycle="Mid up-cycle: heavy capex, some crowding",
+        heat_label="hot", priority_label="high priority",
+        signal_convergence="Rack density + cooling scarcity + construction lead-times",
+        why_now="Rack power densities crossed the point where air cooling stops scaling.",
+        why_before_obvious="Cooling is the unglamorous layer capturing durable spend.",
+        evidence_count=18, data_quality="high", bottleneck_severity="medium",
+        candidate_count=2, maturity_timing="mid cycle",
+        confirmed_signals=("liquid-cooling design wins disclosed (demo)",
+                          "hyperscale capex guides raised (demo)"),
+        speculative_signals=("rumored mega-campus (demo, unconfirmed)",),
+        positive_catalysts=("cooling design-win ramps (demo)",),
+        negative_catalysts=("fast-follow margin compression (demo)",),
+        red_team_notes=("crowded trade in parts of the chain (demo)",),
+        data_gaps=("cooling-type TAM split missing", "moat durability unclear"),
+        crowded_euphoric=True,
+        theme_tam=1.2e12, megatrend_magnitude=1.3e12,
+        solar_systems=(ss,), stars=(star,), planets=planets,
+    )
+
+
+def _optics_networking() -> DemoGalaxy:
+    ss = DemoSolarSystem(
+        name="Optical interconnect value chain",
+        description="Lasers & DSP through transceivers to switch fabrics.",
+        value_chain_revenue_pool=8.0e10,
+        nodes=(
+            DemoNode("opt-upstream-laser", "upstream", "Lasers (EML/CW) & photonic materials",
+                     "high — scarce capacity", "direct", "medium",
+                     candidate_companies=("(demo) laser suppliers",), dependency_exposure=2.0e10),
+            DemoNode("opt-dsp", "enabling-tech", "DSP / retimer silicon",
+                     "high", "direct", "medium", dependency_exposure=2.5e10),
+            DemoNode("opt-sos-substrate", "supplier-of-supplier", "Photonic substrates (placeholder)",
+                     "unknown", "indirect", "sparse", missing_data=("named vendors",)),
+            DemoNode("opt-transceivers", "suppliers", "800G/1.6T optical transceivers",
+                     "volume + mix leverage", "direct", "high",
+                     candidate_companies=("(demo) transceiver makers",), dependency_exposure=3.0e10),
+            DemoNode("opt-customers", "customers", "Switch & accelerator vendors",
+                     "demand pull", "downstream", "high"),
+        ),
+    )
+    star = DemoStar(
+        star_type="component bottleneck",
+        constrained_node="High-speed lasers for 1.6T optics",
+        severity="high", duration="1-2 years (demo)",
+        beneficiaries=("(demo) laser & transceiver leaders",),
+        losers=("(demo) laggards on the speed transition",),
+        resolution_risk="capacity adds and co-packaged optics could reroute value",
+        evidence=("speed-transition roadmap (demo)",),
+        data_gaps=("laser capacity by vendor unknown",),
+        bottleneck_economic_importance=78.0,
+    )
+    planets = (
+        DemoPlanet("(demo) OPTX", "Demo Transceiver Co", "supplier at speed transition",
+                   "at the bottleneck", investability_label="thesis_worthy_timing_confirmed",
+                   timing_label="timing confirmed", recommendation_label="suitable_candidate",
+                   catalyst_label="1.6T ramp (probable, demo)", evidence_count=7, data_quality="high",
+                   market_cap=3.0e10, catalyst_impact=55.0),
+    )
+    return DemoGalaxy(
+        theme_name="Optics & Networking",
+        megatrend="AI clusters demanding exponentially more optical bandwidth",
+        capital_cycle="Mid up-cycle riding the 800G->1.6T transition",
+        heat_label="warm", priority_label="high priority",
+        signal_convergence="Cluster scale-out + speed roadmap + laser scarcity",
+        why_now="Cluster sizes make interconnect bandwidth the gating factor.",
+        why_before_obvious="Optics rides every accelerator sold, without picking the winner.",
+        evidence_count=14, data_quality="high", bottleneck_severity="high",
+        candidate_count=1, maturity_timing="mid cycle",
+        confirmed_signals=("1.6T qualification underway (demo)",),
+        speculative_signals=("co-packaged-optics disruption timing (demo, uncertain)",),
+        positive_catalysts=("speed-transition ramp (demo)",),
+        negative_catalysts=("CPO could disintermediate pluggables (demo)",),
+        red_team_notes=("technology-transition risk (demo)",),
+        data_gaps=("per-vendor laser capacity unknown",),
+        theme_tam=2.5e11, megatrend_magnitude=3.0e11,
+        solar_systems=(ss,), stars=(star,), planets=planets,
+    )
+
+
+def _semiconductors() -> DemoGalaxy:
+    ss = DemoSolarSystem(
+        name="Advanced-packaging & HBM value chain",
+        description="Tools & materials through packaging to accelerator integrators.",
+        value_chain_revenue_pool=5.0e11,
+        nodes=(
+            DemoNode("semi-upstream-tools", "upstream", "Litho / deposition / test tools",
+                     "high — oligopoly pricing power", "indirect", "high",
+                     candidate_companies=("(demo) equipment leaders",), dependency_exposure=3.0e11),
+            DemoNode("semi-hbm", "enabling-tech", "HBM memory stacks",
+                     "high — allocation-constrained", "direct", "medium",
+                     candidate_companies=("(demo) memory makers",), dependency_exposure=1.2e11),
+            DemoNode("semi-sos-substrate", "supplier-of-supplier", "ABF substrates (placeholder)",
+                     "unknown", "indirect", "sparse", missing_data=("capacity data",)),
+            DemoNode("semi-packaging", "infrastructure", "Advanced packaging (CoWoS-like) capacity",
+                     "gatekeeper — allocation controls supply", "direct", "medium",
+                     dependency_exposure=6.0e11),
+            DemoNode("semi-integrators", "integrators", "Accelerator designers",
+                     "brand + ecosystem lock-in", "downstream", "high",
+                     candidate_companies=("(demo) accelerator designers",), dependency_exposure=3.4e12),
+            DemoNode("semi-customers", "customers", "Hyperscalers & model labs",
+                     "demand engine", "downstream", "high"),
+        ),
+    )
+    star = DemoStar(
+        star_type="capacity bottleneck",
+        constrained_node="Advanced-packaging capacity (allocation-gated)",
+        severity="high", duration="1-3 years (demo)",
+        beneficiaries=("(demo) packaging-capacity holders", "(demo) HBM makers"),
+        losers=("(demo) designers without allocation",),
+        resolution_risk="capacity adds could ease the choke faster than expected",
+        evidence=("allocation commentary (demo)",),
+        data_gaps=("allocation shares by customer undisclosed",),
+        bottleneck_economic_importance=92.0,
+    )
+    planets = (
+        DemoPlanet("(demo) PKGX", "Demo Packaging Co", "gatekeeper capacity",
+                   "at the bottleneck", investability_label="thesis_worthy",
+                   recommendation_label="suitable_candidate", evidence_count=6, data_quality="medium",
+                   market_cap=6.0e11),
+        DemoPlanet("(demo) HBMX", "Demo HBM Maker", "allocation-constrained supplier",
+                   "at the bottleneck", investability_label="thesis_worthy_timing_confirmed",
+                   timing_label="timing confirmed", recommendation_label="priority_candidate",
+                   catalyst_label="HBM price/mix upgrade (confirmed, demo)",
+                   evidence_count=9, data_quality="high", market_cap=1.2e11, catalyst_impact=60.0),
+        # A NVIDIA-scale mega-cap with a WEAK alpha status -- must NOT auto-rank as top.
+        DemoPlanet("(demo) MEGAX", "Demo Mega-Cap Accelerator", "dominant accelerator designer",
+                   "one hop", investability_label="watch", timing_label="timing not confirmed",
+                   red_team_label="pass", recommendation_label="monitor_only",
+                   evidence_count=12, data_quality="high", market_cap=3.4e12),
+        # A tiny small-cap supplier with a STRONG alpha status -- glows brighter, sized smaller.
+        DemoPlanet("(demo) SMALLX", "Demo Small-Cap Supplier", "scarce sub-component supplier",
+                   "at the bottleneck", investability_label="thesis_worthy_timing_confirmed",
+                   timing_label="timing confirmed", red_team_label="pass",
+                   recommendation_label="priority_candidate",
+                   catalyst_label="sole-source design win (confirmed, demo)",
+                   evidence_count=7, data_quality="high", market_cap=9.0e8, catalyst_impact=70.0),
+    )
+    return DemoGalaxy(
+        theme_name="Semiconductors",
+        megatrend="Accelerated compute concentrating value in scarce process steps",
+        capital_cycle="Mid up-cycle with allocation-gated scarcity",
+        heat_label="hot", priority_label="high priority",
+        signal_convergence="Packaging scarcity + HBM allocation + tool backlog",
+        why_now="The compute bottleneck moved from the die to packaging and memory.",
+        why_before_obvious="The scarce step is packaging/HBM, not the headline GPU brand.",
+        evidence_count=20, data_quality="high", bottleneck_severity="high",
+        candidate_count=4, maturity_timing="mid cycle",
+        confirmed_signals=("packaging capacity sold out (demo)", "HBM allocation tight (demo)"),
+        speculative_signals=("next-node yield rumors (demo, unconfirmed)",),
+        positive_catalysts=("HBM price/mix upgrades (demo)",),
+        negative_catalysts=("cyclical memory oversupply risk (demo)",),
+        red_team_notes=("memory is historically cyclical (demo)",),
+        data_gaps=("customer allocation shares undisclosed",),
+        theme_tam=1.5e12, megatrend_magnitude=1.6e12,
+        solar_systems=(ss,), stars=(star,), planets=planets,
+    )
+
+
+def _ai_infrastructure() -> DemoGalaxy:
+    """The AI-infrastructure galaxy. Contains the ONE real planet, IREN."""
+    ss = DemoSolarSystem(
+        name="AI compute-hosting value chain",
+        description="Power & sites through neocloud hosting to model builders.",
+        value_chain_revenue_pool=2.0e11,
+        nodes=(
+            DemoNode("aii-upstream-power", "upstream", "Power access & data-center sites",
+                     "scarce — gates capacity", "direct", "medium",
+                     missing_data=("site-by-site power availability",), dependency_exposure=5.0e10),
+            DemoNode("aii-accelerators", "enabling-tech", "Accelerators & networking",
+                     "high — allocation-constrained", "direct", "medium",
+                     candidate_companies=("(demo) accelerator vendors",), dependency_exposure=3.4e12),
+            DemoNode("aii-sos-optics", "supplier-of-supplier", "Optics & cabling (placeholder)",
+                     "cross-links to Optics galaxy", "indirect", "sparse",
+                     missing_data=("bill-of-materials detail",)),
+            DemoNode("aii-hosting", "integrators", "Neocloud / AI hosting operators",
+                     "utilization + power-cost leverage", "direct", "medium",
+                     candidate_companies=("IREN", "(demo) other neoclouds"), dependency_exposure=1.1e10),
+            DemoNode("aii-customers", "customers", "Model labs & enterprises renting compute",
+                     "demand engine", "downstream", "medium",
+                     missing_data=("contract-duration mix",)),
+        ),
+    )
+    star = DemoStar(
+        star_type="power & capacity bottleneck",
+        constrained_node="Powered, ready-to-energize compute capacity",
+        severity="high", duration="1-3 years (demo)",
+        beneficiaries=("IREN (real anchor)", "(demo) power-secured operators"),
+        losers=("(demo) operators without secured power",),
+        resolution_risk="power/interconnection timelines and financing dependency",
+        evidence=("see IREN evidence-alpha slice for the real, provenance-backed evidence",),
+        data_gaps=("contract-duration mix (demo)", "utilization by site (demo)"),
+        bottleneck_economic_importance=90.0,
+    )
+    planets = (
+        # The ONE real planet -- statuses come from the live evidence-alpha slice.
+        DemoPlanet("IREN", "IREN Limited", "neocloud / AI hosting operator (integrator)",
+                   "at the bottleneck",
+                   investability_label="(from live slice)", timing_label="(from live slice)",
+                   red_team_label="(from live slice)", recommendation_label="(from live slice)",
+                   catalyst_label="(from live slice)", evidence_count=18, data_quality="high",
+                   market_cap=1.1e10, catalyst_impact=50.0, is_real=True),
+        DemoPlanet("(demo) NEOX", "Demo Neocloud", "hosting operator without secured power",
+                   "one hop", investability_label="watch",
+                   red_team_label="concern", recommendation_label="blocked_for_user",
+                   capital_structure_risk=True, evidence_count=3, data_quality="low",
+                   market_cap=1.5e9, risk_severity=75.0),
+        DemoPlanet("(demo) HOSTX", "Demo Power-Secured Operator", "power-secured integrator",
+                   "at the bottleneck", investability_label="thesis_worthy",
+                   recommendation_label="suitable_candidate",
+                   catalyst_label="new site energized (probable, demo)",
+                   evidence_count=5, data_quality="medium", market_cap=8.0e9, catalyst_impact=45.0),
+    )
+    return DemoGalaxy(
+        theme_name="AI Infrastructure",
+        megatrend="Compute scarcity making powered hosting capacity a rentable choke",
+        capital_cycle="Mid up-cycle; capital-intensive and financing-sensitive",
+        heat_label="hot", priority_label="high priority",
+        signal_convergence="Power scarcity + accelerator allocation + hosting demand",
+        why_now="Compute demand outruns the pace at which powered capacity can be built.",
+        why_before_obvious="The rentable choke is powered capacity, upstream of the model headlines.",
+        evidence_count=24, data_quality="high", bottleneck_severity="high",
+        candidate_count=3, maturity_timing="mid cycle",
+        confirmed_signals=("IREN: revenue inflection in fixtures (real slice)",
+                          "power-secured capacity disclosed (demo)"),
+        speculative_signals=("rumored hyperscale hosting deal (demo, unconfirmed)",),
+        positive_catalysts=("new sites energized (demo)", "hosting contracts signed (demo)"),
+        negative_catalysts=("financing / dilution dependency (demo)",
+                           "power-timeline slippage (demo)"),
+        red_team_notes=("capital-structure risk at unfunded operators (demo)",
+                       "IREN carries a real red-team 'concern' verdict from the slice"),
+        data_gaps=("contract-duration mix (demo)", "utilization by site (demo)"),
+        red_team_risk=True,
+        theme_tam=9.0e11, megatrend_magnitude=1.0e12,
+        solar_systems=(ss,), stars=(star,), planets=planets,
+    )
+
+
+def _physical_ai() -> DemoGalaxy:
+    ss = DemoSolarSystem(
+        name="Physical-AI enablement chain",
+        description="Sensors & edge silicon through models to embodied products.",
+        value_chain_revenue_pool=3.0e10,
+        nodes=(
+            DemoNode("phai-sensors", "upstream", "Sensors, lidar & actuators",
+                     "component margins", "indirect", "medium", dependency_exposure=1.0e10),
+            DemoNode("phai-edge", "enabling-tech", "Edge inference silicon",
+                     "high", "direct", "low", missing_data=("design-win pipeline",)),
+            DemoNode("phai-sos-mems", "supplier-of-supplier", "MEMS components (placeholder)",
+                     "unknown", "indirect", "sparse", missing_data=("named vendors",)),
+            DemoNode("phai-integrators", "integrators", "Embodied-AI product builders",
+                     "pre-revenue optionality", "direct", "low"),
+            DemoNode("phai-customers", "customers", "Industrial & consumer buyers of embodied AI",
+                     "nascent demand", "downstream", "low",
+                     missing_data=("adoption timing",)),
+        ),
+    )
+    star = DemoStar(
+        star_type="capability bottleneck",
+        constrained_node="Reliable real-world perception & edge inference",
+        severity="medium", duration="unknown (demo)",
+        beneficiaries=("(demo) edge-silicon & sensor leaders",),
+        losers=("(demo) hardware without a software moat",),
+        resolution_risk="timeline highly uncertain; adoption may lag",
+        evidence=("early pilots (demo)",),
+        data_gaps=("adoption timing unknown", "TAM speculative"),
+        bottleneck_economic_importance=45.0,
+    )
+    planets = (
+        DemoPlanet("(demo) EDGEX", "Demo Edge-Silicon Co", "enabling-tech",
+                   "near bottleneck", investability_label="watch",
+                   recommendation_label="wait_for_user", evidence_count=3, data_quality="low",
+                   market_cap=2.0e9),
+    )
+    return DemoGalaxy(
+        theme_name="Physical AI",
+        megatrend="Moving AI from screens into machines that act in the world",
+        capital_cycle="Very early: thesis-forming, evidence-poor",
+        heat_label="cool", priority_label="early watchlist",
+        signal_convergence="Edge-silicon progress + sensor cost curves + early pilots",
+        why_now="Model capability is starting to cross into reliable real-world action.",
+        why_before_obvious="The enabling edge-inference layer is upstream of any robot headline.",
+        evidence_count=6, data_quality="low", bottleneck_severity="medium",
+        candidate_count=1, maturity_timing="very early",
+        confirmed_signals=("early industrial pilots (demo)",),
+        speculative_signals=("broad embodied-AI adoption timing (demo, speculative)",),
+        positive_catalysts=("edge-silicon design wins (demo)",),
+        negative_catalysts=("adoption may lag for years (demo)",),
+        red_team_notes=("TAM largely speculative (demo)",),
+        data_gaps=("adoption timing unknown", "TAM speculative — theme_tam not estimable"),
+        theme_tam=None, megatrend_magnitude=None,   # MISSING magnitude -> data-gap sizing
+        solar_systems=(ss,), stars=(star,), planets=planets,
+    )
+
+
+def _robotics() -> DemoGalaxy:
+    ss = DemoSolarSystem(
+        name="Humanoid & automation chain",
+        description="Actuators & reducers through platforms to industrial deployers.",
+        value_chain_revenue_pool=2.5e10,
+        nodes=(
+            DemoNode("rob-actuators", "upstream", "Actuators, motors & harmonic reducers",
+                     "component margins; some scarce parts", "direct", "medium",
+                     candidate_companies=("(demo) reducer makers",), dependency_exposure=8.0e9),
+            DemoNode("rob-sos-bearings", "supplier-of-supplier", "Precision bearings (placeholder)",
+                     "unknown", "indirect", "sparse", missing_data=("named vendors",)),
+            DemoNode("rob-platforms", "integrators", "Humanoid / robot platform makers",
+                     "pre-revenue optionality", "direct", "low"),
+            DemoNode("rob-customers", "customers", "Warehousing & manufacturing deployers",
+                     "pilot-stage demand", "downstream", "low", missing_data=("unit economics",)),
+        ),
+    )
+    star = DemoStar(
+        star_type="component bottleneck",
+        constrained_node="Precision reducers / actuators at scale",
+        severity="medium", duration="unknown (demo)",
+        beneficiaries=("(demo) actuator & reducer specialists",),
+        losers=("(demo) platform makers without supply",),
+        resolution_risk="scaling reducers is capital- and skill-intensive",
+        evidence=("component-scarcity anecdotes (demo)",),
+        data_gaps=("unit economics of humanoids unknown",),
+        bottleneck_economic_importance=40.0,
+    )
+    planets = (
+        # market_cap MISSING -> render neutral size + data-gap marker (never fabricated).
+        DemoPlanet("(demo) ACTX", "Demo Actuator Co", "scarce component supplier",
+                   "at the bottleneck", investability_label="watch",
+                   recommendation_label="monitor_only", evidence_count=3, data_quality="low",
+                   market_cap=None),
+    )
+    return DemoGalaxy(
+        theme_name="Robotics",
+        megatrend="Labour automation via humanoid & flexible robotics",
+        capital_cycle="Very early: hype-prone, thin fundamentals",
+        heat_label="cool", priority_label="early watchlist",
+        signal_convergence="Actuator progress + AI control + labour-cost pressure",
+        why_now="AI control models revived a long-stalled humanoid ambition.",
+        why_before_obvious="Value may concentrate in scarce components, not the robots themselves.",
+        evidence_count=5, data_quality="low", bottleneck_severity="medium",
+        candidate_count=1, maturity_timing="very early",
+        confirmed_signals=("component-scarcity anecdotes (demo)",),
+        speculative_signals=("humanoid mass-deployment timing (demo, speculative)",),
+        positive_catalysts=("automation pilots expanding (demo)",),
+        negative_catalysts=("valuations detached from revenue (demo)",),
+        red_team_notes=("euphoric pricing on thin fundamentals (demo)",),
+        data_gaps=("unit economics unknown", "adoption timing speculative", "ACTX market_cap missing"),
+        crowded_euphoric=True,
+        theme_tam=2.0e11, megatrend_magnitude=2.2e11,
+        solar_systems=(ss,), stars=(star,), planets=planets,
+    )
+
+
+def _space_defense() -> DemoGalaxy:
+    ss = DemoSolarSystem(
+        name="Space & defense-tech chain",
+        description="Launch & components through satellites to government/commercial buyers.",
+        value_chain_revenue_pool=1.2e11,
+        nodes=(
+            DemoNode("spc-launch", "infrastructure", "Launch capacity & propulsion",
+                     "high — scarce cadence", "direct", "medium", dependency_exposure=6.0e10),
+            DemoNode("spc-components", "suppliers", "Rad-hard electronics & optics",
+                     "specialized margins", "direct", "medium",
+                     candidate_companies=("(demo) space-component makers",), dependency_exposure=1.0e10),
+            DemoNode("spc-sos-materials", "supplier-of-supplier", "Specialty materials (placeholder)",
+                     "unknown", "indirect", "sparse", missing_data=("named vendors",)),
+            DemoNode("spc-integrators", "integrators", "Satellite & defense-system integrators",
+                     "program margins; backlog-driven", "direct", "medium", dependency_exposure=4.0e10),
+            DemoNode("spc-customers", "customers", "Government & commercial buyers",
+                     "budget-driven demand", "downstream", "medium",
+                     missing_data=("program-award schedule",)),
+        ),
+    )
+    star = DemoStar(
+        star_type="capacity bottleneck",
+        constrained_node="Launch cadence & rad-hard component supply",
+        severity="medium", duration="2-4 years (demo)",
+        beneficiaries=("(demo) launch & component leaders",),
+        losers=("(demo) programs waiting on ride-share slots",),
+        resolution_risk="new launch capacity could ease the constraint",
+        evidence=("cadence trend (demo)",),
+        data_gaps=("program-award timing (demo)",),
+        bottleneck_economic_importance=55.0,
+    )
+    planets = (
+        DemoPlanet("(demo) ORBX", "Demo Space-Component Co", "specialized supplier",
+                   "near bottleneck", investability_label="watch",
+                   recommendation_label="monitor_only", evidence_count=4, data_quality="medium",
+                   market_cap=5.0e9),
+    )
+    return DemoGalaxy(
+        theme_name="Space & Defense",
+        megatrend="Reusable launch + rising defense budgets expanding the orbital economy",
+        capital_cycle="Early-to-mid: backlog-driven, program-lumpy",
+        heat_label="cool", priority_label="early watchlist",
+        signal_convergence="Launch cadence + defense budgets + commercial constellations",
+        why_now="Cheaper launch turned space from cost-center to expanding market.",
+        why_before_obvious="Scarce launch cadence and rad-hard parts gate the whole chain.",
+        evidence_count=8, data_quality="medium", bottleneck_severity="medium",
+        candidate_count=1, maturity_timing="early-to-mid",
+        confirmed_signals=("launch cadence rising (demo)", "defense budgets up (demo)"),
+        speculative_signals=("constellation build-out pace (demo, uncertain)",),
+        positive_catalysts=("program awards (demo)",),
+        negative_catalysts=("budget/appropriation risk (demo)",),
+        red_team_notes=("revenue is lumpy and program-dependent (demo)",),
+        data_gaps=("program-award schedule (demo)",),
+        theme_tam=4.0e11, megatrend_magnitude=4.2e11,
+        solar_systems=(ss,), stars=(star,), planets=planets,
+    )
+
+
+def build_demo_universe() -> DemoUniverse:
+    """Return the frozen demo universe (deterministic; NOT AI-infra/IREN first)."""
+    return DemoUniverse(
+        galaxies=(
+            _power_grid(),
+            _nuclear_energy(),
+            _data_centers(),
+            _optics_networking(),
+            _semiconductors(),
+            _ai_infrastructure(),   # contains the ONE real planet, IREN
+            _physical_ai(),
+            _robotics(),
+            _space_defense(),
+        ),
+    )
