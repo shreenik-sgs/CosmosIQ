@@ -31,6 +31,16 @@ from .adapters import (
 )
 from .mapper import map_to_observation
 from .conflict import resolve_conflicts
+from .sec_edgar import (
+    SEC_SOURCE_NAME,
+    SEC_PROVIDER,
+    sec_source,
+    classify_form,
+    detect_offering_flags,
+    parse_sec_submissions,
+    parse_sec_companyfacts,
+)
+from .sec_client import SecEdgarClient
 
 __all__ = [
     "SOURCE_AUTHORITIES",
@@ -49,4 +59,12 @@ __all__ = [
     "YFinanceAdapter",
     "map_to_observation",
     "resolve_conflicts",
+    "SEC_SOURCE_NAME",
+    "SEC_PROVIDER",
+    "sec_source",
+    "classify_form",
+    "detect_offering_flags",
+    "parse_sec_submissions",
+    "parse_sec_companyfacts",
+    "SecEdgarClient",
 ]
