@@ -300,9 +300,9 @@ class ZoomableUniverseTests(unittest.TestCase):
         top = self._top_canvas()
         self.assertNotIn('class="scene-caption"', self.u)
         self.assertNotIn("<table", top)
-        self.assertNotIn("<h2", top)
-        self.assertNotIn("<h3", top)
-        self.assertNotIn("<h4", top)
+        self.assertNotIn("<h2", top)              # no leaked level captions/intel headings
+        # (the floating preview legitimately carries an <h3 class="fp-title">; the
+        #  economic scene itself still carries no leaked intel tables/diagrams)
         self.assertNotIn("flow-diagram", top)
         self.assertNotIn("gap-box", top)
         self.assertNotIn("intel-template", top)   # intel lives in the hidden store
@@ -379,10 +379,14 @@ class ZoomableUniverseTests(unittest.TestCase):
 
     # --- the top canvas is an immersive CSS deep-space scene (no star-div flood) -
     def test_top_canvas_is_a_css_space_scene(self):
-        # the hundreds of star divs are GONE; the backdrop is CSS layers
+        # the hundreds of star divs are GONE; the backdrop is telescopic CSS layers
         self.assertLess(self.u.count('class="star '), 10)
+        self.assertIn('class="sky-bg"', self.u)       # parallax deep-field wrapper
         self.assertIn('class="space-glow"', self.u)   # galactic glow (CSS)
-        self.assertIn('class="space-stars"', self.u)  # single tiled star texture (CSS)
+        # three tiled star layers (far/mid/near) for depth + a dust lane
+        self.assertIn('class="star-far"', self.u)
+        self.assertIn('class="star-near"', self.u)
+        self.assertIn('class="dust-lane"', self.u)
         self.assertIn('class="nebula', self.u)        # nebula wash
         self.assertIn('class="vignette"', self.u)     # vignette
         self.assertNotIn("object-grid", self.u)       # not a card grid
@@ -504,24 +508,34 @@ class ZoomableUniverseTests(unittest.TestCase):
         self.assertIn("backdrop-filter:blur", css)         # glassmorphism
         self.assertIn("--mono:", css)                      # monospace stack for numbers
         self.assertIn(".micro{", css)                      # uppercase micro-labels
-        # the Economic Universe page fills the screen with NO page scroll ...
-        self.assertIn("body.fullscreen{height:100vh", css)
-        self.assertIn("overflow:hidden", css)              # no page-level scroll
-        self.assertIn("flex-direction:column", css)        # status -> nav -> panes column
-        # ... the top canvas is dominant and grows, the viewport fills it ...
-        self.assertIn(".fullscreen-main .top-canvas{flex:1 1", css)
-        self.assertIn(".fullscreen-main .top-canvas .viewport{height:100%}", css)
-        # ... and the bottom pane scrolls INTERNALLY (never the page)
-        self.assertIn("overflow:auto", css)
+        # 010A-SKY: the page SCROLLS (no overflow lock); the HERO is the first screen
+        self.assertIn("body.sky{min-height:100vh", css)
+        self.assertNotIn("body.fullscreen{height:100vh", css)  # split-pane lock removed
+        # the universe HERO is sized to the first viewport minus the header chrome ...
+        self.assertIn(".universe-hero{position:relative", css)
+        self.assertIn("height:calc(100vh - 92px)", css)
+        self.assertIn(".universe-hero .top-canvas .viewport{height:100%}", css)
+        # ... and the intelligence pane sits BELOW the fold (full width, natural flow)
+        self.assertIn(".intel-section{", css)
 
-    # --- the universe page is a full-bleed full-screen shell --------------
+    # --- the universe page is a full-screen telescope HERO + below-fold pane -
     def test_universe_page_is_full_screen(self):
-        self.assertIn('<body class="fullscreen">', self.u)
-        self.assertIn('fullscreen-main', self.u)
-        self.assertIn('universe-app', self.u)     # full-width 100vw shell (010A-FIX)
+        # 010A-SKY: scrollable page (no overflow lock), hero-first, intel below
+        self.assertIn('<body class="sky">', self.u)
+        self.assertNotIn('<body class="fullscreen">', self.u)
+        self.assertIn('class="universe-hero"', self.u)     # full-viewport hero canvas
+        self.assertIn('universe-app', self.u)              # full-width 100vw shell
+        # the intelligence pane is BELOW the hero (its own section), not a split pane
+        self.assertIn('class="intel-pane intel-section"', self.u)
+        hero = self.u.split('class="universe-hero"')[1].split('id="intel-pane"')[0]
+        self.assertIn('id="top-canvas"', hero)             # the canvas is inside the hero
         self.assertNotIn('class="wrap"', self.u)           # no 1200px document width
         self.assertNotIn("<h1>Economic Universe</h1>", self.u)  # big intro trimmed
-        self.assertIn('class="canvas-note"', self.u)       # compact one-line note
+        self.assertIn('class="canvas-note"', self.u)       # compact overlay note
+        # a floating selected-object preview lives inside the universe hero
+        self.assertIn('id="floating-preview"', self.u)
+        self.assertIn('id="fp-details"', self.u)           # "View details below" target
+        self.assertIn('href="#intel-pane"', self.u)
         # status strip + 3-item command bar are still present above the canvas
         self.assertIn('class="status-strip"', self.u)
         self.assertIn('class="command-bar"', self.u)
@@ -529,7 +543,7 @@ class ZoomableUniverseTests(unittest.TestCase):
         with open(self.paths["dashboard.html"], encoding="utf-8") as fh:
             dash = fh.read()
         self.assertIn('class="wrap"', dash)
-        self.assertNotIn('<body class="fullscreen">', dash)
+        self.assertNotIn('<body class="sky">', dash)
 
     def test_objects_are_positioned_luminous_bodies(self):
         for cls in ("body-galaxy", "body-planet", "body-star", "body-nebula", "body-moon"):
@@ -801,3 +815,62 @@ class UniverseCenterFixTests(unittest.TestCase):
         self.assertIsNotNone(
             re.search(r"showLevel\(tp\);.*?setIntel\(myIntel\);", self.js, re.S),
             "object click must set its own intel after showLevel (no level overwrite)")
+
+
+class TelescopeSkyTests(unittest.TestCase):
+    """010A-SKY: full-screen telescope HERO first; intel pane below the fold; a
+    floating selected-object preview inside the universe; page scrolls naturally."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._tmp = tempfile.mkdtemp(prefix="universe_sky_")
+        cls.paths = _build(cls._tmp)
+        with open(cls.paths["universe.html"], encoding="utf-8") as fh:
+            cls.u = fh.read()
+        with open(os.path.join(cls._tmp, "assets", "universe.css"), encoding="utf-8") as fh:
+            cls.css = fh.read()
+        with open(os.path.join(cls._tmp, "assets", "universe.js"), encoding="utf-8") as fh:
+            cls.js = fh.read()
+
+    def test_hero_is_the_first_viewport(self):
+        self.assertIn('class="universe-hero"', self.u)
+        self.assertIn(".universe-hero{position:relative", self.css)
+        self.assertIn("height:calc(100vh - 92px)", self.css)   # viewport-based, dominant
+        self.assertIn("min-height:560px", self.css)            # responsive fallback
+        self.assertIn(".universe-hero .top-canvas .viewport{height:100%}", self.css)
+
+    def test_page_scrolls_no_overflow_lock(self):
+        self.assertIn("body.sky{min-height:100vh", self.css)
+        # the old split-pane 100vh/overflow:hidden lock is gone
+        self.assertNotIn("body.fullscreen{height:100vh;max-height:100vh;overflow:hidden",
+                         self.css)
+
+    def test_intel_pane_is_below_the_hero(self):
+        # order in the document: hero BEFORE the intelligence section
+        self.assertLess(self.u.index('class="universe-hero"'),
+                        self.u.index('id="intel-pane"'))
+        self.assertIn('class="intel-pane intel-section"', self.u)
+        # the intel pane is NOT inside the hero (its own below-fold section)
+        hero = self.u.split('class="universe-hero"')[1].split("</section>")[0]
+        self.assertNotIn('id="intel-pane"', hero)
+
+    def test_floating_preview_present_and_wired(self):
+        for hook in ('id="floating-preview"', 'id="fp-title"', 'id="fp-type"',
+                     'id="fp-body"', 'id="fp-zoom"', 'id="fp-details"', 'id="fp-close"'):
+            self.assertIn(hook, self.u)
+        # JS defines updatePreview and calls it on object click
+        self.assertIn("function updatePreview(", self.js)
+        self.assertIn("updatePreview(this)", self.js)
+        # "View details below" scrolls to the below-fold pane
+        self.assertIn('href="#intel-pane"', self.u)
+        self.assertIn("scrollIntoView", self.js)
+
+    def test_object_click_updates_both_preview_and_below_fold_pane(self):
+        # the same click updates the floating preview AND #intel-body (via setIntel)
+        m = re.search(r"updatePreview\(this\);.*?setIntel\(myIntel\);", self.js, re.S)
+        self.assertIsNotNone(m, "object click must update preview + below-fold pane")
+
+    def test_background_parallax(self):
+        # the deep-field background parallaxes a fraction of the pan/zoom (depth)
+        self.assertIn(".sky-bg", self.css)
+        self.assertIn("skybg.style.transform", self.js)

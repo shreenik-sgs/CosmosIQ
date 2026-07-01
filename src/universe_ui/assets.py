@@ -495,23 +495,77 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
 .exec-text{color:#e2e9ff;font-size:12.5px;line-height:1.4}
 
 /* ==================================================================== */
-/* 010A-S2b: the Economic Universe page fills the screen (no page scroll) */
+/* 010A-SKY: immersive full-screen telescope HERO; intel pane below fold  */
 /* ==================================================================== */
-body.fullscreen{height:100vh;max-height:100vh;overflow:hidden;
-  display:flex;flex-direction:column}
-body.fullscreen .status-strip{flex:none}
-body.fullscreen .command-bar{flex:none;max-width:none;width:100%;
-  padding:.45rem 1rem .3rem}
-/* full-bleed flex main that fills the remaining height; no .wrap max-width */
-.fullscreen-main{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;
-  gap:.5rem;padding:.35rem .8rem .7rem}
-.canvas-note{flex:none;color:var(--muted);font-size:11.5px;letter-spacing:.2px;padding:0 .1rem}
-.canvas-note .micro{color:#cdd6ff}
-.fullscreen-main .cosmos-vertical{flex:1 1 auto;min-height:0;gap:.6rem}
-/* top canvas is DOMINANT and grows; bottom pane scrolls internally */
-.fullscreen-main .top-canvas{flex:1 1 63%;min-height:0}
-.fullscreen-main .top-canvas .viewport{height:100%}
-.fullscreen-main .intel-pane{flex:0 0 37%;min-height:0;max-height:none;overflow:auto}
+/* the page SCROLLS naturally (no overflow lock); the HERO is the first full
+   screen -- the universe -- and the intelligence pane lives BELOW the fold. */
+body.sky{min-height:100vh;overflow-x:hidden}
+body.sky .command-bar{max-width:none;width:100%;padding:.4rem 1rem .3rem}
+/* HERO = the universe telescope view, sized to the first viewport minus header */
+.universe-hero{position:relative;width:100%;height:calc(100vh - 92px);
+  min-height:560px;padding:0 .6rem .2rem}
+.universe-hero .top-canvas{position:relative;height:100%;width:100%}
+.universe-hero .top-canvas .viewport{height:100%}
+/* the intelligence pane sits BELOW the fold: full width, natural height, scroll */
+.intel-section{width:100%;max-width:1180px;margin:1.1rem auto 3rem;
+  max-height:none;overflow:visible;border-radius:var(--r-lg)}
+
+/* --- telescopic deep-field background (parallax-able .sky-bg wrapper) --- */
+.sky-bg{position:absolute;inset:-12%;z-index:0;pointer-events:none;
+  transform-origin:center center;will-change:transform}
+.sky-bg .space-glow{position:absolute;inset:0;
+  background:
+    radial-gradient(46% 34% at 40% 30%, rgba(150,140,255,.24), rgba(6,8,20,0) 70%),
+    radial-gradient(40% 32% at 72% 66%, rgba(80,160,230,.16), rgba(6,8,20,0) 72%),
+    radial-gradient(70% 60% at 50% 50%, rgba(30,22,70,.5), rgba(6,8,20,0) 80%)}
+/* three tiled star layers (far/mid/near) for depth -- no per-star DOM */
+.star-far,.star-mid,.star-near{position:absolute;inset:0;background-repeat:repeat}
+.star-far{opacity:.5;background-size:340px 340px;background-image:
+  radial-gradient(0.8px 0.8px at 40px 60px,rgba(255,255,255,.55),transparent),
+  radial-gradient(0.8px 0.8px at 180px 220px,rgba(200,220,255,.45),transparent),
+  radial-gradient(0.7px 0.7px at 280px 120px,rgba(255,245,225,.4),transparent)}
+.star-mid{opacity:.7;background-size:260px 260px;background-image:
+  radial-gradient(1.1px 1.1px at 24px 32px,rgba(255,255,255,.8),transparent),
+  radial-gradient(1.2px 1.2px at 150px 60px,rgba(210,225,255,.7),transparent),
+  radial-gradient(1px 1px at 200px 190px,rgba(255,240,220,.6),transparent)}
+.star-near{opacity:.95;background-size:200px 200px;background-image:
+  radial-gradient(1.7px 1.7px at 60px 80px,rgba(255,255,255,.95),transparent),
+  radial-gradient(1.5px 1.5px at 150px 150px,rgba(190,220,255,.8),transparent)}
+.sky-bg .nebula{position:absolute;border-radius:50%;filter:blur(90px);opacity:.3}
+.sky-bg .neb-1{width:46%;height:52%;left:-8%;top:-12%;
+  background:radial-gradient(circle,#7b3ff2 0%,rgba(123,63,242,0) 66%)}
+.sky-bg .neb-2{width:54%;height:56%;right:-12%;top:14%;opacity:.22;
+  background:radial-gradient(circle,#2f6bd0 0%,rgba(47,107,208,0) 66%)}
+.sky-bg .neb-3{width:40%;height:44%;left:30%;bottom:-10%;opacity:.18;
+  background:radial-gradient(circle,#e0518a 0%,rgba(224,81,138,0) 66%)}
+/* a dark dust-lane silhouette across the field (depth cue) */
+.dust-lane{position:absolute;left:-10%;right:-10%;top:52%;height:26%;
+  transform:rotate(-11deg);filter:blur(30px);opacity:.6;
+  background:linear-gradient(90deg,rgba(4,4,12,0),rgba(4,4,12,.85) 45%,rgba(4,4,12,0))}
+/* softer vignette so it frames without overpowering the economic objects */
+.universe-hero .vignette{box-shadow:inset 0 0 260px 60px rgba(0,0,0,.72)}
+
+/* --- floating selected-object PREVIEW card (inside the hero) --- */
+.floating-preview{position:absolute;left:1rem;top:3.4rem;z-index:14;width:288px;
+  background:var(--glass);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border:1px solid var(--glass-line);border-radius:var(--r-lg);box-shadow:var(--shadow);
+  padding:.8rem .9rem;transition:opacity .2s ease,transform .2s ease}
+.floating-preview.dismissed{opacity:0;pointer-events:none;transform:translateY(-6px)}
+.fp-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.fp-type{color:var(--cyan)}
+.fp-close{color:var(--faint);font-size:16px;line-height:1;font-weight:700}
+.fp-close:hover{color:#fff;text-decoration:none}
+.fp-title{margin:.2rem 0 .4rem;font-size:16px;letter-spacing:-.2px;color:#fff}
+.fp-body{font-size:11.5px;color:#cdd6ff}
+.fp-body b{font-family:var(--mono);color:#eaf6ff}
+.fp-body .pv-row{display:flex;justify-content:space-between;gap:.7rem;padding:.05rem 0}
+.fp-body .pv-row span{color:var(--faint)}
+.fp-actions{display:flex;gap:.4rem;margin-top:.6rem;flex-wrap:wrap}
+.fp-btn{font-size:11px;font-weight:700;color:#04121a;
+  background:linear-gradient(180deg,#7ff0ff,#3fc6e6);border-radius:999px;padding:.32rem .7rem}
+.fp-btn:hover{text-decoration:none;filter:brightness(1.06)}
+#fp-zoom{color:#dfe6ff;background:rgba(79,224,255,.1);border:1px solid rgba(79,224,255,.28)}
+@media(max-width:620px){.floating-preview{width:min(288px,86vw)}}
 
 /* ==================================================================== */
 /* 010A-FIX: no false universe centre; panoramic L0 field; semantic edges */
@@ -552,6 +606,15 @@ NAV_JS = """
       var intelBody=document.getElementById('intel-body');
       var backBtn=document.getElementById('zoom-back');
       var viewport=document.getElementById('viewport');
+      var skybg=document.querySelector('.sky-bg');
+      /* floating selected-object preview (the detail pane lives below the fold) */
+      var fp=document.getElementById('floating-preview');
+      var fpTitle=document.getElementById('fp-title');
+      var fpType=document.getElementById('fp-type');
+      var fpBody=document.getElementById('fp-body');
+      var fpZoom=document.getElementById('fp-zoom');
+      var fpDetails=document.getElementById('fp-details');
+      var fpClose=document.getElementById('fp-close');
       var current='universe';
       var view={scale:1,tx:0,ty:0};
 
@@ -578,8 +641,32 @@ NAV_JS = """
       function applyTransform(){
         var el=activeTransform();
         if(el){el.style.transform='translate('+view.tx+'px,'+view.ty+'px) scale('+view.scale+')';}
+        /* parallax: the deep-field background moves a fraction of the pan/zoom (depth) */
+        if(skybg){var ps=1+(view.scale-1)*0.35;
+          skybg.style.transform='translate('+(view.tx*0.35)+'px,'+(view.ty*0.35)+'px) scale('+ps+')';}
       }
       function resetView(){view.scale=1;view.tx=0;view.ty=0;applyTransform();}
+      /* update the floating preview card from a clicked object (existing fields only) */
+      function updatePreview(obj){
+        if(!fp){return;}
+        if(fpTitle){fpTitle.textContent=obj.getAttribute('data-title')||'';}
+        if(fpType){fpType.textContent=(obj.getAttribute('data-kind')||'object').replace(/_/g,' ');}
+        if(fpBody){var tip=obj.querySelector('.body-tip');
+          fpBody.innerHTML=tip?tip.innerHTML:'';}
+        fp.classList.remove('dismissed');
+        var tp=obj.getAttribute('data-target-path');
+        if(fpZoom){
+          if(tp){fpZoom.style.display='inline-block';fpZoom.setAttribute('data-goto',tp);}
+          else{fpZoom.style.display='none';fpZoom.removeAttribute('data-goto');}
+        }
+      }
+      if(fpDetails){fpDetails.addEventListener('click',function(e){
+        e.preventDefault();
+        var pane=document.getElementById('intel-pane');
+        if(pane&&pane.scrollIntoView){pane.scrollIntoView({behavior:'smooth',block:'start'});}
+      });}
+      if(fpClose){fpClose.addEventListener('click',function(e){
+        e.preventDefault(); if(fp){fp.classList.add('dismissed');}});}
       function buildCrumb(path){
         if(!breadcrumb){return;}
         var chain=[]; var node=panelByPath(path);
@@ -607,11 +694,13 @@ NAV_JS = """
         objs[i].addEventListener('click',function(){
           for(var s=0;s<objs.length;s++){objs[s].classList.remove('selected');}
           this.classList.add('selected');       /* persistent SELECTED state */
+          updatePreview(this);                   /* floating preview inside the hero */
           var myIntel=this.getAttribute('data-intel');
           var tp=this.getAttribute('data-target-path');
           if(tp && panelByPath(tp)){showLevel(tp);}
           /* the clicked object's OWN intel wins -- set AFTER any level change so a
-             level's intel can never overwrite the explicitly selected object */
+             level's intel can never overwrite the explicitly selected object; the
+             below-the-fold intelligence pane updates from the SAME id */
           setIntel(myIntel);
         });
       }

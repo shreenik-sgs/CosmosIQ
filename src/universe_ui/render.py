@@ -135,9 +135,10 @@ def _footer() -> str:
 
 
 def _page(title: str, current_file: str, body: str, full_screen: bool = False) -> str:
-    """Render a full page. ``full_screen`` gives the Economic Universe page a
-    100vh, no-page-scroll, full-bleed shell (status strip + command bar + a flex
-    main that fills the rest); other pages keep the document ``.wrap`` layout."""
+    """Render a full page. ``full_screen`` gives the Economic Universe page the
+    immersive SKY shell: a sticky status strip + command bar, then a full-viewport
+    telescope universe HERO, with the intelligence pane BELOW the fold (the page
+    scrolls naturally). Other pages keep the document ``.wrap`` layout."""
     head = [
         "<!DOCTYPE html>",
         '<html lang="en">',
@@ -150,10 +151,10 @@ def _page(title: str, current_file: str, body: str, full_screen: bool = False) -
     ]
     if full_screen:
         middle = [
-            '<body class="fullscreen">',
+            '<body class="sky">',
             _status_strip(),
             _command_bar(current_file),
-            body,  # body is the .fullscreen-main flex container
+            body,  # body is the .universe-app (hero + below-fold intel section)
         ]
     else:
         middle = [
@@ -253,15 +254,22 @@ def _intel_id_moon(node_id: str) -> str:
 # Deep-space scene: deterministic starfield + object positioning              #
 # --------------------------------------------------------------------------- #
 def _space_background() -> str:
-    """A low-noise, static deep-space backdrop built entirely from CSS layers:
-    an off-centre galactic glow, a violet nebula wash, ONE subtle tiled star texture,
-    and a vignette. No per-star DOM and no randomness -- the background recedes so the
-    economic objects are the focus. Byte-stable."""
+    """A telescopic deep-field backdrop built entirely from CSS layers (no per-star
+    DOM, no randomness, no remote image): a galactic-core bloom, THREE tiled star
+    layers (far/mid/near for depth), soft nebula clouds, a dust-lane silhouette, and a
+    vignette -- wrapped in ``.sky-bg`` so JS can PARALLAX it a fraction of the pan/zoom.
+    Byte-stable; the background recedes so the economic objects lead."""
     return (
-        '<div class="space-glow" aria-hidden="true"></div>'
-        '<div class="space-stars" aria-hidden="true"></div>'
-        '<div class="nebula neb-1" aria-hidden="true"></div>'
-        '<div class="nebula neb-2" aria-hidden="true"></div>'
+        '<div class="sky-bg" aria-hidden="true">'
+        '<div class="space-glow"></div>'
+        '<div class="star-far"></div>'
+        '<div class="star-mid"></div>'
+        '<div class="star-near"></div>'
+        '<div class="nebula neb-1"></div>'
+        '<div class="nebula neb-2"></div>'
+        '<div class="nebula neb-3"></div>'
+        '<div class="dust-lane"></div>'
+        "</div>"
         '<div class="vignette" aria-hidden="true"></div>'
     )
 
@@ -447,8 +455,8 @@ def _cosmic_object(*, kind: str, path: str, target_path: str, target_level,
         classes.append(ev_class)
     if extra_class:
         classes.append(extra_class)
-    attrs = 'data-kind="{0}" data-path="{1}" data-intel="{2}"'.format(
-        _esc(kind), _esc(path), _esc(intel_id))
+    attrs = 'data-kind="{0}" data-path="{1}" data-intel="{2}" data-title="{3}"'.format(
+        _esc(kind), _esc(path), _esc(intel_id), _esc(title))
     if target_path:
         attrs += ' data-target-path="{0}" data-target-level="{1}"'.format(
             _esc(target_path), _esc(target_level))
@@ -1141,11 +1149,29 @@ def render_universe(view: EconomicUniverseView) -> str:
                 kind="Planet / company", title="{0} ({1})".format(p.company, p.ticker),
                 objects_html=moon_objs, intel_id=_intel_id_planet(p), active=False))
 
-    viewport = '<div id="viewport" class="viewport">{0}{1}{2}</div>'.format(
-        _space_background(), "".join(panels), _legend())
+    # Floating preview card INSIDE the universe hero (the detail pane is below the
+    # fold, so a click updates this compact card here AND the pane below).
+    floating = (
+        '<div id="floating-preview" class="floating-preview" aria-live="polite">'
+        '<div class="fp-head"><span id="fp-type" class="fp-type micro">select an object</span>'
+        '<a id="fp-close" class="fp-close" href="#" aria-label="dismiss">×</a></div>'
+        '<h3 id="fp-title" class="fp-title">Economic Universe</h3>'
+        '<div id="fp-body" class="fp-body"><p class="note">Click a galaxy, star or planet '
+        "to preview it here — the full intelligence briefing is below.</p></div>"
+        '<div class="fp-actions">'
+        '<a id="fp-details" class="fp-btn" href="#intel-pane">View details below ↓</a>'
+        '<a id="fp-zoom" class="fp-btn" href="#" style="display:none">Zoom in ⤢</a>'
+        "</div></div>")
+    # Compact overlay note (does not consume hero height).
+    note = (
+        '<div class="canvas-note"><span class="micro">Economic Universe</span>'
+        " · read-only projection · size ∝ magnitude (not a ranking) · no live data"
+        " · scroll = zoom · drag = pan · click = an object</div>")
+    viewport = '<div id="viewport" class="viewport">{0}{1}{2}{3}{4}</div>'.format(
+        _space_background(), "".join(panels), floating, note, _legend())
     intel_store = '<div class="intel-store" aria-hidden="true">{0}</div>'.format("".join(store))
-    top = (
-        '<section id="top-canvas" class="top-canvas" aria-label="Infinite Canvas (top pane)">'
+    canvas = (
+        '<section id="top-canvas" class="top-canvas" aria-label="Universe (telescope view)">'
         '<div class="canvas-bar">'
         '<nav id="breadcrumb" class="breadcrumb">'
         '<a class="crumb" data-goto="universe" href="#path=universe">Universe</a></nav>'
@@ -1159,20 +1185,15 @@ def render_universe(view: EconomicUniverseView) -> str:
         '<span class="hint">scroll = zoom · drag = pan · click = descend</span>'
         "</div></div>"
         + viewport + "</section>")
-    bottom = (
-        '<section id="intel-pane" class="intel-pane" aria-label="Intelligence Pane (bottom)">'
+    # HERO = the full-viewport telescope universe (first screen); the intelligence
+    # pane sits BELOW the fold, full width, revealed by scrolling.
+    hero = '<section class="universe-hero">{0}</section>'.format(canvas)
+    intel = (
+        '<section id="intel-pane" class="intel-pane intel-section" '
+        'aria-label="Intelligence Pane (below the fold)">'
         '<div id="intel-body" class="detail-body">{0}</div></section>'.format(universe_intel))
-    # Compact one-line note (no big H1 / lead eating vertical space).
-    note = (
-        '<div class="canvas-note"><span class="micro">Economic Universe</span>'
-        " · read-only projection · size ∝ magnitude (not a ranking) · no live data"
-        " · scroll = zoom · drag = pan · click = descend</div>")
     body = (
-        '<div class="fullscreen-main universe-app">'
-        + note
-        + '<div class="cosmos-vertical">{0}{1}</div>'.format(top, bottom)
-        + "</div>"
-        + intel_store)
+        '<div class="universe-app">' + hero + intel + "</div>" + intel_store)
     return _page("Economic Universe", "universe.html", body, full_screen=True)
 
 
