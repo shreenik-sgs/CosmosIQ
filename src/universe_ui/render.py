@@ -1150,26 +1150,21 @@ def render_universe(view: EconomicUniverseView) -> str:
                 kind="Planet / company", title="{0} ({1})".format(p.company, p.ticker),
                 objects_html=moon_objs, intel_id=_intel_id_planet(p), active=False))
 
-    # Floating preview card INSIDE the universe hero (the detail pane is below the
-    # fold, so a click updates this compact card here AND the pane below).
+    # Floating preview card INSIDE the universe hero. HIDDEN by default (starts
+    # ``dismissed``); it only appears once the user clicks an object, and a click
+    # updates this compact card here AND the full pane below.
     floating = (
-        '<div id="floating-preview" class="floating-preview" aria-live="polite">'
-        '<div class="fp-head"><span id="fp-type" class="fp-type micro">select an object</span>'
+        '<div id="floating-preview" class="floating-preview dismissed" aria-live="polite">'
+        '<div class="fp-head"><span id="fp-type" class="fp-type micro">object</span>'
         '<a id="fp-close" class="fp-close" href="#" aria-label="dismiss">×</a></div>'
-        '<h3 id="fp-title" class="fp-title">Economic Universe</h3>'
-        '<div id="fp-body" class="fp-body"><p class="note">Click a galaxy, star or planet '
-        "to preview it here — the full intelligence briefing is below.</p></div>"
+        '<h3 id="fp-title" class="fp-title"></h3>'
+        '<div id="fp-body" class="fp-body"></div>'
         '<div class="fp-actions">'
         '<a id="fp-details" class="fp-btn" href="#intel-pane">View details below ↓</a>'
         '<a id="fp-zoom" class="fp-btn" href="#" style="display:none">Zoom in ⤢</a>'
         "</div></div>")
-    # Compact overlay note (does not consume hero height).
-    note = (
-        '<div class="canvas-note"><span class="micro">Economic Universe</span>'
-        " · read-only projection · size ∝ magnitude (not a ranking) · no live data"
-        " · scroll = zoom · drag = pan · click = an object</div>")
-    viewport = '<div id="viewport" class="viewport">{0}{1}{2}{3}{4}</div>'.format(
-        _space_background(), "".join(panels), floating, note, _legend())
+    viewport = '<div id="viewport" class="viewport">{0}{1}{2}{3}</div>'.format(
+        _space_background(), "".join(panels), floating, _legend())
     intel_store = '<div class="intel-store" aria-hidden="true">{0}</div>'.format("".join(store))
     canvas = (
         '<section id="top-canvas" class="top-canvas" aria-label="Universe (telescope view)">'

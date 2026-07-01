@@ -531,8 +531,10 @@ class ZoomableUniverseTests(unittest.TestCase):
         self.assertIn('id="top-canvas"', hero)             # the canvas is inside the hero
         self.assertNotIn('class="wrap"', self.u)           # no 1200px document width
         self.assertNotIn("<h1>Economic Universe</h1>", self.u)  # big intro trimmed
-        self.assertIn('class="canvas-note"', self.u)       # compact overlay note
-        # a floating selected-object preview lives inside the universe hero
+        self.assertNotIn('class="canvas-note"', self.u)    # overlay note removed
+        # a floating selected-object preview lives inside the universe hero, but is
+        # HIDDEN by default -- it only appears once the user clicks an object
+        self.assertIn('class="floating-preview dismissed"', self.u)
         self.assertIn('id="floating-preview"', self.u)
         self.assertIn('id="fp-details"', self.u)           # "View details below" target
         self.assertIn('href="#intel-pane"', self.u)
