@@ -506,9 +506,13 @@ body.sky .command-bar{max-width:none;width:100%;padding:.4rem 1rem .3rem}
   min-height:560px;padding:0 .6rem .2rem}
 .universe-hero .top-canvas{position:relative;height:100%;width:100%}
 .universe-hero .top-canvas .viewport{height:100%}
-/* the intelligence pane sits BELOW the fold: full width, natural height, scroll */
-.intel-section{width:100%;max-width:1180px;margin:1.1rem auto 3rem;
-  max-height:none;overflow:visible;border-radius:var(--r-lg)}
+/* the intelligence pane sits BELOW the fold as a SECOND full-screen section:
+   full width, at least one viewport tall, natural scroll */
+.intel-section{width:100%;max-width:none;min-height:100vh;margin:0;
+  padding:1.6rem clamp(1rem,4vw,3rem) 3rem;max-height:none;overflow:visible;
+  border-radius:0;border-top:1px solid var(--glass-line);box-shadow:none}
+/* keep long-form briefing text readable inside the full-width section */
+.intel-section .detail-body{max-width:1180px;margin:0 auto}
 
 /* --- telescopic deep-field background (parallax-able .sky-bg wrapper) --- */
 .sky-bg{position:absolute;inset:-12%;z-index:0;pointer-events:none;

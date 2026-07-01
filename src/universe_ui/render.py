@@ -402,6 +402,7 @@ def _legend() -> str:
         ("size", "economic magnitude"),
         ("brightness", "heat / signal convergence"),
         ("color", "status / risk"),
+        ("link line", "economic relationship (hover)"),
         ("orbit distance", "directness of exposure"),
         ("halo", "catalyst / crowding"),
         ("red shadow", "red-team / dilution / insolvency"),
