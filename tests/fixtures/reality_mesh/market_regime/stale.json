@@ -1,0 +1,56 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- risk-off internals whose market data is STALE. Must be marked stale, not dropped.",
+  "events": [
+    {
+      "event_id": "mr.st.breadth",
+      "timestamp": "2026-06-20T13:30:00Z",
+      "source_id": "fixture.market_breadth",
+      "source_type": "index_breadth_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "market_regime",
+      "event_type": "index_breadth_reading",
+      "observed_fact": "share of S&P 1500 constituents above their 200-day moving average (stale snapshot)",
+      "numeric_values": [["pct_above_200dma", 33, "percent"]],
+      "evidence_refs": ["ex.breadth.200dma"],
+      "source_refs": ["fixture:breadth/pct_above_200dma"],
+      "confidence_label": "low",
+      "freshness_label": "stale",
+      "half_life": "days"
+    },
+    {
+      "event_id": "mr.st.distribution",
+      "timestamp": "2026-06-20T13:30:00Z",
+      "source_id": "fixture.market_technicals",
+      "source_type": "distribution_day_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "market_regime",
+      "event_type": "distribution_day_count",
+      "observed_fact": "institutional selling (distribution) days in the last 25 sessions (stale snapshot)",
+      "numeric_values": [["distribution_day_count", 7, "days"]],
+      "evidence_refs": ["ex.distribution"],
+      "source_refs": ["fixture:technicals/distribution_days"],
+      "confidence_label": "low",
+      "freshness_label": "stale",
+      "half_life": "days"
+    },
+    {
+      "event_id": "mr.st.volatility",
+      "timestamp": "2026-06-20T13:30:00Z",
+      "source_id": "fixture.volatility",
+      "source_type": "volatility_index_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "market_regime",
+      "event_type": "volatility_regime_reading",
+      "observed_fact": "equity volatility index level (stale snapshot)",
+      "numeric_values": [["vix_level", 31, "points"]],
+      "evidence_refs": ["ex.vix"],
+      "source_refs": ["fixture:volatility/vix_level"],
+      "confidence_label": "low",
+      "freshness_label": "stale",
+      "half_life": "days"
+    }
+  ]
+}

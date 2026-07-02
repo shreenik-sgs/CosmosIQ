@@ -1,0 +1,39 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- no Index Breadth input at all. The absence must surface as an explicit data gap, never a fabricated breadth value.",
+  "events": [
+    {
+      "event_id": "mr.mb.distribution",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "fixture.market_technicals",
+      "source_type": "distribution_day_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "market_regime",
+      "event_type": "distribution_day_count",
+      "observed_fact": "institutional selling (distribution) days in the last 25 sessions",
+      "numeric_values": [["distribution_day_count", 6, "days"]],
+      "evidence_refs": ["ex.distribution"],
+      "source_refs": ["fixture:technicals/distribution_days"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "event_id": "mr.mb.volatility",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "fixture.volatility",
+      "source_type": "volatility_index_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "market_regime",
+      "event_type": "volatility_regime_reading",
+      "observed_fact": "equity volatility index level",
+      "numeric_values": [["vix_level", 27, "points"]],
+      "evidence_refs": ["ex.vix"],
+      "source_refs": ["fixture:volatility/vix_level"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    }
+  ]
+}
