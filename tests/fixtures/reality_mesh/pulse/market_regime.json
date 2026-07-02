@@ -1,0 +1,73 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- bundled manual-pulse market-regime inputs (constructive / risk-on). No live data, no network. Deterministic.",
+  "events": [
+    {
+      "event_id": "pulse.mr.breadth",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "fixture.market_breadth",
+      "source_type": "index_breadth_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "market_regime",
+      "event_type": "index_breadth_reading",
+      "observed_fact": "share of S&P 1500 constituents above their 200-day moving average",
+      "numeric_values": [["pct_above_200dma", 64, "percent"]],
+      "evidence_refs": ["ex.pulse.breadth.200dma"],
+      "source_refs": ["fixture:pulse/breadth/pct_above_200dma"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "event_id": "pulse.mr.advdecl",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "fixture.market_breadth",
+      "source_type": "advance_decline_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "market_regime",
+      "event_type": "advance_decline_reading",
+      "observed_fact": "advancers versus decliners on the primary exchange",
+      "numeric_values": [["adv_decl_ratio", 1.8, "ratio"]],
+      "evidence_refs": ["ex.pulse.advdecl"],
+      "source_refs": ["fixture:pulse/breadth/adv_decl_ratio"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "event_id": "pulse.mr.volatility",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "fixture.volatility",
+      "source_type": "volatility_index_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "market_regime",
+      "event_type": "volatility_regime_reading",
+      "observed_fact": "equity volatility index level",
+      "numeric_values": [["vix_level", 16, "points"]],
+      "evidence_refs": ["ex.pulse.vix"],
+      "source_refs": ["fixture:pulse/volatility/vix_level"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "event_id": "pulse.mr.smallcap",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "fixture.smallcap",
+      "source_type": "small_cap_relative_strength_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "market_regime",
+      "event_type": "small_cap_risk_appetite_reading",
+      "observed_fact": "small-cap relative strength versus large-cap (risk appetite proxy)",
+      "numeric_values": [["small_cap_relative_strength", 1.3, "zscore"]],
+      "evidence_refs": ["ex.pulse.smallcap"],
+      "source_refs": ["fixture:pulse/smallcap/rel_strength"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    }
+  ]
+}

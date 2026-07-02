@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- manual-pulse 8-K disclosing a material definitive agreement (contract) for IREN. SEC filing FACT: canonical + verified_fact. No live data.",
+  "events": [
+    {
+      "event_id": "pulse.nf.8k.iren",
+      "timestamp": "2026-06-29T13:45:00Z",
+      "source_id": "sec.edgar",
+      "source_type": "sec_8-k",
+      "source_authority": "canonical",
+      "claim_status": "verified_fact",
+      "raw_payload_ref": "edgar://IREN/8-K/0001234567-26-000045",
+      "discipline": "news_filings",
+      "event_type": "sec_8-k_material_definitive_agreement",
+      "affected_companies": ["IREN"],
+      "observed_fact": "issuer filed an 8-K (Item 1.01) disclosing a material definitive supply contract",
+      "numeric_values": [["contract_value_usd", 180000000, "usd"]],
+      "evidence_refs": ["ex.pulse.edgar.iren.8k"],
+      "source_refs": ["sec:edgar/IREN/8-K/0001234567-26-000045"],
+      "confidence_label": "high",
+      "freshness_label": "fresh",
+      "half_life": "weeks"
+    }
+  ]
+}

@@ -93,6 +93,12 @@ from .router import BuddhiRouter
 from .fusion import FusionResult, TattvaSignalFusionSynthesizer
 from .sphurana import SphuranaResult, ThemePulseSynthesizer
 from .render_adapters import build_pulse_data_quality_panel
+from .pulse import (
+    DEFAULT_PULSE_FIXTURE_DIR,
+    PulseAgentRun,
+    PulseResult,
+    run_pulse,
+)
 from .sensors import (
     MARKET_REGIME_FINDING_TYPES,
     MARKET_REGIME_SUBAGENTS,
@@ -240,4 +246,9 @@ __all__ = [
     "run_nivesha_thesis_on_forward_sidecar",
     # data-quality / universe signal integration (012J)
     "build_pulse_data_quality_panel",
+    # manual/on-demand pulse orchestrator (012K)
+    "run_pulse",
+    "PulseResult",
+    "PulseAgentRun",
+    "DEFAULT_PULSE_FIXTURE_DIR",
 ]

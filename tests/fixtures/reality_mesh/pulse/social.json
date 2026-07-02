@@ -1,0 +1,43 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- manual-pulse X/social narrative. WEAK by construction: rumor authority, never a verified fact. An unverified OUST buyout rumor + a robotics theme mention spike. No live X, no network.",
+  "events": [
+    {
+      "event_id": "pulse.narr.rumor.oust.buyout",
+      "timestamp": "2026-06-29T13:10:00Z",
+      "source_id": "x.unknown_account.anon777",
+      "source_type": "x_social",
+      "source_authority": "rumor",
+      "claim_status": "rumor",
+      "raw_payload_ref": "mock://x/posts/anon777/2026-06-29",
+      "discipline": "narrative",
+      "event_type": "unknown_account_rumor",
+      "affected_companies": ["OUST"],
+      "observed_fact": "anonymous account claims an unconfirmed buyout rumor for OUST (speculation; unverified)",
+      "numeric_values": [["mention_count", 420, "count"]],
+      "evidence_refs": ["ex.pulse.x.anon777.post"],
+      "source_refs": ["x:posts/anon777/2026-06-29"],
+      "confidence_label": "very_low",
+      "freshness_label": "fresh",
+      "half_life": "hours"
+    },
+    {
+      "event_id": "pulse.narr.theme.robotics",
+      "timestamp": "2026-06-29T13:05:00Z",
+      "source_id": "x.theme.mention.robotics",
+      "source_type": "x_social",
+      "source_authority": "rumor",
+      "claim_status": "rumor",
+      "raw_payload_ref": "mock://x/themes/robotics/2026-06-29",
+      "discipline": "narrative",
+      "event_type": "theme_mention_spike",
+      "affected_themes": ["robotics"],
+      "observed_fact": "theme mention velocity spike for 'robotics' across social (attention, not a confirmed rotation)",
+      "numeric_values": [["mention_count", 12000, "count"], ["mention_velocity_zscore", 2.7, "zscore"], ["unique_authors", 1800, "count"]],
+      "evidence_refs": ["ex.pulse.x.robotics.theme"],
+      "source_refs": ["x:themes/robotics/2026-06-29"],
+      "confidence_label": "low",
+      "freshness_label": "fresh",
+      "half_life": "hours"
+    }
+  ]
+}

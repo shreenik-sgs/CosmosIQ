@@ -1,0 +1,59 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- manual-pulse sector rotation INTO Semiconductors. The institutional-flow figure is a labelled PROXY, never verified institutional flow. No live data.",
+  "events": [
+    {
+      "event_id": "pulse.sr.semis.rs",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "fixture.sector_etf",
+      "source_type": "sector_etf_relative_strength_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "sector_rotation",
+      "event_type": "sector_relative_strength_reading",
+      "observed_fact": "Semiconductors sector ETF relative strength versus the broad market",
+      "affected_sectors": ["Semiconductors"],
+      "numeric_values": [["sector_relative_strength", 2.1, "zscore"]],
+      "evidence_refs": ["ex.pulse.sector.semis.rs"],
+      "source_refs": ["fixture:pulse/sector/semiconductors/rs"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "event_id": "pulse.sr.semis.breadth",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "fixture.sector_breadth",
+      "source_type": "industry_group_breadth_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "sector_rotation",
+      "event_type": "industry_group_breadth_reading",
+      "observed_fact": "share of semiconductor industry groups participating in the advance",
+      "affected_sectors": ["Semiconductors"],
+      "numeric_values": [["industry_group_breadth", 66, "percent"]],
+      "evidence_refs": ["ex.pulse.sector.semis.breadth"],
+      "source_refs": ["fixture:pulse/sector/semiconductors/breadth"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "event_id": "pulse.sr.semis.volume",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "fixture.sector_volume",
+      "source_type": "volume_expansion_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "sector_rotation",
+      "event_type": "volume_expansion_reading",
+      "observed_fact": "semiconductor sector up-volume versus its trailing average",
+      "affected_sectors": ["Semiconductors"],
+      "numeric_values": [["volume_expansion_ratio", 1.5, "ratio"]],
+      "evidence_refs": ["ex.pulse.sector.semis.volume"],
+      "source_refs": ["fixture:pulse/sector/semiconductors/volume"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    }
+  ]
+}
