@@ -91,6 +91,7 @@ from .registry import (
 )
 from .router import BuddhiRouter
 from .fusion import FusionResult, TattvaSignalFusionSynthesizer
+from .sphurana import SphuranaResult, ThemePulseSynthesizer
 from .sensors import (
     MARKET_REGIME_FINDING_TYPES,
     MARKET_REGIME_SUBAGENTS,
@@ -174,6 +175,9 @@ __all__ = [
     # fusion synthesizer (012C)
     "TattvaSignalFusionSynthesizer",
     "FusionResult",
+    # sphurana theme-pulse synthesizer (012F)
+    "ThemePulseSynthesizer",
+    "SphuranaResult",
     # sensor agents (012D)
     "MarketRegimeAgent",
     "MARKET_REGIME_FINDING_TYPES",
