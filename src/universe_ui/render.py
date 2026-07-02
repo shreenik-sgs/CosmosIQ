@@ -1580,6 +1580,135 @@ def _watchlist_dq_panel(dq: DataQualityView) -> str:
         '<div class="glass-panel">' + cards_html + "</div>")
 
 
+def _diag_label_badge(label: str) -> str:
+    """Badge for a TRUST / COMPLETENESS / status LABEL (never a number)."""
+    cls = {
+        "sufficient": "q-high", "direct": "q-high", "built": "q-high",
+        "partial": "q-medium", "weak": "gap", "fallback": "gap", "deferred": "gap",
+        "stale": "warn", "conflicted": "warn",
+        "missing": "hazard", "unclassified": "hazard", "failed": "hazard",
+        "source_failed": "hazard", "credentials_missing": "hazard",
+        "needs_human_review": "warn",
+    }.get(str(label), "")
+    return _badge(str(label), cls)
+
+
+def _diagnostics_panel(dq: DataQualityView) -> str:
+    """IMPLEMENTATION-010F TRUST / COMPLETENESS diagnostics panel (labels, not scores).
+
+    (A) overall terrain health, (B) per-ticker diagnostic table, (C) diagnostic cards,
+    (D) per-ticker DATA-SOURCING action list, (E) visual-encoding explanation. Every value
+    is a label / string copied from the typed diagnostics — no ranking, no score, no key,
+    no trade instruction. Empty (section omitted) in demo / evidence-fixture modes."""
+    diag = getattr(dq, "terrain_diagnostics", None)
+    if diag is None:
+        return ""
+
+    # A. overall terrain health -------------------------------------------- #
+    overall = "".join([
+        "<tr><th>Mode</th><td>{0}</td></tr>".format(_esc(diag.mode)),
+        "<tr><th>Requested / built / failed-or-deferred</th><td>{0} / {1} / {2}</td></tr>"
+        .format(_esc(len(diag.requested_tickers)), _esc(len(diag.built_tickers)),
+                _esc(len(diag.failed_tickers))),
+        "<tr><th>Source coverage</th><td>{0}</td></tr>".format(_esc(diag.coverage_summary)),
+        "<tr><th>TRUST level</th><td>{0}</td></tr>".format(_diag_label_badge(diag.trust_level)),
+        "<tr><th>COMPLETENESS level</th><td>{0}</td></tr>".format(
+            _diag_label_badge(diag.completeness_level)),
+        "<tr><th>Conflicts (resolved by authority)</th><td>{0}</td></tr>".format(
+            _esc(len(diag.unresolved_conflicts))),
+        "<tr><th>Stale / missing sources</th><td>{0}</td></tr>".format(
+            _esc(len(diag.stale_or_missing_sources))),
+    ])
+    warn_html = _list(diag.warnings, "no warnings")
+    actions_html = _list(diag.recommended_next_data_actions, "no data actions")
+    overall_html = (
+        '<h2>Terrain health &amp; trust</h2><div class="glass-panel">'
+        '<p class="note">TRUST and COMPLETENESS are data-quality LABELS (not scores, not a '
+        "ranking). TRUST reflects source authority + conflict resolution + theme "
+        "classification; COMPLETENESS reflects value-chain / bottleneck / TAM coverage.</p>"
+        '<table class="kv">' + overall + "</table>"
+        '<div class="brief-label micro">Run notes</div>' + warn_html
+        + '<div class="brief-label micro">Recommended next DATA actions (data-sourcing '
+        "only — never a trade instruction)</div>" + actions_html + "</div>")
+
+    # B. per-ticker diagnostic table --------------------------------------- #
+    def _src(statuses, key):
+        for s, st in statuses:
+            if s == key:
+                return _diag_label_badge(st)
+        return _badge("—", "gap")
+
+    trows = "".join(
+        "<tr><td>{tk}</td><td>{status}</td><td>{sec}</td><td>{fmp}</td><td>{yf}</td>"
+        '<td class="num">{can}</td><td class="num">{con}</td><td class="num">{cf}</td>'
+        '<td class="num">{gp}</td><td>{theme}</td><td>{vc}</td><td>{bn}</td>'
+        "<td>{ck}</td><td>{trust}</td></tr>".format(
+            tk=_esc(d.ticker), status=_diag_label_badge(d.terrain_status),
+            sec=_src(d.source_statuses, "sec"), fmp=_src(d.source_statuses, "fmp"),
+            yf=_src(d.source_statuses, "yfinance"),
+            can=_esc(d.canonical_coverage), con=_esc(d.convenience_coverage),
+            cf=_esc(len(d.unresolved_conflicts)), gp=_esc(len(d.data_gaps)),
+            theme=_diag_label_badge(d.theme_classification_status),
+            vc=_diag_label_badge(d.value_chain_status),
+            bn=_diag_label_badge(d.bottleneck_status),
+            ck=_diag_label_badge(d.cockpit_status),
+            trust=_diag_label_badge(d.trust_label))
+        for d in diag.per_ticker)
+    table_html = (
+        "<h2>Per-ticker diagnostics</h2>"
+        '<div class="glass-panel"><table class="chain"><tr><th>ticker</th><th>status</th>'
+        "<th>SEC</th><th>FMP</th><th>yfinance</th><th>canonical</th><th>convenience</th>"
+        "<th>conflicts</th><th>data gaps</th><th>theme</th><th>value chain</th>"
+        "<th>bottleneck</th><th>cockpit</th><th>trust</th></tr>"
+        + trows + "</table></div>")
+
+    # C. diagnostic cards -------------------------------------------------- #
+    if dq.diagnostic_cards:
+        cards = "".join(
+            '<div class="brief-card risk"><div class="brief-label micro">{0}</div>'
+            '<div class="brief-body">{1}</div></div>'.format(_esc(k), _esc(v))
+            for k, v in dq.diagnostic_cards)
+        cards_html = '<div class="cols">{0}</div>'.format(cards)
+    else:
+        cards_html = '<p class="note">no diagnostic conditions flagged</p>'
+    cards_html = ("<h2>Diagnostic cards</h2>"
+                  '<div class="glass-panel">' + cards_html + "</div>")
+
+    # D. per-ticker DATA-SOURCING action list ------------------------------ #
+    if dq.data_action_rows:
+        rows = "".join(
+            '<div class="brief-card"><div class="brief-label micro">{0}</div>{1}</div>'
+            .format(_esc(tk), _list(acts, "no actions"))
+            for tk, acts in dq.data_action_rows)
+        actions_block = '<div class="cols">{0}</div>'.format(rows)
+    else:
+        actions_block = '<p class="note">no data-sourcing actions outstanding</p>'
+    actions_block = (
+        "<h2>Data-sourcing actions per ticker</h2>"
+        '<div class="glass-panel"><p class="note">These are DATA-SOURCING actions only '
+        "(add a source, resolve a CIK, set a credential) — never a trade instruction.</p>"
+        + actions_block + "</div>")
+
+    # E. visual-encoding explanation --------------------------------------- #
+    ve_rows = ""
+    for label, channels in dq.visual_encoding_explanations:
+        chans = "".join(
+            "<li><b>{0}</b>: {1}</li>".format(_esc(ch), _esc(reason))
+            for ch, reason in channels)
+        ve_rows += (
+            '<div class="brief-card"><div class="brief-label micro">{0}</div>'
+            "<ul>{1}</ul></div>".format(_esc(label), chans))
+    ve_html = (
+        "<h2>Visual encoding — why each object is drawn this way</h2>"
+        '<div class="glass-panel"><p class="note">Each channel is a projection of an '
+        "EXISTING field (the encoding basis) — why a neutral size, a dashed outline, a red "
+        "shadow, low opacity, a halo or a glow. No channel is a score or a ranking.</p>"
+        '<div class="cols">' + (ve_rows or '<p class="note">no encoded objects</p>')
+        + "</div></div>")
+
+    return overall_html + table_html + cards_html + actions_block + ve_html
+
+
 def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
                         notice: str = "") -> str:
     is_ev = "evidence" in (dq.run_mode or "").lower()
@@ -1610,6 +1739,7 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
             "data may be incomplete — completeness is NOT claimed.</p>"
             '<table class="kv">' + rows + meta + "</table></div>")
     watchlist_html = _watchlist_dq_panel(dq)
+    diagnostics_html = _diagnostics_panel(dq)
     boundary = "".join([
         "<tr><th>Run mode</th><td>{0}</td></tr>".format(_esc(dq.run_mode)),
         "<tr><th>Fixture / demo</th><td>{0}</td></tr>".format(_esc(dq.fixture_demo_status)),
@@ -1631,6 +1761,8 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
         # A. real-source status + (watchlist) overall run + per-ticker table + gaps
         + source_status_html
         + watchlist_html
+        # 010F: typed TRUST / COMPLETENESS diagnostics + theme classification + encoding
+        + diagnostics_html
         + '<h2>Source hierarchy pipeline</h2>'
         + '<div class="glass-panel">' + _dq_pipeline(dq)
         + '<p class="note">Authority order: SEC canonical (EDGAR) &gt; FMP convenience &gt; '

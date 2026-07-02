@@ -377,6 +377,14 @@ class DataQualityView:
     per_ticker_rows: Tuple[Tuple[Any, ...], ...] = ()
     # (kind/ticker label, human message) failure & gap cards
     failure_cards: Tuple[Tuple[str, str], ...] = ()
+    # IMPLEMENTATION-010F diagnostics (label-only; None in demo / fixture modes).
+    # The typed TerrainQualityDiagnostic; per-ticker rows / cards / actions / encoding
+    # explanations are pre-projected so the renderer stays dumb.
+    terrain_diagnostics: Any = None
+    diagnostic_cards: Tuple[Tuple[str, str], ...] = ()
+    data_action_rows: Tuple[Tuple[str, Tuple[str, ...]], ...] = ()
+    object_annotations: Tuple[Tuple[str, str], ...] = ()
+    visual_encoding_explanations: Tuple[Tuple[str, Tuple[Tuple[str, str], ...]], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -795,6 +803,9 @@ def build_data_quality_view(iren_slice, terrain=None, source_status=None,
     subject = getattr(iren_slice, "subject", "") or ""
 
     wl_fields = _watchlist_dq_fields(watchlist_summary)
+    diag_fields = _diagnostic_dq_fields(
+        terrain, iren_slice, source_status, watchlist_summary,
+        is_real=is_real, is_watchlist=is_watchlist)
     if is_watchlist:
         status_pairs = ()
         run_ts = str(watchlist_summary.run_timestamp)
@@ -847,6 +858,7 @@ def build_data_quality_view(iren_slice, terrain=None, source_status=None,
                     or (REAL_ON_DEMAND_MODE if (is_real or is_watchlist) else "")),
         deferred_records_count=deferred_n,
         **wl_fields,
+        **diag_fields,
     )
 
 
@@ -890,6 +902,127 @@ def _watchlist_dq_fields(watchlist_summary) -> dict:
         "wl_deferred": watchlist_summary.deferred_count,
         "per_ticker_rows": tuple(rows),
         "failure_cards": tuple(cards),
+    }
+
+
+# --------------------------------------------------------------------------- #
+# IMPLEMENTATION-010F: typed TRUST / COMPLETENESS diagnostics (labels, not      #
+# scores) projected for the Data-Quality dashboard. Empty unless the terrain is #
+# a real-evidence terrain (single 010D ticker or 010E watchlist).               #
+# --------------------------------------------------------------------------- #
+def _node_label(node) -> str:
+    """A short, human, deterministic label for a terrain node (for the diagnostic UI)."""
+    kind = type(node).__name__.replace("Node", "")
+    name = getattr(node, "ticker", "") or getattr(node, "company_name", "") \
+        or getattr(node, "name", "") or getattr(node, "id", "")
+    return "{0} · {1}".format(kind, name)
+
+
+def _diagnostic_cards_from(diag) -> Tuple[Tuple[str, str], ...]:
+    """Diagnostic CARDS (one per distinct condition present). Data-quality only."""
+    from .terrain import CompanyNode  # noqa: F401 -- kept local; module-level import unused
+    seen = set()
+    cards: list = []
+
+    def add(label, body):
+        if label in seen:
+            return
+        seen.add(label)
+        cards.append((label, body))
+
+    for d in diag.per_ticker:
+        if d.terrain_status in ("failed", "deferred"):
+            add("source failure", "{0}: {1} — recorded as a visible failure, not dropped"
+                .format(d.ticker, d.terrain_status))
+            continue
+        if d.theme_classification_status in ("missing", "unclassified"):
+            add("unclassified ticker",
+                "{0}: no OpportunityHypothesis / theme could not be inferred — parked for "
+                "human theme inference".format(d.ticker))
+        if d.theme_classification_status == "weak":
+            add("weak theme", "{0}: theme named but convergence is thin (weak, not upgraded)"
+                .format(d.ticker))
+        if d.value_chain_status in ("weak", "missing"):
+            add("missing value chain",
+                "{0}: value-chain coverage is a placeholder (no supplier/customer layers)"
+                .format(d.ticker))
+        if d.bottleneck_status in ("weak", "missing"):
+            add("missing bottleneck",
+                "{0}: bottleneck is constraint context — not quantified".format(d.ticker))
+        acts = " ".join(d.data_actions)
+        if "market-cap" in acts:
+            add("missing market cap", "{0}: market cap not surfaced — neutral size + gap"
+                .format(d.ticker))
+        if "TAM" in acts:
+            add("missing TAM", "{0}: theme TAM / revenue pool not quantified".format(d.ticker))
+        if "supplier / customer" in acts:
+            add("missing supplier/customer",
+                "{0}: no named suppliers/customers mapped".format(d.ticker))
+        if d.source_statuses and any(st == "credentials_missing" and src == "sec"
+                                     for src, st in d.source_statuses):
+            add("missing SEC User-Agent",
+                "{0}: canonical SEC source unavailable (no key leaked; a data gap)"
+                .format(d.ticker))
+        if d.source_statuses and any(st == "credentials_missing" and src == "fmp"
+                                     for src, st in d.source_statuses):
+            add("missing FMP key",
+                "{0}: convenience FMP source unavailable (key never shown; a data gap)"
+                .format(d.ticker))
+
+    if diag.unresolved_conflicts:
+        add("conflicting financial facts",
+            "{0} source conflict(s) detected; all resolved by authority (SEC canonical over "
+            "FMP convenience)".format(len(diag.unresolved_conflicts)))
+    if diag.stale_or_missing_sources:
+        add("stale / deferred source",
+            "sources credential-missing / deferred / unavailable: {0}".format(
+                len(diag.stale_or_missing_sources)))
+    return tuple(cards)
+
+
+def _diagnostic_dq_fields(terrain, iren_slice, source_status, watchlist_summary,
+                          *, is_real, is_watchlist) -> dict:
+    """Project the typed diagnostics into render-ready view fields (labels, not scores).
+
+    Nothing is fetched or scored: the diagnostic builder derives everything from the
+    existing terrain nodes + run summary. Returns ``{}`` for demo / evidence-fixture modes
+    so those pages stay byte-identical."""
+    if not is_real:
+        return {}
+    from .terrain import (BottleneckNode, CompanyNode, DependencyNode, GalaxyNode,
+                          ValueChainNode)
+    from .terrain_diagnostics import (
+        build_terrain_diagnostics, diagnostics_by_object_id, explain_visual_encoding,
+        single_ticker_run_summary)
+
+    if is_watchlist:
+        summary = watchlist_summary
+    else:
+        summary = single_ticker_run_summary(terrain, source_status or {}, iren_slice)
+
+    diag = build_terrain_diagnostics(terrain, summary)
+    ann_map = diagnostics_by_object_id(terrain, diag)
+
+    object_annotations = tuple(
+        (_node_label(node), ann_map[nid])
+        for nid, node in terrain.all_nodes()
+        if nid in ann_map and ann_map[nid])
+
+    ve_types = (GalaxyNode, ValueChainNode, BottleneckNode, CompanyNode, DependencyNode)
+    ve = tuple(
+        (_node_label(node), explain_visual_encoding(node))
+        for _nid, node in terrain.all_nodes()
+        if isinstance(node, ve_types) and explain_visual_encoding(node))
+
+    action_rows = tuple(
+        (d.ticker, d.data_actions) for d in diag.per_ticker if d.data_actions)
+
+    return {
+        "terrain_diagnostics": diag,
+        "diagnostic_cards": _diagnostic_cards_from(diag),
+        "data_action_rows": action_rows,
+        "object_annotations": object_annotations,
+        "visual_encoding_explanations": ve,
     }
 
 
