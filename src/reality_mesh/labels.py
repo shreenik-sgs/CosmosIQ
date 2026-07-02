@@ -160,6 +160,53 @@ THEME_PULSE_STATES: FrozenSet[str] = frozenset(
 )
 
 # --------------------------------------------------------------------------- #
+# Runtime vocabularies (IMPLEMENTATION-013A -- Phase-013 runtime objects)       #
+# --------------------------------------------------------------------------- #
+
+# Honestly-labelled pulse-run modes (RUNTIME_CONTRACT_013 §1). ``demo`` stays the DEFAULT;
+# a real/pulse mode is always explicit -- there is never a silent demo fall-back.
+RUN_MODES: FrozenSet[str] = frozenset(
+    {"demo", "fixture", "real_evidence_on_demand", "enriched", "pulse"}
+)
+
+# How a pulse was triggered. In Phase 013 ONLY ``manual`` is ALLOWED at construction;
+# ``scheduled`` / ``streaming`` are RESERVED/DEFERRED (rejected until Phase 015 + a new ADR).
+# The full closed vocabulary is kept so the reserved members are named (and provably rejected),
+# but only ``ALLOWED_TRIGGER_TYPES`` may be constructed.
+ALLOWED_TRIGGER_TYPES: FrozenSet[str] = frozenset({"manual"})
+RESERVED_TRIGGER_TYPES: FrozenSet[str] = frozenset({"scheduled", "streaming"})
+TRIGGER_TYPES: FrozenSet[str] = ALLOWED_TRIGGER_TYPES | RESERVED_TRIGGER_TYPES
+
+# Overall run / data-quality status (RUNTIME_CONTRACT_013 §1; OBSERVABILITY_CONTRACT_013 §2).
+# A degraded / partial run still renders Data Quality; ``blocked_by_policy`` is a gate refusal.
+RUN_STATUSES: FrozenSet[str] = frozenset(
+    {"healthy", "degraded", "failed", "blocked_by_policy"}
+)
+# ``data_quality_status`` draws from the same closed set.
+DATA_QUALITY_STATUSES: FrozenSet[str] = RUN_STATUSES
+
+# The five allowed outcomes of one agent run (RUNTIME_CONTRACT_013 §3). A ``failed`` /
+# ``blocked_by_policy`` result NEVER crashes the pulse -- it becomes a health record + a gap.
+AGENT_RUN_STATUSES: FrozenSet[str] = frozenset(
+    {"success", "partial", "failed", "skipped", "blocked_by_policy"}
+)
+
+# Rolling health states for agents / sources / the run (OBSERVABILITY_CONTRACT_013 §2).
+HEALTH_STATES: FrozenSet[str] = frozenset(
+    {
+        "healthy",
+        "degraded",
+        "failed",
+        "blocked_by_policy",
+        "stale",
+        "credentials_missing",
+        "rate_limited",
+        "source_unavailable",
+    }
+)
+
+
+# --------------------------------------------------------------------------- #
 # Routing vocabularies                                                         #
 # --------------------------------------------------------------------------- #
 
@@ -355,3 +402,35 @@ def is_social_source(source_type: str = "", discipline: str = "") -> bool:
 def ordered_authorities() -> Tuple[str, ...]:
     """The reused authorities, strongest first (for display / tests)."""
     return tuple(sorted(SOURCE_AUTHORITIES, key=authority_rank, reverse=True))
+
+
+# --------------------------------------------------------------------------- #
+# Runtime membership helpers (013A)                                            #
+# --------------------------------------------------------------------------- #
+def is_run_mode(value: str) -> bool:
+    return is_member(RUN_MODES, value)
+
+
+def is_trigger_type(value: str) -> bool:
+    """True iff ``value`` is an ALLOWED (constructible) trigger type -- ``manual`` only.
+
+    ``scheduled`` / ``streaming`` are RESERVED and return False (rejected at construction).
+    """
+    return is_member(ALLOWED_TRIGGER_TYPES, value)
+
+
+def is_reserved_trigger_type(value: str) -> bool:
+    """True iff ``value`` is a RESERVED/DEFERRED trigger type (``scheduled`` / ``streaming``)."""
+    return value in RESERVED_TRIGGER_TYPES
+
+
+def is_run_status(value: str) -> bool:
+    return is_member(RUN_STATUSES, value)
+
+
+def is_agent_run_status(value: str) -> bool:
+    return is_member(AGENT_RUN_STATUSES, value)
+
+
+def is_health_state(value: str) -> bool:
+    return is_member(HEALTH_STATES, value)
