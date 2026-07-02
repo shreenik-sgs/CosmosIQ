@@ -54,6 +54,12 @@ from .coverage import (
     TickerEnrichmentCoverage,
     build_enrichment_coverage,
 )
+from .nivesha_adapter import (
+    MappedField,
+    NiveshaInputMapping,
+    run_nivesha_thesis_on_enrichment,
+    to_nivesha_diligence_inputs,
+)
 
 __all__ = [
     "BottleneckEvidenceProfile",
@@ -81,4 +87,8 @@ __all__ = [
     "EnrichmentCoverageDiagnostic",
     "TickerEnrichmentCoverage",
     "build_enrichment_coverage",
+    "MappedField",
+    "NiveshaInputMapping",
+    "run_nivesha_thesis_on_enrichment",
+    "to_nivesha_diligence_inputs",
 ]
