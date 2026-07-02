@@ -31,9 +31,16 @@ def _write(path: str, content: str) -> None:
         fh.write(content)
 
 
-def build_universe_app(output_dir: str, iren_slice: Optional[object] = None,
+def build_universe_app(output_dir: str, mode: str = "demo",
+                       iren_slice: Optional[object] = None,
                        fixture_dir: Optional[str] = None) -> Dict[str, str]:
-    """Build all seven pages + local assets into ``output_dir``; return their paths.
+    """Build all pages + local assets into ``output_dir``; return their paths.
+
+    ``mode="demo"`` (default) renders the accepted hand-authored demo universe -- the
+    behaviour every existing test relies on. ``mode="evidence_ingested_fixture"`` runs the
+    IREN evidence-alpha vertical slice, builds a REAL sparse terrain from that ingested
+    output (``terrain_from_slice``) and renders every page from THAT terrain -- sparse,
+    honestly incomplete, and never labelled ``live``.
 
     Deterministic: two builds into two fresh directories produce byte-identical files.
     """
@@ -42,7 +49,14 @@ def build_universe_app(output_dir: str, iren_slice: Optional[object] = None,
     os.makedirs(assets_dir, exist_ok=True)
 
     slice_result = iren_slice if iren_slice is not None else load_iren_slice(fixture_dir)
-    view = build_economic_universe_view(slice_result)
+    if mode == "evidence_ingested_fixture":
+        from .terrain_adapters import terrain_from_slice
+        terrain = terrain_from_slice(slice_result)
+        view = build_economic_universe_view(slice_result, terrain=terrain)
+    elif mode == "demo":
+        view = build_economic_universe_view(slice_result)
+    else:
+        raise ValueError("unknown mode: {0!r}".format(mode))
     pages = render_all_pages(view, slice_result)
 
     paths: Dict[str, str] = {}

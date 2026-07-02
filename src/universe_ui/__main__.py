@@ -20,10 +20,15 @@ def main(argv=None) -> int:
     parser.add_argument(
         "--out", default="generated/universe_ui",
         help="output directory for the generated static pages (default: generated/universe_ui)")
+    parser.add_argument(
+        "--mode", default="demo",
+        choices=("demo", "evidence_ingested_fixture"),
+        help="demo (hand-authored universe) or evidence_ingested_fixture "
+             "(REAL sparse terrain built from the IREN evidence-alpha slice)")
     args = parser.parse_args(argv)
 
-    paths = build_universe_app(args.out)
-    print("Built Sudarshan Economic Universe UI (read-only, fixture/demo):")
+    paths = build_universe_app(args.out, mode=args.mode)
+    print("Built Sudarshan Economic Universe UI (read-only, mode={0}):".format(args.mode))
     for name in PAGE_ORDER:
         print("  {0}".format(paths[name]))
     print("  {0}".format(paths["assets/universe.css"]))

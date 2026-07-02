@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import html
 import math
-from typing import Any, Iterable, Tuple
+from typing import Any, Iterable, Optional, Tuple
 
 from infinite_canvas.render_html import render_cockpit_html
 
@@ -57,6 +57,40 @@ STATUS_STRIP_TEXT = (
     "Mode: fixture/demo · Live data: not enabled · Scheduler: not enabled "
     "· Broker automation: disabled · Manual review required"
 )
+
+EVIDENCE_STRIP_TEXT = (
+    "Mode: evidence_ingested_fixture · Live data: not enabled · Scheduler: not enabled "
+    "· Broker automation: disabled · Manual review required"
+)
+
+
+def _origin_tokens(data_origin: str) -> Tuple[str, str]:
+    """(badge text, css class) for an object's data origin. Demo/live-fixture keep the
+    ``DEMO`` wording (so demo output is byte-identical); evidence-ingested objects are
+    honestly labelled ``evidence-ingested`` -- never ``live``."""
+    if (data_origin or "").upper().startswith("EVIDENCE"):
+        return ("evidence-ingested", "evidence")
+    return ("DEMO", "demo")
+
+
+def _origin_suffix(data_origin: str) -> str:
+    return _origin_tokens(data_origin)[0]
+
+
+def _strip_for_mode(mode: str) -> str:
+    return EVIDENCE_STRIP_TEXT if mode == "evidence_ingested_fixture" else STATUS_STRIP_TEXT
+
+
+def _terrain_notice(view) -> str:
+    """The visible 'terrain incomplete' notice for an evidence-ingested view (else '')."""
+    if getattr(view, "mode", "") != "evidence_ingested_fixture":
+        return ""
+    terrain = getattr(view, "terrain", None)
+    for gap in getattr(terrain, "data_gaps", ()) or ():
+        if str(gap).lower().startswith("terrain incomplete"):
+            return str(gap)
+    return ("terrain incomplete — evidence-ingested single candidate; missing-data "
+            "placeholders shown, nothing fabricated")
 
 # Only THREE top-level product sections. The cockpit opens FROM a planet.
 _NAV = (
@@ -109,8 +143,9 @@ def _gap_box(title: str, items: Iterable[Any]) -> str:
     return '<div class="gap-box"><h4>{0}</h4>{1}</div>'.format(_esc(title), _list(items))
 
 
-def _status_strip() -> str:
-    return '<div class="status-strip">{0}</div>'.format(_esc(STATUS_STRIP_TEXT))
+def _status_strip(strip_text: Optional[str] = None) -> str:
+    return '<div class="status-strip">{0}</div>'.format(
+        _esc(strip_text if strip_text is not None else STATUS_STRIP_TEXT))
 
 
 def _command_bar(current_file: str) -> str:
@@ -134,7 +169,8 @@ def _footer() -> str:
     )
 
 
-def _page(title: str, current_file: str, body: str, full_screen: bool = False) -> str:
+def _page(title: str, current_file: str, body: str, full_screen: bool = False,
+          strip_text: Optional[str] = None) -> str:
     """Render a full page. ``full_screen`` gives the Economic Universe page the
     immersive SKY shell: a sticky status strip + command bar, then a full-viewport
     telescope universe HERO, with the intelligence pane BELOW the fold (the page
@@ -152,14 +188,14 @@ def _page(title: str, current_file: str, body: str, full_screen: bool = False) -
     if full_screen:
         middle = [
             '<body class="sky">',
-            _status_strip(),
+            _status_strip(strip_text),
             _command_bar(current_file),
             body,  # body is the .universe-app (hero + below-fold intel section)
         ]
     else:
         middle = [
             "<body>",
-            _status_strip(),
+            _status_strip(strip_text),
             _command_bar(current_file),
             '<div class="wrap">',
             body,
@@ -355,8 +391,8 @@ def _edge_svg(edges, pos_by_slug) -> str:
             '<line class="{cls}" x1="{0:.2f}" y1="{1:.2f}" x2="{2:.2f}" y2="{3:.2f}">'
             "<title>{title}</title></line>".format(
                 a[0], a[1], b[0], b[1], cls=cls, title=_esc(title)))
-    if not segs:
-        return ""
+    # Even with no semantic edges (e.g. a single-theme evidence terrain) keep the
+    # semantic rel-lines scaffold -- NEVER a centre / hub-and-spoke fallback.
     return (
         '<svg class="rel-lines" viewBox="0 0 100 100" preserveAspectRatio="none" '
         'aria-hidden="true">{0}</svg>'
@@ -602,7 +638,8 @@ def _intel_universe(view: EconomicUniverseView) -> str:
     return (
         exec_h
         + _brief_header("Universe — Intelligence Pane", "Economic Universe",
-                      _badge("fixture/demo", "demo") + _badge("live ranking not enabled", "gap"))
+                      _badge(view.mode, "demo" if view.mode == "fixture/demo" else "evidence")
+                      + _badge("live ranking not enabled", "gap"))
         + _brief_card("Executive summary",
                       "<p>{0} galaxies mapped by megatrend and capital cycle. Size = economic "
                       "magnitude (not a ranking); glow = heat; dim nebulae are data-poor; red "
@@ -620,8 +657,9 @@ def _intel_universe(view: EconomicUniverseView) -> str:
 
 def _intel_galaxy(t: GalaxyThemeView) -> str:
     c = t.cluster
+    _ot = _origin_tokens(c.data_origin)
     badges = (_badge("heat: {0}".format(c.heat_label)) + _badge(c.priority_label)
-              + _quality_badge(c.data_quality) + _badge("DEMO terrain", "demo"))
+              + _quality_badge(c.data_quality) + _badge(_ot[0] + " terrain", _ot[1]))
     cat = (
         '<div class="cols"><div><div class="micro">positive</div>{pos}</div>'
         '<div><div class="micro">negative</div>{neg}</div></div>'
@@ -722,7 +760,8 @@ def _intel_value_chain(ss: SolarSystemValueChainView) -> str:
     ])
     return (
         exec_h
-        + _brief_header("Solar System / Value Chain", ss.name, _badge("DEMO", "demo"))
+        + _brief_header("Solar System / Value Chain", ss.name,
+                        _badge(*_origin_tokens(ss.data_origin)))
         + _brief_card("Executive summary", "<p>{0}</p>".format(_esc(ss.description)))
         + _brief_card("Value-chain flow diagram", flow)
         + _brief_card("Economics capture & bottleneck exposure", table)
@@ -897,7 +936,7 @@ def _galaxy_object(t: GalaxyThemeView, target_path: str, pos: Tuple[float, float
     badges = " ".join([
         _badge("heat: {0}".format(c.heat_label)), _badge(c.priority_label),
         _quality_badge(c.data_quality), _badge("candidates: {0}".format(c.candidate_count)),
-        _badge("DEMO", "demo")])
+        _badge(*_origin_tokens(c.data_origin))])
     if c.red_team_risk:
         badges += _badge("black-hole: red-team", "hazard")
     if c.crowded_euphoric:
@@ -907,7 +946,8 @@ def _galaxy_object(t: GalaxyThemeView, target_path: str, pos: Tuple[float, float
         title=c.theme_name, sub=c.megatrend,
         size_px=c.visual_size_px, glow=_HEAT_GLOW.get((c.heat_label or "").lower(), 1),
         dashed=c.magnitude_missing, redshadow=c.red_team_risk, halo=c.crowded_euphoric,
-        ev_class=_ev_class(c.data_quality), size_label="theme TAM (DEMO)",
+        ev_class=_ev_class(c.data_quality),
+        size_label="theme TAM ({0})".format(_origin_suffix(c.data_origin)),
         size_raw=_money(c.theme_tam), badges=badges, intel_id=_intel_id_galaxy(c.slug),
         pos=pos, variant="nebula" if c.data_poor else "")
 
@@ -915,13 +955,14 @@ def _galaxy_object(t: GalaxyThemeView, target_path: str, pos: Tuple[float, float
 def _theme_object(t: GalaxyThemeView, target_path: str, pos: Tuple[float, float]) -> str:
     c = t.cluster
     badges = " ".join([_badge("theme"), _badge("heat: {0}".format(c.heat_label)),
-                       _quality_badge(c.data_quality), _badge("DEMO", "demo")])
+                       _quality_badge(c.data_quality), _badge(*_origin_tokens(c.data_origin))])
     return _cosmic_object(
         kind="theme", path=_path_theme(c.slug), target_path=target_path, target_level=2,
         title="{0} — theme".format(c.theme_name), sub=c.signal_convergence,
         size_px=c.visual_size_px, glow=_HEAT_GLOW.get((c.heat_label or "").lower(), 1),
         dashed=c.magnitude_missing, redshadow=c.red_team_risk, halo=c.crowded_euphoric,
-        ev_class=_ev_class(c.data_quality), size_label="theme TAM (DEMO)",
+        ev_class=_ev_class(c.data_quality),
+        size_label="theme TAM ({0})".format(_origin_suffix(c.data_origin)),
         size_raw=_money(c.theme_tam), badges=badges, intel_id=_intel_id_theme(c.slug),
         pos=pos, variant="nebula" if c.data_poor else "")
 
@@ -929,12 +970,14 @@ def _theme_object(t: GalaxyThemeView, target_path: str, pos: Tuple[float, float]
 def _value_chain_object(ss: SolarSystemValueChainView, target_path: str,
                         pos: Tuple[float, float]) -> str:
     badges = " ".join([_badge("value chain"),
-                       _badge("nodes: {0}".format(len(ss.nodes))), _badge("DEMO", "demo")])
+                       _badge("nodes: {0}".format(len(ss.nodes))),
+                       _badge(*_origin_tokens(ss.data_origin))])
     return _cosmic_object(
         kind="value_chain", path=target_path, target_path=target_path, target_level=3,
         title=ss.name, sub=ss.description, size_px=ss.visual_size_px, glow=2,
         dashed=ss.magnitude_missing, redshadow=False, halo=False, ev_class="",
-        size_label="value-chain revenue pool (DEMO)", size_raw=_money(ss.value_chain_revenue_pool),
+        size_label="value-chain revenue pool ({0})".format(_origin_suffix(ss.data_origin)),
+        size_raw=_money(ss.value_chain_revenue_pool),
         badges=badges, intel_id=_intel_id_vc(ss.slug), pos=pos)
 
 
@@ -943,13 +986,14 @@ def _star_object(s: StarBottleneckView, target_path: str, pos: Tuple[float, floa
     high = (s.severity or "").lower() == "high"
     badges = " ".join([_badge("bottleneck"), _badge("type: {0}".format(s.star_type)),
                        _badge("severity: {0}".format(s.severity),
-                              "hazard" if high else ""), _badge("DEMO", "demo")])
+                              "hazard" if high else ""),
+                       _badge(*_origin_tokens(s.data_origin))])
     return _cosmic_object(
         kind="star", path=target_path, target_path=target_path, target_level=4,
         title=s.constrained_node, sub="{0} · {1}".format(s.star_type, s.severity),
         size_px=s.visual_size_px, glow=3 if high else 2, dashed=s.magnitude_missing,
         redshadow=high, halo=False, ev_class="",
-        size_label="bottleneck economic importance (DEMO)",
+        size_label="bottleneck economic importance ({0})".format(_origin_suffix(s.data_origin)),
         size_raw=("{0:.0f} / 100".format(s.bottleneck_economic_importance)
                   if s.bottleneck_economic_importance is not None else "unknown (data gap)"),
         badges=badges, intel_id=_intel_id_star(s.slug), pos=pos,
@@ -1007,7 +1051,8 @@ def _planet_object(p: PlanetCandidateView, pos: Tuple[float, float]) -> str:
         title="{0} ({1})".format(p.company, p.ticker), sub=p.value_chain_role,
         size_px=p.visual_size_px, glow=p.glow_level, dashed=p.magnitude_missing,
         redshadow=severe, halo=has_catalyst,
-        ev_class=_ev_class(p.data_quality), size_label="market cap (DEMO)",
+        ev_class=_ev_class(p.data_quality),
+        size_label="market cap ({0})".format(_origin_suffix(p.data_origin)),
         size_raw=_money(p.market_cap), badges=badges, intel_id=_intel_id_planet(p),
         pos=pos, variant=variant, preview_html=_planet_preview(p),
         cockpit=(p.cockpit_link or ""))
@@ -1021,7 +1066,8 @@ def _moon_object(n: NodeView, pos: Tuple[float, float]) -> str:
         kind="moon", path="mo:{0}".format(n.node_id), target_path="", target_level=6,
         title=n.role, sub="{0} · {1}".format(n.tier, n.node_id), size_px=n.visual_size_px,
         glow=1, dashed=n.magnitude_missing, redshadow=False, halo=False,
-        ev_class=_ev_class(n.evidence_quality), size_label="dependency exposure (DEMO)",
+        ev_class=_ev_class(n.evidence_quality),
+        size_label="dependency exposure ({0})".format(_origin_suffix(n.data_origin)),
         size_raw=_money(n.dependency_exposure), badges=badges, intel_id=_intel_id_moon(n.node_id),
         pos=pos)
 
@@ -1047,7 +1093,8 @@ def _bottleneck_positions(planets) -> list:
 # --------------------------------------------------------------------------- #
 # The single zoomable universe page                                          #
 # --------------------------------------------------------------------------- #
-def render_universe(view: EconomicUniverseView) -> str:
+def render_universe(view: EconomicUniverseView, strip_text: Optional[str] = None,
+                    notice: str = "") -> str:
     panels = []
     # The hidden intelligence store: ONE blob per unique object, referenced by
     # data-intel. Nothing structural (tables, diagrams, headings) renders in the
@@ -1195,19 +1242,22 @@ def render_universe(view: EconomicUniverseView) -> str:
         '<section id="intel-pane" class="intel-pane intel-section" '
         'aria-label="Intelligence Pane (below the fold)">'
         '<div id="intel-body" class="detail-body">{0}</div></section>'.format(universe_intel))
+    notice_html = ('<div class="terrain-notice">⚠ {0}</div>'.format(_esc(notice))
+                   if notice else "")
     body = (
-        '<div class="universe-app">' + hero + intel + "</div>" + intel_store)
-    return _page("Economic Universe", "universe.html", body, full_screen=True)
+        '<div class="universe-app">' + notice_html + hero + intel + "</div>" + intel_store)
+    return _page("Economic Universe", "universe.html", body, full_screen=True,
+                 strip_text=strip_text)
 
 
 # --------------------------------------------------------------------------- #
 # Cockpit (IREN) — the ACCEPTED renderer, wrapped; opened FROM a planet       #
 # --------------------------------------------------------------------------- #
-def _cockpit_wrapper() -> str:
+def _cockpit_wrapper(strip_text: Optional[str] = None) -> str:
     strip = (
         '<div style="position:sticky;top:0;z-index:50;background:#0a0f24;color:#c7d0f5;'
         'padding:.5rem 1rem;font:600 13px sans-serif;border-bottom:1px solid #26315f">'
-        '{0}</div>'.format(_esc(STATUS_STRIP_TEXT)))
+        '{0}</div>'.format(_esc(strip_text if strip_text is not None else STATUS_STRIP_TEXT)))
     links = [
         '<a href="universe.html#focus=universe/g:ai-infrastructure/t:ai-infrastructure/'
         'vc:ai-infrastructure--ai-compute-hosting-value-chain/st:ai-infrastructure--star-0/pl:iren"'
@@ -1231,9 +1281,9 @@ def _cockpit_wrapper() -> str:
     return strip + nav + note
 
 
-def render_cockpit(iren_slice) -> str:
+def render_cockpit(iren_slice, strip_text: Optional[str] = None) -> str:
     doc = render_cockpit_html(iren_slice.cockpit_view)
-    return doc.replace("<body>", "<body>\n" + _cockpit_wrapper(), 1)
+    return doc.replace("<body>", "<body>\n" + _cockpit_wrapper(strip_text), 1)
 
 
 # --------------------------------------------------------------------------- #
@@ -1248,7 +1298,7 @@ def _card(c: CandidateCardView) -> str:
     capstruct = _badge("capital-structure risk", "hazard") if c.capital_structure_risk else ""
     auth = " ".join(_badge(b, "") for b in c.source_authority_badges)
     orb = _orb(c.visual_size_px, c.glow_level, c.magnitude_missing,
-               "market cap (DEMO)", c.market_cap)
+               "market cap ({0})".format(_origin_suffix(c.data_origin)), c.market_cap)
     cls = "card dashed-outline" if c.magnitude_missing else "card"
     top_reason = "{0}; {1}".format(c.value_chain_role, c.proximity_to_bottleneck)
     top_risk = ("capital-structure / dilution risk" if c.capital_structure_risk else
@@ -1299,7 +1349,7 @@ def _bucket(b: BucketView) -> str:
     ).format(name=_esc(b.name), count=len(b.cards), desc=_esc(b.description), cards=cards)
 
 
-def render_dashboard(dash: CIODashboardView) -> str:
+def render_dashboard(dash: CIODashboardView, strip_text: Optional[str] = None) -> str:
     banner = '<div class="banner">{0}</div>'.format(_esc(dash.banner))
     intro = (
         "<h1>CIO Dashboard — Candidate Buckets</h1>"
@@ -1318,7 +1368,7 @@ def render_dashboard(dash: CIODashboardView) -> str:
     )
     buckets = "".join(_bucket(b) for b in dash.buckets)
     body = intro + banner + note + buckets
-    return _page("CIO Dashboard", "dashboard.html", body)
+    return _page("CIO Dashboard", "dashboard.html", body, strip_text=strip_text)
 
 
 # --------------------------------------------------------------------------- #
@@ -1436,7 +1486,13 @@ def _quality_cards(dq: DataQualityView) -> str:
     return '<div class="stat-grid">{0}</div>'.format(items)
 
 
-def render_data_quality(dq: DataQualityView) -> str:
+def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
+                        notice: str = "") -> str:
+    is_ev = "evidence" in (dq.run_mode or "").lower()
+    terrain_badge = (_badge("evidence-ingested terrain", "evidence") if is_ev
+                     else _badge("DEMO terrain", "demo"))
+    notice_html = ('<div class="terrain-notice">⚠ {0}</div>'.format(_esc(notice))
+                   if notice else "")
     boundary = "".join([
         "<tr><th>Run mode</th><td>{0}</td></tr>".format(_esc(dq.run_mode)),
         "<tr><th>Fixture / demo</th><td>{0}</td></tr>".format(_esc(dq.fixture_demo_status)),
@@ -1448,12 +1504,13 @@ def render_data_quality(dq: DataQualityView) -> str:
             "yes" if dq.manual_review_required else "no"),
     ])
     body = (
-        '<div class="dq-head"><div><h1>Data Quality &amp; Provenance</h1>'
+        notice_html
+        + '<div class="dq-head"><div><h1>Data Quality &amp; Provenance</h1>'
         '<p class="lead">Evidence sources, authority, coverage, conflicts, overridden '
         "facts, data gaps and the provenance chain for the one real candidate (IREN). A "
         "control panel over existing pipeline state — no live data, scheduler or broker.</p>"
         "</div><div>" + _badge("REAL subject: {0}".format(dq.real_subject), "real")
-        + " " + _badge("DEMO terrain", "demo") + "</div></div>"
+        + " " + terrain_badge + "</div></div>"
         # A. source hierarchy pipeline
         + '<h2>Source hierarchy pipeline</h2>'
         + '<div class="glass-panel">' + _dq_pipeline(dq)
@@ -1481,7 +1538,8 @@ def render_data_quality(dq: DataQualityView) -> str:
         + "<p>Scheduler: not enabled. Broker automation: disabled. No order is placed, "
         "routed, or recorded anywhere in this UI. Manual review required.</p></div>"
     )
-    return _page("Data Quality & Provenance", "data_quality.html", body)
+    return _page("Data Quality & Provenance", "data_quality.html", body,
+                 strip_text=strip_text)
 
 
 # --------------------------------------------------------------------------- #
@@ -1493,9 +1551,12 @@ def render_all_pages(view: EconomicUniverseView, iren_slice) -> Tuple[Tuple[str,
     Galaxy / value-chain / bottleneck are zoom LEVELS inside ``universe.html`` — not
     separate pages. The cockpit is opened FROM a planet, not a top-level tab.
     """
+    strip_text = _strip_for_mode(getattr(view, "mode", ""))
+    notice = _terrain_notice(view)
     return (
-        ("universe.html", render_universe(view)),
-        ("dashboard.html", render_dashboard(view.dashboard)),
-        ("data_quality.html", render_data_quality(view.data_quality)),
-        ("cockpit.html", render_cockpit(iren_slice)),
+        ("universe.html", render_universe(view, strip_text=strip_text, notice=notice)),
+        ("dashboard.html", render_dashboard(view.dashboard, strip_text=strip_text)),
+        ("data_quality.html", render_data_quality(
+            view.data_quality, strip_text=strip_text, notice=notice)),
+        ("cockpit.html", render_cockpit(iren_slice, strip_text=strip_text)),
     )
