@@ -74,6 +74,22 @@ from .validation import (
     validate_signal,
     validate_theme_pulse,
 )
+from .agents import (
+    AGENT_TYPES,
+    LAYER_ALLOWED_EMITS,
+    LAYER_FORBIDDEN_EMITS,
+    MANDATORY_FORBIDDEN_OUTPUTS,
+    TATTVA_FINDING_SUBTYPES,
+    AgentDescriptor,
+    SensorAgent,
+    validate_descriptor,
+)
+from .registry import (
+    DEFAULT_DESCRIPTORS,
+    AgentRegistry,
+    build_default_registry,
+)
+from .router import BuddhiRouter
 
 __all__ = [
     # models
@@ -127,4 +143,17 @@ __all__ = [
     "validate_signal",
     "validate_theme_pulse",
     "validate_envelope",
+    # agents / registry / router (012B)
+    "AgentDescriptor",
+    "SensorAgent",
+    "validate_descriptor",
+    "AGENT_TYPES",
+    "TATTVA_FINDING_SUBTYPES",
+    "LAYER_ALLOWED_EMITS",
+    "LAYER_FORBIDDEN_EMITS",
+    "MANDATORY_FORBIDDEN_OUTPUTS",
+    "AgentRegistry",
+    "build_default_registry",
+    "DEFAULT_DESCRIPTORS",
+    "BuddhiRouter",
 ]
