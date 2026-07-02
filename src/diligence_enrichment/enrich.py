@@ -37,11 +37,10 @@ def _coverage(bundle_parts) -> Dict[str, int]:
 
     profile, market, tam, vc, bn, ir, leadership = bundle_parts
     for ev in (profile.company_name, profile.sector, profile.industry,
-               profile.description, profile.website):
+               profile.exchange, profile.description, profile.website):
         if ev.present:
             bump(ev.authority)
-    for ev in (market.market_cap, market.price, market.shares_outstanding,
-               market.latest_revenue):
+    for _key, _label, ev in market.metric_items():
         if ev.present:
             bump(ev.authority)
     if tam.present:

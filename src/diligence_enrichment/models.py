@@ -65,6 +65,7 @@ class CompanyDiligenceProfile:
     company_name: EnrichmentValue = field(default_factory=EnrichmentValue)
     sector: EnrichmentValue = field(default_factory=EnrichmentValue)
     industry: EnrichmentValue = field(default_factory=EnrichmentValue)
+    exchange: EnrichmentValue = field(default_factory=EnrichmentValue)
     description: EnrichmentValue = field(default_factory=EnrichmentValue)
     website: EnrichmentValue = field(default_factory=EnrichmentValue)
     source_refs: Tuple[str, ...] = field(default_factory=tuple)
@@ -77,17 +78,27 @@ class CompanyDiligenceProfile:
 # --------------------------------------------------------------------------- #
 @dataclass(frozen=True)
 class MarketAndValuationSnapshot:
-    """Market cap / price / shares / latest revenue -- each with its own provenance.
+    """Market / valuation / financial magnitudes -- each with its own provenance.
 
-    ``market_cap`` typically comes from FMP (convenience); ``shares_outstanding`` and
-    ``latest_revenue`` prefer SEC company facts (canonical). Every field is an
-    :class:`EnrichmentValue`, so the authority mix is explicit and never flattened.
+    ``market_cap`` / ``enterprise_value`` / ``price`` typically come from FMP (convenience);
+    ``shares_outstanding`` / ``latest_revenue`` / ``net_income`` prefer SEC company facts
+    (canonical) and only fall back to FMP convenience when SEC does not carry them; margins
+    (``gross_margin`` / ``operating_margin``) and ``cash`` / ``debt`` populate only where a
+    supplied source actually carries them, never overriding an SEC canonical value for the
+    same metric. Every field is an :class:`EnrichmentValue`, so the authority mix is explicit
+    and never flattened, and an unsupported field stays an explicit gap (``present`` False).
     """
     ticker: str = ""
     market_cap: EnrichmentValue = field(default_factory=EnrichmentValue)
+    enterprise_value: EnrichmentValue = field(default_factory=EnrichmentValue)
     price: EnrichmentValue = field(default_factory=EnrichmentValue)
     shares_outstanding: EnrichmentValue = field(default_factory=EnrichmentValue)
     latest_revenue: EnrichmentValue = field(default_factory=EnrichmentValue)
+    net_income: EnrichmentValue = field(default_factory=EnrichmentValue)
+    gross_margin: EnrichmentValue = field(default_factory=EnrichmentValue)
+    op_margin: EnrichmentValue = field(default_factory=EnrichmentValue)  # operating margin
+    cash: EnrichmentValue = field(default_factory=EnrichmentValue)
+    debt: EnrichmentValue = field(default_factory=EnrichmentValue)
     currency: str = "USD"
     as_of: str = ""
     source_refs: Tuple[str, ...] = field(default_factory=tuple)
@@ -102,6 +113,25 @@ class MarketAndValuationSnapshot:
             return float(self.market_cap.value)  # type: ignore[arg-type]
         except (TypeError, ValueError):
             return None
+
+    def metric_items(self) -> Tuple[Tuple[str, str, EnrichmentValue], ...]:
+        """Ordered ``(metric_key, display_label, value)`` for every financial magnitude.
+
+        Drives the coverage diagnostic + the by-authority tally so each metric is visible
+        populated-or-gap. Purely descriptive -- there is no ranking / score here.
+        """
+        return (
+            ("market_cap", "market cap", self.market_cap),
+            ("enterprise_value", "enterprise value", self.enterprise_value),
+            ("shares", "shares outstanding", self.shares_outstanding),
+            ("revenue", "revenue", self.latest_revenue),
+            ("net_income", "net income", self.net_income),
+            ("gross_margin", "gross margin", self.gross_margin),
+            ("operating_margin", "operating margin", self.op_margin),
+            ("cash", "cash", self.cash),
+            ("debt", "debt", self.debt),
+            ("price", "price", self.price),
+        )
 
 
 # --------------------------------------------------------------------------- #

@@ -283,6 +283,182 @@ class FixtureMappingTests(unittest.TestCase):
 
 
 # =========================================================================== #
+# B2. 011B -- HARDENED financial-metric mapping (SEC/FMP -> market snapshot).   #
+#     Rows 3-7, 10-12, 15-21 of TEST_MATRIX_011, for the hardened mapping.      #
+# =========================================================================== #
+class HardenedMappingTests(unittest.TestCase):
+    """Every metric the fixtures support populates with the right authority; the rest
+    degrade to explicit gaps. SEC canonical always wins the overlap vs FMP convenience."""
+
+    # metric key -> (populated?, expected authority) for the FULL SEC+FMP IREN fixtures.
+    _EXPECTED = {
+        "market_cap": (True, "convenience"),      # FMP profile mktCap
+        "enterprise_value": (False, ""),          # in no fixture -> gap
+        "shares": (True, "canonical"),            # SEC CommonStockSharesOutstanding
+        "revenue": (True, "canonical"),           # SEC Revenues (wins vs FMP income)
+        "net_income": (True, "canonical"),        # SEC NetIncomeLoss (wins vs FMP)
+        "gross_margin": (True, "convenience"),    # FMP grossProfit/revenue (SEC lacks it)
+        "operating_margin": (True, "convenience"),
+        "cash": (False, ""),                      # in no fixture -> gap
+        "debt": (False, ""),                      # in no fixture -> gap
+        "price": (False, ""),                     # in no fixture -> gap
+    }
+
+    def _sec_fmp(self):
+        return build_diligence_enrichment_bundle(
+            "IREN", sec_facts=_load("sec_companyfacts_iren.json"),
+            fmp_profile=_load("fmp_profile_iren.json"),
+            fmp_income=_load("fmp_income_statement_iren.json"))
+
+    def _metric(self, bundle, key):
+        for k, _label, ev in bundle.market.metric_items():
+            if k == key:
+                return ev
+        raise KeyError(key)
+
+    # --- row 12 / 6: SEC + FMP populate, authority stamped, SEC wins overlap ---- #
+    def test_sec_plus_fmp_each_metric_populated_or_gap_with_authority(self):
+        b = self._sec_fmp()
+        for key, (present, auth) in self._EXPECTED.items():
+            ev = self._metric(b, key)
+            self.assertEqual(ev.present, present, "{0} presence".format(key))
+            if present:
+                self.assertEqual(ev.authority, auth, "{0} authority".format(key))
+            else:
+                self.assertFalse(ev.present)  # a data gap, no invented value
+                self.assertIsNone(ev.value)
+
+    def test_sec_wins_overlap_revenue_and_net_income(self):
+        b = self._sec_fmp()
+        # FMP income carries revenue 118M / net income 14M for the same latest period;
+        # SEC canonical (120M / 15M) MUST win and be stamped canonical.
+        self.assertEqual(b.market.latest_revenue.value, 120000000.0)
+        self.assertEqual(b.market.latest_revenue.authority, "canonical")
+        self.assertEqual(b.market.net_income.value, 15000000.0)
+        self.assertEqual(b.market.net_income.authority, "canonical")
+        self.assertEqual(b.market.shares_outstanding.value, 210000000.0)
+        self.assertEqual(b.market.shares_outstanding.authority, "canonical")
+
+    def test_lower_authority_never_overrides_higher_for_same_metric(self):
+        b = self._sec_fmp()
+        for ev in (b.market.latest_revenue, b.market.net_income,
+                   b.market.shares_outstanding):
+            self.assertEqual(ev.authority, "canonical")
+            self.assertLess(authority_rank("convenience"), authority_rank(ev.authority))
+
+    # --- row 11: SEC-only (FMP absent -> its fields gap, SEC fields populate) ---- #
+    def test_sec_only_populates_canonical_and_gaps_fmp_fields(self):
+        b = build_diligence_enrichment_bundle(
+            "IREN", sec_facts=_load("sec_companyfacts_iren.json"))
+        self.assertEqual(b.market.shares_outstanding.authority, "canonical")
+        self.assertEqual(b.market.latest_revenue.authority, "canonical")
+        self.assertEqual(b.market.net_income.authority, "canonical")
+        # FMP-only metrics are now explicit gaps (no FMP supplied).
+        for ev in (b.market.market_cap, b.market.enterprise_value, b.market.price,
+                   b.market.gross_margin, b.market.op_margin, b.market.cash, b.market.debt):
+            self.assertFalse(ev.present)
+        self.assertIsNone(b.market_cap_value)
+
+    def test_fmp_only_income_gives_convenience_and_derived_margins(self):
+        b = build_diligence_enrichment_bundle(
+            "IREN", fmp_income=_load("fmp_income_statement_iren.json"))
+        # no SEC -> revenue/net income fall back to FMP convenience.
+        self.assertEqual(b.market.latest_revenue.authority, "convenience")
+        self.assertEqual(b.market.latest_revenue.value, 118000000.0)
+        self.assertEqual(b.market.net_income.authority, "convenience")
+        # margins derived from FMP income are convenience + INFERRED (a derived ratio,
+        # never a directly-reported fact, never canonical).
+        gm = b.market.gross_margin
+        self.assertTrue(gm.present)
+        self.assertEqual(gm.authority, "convenience")
+        self.assertEqual(gm.claim_status, "inferred")
+        self.assertAlmostEqual(gm.value, 60000000.0 / 118000000.0)
+        self.assertNotEqual(gm.authority, "canonical")
+
+    # --- row 7: no fixtures -> every financial metric is an explicit gap -------- #
+    def test_no_fixtures_all_metrics_gap(self):
+        b = build_diligence_enrichment_bundle("ZZZZ")
+        for _k, _label, ev in b.market.metric_items():
+            self.assertFalse(ev.present)
+            self.assertIsNone(ev.value)
+        self.assertEqual(b.market.confidence_label, "missing")
+
+    # --- rows 15-21: coverage surfaces each metric populated-or-gap w/ authority -#
+    def test_coverage_surfaces_every_financial_metric(self):
+        cov = build_enrichment_coverage([self._sec_fmp()])
+        by_area = {a.area: a for a in cov.per_ticker[0].areas}
+        for key in ("market_cap", "enterprise_value", "shares", "revenue",
+                    "gross_margin", "operating_margin", "cash", "debt"):
+            self.assertIn(key, by_area, "coverage missing area {0}".format(key))
+            present, auth = self._EXPECTED[key]
+            a = by_area[key]
+            self.assertEqual(a.available, present)
+            if present:
+                self.assertEqual(a.authority, auth)
+                self.assertEqual(a.gap, "")
+            else:
+                self.assertTrue(a.gap)          # a visible gap
+                self.assertTrue(a.data_action)  # + a data-sourcing action (never a trade)
+
+    def test_exchange_maps_from_fmp_convenience(self):
+        b = self._sec_fmp()
+        self.assertEqual(b.profile.exchange.value, "NASDAQ")
+        self.assertEqual(b.profile.exchange.authority, "convenience")
+
+    # --- row 16: manual TAM stays manual (never canonical); nothing else invented #
+    def test_manual_tam_only_stays_sparse_and_manual(self):
+        b = build_diligence_enrichment_bundle(
+            "IREN", manual_tam={"amount": 3.0e10, "market": "AI compute"})
+        self.assertEqual(b.tam_estimate.amount.authority, "manual")
+        self.assertNotEqual(b.tam_estimate.amount.authority, "canonical")
+        # nothing financial fabricated from a lone TAM.
+        for _k, _label, ev in b.market.metric_items():
+            self.assertFalse(ev.present)
+        self.assertIn(b.enrichment_status, ("sparse", "empty"))
+
+    # --- rows 17-21: no fabricated value-chain / bottleneck / IR / leadership ---- #
+    def test_no_fabricated_qualitative_evidence_from_sec_fmp_only(self):
+        b = self._sec_fmp()
+        self.assertFalse(b.tam_estimate.present)
+        self.assertFalse(b.value_chain.present)
+        self.assertFalse(b.bottleneck.present)
+        self.assertFalse(b.ir.present)
+        self.assertFalse(b.leadership.present)
+
+    # --- row 2/3/4: no decision/score field ANYWHERE on the built bundle -------- #
+    def test_no_decision_field_on_built_bundle(self):
+        b = self._sec_fmp()
+        seen = []
+
+        def walk(obj):
+            if is_dataclass(obj):
+                for f in fields(obj):
+                    low = f.name.lower()
+                    for tok in _BANNED_FIELD_TOKENS:
+                        self.assertNotIn(tok, low,
+                                         "banned token {0!r} in {1}.{2}".format(
+                                             tok, type(obj).__name__, f.name))
+                    child = getattr(obj, f.name)
+                    if id(child) not in seen:
+                        seen.append(id(child))
+                        walk(child)
+            elif isinstance(obj, (tuple, list)):
+                for x in obj:
+                    walk(x)
+        walk(b)
+
+    def test_hardened_metrics_populate_under_socket_block(self):
+        real = socket.socket
+        socket.socket = _boom_socket
+        try:
+            b = self._sec_fmp()
+        finally:
+            socket.socket = real
+        self.assertEqual(b.market.net_income.authority, "canonical")
+        self.assertTrue(b.market.gross_margin.present)
+
+
+# =========================================================================== #
 # C. Terrain integration (enrichment feeds magnitudes via existing helper)     #
 # =========================================================================== #
 class TerrainIntegrationTests(unittest.TestCase):
@@ -387,6 +563,12 @@ class DataQualityCoverageTests(unittest.TestCase):
         self.assertIn("Diligence-enrichment coverage", self.html)
         for area in ("market cap", "TAM", "value chain", "bottleneck",
                      "company IR", "leadership"):
+            self.assertIn(area, self.html)
+
+    def test_hardened_financial_areas_render(self):
+        # 011B: the hardened financial magnitudes are each visible populated-or-gap.
+        for area in ("enterprise value", "shares outstanding", "revenue",
+                     "gross margin", "operating margin", "cash", "debt"):
             self.assertIn(area, self.html)
 
     def test_per_ticker_gaps_render(self):
