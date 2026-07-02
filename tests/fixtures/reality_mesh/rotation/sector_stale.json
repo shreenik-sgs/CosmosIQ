@@ -1,0 +1,41 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- rotation OUT of Semiconductors but every reading is STALE. The finding must be marked stale (never dropped) and the staleness recorded as a data gap.",
+  "events": [
+    {
+      "event_id": "sr.stale.rs",
+      "timestamp": "2026-06-20T13:30:00Z",
+      "source_id": "fixture.sector_etf",
+      "source_type": "sector_etf_relative_strength_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "sector_rotation",
+      "event_type": "sector_relative_strength_reading",
+      "observed_fact": "Semiconductors sector relative strength (stale reading)",
+      "affected_sectors": ["Semiconductors"],
+      "numeric_values": [["sector_relative_strength", -2.1, "zscore"]],
+      "evidence_refs": ["ex.sector.semis.rs.stale"],
+      "source_refs": ["fixture:sector/semis/rs"],
+      "confidence_label": "low",
+      "freshness_label": "stale",
+      "half_life": "days"
+    },
+    {
+      "event_id": "sr.stale.flow",
+      "timestamp": "2026-06-20T13:30:00Z",
+      "source_id": "fixture.flow_proxy",
+      "source_type": "institutional_flow_proxy_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "sector_rotation",
+      "event_type": "institutional_flow_proxy_reading",
+      "observed_fact": "PROXY for institutional flow (stale); NOT verified institutional flow",
+      "affected_sectors": ["Semiconductors"],
+      "numeric_values": [["flow_proxy_zscore", -1.4, "zscore"]],
+      "evidence_refs": ["ex.sector.semis.flow_proxy.stale"],
+      "source_refs": ["fixture:sector/semis/flow_proxy"],
+      "confidence_label": "low",
+      "freshness_label": "stale",
+      "half_life": "days"
+    }
+  ]
+}

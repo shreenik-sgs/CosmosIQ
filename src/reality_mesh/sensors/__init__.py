@@ -22,10 +22,28 @@ from .market_regime import (
     MARKET_REGIME_SUBAGENTS,
     events_from_fixture,
 )
+from .rotation import (
+    SectorRotationAgent,
+    ThemeRotationAgent,
+    SECTOR_ROTATION_FINDING_TYPES,
+    SECTOR_ROTATION_SUBAGENTS,
+    THEME_ROTATION_FINDING_TYPES,
+    THEME_ROTATION_SUBAGENTS,
+    FLOW_PROXY_CAVEAT,
+    BROADENING_MIN_MEMBERS,
+)
 
 __all__ = [
     "MarketRegimeAgent",
     "MARKET_REGIME_FINDING_TYPES",
     "MARKET_REGIME_SUBAGENTS",
     "events_from_fixture",
+    "SectorRotationAgent",
+    "ThemeRotationAgent",
+    "SECTOR_ROTATION_FINDING_TYPES",
+    "SECTOR_ROTATION_SUBAGENTS",
+    "THEME_ROTATION_FINDING_TYPES",
+    "THEME_ROTATION_SUBAGENTS",
+    "FLOW_PROXY_CAVEAT",
+    "BROADENING_MIN_MEMBERS",
 ]

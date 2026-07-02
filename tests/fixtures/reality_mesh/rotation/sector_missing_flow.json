@@ -1,0 +1,41 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- rotation INTO Healthcare with NO Institutional Flow Proxy input at all. The absence must surface as an explicit data gap, never a fabricated flow value.",
+  "events": [
+    {
+      "event_id": "sr.mf.rs",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "fixture.sector_etf",
+      "source_type": "sector_etf_relative_strength_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "sector_rotation",
+      "event_type": "sector_relative_strength_reading",
+      "observed_fact": "Healthcare sector relative strength versus the broad market",
+      "affected_sectors": ["Healthcare"],
+      "numeric_values": [["sector_relative_strength", 1.9, "zscore"]],
+      "evidence_refs": ["ex.sector.healthcare.rs"],
+      "source_refs": ["fixture:sector/healthcare/rs"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "event_id": "sr.mf.breadth",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "fixture.sector_breadth",
+      "source_type": "industry_group_breadth_series",
+      "source_authority": "convenience",
+      "claim_status": "inferred",
+      "discipline": "sector_rotation",
+      "event_type": "industry_group_breadth_reading",
+      "observed_fact": "share of Healthcare industry groups participating",
+      "affected_sectors": ["Healthcare"],
+      "numeric_values": [["industry_group_breadth", 63, "percent"]],
+      "evidence_refs": ["ex.sector.healthcare.breadth"],
+      "source_refs": ["fixture:sector/healthcare/breadth"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    }
+  ]
+}
