@@ -366,6 +366,17 @@ class DataQualityView:
     tickers: Tuple[str, ...] = ()
     mode_label: str = ""
     deferred_records_count: int = 0
+    # IMPLEMENTATION-010E watchlist additions (optional; empty in single-ticker modes).
+    is_watchlist: bool = False
+    wl_requested: int = 0
+    wl_succeeded: int = 0
+    wl_failed: int = 0
+    wl_deferred: int = 0
+    # per-ticker source-status rows: (ticker, sec, fmp, yf, canonical, convenience,
+    # fallback, conflicts, data_gaps_count, provenance_count, terrain_status)
+    per_ticker_rows: Tuple[Tuple[Any, ...], ...] = ()
+    # (kind/ticker label, human message) failure & gap cards
+    failure_cards: Tuple[Tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -395,6 +406,9 @@ class EconomicUniverseView:
     real_subject: str
     # The typed knowledge terrain this view was PROJECTED FROM (source of truth).
     terrain: object = None
+    # IMPLEMENTATION-010E: appended to the status strip for a watchlist run
+    # (e.g. " · 3 requested / 2 built / 1 failed-or-deferred"); empty otherwise.
+    run_summary_line: str = ""
 
 
 # --------------------------------------------------------------------------- #
@@ -731,7 +745,8 @@ def build_cio_dashboard_view(themes: Tuple[GalaxyThemeView, ...]) -> CIODashboar
     )
 
 
-def build_data_quality_view(iren_slice, terrain=None, source_status=None) -> DataQualityView:
+def build_data_quality_view(iren_slice, terrain=None, source_status=None,
+                            watchlist_summary=None) -> DataQualityView:
     """Build the Data-Quality control panel view.
 
     Source coverage counts, data gaps and the provenance chain are read FROM the
@@ -752,22 +767,51 @@ def build_data_quality_view(iren_slice, terrain=None, source_status=None) -> Dat
     is_real = mode == REAL_ON_DEMAND_MODE
     is_evidence = _is_evidence_terrain_mode(mode)
 
+    # IMPLEMENTATION-010E: for a watchlist run, source conflicts / overridden facts /
+    # deferred counts / subject are aggregated ACROSS tickers in the run summary; a
+    # single-ticker run reads them from its one slice as before.
+    is_watchlist = watchlist_summary is not None
+    if is_watchlist:
+        overridden_src = tuple(watchlist_summary.overridden_facts)
+        conflict_src = tuple(watchlist_summary.conflict_warnings)
+        deferred_n = int(watchlist_summary.deferred_records_count)
+    else:
+        overridden_src = tuple(iren_slice.provenance_chain.get("overridden_facts", ()))
+        conflict_src = tuple(iren_slice.conflict_warnings)
+        deferred_n = len(getattr(iren_slice, "deferred_records", ()) or ())
+
     overridden = tuple(
         "{0}: {1} ({2}) — {3}".format(
             f.get("normalized_type", ""), f.get("source_name", ""),
             f.get("source_authority", ""), f.get("reason", ""))
-        for f in iren_slice.provenance_chain.get("overridden_facts", ()))
+        for f in overridden_src)
 
-    # Per-source STATUS + run metadata (real mode only; empty otherwise).
+    # Per-source STATUS + run metadata (single real-ticker mode only; a watchlist shows a
+    # PER-TICKER table instead, so the single-source panel stays empty for it).
     ss = dict(source_status or {})
     status_pairs = tuple(
         (k, str(ss[k])) for k in ("sec", "fmp", "yfinance") if k in ss)
     run_ts = str(ss.get("run_timestamp", ""))
     subject = getattr(iren_slice, "subject", "") or ""
-    tickers = (subject,) if (is_real and subject) else ()
-    deferred_n = len(getattr(iren_slice, "deferred_records", ()) or ())
 
-    if is_real:
+    wl_fields = _watchlist_dq_fields(watchlist_summary)
+    if is_watchlist:
+        status_pairs = ()
+        run_ts = str(watchlist_summary.run_timestamp)
+        tickers = tuple(r.ticker for r in watchlist_summary.records if r.status == "built")
+    else:
+        tickers = (subject,) if (is_real and subject) else ()
+
+    if is_watchlist:
+        run_mode = ("real_evidence_on_demand — WATCHLIST ({0} requested / {1} built / "
+                    "{2} failed-or-deferred); REAL SEC/FMP/yfinance, manual refresh; not "
+                    "scheduled, not broker-connected; may be incomplete".format(
+                        watchlist_summary.requested_count, watchlist_summary.succeeded_count,
+                        watchlist_summary.failed_or_deferred_count))
+        fixture_status = ("real sources fetched on demand for {0} companies; merged "
+                          "terrain sparse — completeness NOT claimed".format(
+                              watchlist_summary.succeeded_count))
+    elif is_real:
         run_mode = ("real_evidence_on_demand (REAL SEC/FMP/yfinance sources, manual "
                     "refresh; not scheduled, not broker-connected; may be incomplete)")
         fixture_status = ("real sources fetched on demand for {0}; terrain sparse — "
@@ -794,18 +838,64 @@ def build_data_quality_view(iren_slice, terrain=None, source_status=None) -> Dat
         fallback_count=int(coverage.get("fallback", 0)),
         signal_observation_count=int(coverage.get("signal", 0)),
         factual_observation_count=int(coverage.get("factual", 0)),
-        conflict_warnings=tuple(iren_slice.conflict_warnings),
+        conflict_warnings=conflict_src,
         overridden_facts=overridden, data_gaps=tuple(terrain.data_gaps),
         provenance_chain=tuple(terrain.provenance_refs),
-        real_subject=subject,
+        real_subject=(", ".join(tickers) if is_watchlist else subject),
         source_status=status_pairs, run_timestamp=run_ts, tickers=tickers,
-        mode_label=(str(ss.get("mode_label", "")) or (REAL_ON_DEMAND_MODE if is_real else "")),
+        mode_label=(str(ss.get("mode_label", ""))
+                    or (REAL_ON_DEMAND_MODE if (is_real or is_watchlist) else "")),
         deferred_records_count=deferred_n,
+        **wl_fields,
     )
 
 
-def build_economic_universe_view(iren_slice, terrain=None,
-                                 source_status=None) -> EconomicUniverseView:
+def _watchlist_dq_fields(watchlist_summary) -> dict:
+    """Per-ticker table + failure/gap cards for the watchlist Data-Quality panel.
+
+    All values are COPIED from the run summary's per-ticker records + credential /
+    coverage state — nothing is recomputed, ranked, or fabricated. Returns kwargs for
+    :class:`DataQualityView` (empty for a single-ticker run)."""
+    if watchlist_summary is None:
+        return {}
+    rows = []
+    cards = []
+    for r in watchlist_summary.records:
+        rows.append((
+            r.ticker, r.sec_status, r.fmp_status, r.yfinance_status,
+            r.canonical, r.convenience, r.fallback, r.conflicts,
+            len(r.data_gaps), len(r.provenance_refs), r.terrain_status))
+        if r.status != "built":
+            cards.append((
+                "ticker {0} — {1}".format(r.ticker, r.status),
+                r.reason or "recorded as a visible failure (not silently dropped)"))
+        else:
+            if r.sec_status == "credentials_missing":
+                cards.append(("ticker {0} — SEC User-Agent missing".format(r.ticker),
+                              "canonical SEC source unavailable (no key leaked; a data gap)"))
+            if r.fmp_status == "credentials_missing":
+                cards.append(("ticker {0} — FMP key missing".format(r.ticker),
+                              "convenience FMP source unavailable (key never shown; a data gap)"))
+            if r.yfinance_status == "deferred":
+                cards.append(("ticker {0} — yfinance deferred".format(r.ticker),
+                              "fallback / research-only source not wired for this run"))
+            if r.sec_status == "failed" or r.fmp_status == "failed":
+                cards.append(("ticker {0} — source fetch failed".format(r.ticker),
+                              "a source degraded; the run continued with what was fetched"))
+    return {
+        "is_watchlist": True,
+        "wl_requested": watchlist_summary.requested_count,
+        "wl_succeeded": watchlist_summary.succeeded_count,
+        "wl_failed": watchlist_summary.failed_count,
+        "wl_deferred": watchlist_summary.deferred_count,
+        "per_ticker_rows": tuple(rows),
+        "failure_cards": tuple(cards),
+    }
+
+
+def build_economic_universe_view(iren_slice, terrain=None, source_status=None,
+                                 slice_by_subject=None,
+                                 watchlist_summary=None) -> EconomicUniverseView:
     """Assemble the whole read-only Economic Universe view by PROJECTING the typed
     terrain (the source of truth). If ``terrain`` is None it is built from the slice.
 
@@ -819,7 +909,9 @@ def build_economic_universe_view(iren_slice, terrain=None,
     candidate's theme, sparse and honestly incomplete.
     """
     if terrain is not None and _is_evidence_terrain_mode(getattr(terrain, "mode", "")):
-        return _build_evidence_universe_view(iren_slice, terrain, source_status=source_status)
+        return _build_evidence_universe_view(
+            iren_slice, terrain, source_status=source_status,
+            slice_by_subject=slice_by_subject, watchlist_summary=watchlist_summary)
     from .demo_terrain import build_demo_terrain
     universe = build_demo_universe()
     terrain = terrain or build_demo_terrain(iren_slice, universe)
@@ -944,12 +1036,27 @@ def _evidence_cluster_view(g, theme, iren_slice, evidence_count,
         data_origin=origin)
 
 
-def _evidence_theme_view(g, iren_slice, origin=_EVIDENCE_ORIGIN) -> GalaxyThemeView:
+def _evidence_theme_view(g, iren_slice, slice_by_subject=None,
+                         origin=_EVIDENCE_ORIGIN) -> GalaxyThemeView:
+    """Project ONE galaxy's theme view.
+
+    A single-ticker terrain has one company; a merged 010E watchlist galaxy may hold
+    SEVERAL co-located companies. Each company is projected from ITS OWN slice (looked up
+    in ``slice_by_subject`` by ticker); theme-level narrative (why-now, signals) uses the
+    first company's slice as the representative for that co-located theme."""
+    smap = slice_by_subject or {}
     theme = g.themes[0]
     gname = g.name
     gslug = g.id
-    company = theme.candidate_planets[0]
-    planets = (_evidence_planet_view(company, iren_slice, gname, gslug, origin=origin),)
+    companies = theme.candidate_planets
+
+    def _slice_for(co):
+        return smap.get(getattr(co, "ticker", ""), iren_slice)
+
+    rep_slice = _slice_for(companies[0]) if companies else iren_slice
+    planets = tuple(
+        _evidence_planet_view(co, _slice_for(co), gname, gslug, origin=origin)
+        for co in companies)
     ss_views = tuple(_evidence_vc_view(vc, gname, gslug, origin=origin)
                      for vc in theme.value_chains)
     star_views = tuple(_evidence_star_view(bn, gname, gslug, origin=origin)
@@ -958,11 +1065,11 @@ def _evidence_theme_view(g, iren_slice, origin=_EVIDENCE_ORIGIN) -> GalaxyThemeV
                     if c.catalyst_type in ("positive", "repricing-trigger"))
     neg_cat = tuple(c.description for c in theme.catalysts if c.catalyst_type == "negative")
     red_notes = tuple(r.description for r in theme.red_team_risks)
-    oh = iren_slice.opportunity_hypothesis
+    oh = getattr(rep_slice, "opportunity_hypothesis", None)
     confirmed = tuple(getattr(oh, "megatrend_context", ()) or ())
     speculative = tuple(getattr(oh, "monitoring_signals", ()) or ())
-    cluster = _evidence_cluster_view(g, theme, iren_slice, company.evidence_count,
-                                     origin=origin)
+    ev_count = companies[0].evidence_count if companies else 0
+    cluster = _evidence_cluster_view(g, theme, rep_slice, ev_count, origin=origin)
     return GalaxyThemeView(
         cluster=cluster, why_now=theme.why_now, why_before_obvious=theme.why_before_obvious,
         confirmed_signals=confirmed, speculative_signals=speculative,
@@ -971,16 +1078,23 @@ def _evidence_theme_view(g, iren_slice, origin=_EVIDENCE_ORIGIN) -> GalaxyThemeV
         planets=planets)
 
 
-def _build_evidence_universe_view(iren_slice, terrain,
-                                  source_status=None) -> EconomicUniverseView:
-    """Project the whole Economic Universe view from an evidence / real terrain."""
+def _build_evidence_universe_view(iren_slice, terrain, source_status=None,
+                                  slice_by_subject=None,
+                                  watchlist_summary=None) -> EconomicUniverseView:
+    """Project the whole Economic Universe view from an evidence / real terrain.
+
+    For a 010E watchlist, ``slice_by_subject`` maps ticker -> that company's slice (so each
+    co-located planet projects from its own evidence) and ``watchlist_summary`` drives the
+    aggregated Data-Quality panel + the status-strip run summary line."""
     mode = getattr(terrain, "mode", EVIDENCE_FIXTURE_MODE)
     origin = _origin_for_mode(mode)
-    themes = tuple(_evidence_theme_view(g, iren_slice, origin=origin)
+    themes = tuple(_evidence_theme_view(g, iren_slice, slice_by_subject, origin=origin)
                    for g in terrain.galaxies)
     clusters = tuple(t.cluster for t in themes)
     dashboard = build_cio_dashboard_view(themes)
-    data_quality = build_data_quality_view(iren_slice, terrain, source_status=source_status)
+    data_quality = build_data_quality_view(
+        iren_slice, terrain, source_status=source_status,
+        watchlist_summary=watchlist_summary)
     name_by_slug = {g.id: g.name for g in terrain.galaxies}
     edges = tuple(
         ThemeEdgeView(
@@ -992,8 +1106,17 @@ def _build_evidence_universe_view(iren_slice, terrain,
         for e in terrain.relationship_edges
         if e.source_id in name_by_slug and e.target_id in name_by_slug
         and e.source_id != e.target_id)
+    run_summary_line = ""
+    real_subject = getattr(iren_slice, "subject", "") or ""
+    if watchlist_summary is not None:
+        run_summary_line = (
+            " · {0} requested / {1} built / {2} failed-or-deferred".format(
+                watchlist_summary.requested_count, watchlist_summary.succeeded_count,
+                watchlist_summary.failed_or_deferred_count))
+        real_subject = ", ".join(
+            r.ticker for r in watchlist_summary.records if r.status == "built")
     return EconomicUniverseView(
         mode=mode, live_enabled=False, scheduler_enabled=False,
         broker_automation_enabled=False, clusters=clusters, themes=themes, edges=edges,
         dashboard=dashboard, data_quality=data_quality,
-        real_subject=getattr(iren_slice, "subject", "") or "", terrain=terrain)
+        real_subject=real_subject, terrain=terrain, run_summary_line=run_summary_line)

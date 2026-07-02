@@ -1513,6 +1513,73 @@ def _quality_cards(dq: DataQualityView) -> str:
     return '<div class="stat-grid">{0}</div>'.format(items)
 
 
+def _watchlist_dq_panel(dq: DataQualityView) -> str:
+    """IMPLEMENTATION-010E watchlist Data-Quality panel: (A) OVERALL run summary,
+    (B) PER-TICKER source-status table, (C) FAILURE / GAP cards. Reuses the accepted
+    control-panel styling; every value is copied from the run summary — no key is leaked,
+    nothing is ranked or recomputed."""
+    if not getattr(dq, "is_watchlist", False):
+        return ""
+    # A. overall run summary
+    overall = "".join([
+        "<tr><th>Requested</th><td>{0}</td></tr>".format(_esc(dq.wl_requested)),
+        "<tr><th>Built</th><td>{0}</td></tr>".format(_esc(dq.wl_succeeded)),
+        "<tr><th>Failed</th><td>{0}</td></tr>".format(_esc(dq.wl_failed)),
+        "<tr><th>Deferred</th><td>{0}</td></tr>".format(_esc(dq.wl_deferred)),
+        "<tr><th>Tickers built</th><td>{0}</td></tr>".format(
+            _esc(", ".join(dq.tickers) or "—")),
+        "<tr><th>Run timestamp</th><td>{0}</td></tr>".format(_esc(dq.run_timestamp)),
+        "<tr><th>SEC canonical (total)</th><td>{0}</td></tr>".format(_esc(dq.canonical_count)),
+        "<tr><th>FMP convenience (total)</th><td>{0}</td></tr>".format(
+            _esc(dq.convenience_count)),
+        "<tr><th>yfinance fallback (total)</th><td>{0}</td></tr>".format(_esc(dq.fallback_count)),
+        "<tr><th>Conflicts</th><td>{0}</td></tr>".format(_esc(len(dq.conflict_warnings))),
+        "<tr><th>Overridden facts</th><td>{0}</td></tr>".format(_esc(len(dq.overridden_facts))),
+        "<tr><th>Data gaps</th><td>{0}</td></tr>".format(_esc(len(dq.data_gaps))),
+        "<tr><th>Deferred records</th><td>{0}</td></tr>".format(
+            _esc(dq.deferred_records_count)),
+    ])
+    # B. per-ticker source-status table
+    def _st_badge(st):
+        st = str(st)
+        cls = ("q-high" if st == "fetched" else
+               ("hazard" if st in ("failed", "not run") else "gap"))
+        return _badge(st, cls)
+    trows = "".join(
+        "<tr><td>{tk}</td><td>{sec}</td><td>{fmp}</td><td>{yf}</td>"
+        '<td class="num">{can}</td><td class="num">{con}</td><td class="num">{fb}</td>'
+        '<td class="num">{cf}</td><td class="num">{gp}</td><td class="num">{pr}</td>'
+        "<td>{ts}</td></tr>".format(
+            tk=_esc(r[0]), sec=_st_badge(r[1]), fmp=_st_badge(r[2]), yf=_st_badge(r[3]),
+            can=_esc(r[4]), con=_esc(r[5]), fb=_esc(r[6]), cf=_esc(r[7]), gp=_esc(r[8]),
+            pr=_esc(r[9]), ts=_badge(r[10], "q-high" if r[10] == "built" else "hazard"))
+        for r in dq.per_ticker_rows)
+    table = (
+        '<table class="chain"><tr><th>ticker</th><th>SEC</th><th>FMP</th>'
+        "<th>yfinance</th><th>canonical</th><th>convenience</th><th>fallback</th>"
+        "<th>conflicts</th><th>data gaps</th><th>provenance</th><th>terrain</th></tr>"
+        "{0}</table>".format(trows))
+    # C. failure / gap cards
+    if dq.failure_cards:
+        cards = "".join(
+            '<div class="brief-card risk"><div class="brief-label micro">{0}</div>'
+            '<div class="brief-body">{1}</div></div>'.format(_esc(k), _esc(v))
+            for k, v in dq.failure_cards)
+        cards_html = '<div class="cols">{0}</div>'.format(cards)
+    else:
+        cards_html = '<p class="note">no per-ticker failures or credential gaps flagged</p>'
+    return (
+        '<h2>Watchlist run — overall</h2><div class="glass-panel">'
+        '<p class="note">Real evidence on demand · manual refresh only · not scheduled · '
+        "not broker-connected · data may be incomplete — completeness is NOT claimed. "
+        "A ticker that failed is recorded here, never silently dropped.</p>"
+        '<table class="kv">' + overall + "</table></div>"
+        "<h2>Per-ticker source status</h2>"
+        '<div class="glass-panel">' + table + "</div>"
+        "<h2>Failures &amp; credential / data gaps</h2>"
+        '<div class="glass-panel">' + cards_html + "</div>")
+
+
 def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
                         notice: str = "") -> str:
     is_ev = "evidence" in (dq.run_mode or "").lower()
@@ -1542,6 +1609,7 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
             '<p class="note">Manual refresh only · not scheduled · not broker-connected · '
             "data may be incomplete — completeness is NOT claimed.</p>"
             '<table class="kv">' + rows + meta + "</table></div>")
+    watchlist_html = _watchlist_dq_panel(dq)
     boundary = "".join([
         "<tr><th>Run mode</th><td>{0}</td></tr>".format(_esc(dq.run_mode)),
         "<tr><th>Fixture / demo</th><td>{0}</td></tr>".format(_esc(dq.fixture_demo_status)),
@@ -1560,8 +1628,9 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
         "control panel over existing pipeline state — no live data, scheduler or broker.</p>"
         "</div><div>" + _badge("REAL subject: {0}".format(dq.real_subject), "real")
         + " " + terrain_badge + "</div></div>"
-        # A. source hierarchy pipeline
+        # A. real-source status + (watchlist) overall run + per-ticker table + gaps
         + source_status_html
+        + watchlist_html
         + '<h2>Source hierarchy pipeline</h2>'
         + '<div class="glass-panel">' + _dq_pipeline(dq)
         + '<p class="note">Authority order: SEC canonical (EDGAR) &gt; FMP convenience &gt; '
@@ -1601,7 +1670,8 @@ def render_all_pages(view: EconomicUniverseView, iren_slice) -> Tuple[Tuple[str,
     Galaxy / value-chain / bottleneck are zoom LEVELS inside ``universe.html`` — not
     separate pages. The cockpit is opened FROM a planet, not a top-level tab.
     """
-    strip_text = _strip_for_mode(getattr(view, "mode", ""))
+    strip_text = _strip_for_mode(getattr(view, "mode", "")) + getattr(
+        view, "run_summary_line", "")
     notice = _terrain_notice(view)
     return (
         ("universe.html", render_universe(view, strip_text=strip_text, notice=notice)),

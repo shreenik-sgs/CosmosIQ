@@ -35,7 +35,9 @@ def build_universe_app(output_dir: str, mode: str = "demo",
                        iren_slice: Optional[object] = None,
                        fixture_dir: Optional[str] = None,
                        ticker: Optional[str] = None,
+                       tickers: Optional[object] = None,
                        transports: Optional[object] = None,
+                       transports_by_ticker: Optional[object] = None,
                        sec_user_agent: Optional[str] = None,
                        fmp_api_key: Optional[str] = None,
                        enable_yfinance: bool = False,
@@ -67,10 +69,19 @@ def build_universe_app(output_dir: str, mode: str = "demo",
     os.makedirs(assets_dir, exist_ok=True)
 
     if mode == "real_evidence_on_demand":
+        # A watchlist (``tickers`` / ``transports_by_ticker``) takes precedence over the
+        # single-ticker 010D path, which stays byte-for-byte unchanged when only
+        # ``ticker`` is supplied.
+        if tickers is not None or transports_by_ticker is not None:
+            return _build_watchlist(
+                output_dir, assets_dir, tickers=tickers, transports=transports,
+                transports_by_ticker=transports_by_ticker, sec_user_agent=sec_user_agent,
+                fmp_api_key=fmp_api_key, enable_yfinance=enable_yfinance, now=now)
         if not ticker:
             raise ValueError(
-                "mode 'real_evidence_on_demand' requires an explicit ticker "
-                "(pass ticker= / --ticker); real mode never runs without one")
+                "mode 'real_evidence_on_demand' requires an explicit ticker or tickers "
+                "(pass ticker= / --ticker, or tickers= / --tickers); real mode never runs "
+                "without one")
         from .real_terrain import build_real_evidence_terrain_for_ticker
         terrain, source_status = build_real_evidence_terrain_for_ticker(
             ticker, transports=transports, sec_user_agent=sec_user_agent,
@@ -94,6 +105,50 @@ def build_universe_app(output_dir: str, mode: str = "demo",
         raise ValueError("unknown mode: {0!r}".format(mode))
     pages = render_all_pages(view, slice_result)
     return _write_pages(output_dir, assets_dir, pages)
+
+
+def _build_watchlist(output_dir, assets_dir, *, tickers, transports,
+                     transports_by_ticker, sec_user_agent, fmp_api_key,
+                     enable_yfinance, now) -> Dict[str, str]:
+    """IMPLEMENTATION-010E: build ONE merged real-evidence terrain for a small watchlist.
+
+    Renders the four base pages from the merged terrain (``cockpit.html`` = the
+    representative company that produced a decision cockpit), plus a per-ticker
+    ``cockpit_<ticker>.html`` for every built company that has its own cockpit. Real
+    network happens only inside the lazily-imported builder and only on this explicit
+    path; tests drive it entirely offline with ``transports_by_ticker``."""
+    from .watchlist_terrain import build_real_evidence_watchlist_terrain, normalize_tickers
+    from .render import _strip_for_mode, render_cockpit
+    from .view_models import slugify
+
+    norm = normalize_tickers(tickers if tickers is not None else
+                             tuple((transports_by_ticker or {}).keys()))
+    if not norm:
+        raise ValueError(
+            "mode 'real_evidence_on_demand' watchlist requires >=1 ticker "
+            "(empty / whitespace --tickers rejected; nothing fetched)")
+    terrain, summary = build_real_evidence_watchlist_terrain(
+        norm, transports_by_ticker=transports_by_ticker, transports=transports,
+        sec_user_agent=sec_user_agent, fmp_api_key=fmp_api_key,
+        enable_yfinance=enable_yfinance, now=now)
+    rep = summary.representative_slice
+    view = build_economic_universe_view(
+        rep, terrain=terrain, slice_by_subject=summary.slice_by_subject,
+        watchlist_summary=summary)
+    pages = render_all_pages(view, rep)
+    paths = _write_pages(output_dir, assets_dir, pages)
+
+    # Per-ticker cockpit pages (only where a cockpit exists), so each real company's
+    # planet links to ITS OWN cockpit rather than a shared / mislabelled one.
+    strip = _strip_for_mode("real_evidence_on_demand") + view.run_summary_line
+    for tk, sl in summary.slice_by_subject.items():
+        if getattr(sl, "cockpit_view", None) is not None:
+            fname = "cockpit_{0}.html".format(slugify(tk))
+            html = render_cockpit(sl, strip_text=strip)
+            path = os.path.join(output_dir, fname)
+            _write(path, html)
+            paths[fname] = path
+    return paths
 
 
 def _write_pages(output_dir, assets_dir, pages) -> Dict[str, str]:
