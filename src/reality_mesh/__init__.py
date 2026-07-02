@@ -92,6 +92,7 @@ from .registry import (
 from .router import BuddhiRouter
 from .fusion import FusionResult, TattvaSignalFusionSynthesizer
 from .sphurana import SphuranaResult, ThemePulseSynthesizer
+from .render_adapters import build_pulse_data_quality_panel
 from .sensors import (
     MARKET_REGIME_FINDING_TYPES,
     MARKET_REGIME_SUBAGENTS,
@@ -237,4 +238,6 @@ __all__ = [
     "build_forward_scenario_packet",
     "to_nivesha_forward_sidecar",
     "run_nivesha_thesis_on_forward_sidecar",
+    # data-quality / universe signal integration (012J)
+    "build_pulse_data_quality_panel",
 ]

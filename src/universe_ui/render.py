@@ -1818,7 +1818,7 @@ def _enrichment_coverage_panel(dq: DataQualityView) -> str:
 
 
 def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
-                        notice: str = "") -> str:
+                        notice: str = "", pulse_panel_html: str = "") -> str:
     is_ev = "evidence" in (dq.run_mode or "").lower()
     terrain_badge = (_badge("evidence-ingested terrain", "evidence") if is_ev
                      else _badge("DEMO terrain", "demo"))
@@ -1874,6 +1874,9 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
         + diagnostics_html
         # 011A: diligence-enrichment coverage (data-sourcing actions only; empty otherwise)
         + enrichment_html
+        # 012J: manual-pulse reality-signal EVIDENCE panel (empty unless pulse signals supplied;
+        # additive/opt-in so demo/real/enriched default output stays byte-identical)
+        + pulse_panel_html
         + '<h2>Source hierarchy pipeline</h2>'
         + '<div class="glass-panel">' + _dq_pipeline(dq)
         + '<p class="note">Authority order: SEC canonical (EDGAR) &gt; FMP convenience &gt; '
@@ -1907,7 +1910,8 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
 # --------------------------------------------------------------------------- #
 # Convenience: render every page from one view                               #
 # --------------------------------------------------------------------------- #
-def render_all_pages(view: EconomicUniverseView, iren_slice) -> Tuple[Tuple[str, str], ...]:
+def render_all_pages(view: EconomicUniverseView, iren_slice,
+                     pulse_panel_html: str = "") -> Tuple[Tuple[str, str], ...]:
     """Return an ordered ((filename, html), ...) for all four pages.
 
     Galaxy / value-chain / bottleneck are zoom LEVELS inside ``universe.html`` — not
@@ -1923,7 +1927,8 @@ def render_all_pages(view: EconomicUniverseView, iren_slice) -> Tuple[Tuple[str,
         ("universe.html", render_universe(view, strip_text=strip_text, notice=notice)),
         ("dashboard.html", render_dashboard(view.dashboard, strip_text=strip_text)),
         ("data_quality.html", render_data_quality(
-            view.data_quality, strip_text=strip_text, notice=notice)),
+            view.data_quality, strip_text=strip_text, notice=notice,
+            pulse_panel_html=pulse_panel_html)),
         ("cockpit.html", render_cockpit(
             iren_slice, strip_text=strip_text, enrichment_note=enrichment_note)),
     )

@@ -47,6 +47,10 @@ def build_universe_app(output_dir: str, mode: str = "demo",
                        user_selected_size: Optional[float] = None,
                        enrichment: Optional[object] = None,
                        enrich: bool = False,
+                       pulse_signals: Optional[object] = None,
+                       signal_clusters: Optional[object] = None,
+                       theme_pulses: Optional[object] = None,
+                       pulse_authority_by_signal: Optional[object] = None,
                        now: Optional[float] = None) -> Dict[str, str]:
     """Build all pages + local assets into ``output_dir``; return their paths.
 
@@ -78,6 +82,18 @@ def build_universe_app(output_dir: str, mode: str = "demo",
     os.makedirs(output_dir, exist_ok=True)
     assets_dir = os.path.join(output_dir, "assets")
     os.makedirs(assets_dir, exist_ok=True)
+
+    # 012J: OPT-IN manual-pulse reality-signal evidence panel for the Data-Quality page. Empty
+    # (byte-identical to pre-012J) unless a caller explicitly supplies pulse signals/clusters/
+    # pulses -- the demo default and the real/enriched paths never populate it on their own.
+    pulse_panel_html = ""
+    if pulse_signals or signal_clusters or theme_pulses:
+        from reality_mesh.render_adapters import build_pulse_data_quality_panel
+        pulse_panel_html = build_pulse_data_quality_panel(
+            signals=tuple(pulse_signals or ()),
+            clusters=tuple(signal_clusters or ()),
+            theme_pulses=tuple(theme_pulses or ()),
+            authority_by_signal=dict(pulse_authority_by_signal or {}))
 
     if mode == "real_evidence_on_demand":
         # A watchlist (``tickers`` / ``transports_by_ticker``) takes precedence over the
@@ -111,7 +127,7 @@ def build_universe_app(output_dir: str, mode: str = "demo",
         view = build_economic_universe_view(
             slice_result, terrain=terrain, source_status=source_status,
             enrichment_bundles=bundles, enrichment_by_subject=by_subject)
-        pages = render_all_pages(view, slice_result)
+        pages = render_all_pages(view, slice_result, pulse_panel_html=pulse_panel_html)
         return _write_pages(output_dir, assets_dir, pages)
 
     slice_result = iren_slice if iren_slice is not None else load_iren_slice(fixture_dir)
@@ -131,7 +147,7 @@ def build_universe_app(output_dir: str, mode: str = "demo",
         view = build_economic_universe_view(slice_result)
     else:
         raise ValueError("unknown mode: {0!r}".format(mode))
-    pages = render_all_pages(view, slice_result)
+    pages = render_all_pages(view, slice_result, pulse_panel_html=pulse_panel_html)
     return _write_pages(output_dir, assets_dir, pages)
 
 
