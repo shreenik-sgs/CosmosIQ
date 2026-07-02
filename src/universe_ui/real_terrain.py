@@ -240,6 +240,12 @@ def build_real_evidence_terrain_for_ticker(
     portfolio: Any = None,
     user_selected_size: Optional[float] = None,
     enrichment: Any = None,
+    enrich: bool = False,
+    manual_tam: Any = None,
+    ir_fixture: Any = None,
+    leadership_fixture: Any = None,
+    value_chain_fixture: Any = None,
+    bottleneck_fixture: Any = None,
     now: Optional[float] = None,
     actor: str = "real-evidence-on-demand",
 ):
@@ -278,6 +284,24 @@ def build_real_evidence_terrain_for_ticker(
         diligence_inputs=diligence_inputs, profile=profile, portfolio=portfolio,
         user_selected_size=user_selected_size, actor=actor)
 
+    # IMPLEMENTATION-011C: when enrichment is opted in and not injected, build a
+    # source-backed DiligenceEnrichmentBundle from the ALREADY-FETCHED SEC / FMP payloads
+    # for THIS ticker (no new fetch, offline). SEC facts stay canonical, FMP convenience;
+    # TAM / value-chain / bottleneck / IR / leadership populate ONLY from supplied fixtures,
+    # else they remain explicit gaps. An injected ``enrichment`` always takes precedence.
+    if enrichment is None and enrich:
+        from diligence_enrichment import build_diligence_enrichment_bundle
+        enrichment = build_diligence_enrichment_bundle(
+            ticker,
+            sec_facts=payloads.get("sec_companyfacts"),
+            fmp_profile=payloads.get("fmp_profile"),
+            fmp_income=payloads.get("fmp_income_statement"),
+            slice_result=result,
+            manual_tam=manual_tam, ir_fixture=ir_fixture,
+            leadership_fixture=leadership_fixture,
+            value_chain_fixture=value_chain_fixture,
+            bottleneck_fixture=bottleneck_fixture, now=run_now)
+
     run_ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(run_now))
     status_gaps = tuple(
         "source status — {0}: {1}".format(k, v) for k, v in sorted(source_status.items()))
@@ -298,4 +322,8 @@ def build_real_evidence_terrain_for_ticker(
     # The computed slice result is carried alongside the per-source status so the app can
     # project the view from it. Tests that only want the terrain + statuses can ignore it.
     status_out["slice_result"] = result
+    # The source-backed enrichment bundle actually overlaid (or None) rides along so the
+    # app can drive the Data-Quality coverage panel, the per-company cards and the cockpit
+    # enrichment note WITHOUT rebuilding it.
+    status_out["enrichment"] = enrichment
     return terrain, status_out

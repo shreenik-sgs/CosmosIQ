@@ -1269,7 +1269,36 @@ def render_universe(view: EconomicUniverseView, strip_text: Optional[str] = None
 # --------------------------------------------------------------------------- #
 # Cockpit (IREN) — the ACCEPTED renderer, wrapped; opened FROM a planet       #
 # --------------------------------------------------------------------------- #
-def _cockpit_wrapper(strip_text: Optional[str] = None) -> str:
+def _cockpit_enrichment_note(coverage, subject: str) -> str:
+    """A READ-ONLY diligence-enrichment status note for the cockpit PAGE wrapper.
+
+    Built from the enrichment-coverage diagnostic for ``subject`` (or the first ticker).
+    Coverage + gaps ONLY — there is NO trade / order affordance, and the broker order stays
+    None. Returns "" when no coverage exists, so the pre-011C wrapper is unchanged."""
+    if coverage is None or not getattr(coverage, "per_ticker", ()):
+        return ""
+    subj = (subject or "").strip().upper()
+    tc = None
+    for t in coverage.per_ticker:
+        if t.ticker == subj:
+            tc = t
+            break
+    tc = tc or coverage.per_ticker[0]
+    avail = sum(1 for a in tc.areas if a.available)
+    gaps = "; ".join(tc.gaps[:4]) if tc.gaps else "none"
+    return (
+        '<div style="background:#101a2e;color:#cfe0ff;padding:.55rem 1rem;'
+        'font:600 12px sans-serif;border-bottom:1px solid #26315f">'
+        "Diligence enrichment (read-only evidence): {tk} — status {st}, {av}/{n} diligence "
+        "areas source-backed. Gaps (data-sourcing only): {gaps}. This is evidence + coverage "
+        "only — no recommendation, no order; broker order: none; manual review required."
+        "</div>").format(
+            tk=_esc(tc.ticker), st=_esc(tc.enrichment_status), av=avail,
+            n=len(tc.areas), gaps=_esc(gaps))
+
+
+def _cockpit_wrapper(strip_text: Optional[str] = None,
+                     enrichment_note: str = "") -> str:
     strip = (
         '<div style="position:sticky;top:0;z-index:50;background:#0a0f24;color:#c7d0f5;'
         'padding:.5rem 1rem;font:600 13px sans-serif;border-bottom:1px solid #26315f">'
@@ -1294,10 +1323,11 @@ def _cockpit_wrapper(strip_text: Optional[str] = None) -> str:
         'Rendered by the ACCEPTED cockpit renderer (render_cockpit_html). Ticker/security '
         'mapping is derived after value-chain / winner mapping inside the cockpit. '
         'Manual review required.</div>')
-    return strip + nav + note
+    return strip + nav + note + (enrichment_note or "")
 
 
-def render_cockpit(iren_slice, strip_text: Optional[str] = None) -> str:
+def render_cockpit(iren_slice, strip_text: Optional[str] = None,
+                   enrichment_note: str = "") -> str:
     cockpit_view = getattr(iren_slice, "cockpit_view", None)
     if cockpit_view is None:
         # Real / early-stop runs may lack a full decision cockpit (insufficient inputs).
@@ -1307,10 +1337,11 @@ def render_cockpit(iren_slice, strip_text: Optional[str] = None) -> str:
             '<p class="lead">No decision cockpit for this run — the evidence chain '
             "stopped before an investment thesis (insufficient inputs). This is a data "
             "gap, not a recommendation. Manual review required; no order is placed.</p>"
-            "</div>")
+            "</div>" + (enrichment_note or ""))
         return _page("Alpha Decision Cockpit", "cockpit.html", body, strip_text=strip_text)
     doc = render_cockpit_html(cockpit_view)
-    return doc.replace("<body>", "<body>\n" + _cockpit_wrapper(strip_text), 1)
+    return doc.replace(
+        "<body>", "<body>\n" + _cockpit_wrapper(strip_text, enrichment_note), 1)
 
 
 # --------------------------------------------------------------------------- #
@@ -1327,6 +1358,22 @@ def _card(c: CandidateCardView) -> str:
     orb = _orb(c.visual_size_px, c.glow_level, c.magnitude_missing,
                "market cap ({0})".format(_origin_suffix(c.data_origin)), c.market_cap)
     cls = "card dashed-outline" if c.magnitude_missing else "card"
+    # IMPLEMENTATION-011C: per-company diligence-enrichment context (evidence + coverage +
+    # gaps; label-only, never a trade action). Rendered only when a source-backed bundle
+    # supplied it, so demo / non-enriched cards are byte-identical.
+    enrich_html = ""
+    if c.enrichment_coverage_line or c.enrichment_context or c.enrichment_gaps:
+        ctx = _list(c.enrichment_context, "no source-backed profile facts")
+        egaps = _list(c.enrichment_gaps, "no enrichment gaps")
+        enrich_html = (
+            '<div class="brief-card"><div class="brief-label micro">Diligence enrichment '
+            "(evidence + coverage only — no recommendation)</div>"
+            '<p class="note">{cov}</p>'
+            '<div class="brief-label micro">Source-backed facts</div>{ctx}'
+            '<div class="brief-label micro">Enrichment gaps (data-sourcing)</div>{gaps}'
+            "</div>").format(
+                cov=_esc(c.enrichment_coverage_line or "enrichment: source-backed evidence"),
+                ctx=ctx, gaps=egaps)
     top_reason = "{0}; {1}".format(c.value_chain_role, c.proximity_to_bottleneck)
     top_risk = ("capital-structure / dilution risk" if c.capital_structure_risk else
                 ("red-team: {0}".format(c.red_team_label) if rt_cls else
@@ -1345,6 +1392,7 @@ def _card(c: CandidateCardView) -> str:
         "<tr><th>Top risk</th><td>{risk}</td></tr>"
         "<tr><th>Source coverage</th><td>{auth}</td></tr>"
         "</table>"
+        "{enrich}"
         '<p class="qualifier">{qual}: <b>{ticker}</b></p>'
         '<p>{q} · evidence {ev} · '
         '<a href="{locate}">Locate in Universe →</a> · {cockpit}</p>'
@@ -1359,7 +1407,7 @@ def _card(c: CandidateCardView) -> str:
         rec=_badge("recommendation: {0}".format(c.recommendation_label)), caps=capstruct,
         cross=cross or _badge("no cross-cut alerts", "q-high"),
         timing_txt=_esc(c.timing_label), inv_txt=_esc(c.investability_label),
-        reason=_esc(top_reason), risk=_esc(top_risk), auth=auth,
+        reason=_esc(top_reason), risk=_esc(top_risk), auth=auth, enrich=enrich_html,
         qual=_esc(c.security_mapping_qualifier), ticker=_esc(c.ticker),
         q=_quality_badge(c.data_quality), ev=_esc(c.evidence_count),
         cockpit=cockpit, locate=_esc(c.locate_link))
@@ -1868,10 +1916,14 @@ def render_all_pages(view: EconomicUniverseView, iren_slice) -> Tuple[Tuple[str,
     strip_text = _strip_for_mode(getattr(view, "mode", "")) + getattr(
         view, "run_summary_line", "")
     notice = _terrain_notice(view)
+    enrichment_note = _cockpit_enrichment_note(
+        getattr(view.data_quality, "enrichment_coverage", None),
+        getattr(iren_slice, "subject", "") or getattr(view, "real_subject", ""))
     return (
         ("universe.html", render_universe(view, strip_text=strip_text, notice=notice)),
         ("dashboard.html", render_dashboard(view.dashboard, strip_text=strip_text)),
         ("data_quality.html", render_data_quality(
             view.data_quality, strip_text=strip_text, notice=notice)),
-        ("cockpit.html", render_cockpit(iren_slice, strip_text=strip_text)),
+        ("cockpit.html", render_cockpit(
+            iren_slice, strip_text=strip_text, enrichment_note=enrichment_note)),
     )

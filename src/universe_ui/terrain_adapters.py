@@ -304,6 +304,56 @@ def _risk_nodes(bi: EvidenceTerrainBuildInput, related_id: str,
     return tuple(out)
 
 
+# =========================================================================== #
+# IMPLEMENTATION-011C: Company IR evidence -> catalyst / risk / evidence cards.  #
+# Populated ONLY when a source-backed IR enrichment profile is supplied; company #
+# statements (disclosed catalysts, guidance) are stamped ``company_claim`` and   #
+# never presented as verified facts; rumors would stay rumor via _catalyst_status.#
+# When ``enrichment`` is None (or IR absent) both helpers return () -> the pre-   #
+# 011C terrain is byte-identical.                                                 #
+# =========================================================================== #
+def _ir_catalyst_nodes(enrichment: Any, related_id: str,
+                       ev_quality: str) -> Tuple[CatalystNode, ...]:
+    """Company-IR catalysts + guidance as CatalystNodes (company_claim, not verified)."""
+    ir = (enrichment.ir if enrichment is not None else None)
+    if ir is None or not ir.present:
+        return ()
+    refs = tuple(ir.source_refs)
+    out = []
+    for i, c in enumerate(tuple(ir.disclosed_catalysts)):
+        out.append(CatalystNode(
+            id="{0}--ir-cat-{1}".format(related_id, i), related_object_id=related_id,
+            catalyst_type="positive",
+            description="Company-disclosed catalyst (company_claim): {0}".format(c),
+            status=_catalyst_status(str(c)), evidence_quality=ev_quality,
+            source_refs=refs))
+    for i, g in enumerate(tuple(ir.guidance_statements)):
+        gv = getattr(g, "value", g)
+        out.append(CatalystNode(
+            id="{0}--ir-guid-{1}".format(related_id, i), related_object_id=related_id,
+            catalyst_type="positive",
+            description="Company guidance (company_claim): {0}".format(gv),
+            status="possible", evidence_quality=ev_quality,
+            source_refs=tuple(getattr(g, "source_refs", ())) or refs))
+    return tuple(out)
+
+
+def _ir_risk_nodes(enrichment: Any, related_id: str,
+                   ev_quality: str) -> Tuple[RiskNode, ...]:
+    """Company-IR disclosed risks as RiskNodes (company_claim context, never suppressed)."""
+    ir = (enrichment.ir if enrichment is not None else None)
+    if ir is None or not ir.present:
+        return ()
+    refs = tuple(ir.source_refs)
+    return tuple(
+        RiskNode(id="{0}--ir-risk-{1}".format(related_id, i), related_object_id=related_id,
+                 risk_type="company-disclosed-risk",
+                 description="Company-disclosed risk (company_claim): {0}".format(r),
+                 red_team_status="disclosed", evidence_quality=ev_quality,
+                 source_refs=refs)
+        for i, r in enumerate(tuple(ir.disclosed_risks)))
+
+
 def _source_coverage(bi: EvidenceTerrainBuildInput) -> dict:
     """ACTUAL source-authority + factual/signal counts from the ingestion + assessment."""
     ing = bi.ingestion_result
@@ -624,8 +674,11 @@ def _galaxy_node(bi: EvidenceTerrainBuildInput, enrichment: Any = None) -> Galax
     company = _iren_company_node(
         bi, gslug=gslug, vc_id=vc.id, bottleneck_id=bottleneck_id, universe_path=universe_path,
         enrichment=enrichment)
-    catalysts = _catalyst_nodes(bi, gslug, "medium")
-    risks = _risk_nodes(bi, gslug, "medium")
+    # Base catalysts / risks from the thesis + red-team, plus (011C) source-backed company
+    # IR evidence as company_claim catalyst / risk cards (empty when enrichment is None).
+    catalysts = _catalyst_nodes(bi, gslug, "medium") + _ir_catalyst_nodes(
+        enrichment, gslug, "medium")
+    risks = _risk_nodes(bi, gslug, "medium") + _ir_risk_nodes(enrichment, gslug, "medium")
 
     # TAM (manual/analyst, never canonical) is the theme/galaxy magnitude BASIS when supplied.
     tam = _enrichment_tam(enrichment)

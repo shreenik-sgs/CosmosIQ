@@ -46,6 +46,7 @@ def build_universe_app(output_dir: str, mode: str = "demo",
                        portfolio: Optional[object] = None,
                        user_selected_size: Optional[float] = None,
                        enrichment: Optional[object] = None,
+                       enrich: bool = False,
                        now: Optional[float] = None) -> Dict[str, str]:
     """Build all pages + local assets into ``output_dir``; return their paths.
 
@@ -62,6 +63,15 @@ def build_universe_app(output_dir: str, mode: str = "demo",
     explicitly (resolved from env by the CLI); network happens ONLY here and ONLY on this
     explicit path.
 
+    ``enrich`` (IMPLEMENTATION-011C) is an OPT-IN switch for the real single + watchlist
+    modes: when True (or when an ``enrichment`` bundle is injected) a source-backed
+    :class:`~diligence_enrichment.models.DiligenceEnrichmentBundle` is constructed PER TICKER
+    from that ticker's ALREADY-FETCHED SEC / FMP payloads (no new fetch, offline) and
+    overlaid — driving the market-cap / TAM / value-chain / bottleneck magnitudes, the
+    per-company enrichment cards, the Data-Quality enrichment-coverage panel, and a read-only
+    cockpit enrichment note. Absent both, the terrain stays honestly sparse (missing → visible
+    gap) and the build is byte-identical to the pre-011C output. Demo NEVER enriches.
+
     Deterministic: demo / fixture builds into two fresh directories are byte-identical.
     Real mode is deterministic only when ``transports`` + ``now`` are injected (tests).
     """
@@ -77,7 +87,8 @@ def build_universe_app(output_dir: str, mode: str = "demo",
             return _build_watchlist(
                 output_dir, assets_dir, tickers=tickers, transports=transports,
                 transports_by_ticker=transports_by_ticker, sec_user_agent=sec_user_agent,
-                fmp_api_key=fmp_api_key, enable_yfinance=enable_yfinance, now=now)
+                fmp_api_key=fmp_api_key, enable_yfinance=enable_yfinance,
+                enrich=enrich, now=now)
         if not ticker:
             raise ValueError(
                 "mode 'real_evidence_on_demand' requires an explicit ticker or tickers "
@@ -88,19 +99,34 @@ def build_universe_app(output_dir: str, mode: str = "demo",
             ticker, transports=transports, sec_user_agent=sec_user_agent,
             fmp_api_key=fmp_api_key, enable_yfinance=enable_yfinance,
             diligence_inputs=diligence_inputs, profile=profile, portfolio=portfolio,
-            user_selected_size=user_selected_size, enrichment=enrichment, now=now)
+            user_selected_size=user_selected_size, enrichment=enrichment,
+            enrich=enrich, now=now)
         slice_result = source_status.pop("slice_result")
+        # The bundle actually overlaid (injected or auto-built from THIS ticker's SEC/FMP
+        # payloads) drives the DQ coverage panel, per-company cards and cockpit note.
+        used_enrichment = source_status.pop("enrichment", None)
+        bundles = [used_enrichment] if used_enrichment is not None else None
+        by_subject = ({slice_result.subject: used_enrichment}
+                      if used_enrichment is not None else None)
         view = build_economic_universe_view(
             slice_result, terrain=terrain, source_status=source_status,
-            enrichment_bundles=([enrichment] if enrichment is not None else None))
+            enrichment_bundles=bundles, enrichment_by_subject=by_subject)
         pages = render_all_pages(view, slice_result)
         return _write_pages(output_dir, assets_dir, pages)
 
     slice_result = iren_slice if iren_slice is not None else load_iren_slice(fixture_dir)
     if mode == "evidence_ingested_fixture":
         from .terrain_adapters import terrain_from_slice
-        terrain = terrain_from_slice(slice_result)
-        view = build_economic_universe_view(slice_result, terrain=terrain)
+        # Enrichment stays OPTIONAL/injectable here: a caller / test may pass a
+        # source-backed bundle to overlay; absent one the terrain stays sparse and the
+        # evidence-fixture build is byte-identical to the pre-011C output.
+        terrain = terrain_from_slice(slice_result, enrichment=enrichment)
+        bundles = [enrichment] if enrichment is not None else None
+        by_subject = ({getattr(slice_result, "subject", ""): enrichment}
+                      if enrichment is not None else None)
+        view = build_economic_universe_view(
+            slice_result, terrain=terrain, enrichment_bundles=bundles,
+            enrichment_by_subject=by_subject)
     elif mode == "demo":
         view = build_economic_universe_view(slice_result)
     else:
@@ -111,7 +137,7 @@ def build_universe_app(output_dir: str, mode: str = "demo",
 
 def _build_watchlist(output_dir, assets_dir, *, tickers, transports,
                      transports_by_ticker, sec_user_agent, fmp_api_key,
-                     enable_yfinance, now) -> Dict[str, str]:
+                     enable_yfinance, enrich=False, now=None) -> Dict[str, str]:
     """IMPLEMENTATION-010E: build ONE merged real-evidence terrain for a small watchlist.
 
     Renders the four base pages from the merged terrain (``cockpit.html`` = the
@@ -120,7 +146,7 @@ def _build_watchlist(output_dir, assets_dir, *, tickers, transports,
     network happens only inside the lazily-imported builder and only on this explicit
     path; tests drive it entirely offline with ``transports_by_ticker``."""
     from .watchlist_terrain import build_real_evidence_watchlist_terrain, normalize_tickers
-    from .render import _strip_for_mode, render_cockpit
+    from .render import _strip_for_mode, render_cockpit, _cockpit_enrichment_note
     from .view_models import slugify
 
     norm = normalize_tickers(tickers if tickers is not None else
@@ -132,21 +158,25 @@ def _build_watchlist(output_dir, assets_dir, *, tickers, transports,
     terrain, summary = build_real_evidence_watchlist_terrain(
         norm, transports_by_ticker=transports_by_ticker, transports=transports,
         sec_user_agent=sec_user_agent, fmp_api_key=fmp_api_key,
-        enable_yfinance=enable_yfinance, now=now)
+        enable_yfinance=enable_yfinance, enrich=enrich, now=now)
     rep = summary.representative_slice
+    wl_bundles = list(summary.enrichment_bundles) or None
     view = build_economic_universe_view(
         rep, terrain=terrain, slice_by_subject=summary.slice_by_subject,
-        watchlist_summary=summary)
+        watchlist_summary=summary, enrichment_bundles=wl_bundles,
+        enrichment_by_subject=(summary.enrichment_by_subject or None))
     pages = render_all_pages(view, rep)
     paths = _write_pages(output_dir, assets_dir, pages)
 
     # Per-ticker cockpit pages (only where a cockpit exists), so each real company's
     # planet links to ITS OWN cockpit rather than a shared / mislabelled one.
     strip = _strip_for_mode("real_evidence_on_demand") + view.run_summary_line
+    wl_coverage = getattr(view.data_quality, "enrichment_coverage", None)
     for tk, sl in summary.slice_by_subject.items():
         if getattr(sl, "cockpit_view", None) is not None:
             fname = "cockpit_{0}.html".format(slugify(tk))
-            html = render_cockpit(sl, strip_text=strip)
+            note = _cockpit_enrichment_note(wl_coverage, tk)
+            html = render_cockpit(sl, strip_text=strip, enrichment_note=note)
             path = os.path.join(output_dir, fname)
             _write(path, html)
             paths[fname] = path

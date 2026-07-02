@@ -124,6 +124,13 @@ class WatchlistRunSummary:
     slice_by_subject: Dict[str, Any] = field(default_factory=dict)
     representative_slice: Any = None
     representative_ticker: str = ""
+    # IMPLEMENTATION-011C: source-backed enrichment bundle per built ticker (or None). Rides
+    # along so the app drives the DQ coverage panel + per-company cards + cockpit note.
+    enrichment_by_subject: Dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def enrichment_bundles(self) -> Tuple[Any, ...]:
+        return tuple(b for b in self.enrichment_by_subject.values() if b is not None)
 
     @property
     def succeeded_count(self) -> int:
@@ -339,6 +346,7 @@ def build_real_evidence_watchlist_terrain(
     fmp_api_key: Optional[str] = None,
     enable_yfinance: bool = False,
     domain: str = "ai-infrastructure",
+    enrich: bool = False,
     now: Optional[float] = None,
     actor: str = "real-evidence-watchlist-on-demand",
 ) -> Tuple[UniverseTerrain, WatchlistRunSummary]:
@@ -373,6 +381,7 @@ def build_real_evidence_watchlist_terrain(
     built: List[Tuple[str, GalaxyNode, Any]] = []
     records: List[WatchlistTickerRecord] = []
     slice_by_subject: Dict[str, Any] = {}
+    enrichment_by_subject: Dict[str, Any] = {}
     coverage_total: Dict[str, int] = {}
     merged_conflicts: List[str] = []
     merged_overridden: List[dict] = []
@@ -385,7 +394,7 @@ def build_real_evidence_watchlist_terrain(
             terrain_i, status_i = build_real_evidence_terrain_for_ticker(
                 ticker, transports=ticker_transports, sec_user_agent=sec_user_agent,
                 fmp_api_key=fmp_api_key, enable_yfinance=enable_yfinance, domain=domain,
-                now=run_now, actor=actor)
+                enrich=enrich, now=run_now, actor=actor)
         except Exception as exc:  # noqa: BLE001 -- isolate: one bad ticker never aborts
             records.append(WatchlistTickerRecord(
                 ticker=ticker, status="failed",
@@ -396,6 +405,7 @@ def build_real_evidence_watchlist_terrain(
 
         sl = status_i.get("slice_result")
         slice_by_subject[ticker] = sl
+        enrichment_by_subject[ticker] = status_i.get("enrichment")
         galaxy = terrain_i.galaxies[0] if terrain_i.galaxies else GalaxyNode(id=domain)
         built.append((ticker, galaxy, sl))
 
@@ -470,5 +480,6 @@ def build_real_evidence_watchlist_terrain(
         provenance_refs=tuple(merged_provenance),
         deferred_records_count=deferred_records_total, run_timestamp=run_ts,
         slice_by_subject=slice_by_subject, representative_slice=rep_slice,
-        representative_ticker=rep_ticker)
+        representative_ticker=rep_ticker,
+        enrichment_by_subject=enrichment_by_subject)
     return terrain, summary

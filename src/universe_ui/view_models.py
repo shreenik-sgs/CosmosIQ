@@ -213,6 +213,12 @@ class PlanetCandidateView:
     glow_level: int                     # brightness tier from status (NOT from size)
     universe_path: str                  # canonical zoom path into the universe canvas
     data_origin: str
+    # IMPLEMENTATION-011C diligence-enrichment context (label-only; empty unless a real /
+    # watchlist run supplied a source-backed bundle for THIS ticker). Every line carries its
+    # source authority; there is NO score / rank / buy / sell here.
+    enrichment_context: Tuple[str, ...] = ()      # source-backed profile / leadership facts
+    enrichment_coverage_line: str = ""            # e.g. "enrichment partial — 2/6 areas"
+    enrichment_gaps: Tuple[str, ...] = ()         # honest per-ticker enrichment gaps
 
 
 @dataclass(frozen=True)
@@ -248,6 +254,11 @@ class CandidateCardView:
     glow_level: int                     # brightness tier from status (NOT from size)
     universe_path: str                  # canonical zoom path (for "Locate in Universe")
     data_origin: str
+    # IMPLEMENTATION-011C: per-company diligence-enrichment context (label-only; empty in
+    # demo). Evidence + coverage + gaps only — never a decision, score, or trade action.
+    enrichment_context: Tuple[str, ...] = ()
+    enrichment_coverage_line: str = ""
+    enrichment_gaps: Tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -728,6 +739,9 @@ def _card_from_planet(p: PlanetCandidateView) -> CandidateCardView:
         magnitude_missing=p.magnitude_missing, glow_level=p.glow_level,
         universe_path=p.universe_path,
         data_origin=p.data_origin,
+        enrichment_context=p.enrichment_context,
+        enrichment_coverage_line=p.enrichment_coverage_line,
+        enrichment_gaps=p.enrichment_gaps,
     )
 
 
@@ -1041,7 +1055,8 @@ def _diagnostic_dq_fields(terrain, iren_slice, source_status, watchlist_summary,
 def build_economic_universe_view(iren_slice, terrain=None, source_status=None,
                                  slice_by_subject=None,
                                  watchlist_summary=None,
-                                 enrichment_bundles=None) -> EconomicUniverseView:
+                                 enrichment_bundles=None,
+                                 enrichment_by_subject=None) -> EconomicUniverseView:
     """Assemble the whole read-only Economic Universe view by PROJECTING the typed
     terrain (the source of truth). If ``terrain`` is None it is built from the slice.
 
@@ -1058,7 +1073,8 @@ def build_economic_universe_view(iren_slice, terrain=None, source_status=None,
         return _build_evidence_universe_view(
             iren_slice, terrain, source_status=source_status,
             slice_by_subject=slice_by_subject, watchlist_summary=watchlist_summary,
-            enrichment_bundles=enrichment_bundles)
+            enrichment_bundles=enrichment_bundles,
+            enrichment_by_subject=enrichment_by_subject)
     from .demo_terrain import build_demo_terrain
     universe = build_demo_universe()
     terrain = terrain or build_demo_terrain(iren_slice, universe)
@@ -1103,6 +1119,58 @@ def _origin_for_mode(mode: str) -> str:
     return _REAL_ORIGIN if mode == REAL_ON_DEMAND_MODE else _EVIDENCE_ORIGIN
 
 
+def _fmt_enrichment_value(label: str, ev) -> str:
+    """Format one source-backed EnrichmentValue as ``label value (authority)`` — a LABEL,
+    never a score. A ratio renders as a percentage; a magnitude with thousands separators."""
+    unit = getattr(ev, "unit", "") or ""
+    auth = getattr(ev, "authority", "") or "?"
+    if unit == "ratio":
+        try:
+            return "{0}: {1:.1%} ({2})".format(label, float(ev.value), auth)
+        except (TypeError, ValueError):
+            return "{0}: {1} ({2})".format(label, ev.value, auth)
+    try:
+        return "{0}: {1:,.0f} {2} ({3})".format(label, float(ev.value), unit, auth).replace(
+            "  ", " ")
+    except (TypeError, ValueError):
+        return "{0}: {1} ({2})".format(label, ev.value, auth)
+
+
+def _enrichment_card_fields(bundle):
+    """Per-company enrichment card fields (context / coverage line / gaps) from a
+    SOURCE-BACKED :class:`DiligenceEnrichmentBundle`. ``(),"",()`` when ``bundle`` is None.
+
+    Every context line is authority-stamped (SEC canonical / FMP convenience / manual /
+    company IR). Leadership is surfaced as a DIAGNOSTIC label only (never a rank/score).
+    Missing areas stay explicit gaps; nothing is fabricated and no decision is produced."""
+    if bundle is None:
+        return (), "", ()
+    from diligence_enrichment.coverage import build_enrichment_coverage
+    context = []
+    p = bundle.profile
+    for label, ev in (("sector", p.sector), ("industry", p.industry),
+                      ("exchange", p.exchange)):
+        if ev.present:
+            context.append("{0}: {1} ({2})".format(label, ev.value, ev.authority))
+    for key, label, ev in bundle.market.metric_items():
+        if key in ("revenue", "net_income", "gross_margin", "operating_margin",
+                   "shares") and ev.present:
+            context.append(_fmt_enrichment_value(label, ev))
+    ld = bundle.leadership
+    if ld.present:
+        context.append(
+            "leadership: {0} named leader(s) ({1} — diagnostic evidence only, "
+            "not a rank)".format(len(ld.members), ld.authority or "company IR"))
+    cov = build_enrichment_coverage([bundle])
+    tc = cov.per_ticker[0] if cov.per_ticker else None
+    if tc is None:
+        return tuple(context), "", ()
+    avail = sum(1 for a in tc.areas if a.available)
+    coverage_line = "enrichment {0} — {1}/{2} diligence areas source-backed".format(
+        tc.enrichment_status, avail, len(tc.areas))
+    return tuple(context), coverage_line, tuple(tc.gaps)
+
+
 def _evidence_node_view(dep, origin=_EVIDENCE_ORIGIN) -> NodeView:
     enc = dep.visual_encoding
     return NodeView(
@@ -1116,10 +1184,12 @@ def _evidence_node_view(dep, origin=_EVIDENCE_ORIGIN) -> NodeView:
 
 
 def _evidence_planet_view(conode, iren_slice, galaxy_name, galaxy_slug,
-                          origin=_EVIDENCE_ORIGIN) -> PlanetCandidateView:
+                          origin=_EVIDENCE_ORIGIN,
+                          enrichment_bundle=None) -> PlanetCandidateView:
     st = _iren_real_status(iren_slice)
     enc = conode.visual_encoding
     upath = conode.id
+    enr_context, enr_cov_line, enr_gaps = _enrichment_card_fields(enrichment_bundle)
     return PlanetCandidateView(
         candidate_id="{0}--{1}".format(galaxy_slug, slugify(conode.ticker)),
         ticker=conode.ticker, company=conode.company_name,
@@ -1135,7 +1205,9 @@ def _evidence_planet_view(conode, iren_slice, galaxy_name, galaxy_slug,
         ordering_value=st["ordering_value"], source_authority_badges=tuple(conode.source_refs),
         market_cap=conode.market_cap, visual_size_px=enc.size_value,
         magnitude_missing=enc.dashed_outline, glow_level=enc.glow_level,
-        universe_path=upath, data_origin=origin)
+        universe_path=upath, data_origin=origin,
+        enrichment_context=enr_context, enrichment_coverage_line=enr_cov_line,
+        enrichment_gaps=enr_gaps)
 
 
 def _evidence_star_view(bn, galaxy_name, galaxy_slug, origin=_EVIDENCE_ORIGIN) -> StarBottleneckView:
@@ -1184,7 +1256,8 @@ def _evidence_cluster_view(g, theme, iren_slice, evidence_count,
 
 
 def _evidence_theme_view(g, iren_slice, slice_by_subject=None,
-                         origin=_EVIDENCE_ORIGIN) -> GalaxyThemeView:
+                         origin=_EVIDENCE_ORIGIN,
+                         enrichment_by_subject=None) -> GalaxyThemeView:
     """Project ONE galaxy's theme view.
 
     A single-ticker terrain has one company; a merged 010E watchlist galaxy may hold
@@ -1192,6 +1265,7 @@ def _evidence_theme_view(g, iren_slice, slice_by_subject=None,
     in ``slice_by_subject`` by ticker); theme-level narrative (why-now, signals) uses the
     first company's slice as the representative for that co-located theme."""
     smap = slice_by_subject or {}
+    emap = enrichment_by_subject or {}
     theme = g.themes[0]
     gname = g.name
     gslug = g.id
@@ -1200,9 +1274,13 @@ def _evidence_theme_view(g, iren_slice, slice_by_subject=None,
     def _slice_for(co):
         return smap.get(getattr(co, "ticker", ""), iren_slice)
 
+    def _enrichment_for(co):
+        return emap.get(getattr(co, "ticker", ""))
+
     rep_slice = _slice_for(companies[0]) if companies else iren_slice
     planets = tuple(
-        _evidence_planet_view(co, _slice_for(co), gname, gslug, origin=origin)
+        _evidence_planet_view(co, _slice_for(co), gname, gslug, origin=origin,
+                              enrichment_bundle=_enrichment_for(co))
         for co in companies)
     ss_views = tuple(_evidence_vc_view(vc, gname, gslug, origin=origin)
                      for vc in theme.value_chains)
@@ -1228,7 +1306,8 @@ def _evidence_theme_view(g, iren_slice, slice_by_subject=None,
 def _build_evidence_universe_view(iren_slice, terrain, source_status=None,
                                   slice_by_subject=None,
                                   watchlist_summary=None,
-                                  enrichment_bundles=None) -> EconomicUniverseView:
+                                  enrichment_bundles=None,
+                                  enrichment_by_subject=None) -> EconomicUniverseView:
     """Project the whole Economic Universe view from an evidence / real terrain.
 
     For a 010E watchlist, ``slice_by_subject`` maps ticker -> that company's slice (so each
@@ -1236,7 +1315,8 @@ def _build_evidence_universe_view(iren_slice, terrain, source_status=None,
     aggregated Data-Quality panel + the status-strip run summary line."""
     mode = getattr(terrain, "mode", EVIDENCE_FIXTURE_MODE)
     origin = _origin_for_mode(mode)
-    themes = tuple(_evidence_theme_view(g, iren_slice, slice_by_subject, origin=origin)
+    themes = tuple(_evidence_theme_view(g, iren_slice, slice_by_subject, origin=origin,
+                                        enrichment_by_subject=enrichment_by_subject)
                    for g in terrain.galaxies)
     clusters = tuple(t.cluster for t in themes)
     dashboard = build_cio_dashboard_view(themes)
