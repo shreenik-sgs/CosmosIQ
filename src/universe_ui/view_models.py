@@ -33,6 +33,16 @@ from .demo_universe import (
     slugify,
 )
 
+# Terrain modes whose view is projected DIRECTLY from the terrain's own nodes (not the
+# demo universe): the evidence-ingested fixture terrain and the real on-demand terrain.
+EVIDENCE_FIXTURE_MODE = "evidence_ingested_fixture"
+REAL_ON_DEMAND_MODE = "real_evidence_on_demand"
+
+
+def _is_evidence_terrain_mode(mode: str) -> bool:
+    return mode in (EVIDENCE_FIXTURE_MODE, REAL_ON_DEMAND_MODE)
+
+
 # The one place the ticker/security qualifier text is defined.
 SECURITY_MAPPING_QUALIFIER = (
     "Security / ticker mapping — derived after value-chain / winner mapping "
@@ -350,6 +360,12 @@ class DataQualityView:
     data_gaps: Tuple[str, ...]
     provenance_chain: Tuple[str, ...]
     real_subject: str
+    # IMPLEMENTATION-010D real-mode additions (optional; empty in demo/fixture modes).
+    source_status: Tuple[Tuple[str, str], ...] = ()
+    run_timestamp: str = ""
+    tickers: Tuple[str, ...] = ()
+    mode_label: str = ""
+    deferred_records_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -715,7 +731,7 @@ def build_cio_dashboard_view(themes: Tuple[GalaxyThemeView, ...]) -> CIODashboar
     )
 
 
-def build_data_quality_view(iren_slice, terrain=None) -> DataQualityView:
+def build_data_quality_view(iren_slice, terrain=None, source_status=None) -> DataQualityView:
     """Build the Data-Quality control panel view.
 
     Source coverage counts, data gaps and the provenance chain are read FROM the
@@ -732,7 +748,9 @@ def build_data_quality_view(iren_slice, terrain=None) -> DataQualityView:
         from .demo_terrain import build_demo_terrain
         terrain = build_demo_terrain(iren_slice)
     coverage = terrain.source_coverage or {}
-    is_evidence = getattr(terrain, "mode", "") == "evidence_ingested_fixture"
+    mode = getattr(terrain, "mode", "")
+    is_real = mode == REAL_ON_DEMAND_MODE
+    is_evidence = _is_evidence_terrain_mode(mode)
 
     overridden = tuple(
         "{0}: {1} ({2}) — {3}".format(
@@ -740,14 +758,32 @@ def build_data_quality_view(iren_slice, terrain=None) -> DataQualityView:
             f.get("source_authority", ""), f.get("reason", ""))
         for f in iren_slice.provenance_chain.get("overridden_facts", ()))
 
+    # Per-source STATUS + run metadata (real mode only; empty otherwise).
+    ss = dict(source_status or {})
+    status_pairs = tuple(
+        (k, str(ss[k])) for k in ("sec", "fmp", "yfinance") if k in ss)
+    run_ts = str(ss.get("run_timestamp", ""))
+    subject = getattr(iren_slice, "subject", "") or ""
+    tickers = (subject,) if (is_real and subject) else ()
+    deferred_n = len(getattr(iren_slice, "deferred_records", ()) or ())
+
+    if is_real:
+        run_mode = ("real_evidence_on_demand (REAL SEC/FMP/yfinance sources, manual "
+                    "refresh; not scheduled, not broker-connected; may be incomplete)")
+        fixture_status = ("real sources fetched on demand for {0}; terrain sparse — "
+                          "completeness NOT claimed".format(subject or "ticker"))
+    elif is_evidence:
+        run_mode = ("evidence_ingested_fixture (deterministic replay of ingested IREN "
+                    "SEC/FMP/yfinance fixtures)")
+        fixture_status = ("evidence-ingested from local fixtures; terrain sparse "
+                          "(single candidate)")
+    else:
+        run_mode = "fixture/demo (deterministic replay of local IREN fixtures)"
+        fixture_status = "fixtures loaded; demo terrain hand-authored"
+
     return DataQualityView(
-        run_mode=(
-            "evidence_ingested_fixture (deterministic replay of ingested IREN "
-            "SEC/FMP/yfinance fixtures)" if is_evidence
-            else "fixture/demo (deterministic replay of local IREN fixtures)"),
-        fixture_demo_status=(
-            "evidence-ingested from local fixtures; terrain sparse (single candidate)"
-            if is_evidence else "fixtures loaded; demo terrain hand-authored"),
+        run_mode=run_mode,
+        fixture_demo_status=fixture_status,
         live_enabled=False,
         scheduler_status="not enabled",
         broker_automation_status="disabled",
@@ -761,11 +797,15 @@ def build_data_quality_view(iren_slice, terrain=None) -> DataQualityView:
         conflict_warnings=tuple(iren_slice.conflict_warnings),
         overridden_facts=overridden, data_gaps=tuple(terrain.data_gaps),
         provenance_chain=tuple(terrain.provenance_refs),
-        real_subject=iren_slice.subject,
+        real_subject=subject,
+        source_status=status_pairs, run_timestamp=run_ts, tickers=tickers,
+        mode_label=(str(ss.get("mode_label", "")) or (REAL_ON_DEMAND_MODE if is_real else "")),
+        deferred_records_count=deferred_n,
     )
 
 
-def build_economic_universe_view(iren_slice, terrain=None) -> EconomicUniverseView:
+def build_economic_universe_view(iren_slice, terrain=None,
+                                 source_status=None) -> EconomicUniverseView:
     """Assemble the whole read-only Economic Universe view by PROJECTING the typed
     terrain (the source of truth). If ``terrain`` is None it is built from the slice.
 
@@ -778,8 +818,8 @@ def build_economic_universe_view(iren_slice, terrain=None) -> EconomicUniverseVi
     from the hand-authored demo universe -- so evidence mode shows only the ingested
     candidate's theme, sparse and honestly incomplete.
     """
-    if terrain is not None and getattr(terrain, "mode", "") == "evidence_ingested_fixture":
-        return _build_evidence_universe_view(iren_slice, terrain)
+    if terrain is not None and _is_evidence_terrain_mode(getattr(terrain, "mode", "")):
+        return _build_evidence_universe_view(iren_slice, terrain, source_status=source_status)
     from .demo_terrain import build_demo_terrain
     universe = build_demo_universe()
     terrain = terrain or build_demo_terrain(iren_slice, universe)
@@ -817,21 +857,27 @@ def build_economic_universe_view(iren_slice, terrain=None) -> EconomicUniverseVi
 # + the real slice statuses; nothing comes from the demo universe.               #
 # --------------------------------------------------------------------------- #
 _EVIDENCE_ORIGIN = "EVIDENCE-INGESTED-FIXTURE"
+_REAL_ORIGIN = "REAL-SOURCE-ON-DEMAND"
 
 
-def _evidence_node_view(dep) -> NodeView:
+def _origin_for_mode(mode: str) -> str:
+    return _REAL_ORIGIN if mode == REAL_ON_DEMAND_MODE else _EVIDENCE_ORIGIN
+
+
+def _evidence_node_view(dep, origin=_EVIDENCE_ORIGIN) -> NodeView:
     enc = dep.visual_encoding
     return NodeView(
         node_id=dep.id, tier=str(dep.tier), role=dep.name,
         economics_capture=dep.economics_capture, bottleneck_exposure=dep.exposure_type,
         evidence_quality=dep.evidence_quality, missing_data=tuple(dep.missing_data),
         candidate_companies=tuple(dep.candidate_companies), has_dynamic_evidence=False,
-        dynamic_evidence_note="evidence-ingested terrain — no dynamic delta",
+        dynamic_evidence_note="evidence terrain — no dynamic delta",
         dependency_exposure=dep.magnitude, visual_size_px=enc.size_value,
-        magnitude_missing=enc.dashed_outline, data_origin=_EVIDENCE_ORIGIN)
+        magnitude_missing=enc.dashed_outline, data_origin=origin)
 
 
-def _evidence_planet_view(conode, iren_slice, galaxy_name, galaxy_slug) -> PlanetCandidateView:
+def _evidence_planet_view(conode, iren_slice, galaxy_name, galaxy_slug,
+                          origin=_EVIDENCE_ORIGIN) -> PlanetCandidateView:
     st = _iren_real_status(iren_slice)
     enc = conode.visual_encoding
     upath = conode.id
@@ -850,10 +896,10 @@ def _evidence_planet_view(conode, iren_slice, galaxy_name, galaxy_slug) -> Plane
         ordering_value=st["ordering_value"], source_authority_badges=tuple(conode.source_refs),
         market_cap=conode.market_cap, visual_size_px=enc.size_value,
         magnitude_missing=enc.dashed_outline, glow_level=enc.glow_level,
-        universe_path=upath, data_origin=_EVIDENCE_ORIGIN)
+        universe_path=upath, data_origin=origin)
 
 
-def _evidence_star_view(bn, galaxy_name, galaxy_slug) -> StarBottleneckView:
+def _evidence_star_view(bn, galaxy_name, galaxy_slug, origin=_EVIDENCE_ORIGIN) -> StarBottleneckView:
     enc = bn.visual_encoding
     return StarBottleneckView(
         galaxy_name=galaxy_name, galaxy_slug=galaxy_slug, slug=bn.id,
@@ -865,22 +911,23 @@ def _evidence_star_view(bn, galaxy_name, galaxy_slug) -> StarBottleneckView:
         data_gaps=tuple(bn.data_gaps),
         bottleneck_economic_importance=bn.economic_importance,
         visual_size_px=enc.size_value, magnitude_missing=enc.dashed_outline,
-        data_origin=_EVIDENCE_ORIGIN)
+        data_origin=origin)
 
 
-def _evidence_vc_view(vc, galaxy_name, galaxy_slug) -> SolarSystemValueChainView:
+def _evidence_vc_view(vc, galaxy_name, galaxy_slug, origin=_EVIDENCE_ORIGIN) -> SolarSystemValueChainView:
     enc = vc.visual_encoding
-    nodes = tuple(_evidence_node_view(d) for d in vc.dependencies)
+    nodes = tuple(_evidence_node_view(d, origin=origin) for d in vc.dependencies)
     return SolarSystemValueChainView(
         galaxy_name=galaxy_name, galaxy_slug=galaxy_slug, name=vc.name, slug=vc.id,
         description=vc.description, nodes=nodes,
         security_mapping_qualifier=SECURITY_MAPPING_QUALIFIER, node_ticker_map=(),
         value_chain_revenue_pool=vc.revenue_pool_or_tam,
         visual_size_px=enc.size_value, magnitude_missing=enc.dashed_outline,
-        data_origin=_EVIDENCE_ORIGIN)
+        data_origin=origin)
 
 
-def _evidence_cluster_view(g, theme, iren_slice, evidence_count) -> GalaxyClusterView:
+def _evidence_cluster_view(g, theme, iren_slice, evidence_count,
+                           origin=_EVIDENCE_ORIGIN) -> GalaxyClusterView:
     enc = g.visual_encoding
     oh = iren_slice.opportunity_hypothesis
     return GalaxyClusterView(
@@ -894,17 +941,18 @@ def _evidence_cluster_view(g, theme, iren_slice, evidence_count) -> GalaxyCluste
         data_poor=(g.data_quality or "").lower() in ("low", "sparse"),
         theme_tam=g.economic_magnitude, megatrend_magnitude=None,
         visual_size_px=enc.size_value, magnitude_missing=enc.dashed_outline,
-        data_origin=_EVIDENCE_ORIGIN)
+        data_origin=origin)
 
 
-def _evidence_theme_view(g, iren_slice) -> GalaxyThemeView:
+def _evidence_theme_view(g, iren_slice, origin=_EVIDENCE_ORIGIN) -> GalaxyThemeView:
     theme = g.themes[0]
     gname = g.name
     gslug = g.id
     company = theme.candidate_planets[0]
-    planets = (_evidence_planet_view(company, iren_slice, gname, gslug),)
-    ss_views = tuple(_evidence_vc_view(vc, gname, gslug) for vc in theme.value_chains)
-    star_views = tuple(_evidence_star_view(bn, gname, gslug)
+    planets = (_evidence_planet_view(company, iren_slice, gname, gslug, origin=origin),)
+    ss_views = tuple(_evidence_vc_view(vc, gname, gslug, origin=origin)
+                     for vc in theme.value_chains)
+    star_views = tuple(_evidence_star_view(bn, gname, gslug, origin=origin)
                        for vc in theme.value_chains for bn in vc.bottlenecks)
     pos_cat = tuple(c.description for c in theme.catalysts
                     if c.catalyst_type in ("positive", "repricing-trigger"))
@@ -913,7 +961,8 @@ def _evidence_theme_view(g, iren_slice) -> GalaxyThemeView:
     oh = iren_slice.opportunity_hypothesis
     confirmed = tuple(getattr(oh, "megatrend_context", ()) or ())
     speculative = tuple(getattr(oh, "monitoring_signals", ()) or ())
-    cluster = _evidence_cluster_view(g, theme, iren_slice, company.evidence_count)
+    cluster = _evidence_cluster_view(g, theme, iren_slice, company.evidence_count,
+                                     origin=origin)
     return GalaxyThemeView(
         cluster=cluster, why_now=theme.why_now, why_before_obvious=theme.why_before_obvious,
         confirmed_signals=confirmed, speculative_signals=speculative,
@@ -922,12 +971,16 @@ def _evidence_theme_view(g, iren_slice) -> GalaxyThemeView:
         planets=planets)
 
 
-def _build_evidence_universe_view(iren_slice, terrain) -> EconomicUniverseView:
-    """Project the whole Economic Universe view from an evidence-ingested terrain."""
-    themes = tuple(_evidence_theme_view(g, iren_slice) for g in terrain.galaxies)
+def _build_evidence_universe_view(iren_slice, terrain,
+                                  source_status=None) -> EconomicUniverseView:
+    """Project the whole Economic Universe view from an evidence / real terrain."""
+    mode = getattr(terrain, "mode", EVIDENCE_FIXTURE_MODE)
+    origin = _origin_for_mode(mode)
+    themes = tuple(_evidence_theme_view(g, iren_slice, origin=origin)
+                   for g in terrain.galaxies)
     clusters = tuple(t.cluster for t in themes)
     dashboard = build_cio_dashboard_view(themes)
-    data_quality = build_data_quality_view(iren_slice, terrain)
+    data_quality = build_data_quality_view(iren_slice, terrain, source_status=source_status)
     name_by_slug = {g.id: g.name for g in terrain.galaxies}
     edges = tuple(
         ThemeEdgeView(
@@ -940,7 +993,7 @@ def _build_evidence_universe_view(iren_slice, terrain) -> EconomicUniverseView:
         if e.source_id in name_by_slug and e.target_id in name_by_slug
         and e.source_id != e.target_id)
     return EconomicUniverseView(
-        mode="evidence_ingested_fixture", live_enabled=False, scheduler_enabled=False,
+        mode=mode, live_enabled=False, scheduler_enabled=False,
         broker_automation_enabled=False, clusters=clusters, themes=themes, edges=edges,
         dashboard=dashboard, data_quality=data_quality,
-        real_subject=iren_slice.subject, terrain=terrain)
+        real_subject=getattr(iren_slice, "subject", "") or "", terrain=terrain)

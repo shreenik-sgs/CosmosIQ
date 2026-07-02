@@ -33,7 +33,17 @@ def _write(path: str, content: str) -> None:
 
 def build_universe_app(output_dir: str, mode: str = "demo",
                        iren_slice: Optional[object] = None,
-                       fixture_dir: Optional[str] = None) -> Dict[str, str]:
+                       fixture_dir: Optional[str] = None,
+                       ticker: Optional[str] = None,
+                       transports: Optional[object] = None,
+                       sec_user_agent: Optional[str] = None,
+                       fmp_api_key: Optional[str] = None,
+                       enable_yfinance: bool = False,
+                       diligence_inputs: Optional[object] = None,
+                       profile: Optional[object] = None,
+                       portfolio: Optional[object] = None,
+                       user_selected_size: Optional[float] = None,
+                       now: Optional[float] = None) -> Dict[str, str]:
     """Build all pages + local assets into ``output_dir``; return their paths.
 
     ``mode="demo"`` (default) renders the accepted hand-authored demo universe -- the
@@ -42,11 +52,36 @@ def build_universe_app(output_dir: str, mode: str = "demo",
     output (``terrain_from_slice``) and renders every page from THAT terrain -- sparse,
     honestly incomplete, and never labelled ``live``.
 
-    Deterministic: two builds into two fresh directories produce byte-identical files.
+    ``mode="real_evidence_on_demand"`` (IMPLEMENTATION-010D) lazily imports the on-demand
+    builder, fetches REAL current source data for ``ticker`` (SEC/FMP/yfinance via the
+    injected/real transports), builds a sparse ``real_evidence_on_demand`` terrain, and
+    renders every page from it. It REQUIRES an explicit ``ticker``. Credentials are passed
+    explicitly (resolved from env by the CLI); network happens ONLY here and ONLY on this
+    explicit path.
+
+    Deterministic: demo / fixture builds into two fresh directories are byte-identical.
+    Real mode is deterministic only when ``transports`` + ``now`` are injected (tests).
     """
     os.makedirs(output_dir, exist_ok=True)
     assets_dir = os.path.join(output_dir, "assets")
     os.makedirs(assets_dir, exist_ok=True)
+
+    if mode == "real_evidence_on_demand":
+        if not ticker:
+            raise ValueError(
+                "mode 'real_evidence_on_demand' requires an explicit ticker "
+                "(pass ticker= / --ticker); real mode never runs without one")
+        from .real_terrain import build_real_evidence_terrain_for_ticker
+        terrain, source_status = build_real_evidence_terrain_for_ticker(
+            ticker, transports=transports, sec_user_agent=sec_user_agent,
+            fmp_api_key=fmp_api_key, enable_yfinance=enable_yfinance,
+            diligence_inputs=diligence_inputs, profile=profile, portfolio=portfolio,
+            user_selected_size=user_selected_size, now=now)
+        slice_result = source_status.pop("slice_result")
+        view = build_economic_universe_view(
+            slice_result, terrain=terrain, source_status=source_status)
+        pages = render_all_pages(view, slice_result)
+        return _write_pages(output_dir, assets_dir, pages)
 
     slice_result = iren_slice if iren_slice is not None else load_iren_slice(fixture_dir)
     if mode == "evidence_ingested_fixture":
@@ -58,6 +93,10 @@ def build_universe_app(output_dir: str, mode: str = "demo",
     else:
         raise ValueError("unknown mode: {0!r}".format(mode))
     pages = render_all_pages(view, slice_result)
+    return _write_pages(output_dir, assets_dir, pages)
+
+
+def _write_pages(output_dir, assets_dir, pages) -> Dict[str, str]:
 
     paths: Dict[str, str] = {}
     for filename, html in pages:

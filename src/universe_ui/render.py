@@ -63,12 +63,23 @@ EVIDENCE_STRIP_TEXT = (
     "· Broker automation: disabled · Manual review required"
 )
 
+# IMPLEMENTATION-010D. Real, on-demand, MANUAL-only. Every claim is a negation or a
+# hedge -- no "fully live", "automated", "scheduled", "trade-ready" or "real-time" claim.
+REAL_STRIP_TEXT = (
+    "Mode: real evidence on demand · Manual refresh only · Not scheduled "
+    "· Not broker-connected · Data may be incomplete"
+)
+
 
 def _origin_tokens(data_origin: str) -> Tuple[str, str]:
     """(badge text, css class) for an object's data origin. Demo/live-fixture keep the
     ``DEMO`` wording (so demo output is byte-identical); evidence-ingested objects are
-    honestly labelled ``evidence-ingested`` -- never ``live``."""
-    if (data_origin or "").upper().startswith("EVIDENCE"):
+    honestly labelled ``evidence-ingested``; real on-demand objects are labelled
+    ``real-source`` -- never ``live``."""
+    up = (data_origin or "").upper()
+    if up.startswith("REAL"):
+        return ("real-source (manual)", "evidence")
+    if up.startswith("EVIDENCE"):
         return ("evidence-ingested", "evidence")
     return ("DEMO", "demo")
 
@@ -78,12 +89,17 @@ def _origin_suffix(data_origin: str) -> str:
 
 
 def _strip_for_mode(mode: str) -> str:
-    return EVIDENCE_STRIP_TEXT if mode == "evidence_ingested_fixture" else STATUS_STRIP_TEXT
+    if mode == "real_evidence_on_demand":
+        return REAL_STRIP_TEXT
+    if mode == "evidence_ingested_fixture":
+        return EVIDENCE_STRIP_TEXT
+    return STATUS_STRIP_TEXT
 
 
 def _terrain_notice(view) -> str:
-    """The visible 'terrain incomplete' notice for an evidence-ingested view (else '')."""
-    if getattr(view, "mode", "") != "evidence_ingested_fixture":
+    """The visible 'terrain incomplete' notice for an evidence / real view (else '')."""
+    if getattr(view, "mode", "") not in ("evidence_ingested_fixture",
+                                         "real_evidence_on_demand"):
         return ""
     terrain = getattr(view, "terrain", None)
     for gap in getattr(terrain, "data_gaps", ()) or ():
@@ -1282,7 +1298,18 @@ def _cockpit_wrapper(strip_text: Optional[str] = None) -> str:
 
 
 def render_cockpit(iren_slice, strip_text: Optional[str] = None) -> str:
-    doc = render_cockpit_html(iren_slice.cockpit_view)
+    cockpit_view = getattr(iren_slice, "cockpit_view", None)
+    if cockpit_view is None:
+        # Real / early-stop runs may lack a full decision cockpit (insufficient inputs).
+        # Render an honest placeholder page instead of fabricating a cockpit.
+        body = (
+            '<div class="glass-panel"><h1>Alpha Decision Cockpit</h1>'
+            '<p class="lead">No decision cockpit for this run — the evidence chain '
+            "stopped before an investment thesis (insufficient inputs). This is a data "
+            "gap, not a recommendation. Manual review required; no order is placed.</p>"
+            "</div>")
+        return _page("Alpha Decision Cockpit", "cockpit.html", body, strip_text=strip_text)
+    doc = render_cockpit_html(cockpit_view)
     return doc.replace("<body>", "<body>\n" + _cockpit_wrapper(strip_text), 1)
 
 
@@ -1493,6 +1520,28 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
                      else _badge("DEMO terrain", "demo"))
     notice_html = ('<div class="terrain-notice">⚠ {0}</div>'.format(_esc(notice))
                    if notice else "")
+    # Real on-demand mode: an explicit per-source STATUS panel + run metadata. Completeness
+    # is NEVER claimed. Empty in demo/fixture modes (section omitted).
+    source_status_html = ""
+    if getattr(dq, "source_status", ()):
+        rows = "".join(
+            "<tr><th>{0}</th><td>{1}</td></tr>".format(_esc(src), _badge(_esc(st),
+                "q-high" if st == "fetched" else
+                ("hazard" if st in ("failed",) else "gap")))
+            for src, st in dq.source_status)
+        meta = "".join([
+            "<tr><th>Mode</th><td>{0}</td></tr>".format(_esc(dq.mode_label)),
+            "<tr><th>Ticker(s)</th><td>{0}</td></tr>".format(
+                _esc(", ".join(dq.tickers) or dq.real_subject)),
+            "<tr><th>Run timestamp</th><td>{0}</td></tr>".format(_esc(dq.run_timestamp)),
+            "<tr><th>Deferred records</th><td>{0}</td></tr>".format(
+                _esc(dq.deferred_records_count)),
+        ])
+        source_status_html = (
+            '<h2>Real-source status (on demand)</h2><div class="glass-panel">'
+            '<p class="note">Manual refresh only · not scheduled · not broker-connected · '
+            "data may be incomplete — completeness is NOT claimed.</p>"
+            '<table class="kv">' + rows + meta + "</table></div>")
     boundary = "".join([
         "<tr><th>Run mode</th><td>{0}</td></tr>".format(_esc(dq.run_mode)),
         "<tr><th>Fixture / demo</th><td>{0}</td></tr>".format(_esc(dq.fixture_demo_status)),
@@ -1512,6 +1561,7 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
         "</div><div>" + _badge("REAL subject: {0}".format(dq.real_subject), "real")
         + " " + terrain_badge + "</div></div>"
         # A. source hierarchy pipeline
+        + source_status_html
         + '<h2>Source hierarchy pipeline</h2>'
         + '<div class="glass-panel">' + _dq_pipeline(dq)
         + '<p class="note">Authority order: SEC canonical (EDGAR) &gt; FMP convenience &gt; '

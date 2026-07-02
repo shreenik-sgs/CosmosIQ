@@ -414,11 +414,36 @@ def _pkg_sources():
                 yield name, fh.read()
 
 
+# The SINGLE designated network boundary in this package (IMPLEMENTATION-010D). It is
+# ALLOWLISTED for urllib, but ONLY via LAZY (function-scoped) import -- never at module
+# top level -- so importing the package (or this module) stays network-free.
+_NETWORK_BOUNDARY = "live_transport.py"
+
+
+def _toplevel_import_roots(tree):
+    """Roots of imports that sit at MODULE scope (not nested inside a function/class)."""
+    roots = set()
+    for node in tree.body:  # module-level statements only
+        if isinstance(node, ast.Import):
+            roots.update(a.name.split(".")[0] for a in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            roots.add((node.module or "").split(".")[0])
+    return roots
+
+
 class GuardTests(unittest.TestCase):
     def test_no_network_imports(self):
         banned = {"requests", "urllib", "http", "socket", "aiohttp", "httpx"}
         for name, src in _pkg_sources():
             tree = ast.parse(src)
+            if name == _NETWORK_BOUNDARY:
+                # The audited boundary may use urllib, but ONLY lazily: assert nothing
+                # network is imported at module top level.
+                top = _toplevel_import_roots(tree)
+                self.assertFalse(
+                    top & banned,
+                    "{0} imports network at module scope: {1}".format(name, top & banned))
+                continue
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
                     for a in node.names:
@@ -427,6 +452,36 @@ class GuardTests(unittest.TestCase):
                 elif isinstance(node, ast.ImportFrom):
                     top = (node.module or "").split(".")[0]
                     self.assertNotIn(top, banned, "{0} imports {1}".format(name, top))
+
+    def test_network_boundary_is_lazy_and_isolated(self):
+        # The inert 009B/C/D clients must NOT import the network boundary at all.
+        inert = ("sec_client.py", "fmp_client.py", "yfinance_client.py")
+        for name, src in _pkg_sources():
+            tree = ast.parse(src)
+            for node in ast.walk(tree):
+                mods = []
+                if isinstance(node, ast.ImportFrom):
+                    mods = [(node.module or "")]
+                    mods += [a.name for a in node.names]
+                elif isinstance(node, ast.Import):
+                    mods = [a.name for a in node.names]
+                if name in inert:
+                    for m in mods:
+                        self.assertNotIn("live_transport", m,
+                                         "{0} imports the network boundary".format(name))
+        # And the boundary itself imports urllib ONLY inside function bodies.
+        src = dict(_pkg_sources())[_NETWORK_BOUNDARY]
+        tree = ast.parse(src)
+        self.assertNotIn("urllib", _toplevel_import_roots(tree),
+                         "live_transport imports urllib at module scope (must be lazy)")
+        lazy_hits = 0
+        for fn in ast.walk(tree):
+            if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                for node in ast.walk(fn):
+                    if isinstance(node, ast.Import):
+                        if any(a.name.split(".")[0] == "urllib" for a in node.names):
+                            lazy_hits += 1
+        self.assertGreater(lazy_hits, 0, "live_transport never lazily imports urllib")
 
     def test_no_secrets_or_api_keys(self):
         # Guard against secret *assignments* and environment secret reads -- an

@@ -340,9 +340,9 @@ def _provenance_refs(bi: EvidenceTerrainBuildInput) -> Tuple[str, ...]:
 def _data_gaps(bi: EvidenceTerrainBuildInput) -> Tuple[str, ...]:
     """Coverage gaps from the slice + explicit terrain-incompleteness gaps (nothing faked)."""
     gaps = [
-        "terrain incomplete — single evidence-ingested candidate (IREN); value-chain, "
+        "terrain incomplete — single candidate ({0}); value-chain, "
         "bottleneck, TAM and supplier coverage are sparse (missing-data placeholders "
-        "shown, nothing fabricated)",
+        "shown, nothing fabricated)".format(bi.subject or "candidate"),
         "market cap not surfaced by the pipeline reasoning objects — neutral size + gap "
         "marker (no fabricated magnitude)",
         "theme TAM / revenue pool not quantified by the thesis",
@@ -543,24 +543,36 @@ def _galaxy_node(bi: EvidenceTerrainBuildInput) -> GalaxyNode:
         visual_encoding=galaxy_enc)
 
 
-def terrain_from_slice(iren_slice) -> UniverseTerrain:
+def terrain_from_slice(iren_slice, *, mode: str = "evidence_ingested_fixture",
+                       title: Optional[str] = None,
+                       extra_data_gaps: Tuple[str, ...] = ()) -> UniverseTerrain:
     """Build a REAL, sparse :class:`UniverseTerrain` from an evidence-alpha slice.
 
-    Mode ``evidence_ingested_fixture``: ONE galaxy / theme (the candidate's), one value
-    chain, a constraint-context bottleneck, and the IREN company planet -- all projected
+    Default mode ``evidence_ingested_fixture``: ONE galaxy / theme (the candidate's), one
+    value chain, a constraint-context bottleneck, and the company planet -- all projected
     from the ALREADY-COMPUTED slice artifacts. No cross-theme edges are invented (a single
     theme supports none), so there is no centre and ``validate()`` is clean. The terrain
     is deliberately incomplete; the incompleteness is surfaced as data gaps + neutral
     (dashed) encodings, never fabricated.
+
+    ``mode`` may be overridden to ``real_evidence_on_demand`` (IMPLEMENTATION-010D) so the
+    exact same node-mapping approach projects a terrain built from REAL, on-demand source
+    data. ``extra_data_gaps`` lets the on-demand builder append per-source status gaps.
     """
     bi = build_input_from_evidence_slice(iren_slice)
     galaxy = _galaxy_node(bi)
-    build_id = "evidence-terrain-{0}".format(slugify(bi.subject or "iren"))
+    build_id = "{0}-terrain-{1}".format(
+        "real" if mode == "real_evidence_on_demand" else "evidence",
+        slugify(bi.subject or "candidate"))
+    resolved_title = title or (
+        "Economic Universe (real evidence, on demand)"
+        if mode == "real_evidence_on_demand" else "Economic Universe (evidence-ingested)")
     return UniverseTerrain(
-        terrain_id="economic-universe", title="Economic Universe (evidence-ingested)",
-        mode="evidence_ingested_fixture", build_id=build_id,
+        terrain_id="economic-universe", title=resolved_title,
+        mode=mode, build_id=build_id,
         galaxies=(galaxy,), relationship_edges=(),
-        source_coverage=_source_coverage(bi), data_gaps=_data_gaps(bi),
+        source_coverage=_source_coverage(bi),
+        data_gaps=_data_gaps(bi) + tuple(extra_data_gaps),
         provenance_refs=_provenance_refs(bi),
         visual_legend=(
             ("size", "economic magnitude (missing here -> neutral, dashed)"),
