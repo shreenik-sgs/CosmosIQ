@@ -169,6 +169,23 @@ from .replay import (
     ReplayHarness,
     ReplayReconstruction,
 )
+from .ledger import (
+    AgentRunLedger,
+    PolicyBlock,
+    POLICY_MESSAGE_TOKENS,
+    SkipAgent,
+    run_agent_isolated,
+    run_agents_isolated,
+)
+from .health import (
+    CREDENTIALS_STATUSES,
+    RATE_LIMIT_STATUSES,
+    AgentHealthMonitor,
+    DataQualityRunSummary,
+    HEALTH_RECORDS,
+    RunHealthSummary,
+    SourceHealthRecord,
+)
 from .nivesha_forward import (
     FORWARD_INPUT_NAMES,
     SCENARIO_LABELS,
@@ -340,4 +357,19 @@ __all__ = [
     # deterministic replay harness (013C)
     "ReplayHarness",
     "ReplayReconstruction",
+    # agent run ledger + failure-isolating runner (013D)
+    "AgentRunLedger",
+    "run_agent_isolated",
+    "run_agents_isolated",
+    "SkipAgent",
+    "PolicyBlock",
+    "POLICY_MESSAGE_TOKENS",
+    # health / data-quality observability (013D)
+    "SourceHealthRecord",
+    "RunHealthSummary",
+    "DataQualityRunSummary",
+    "AgentHealthMonitor",
+    "HEALTH_RECORDS",
+    "CREDENTIALS_STATUSES",
+    "RATE_LIMIT_STATUSES",
 ]
