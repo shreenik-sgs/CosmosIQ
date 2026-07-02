@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a STALE 8-K contract filing. Must be marked stale (never dropped) and recorded as a gap. No live data.",
+  "events": [
+    {
+      "event_id": "nf.stale.acme",
+      "timestamp": "2026-06-10T13:45:00Z",
+      "source_id": "sec.edgar",
+      "source_type": "sec_8-k",
+      "source_authority": "canonical",
+      "claim_status": "verified_fact",
+      "raw_payload_ref": "edgar://ACME/8-K/0007654321-26-000007",
+      "discipline": "news_filings",
+      "event_type": "sec_8-k_material_definitive_agreement",
+      "affected_companies": ["ACME"],
+      "observed_fact": "issuer filed an 8-K disclosing a material supply contract (stale snapshot)",
+      "numeric_values": [["contract_value_usd", 130000000, "usd"]],
+      "evidence_refs": ["ex.edgar.acme.8k.stale"],
+      "source_refs": ["sec:edgar/ACME/8-K/0007654321-26-000007"],
+      "confidence_label": "low",
+      "freshness_label": "stale",
+      "half_life": "weeks"
+    }
+  ]
+}

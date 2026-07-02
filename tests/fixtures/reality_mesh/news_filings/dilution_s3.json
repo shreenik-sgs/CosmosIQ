@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- an S-3/ATM shelf registration (dilution). SEC filing FACT: canonical + verified_fact. No live data.",
+  "events": [
+    {
+      "event_id": "nf.s3.exmp",
+      "timestamp": "2026-06-29T21:05:00Z",
+      "source_id": "sec.edgar",
+      "source_type": "sec_s-3",
+      "source_authority": "canonical",
+      "claim_status": "verified_fact",
+      "raw_payload_ref": "edgar://EXMP/S-3/0001234567-26-000045",
+      "discipline": "news_filings",
+      "event_type": "sec_s-3_shelf_registration",
+      "affected_companies": ["EXMP"],
+      "observed_fact": "issuer filed an S-3 shelf registration establishing an at-the-market (ATM) equity program",
+      "numeric_values": [["offering_amount_usd", 150000000, "usd"], ["offering_pct_of_shares", 18, "percent"]],
+      "evidence_refs": ["ex.edgar.exmp.s3"],
+      "source_refs": ["sec:edgar/EXMP/S-3/0001234567-26-000045"],
+      "confidence_label": "high",
+      "freshness_label": "fresh",
+      "half_life": "weeks"
+    }
+  ]
+}

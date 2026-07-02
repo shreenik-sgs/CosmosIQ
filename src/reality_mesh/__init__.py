@@ -105,6 +105,12 @@ from .sensors import (
     THEME_ROTATION_SUBAGENTS,
     FLOW_PROXY_CAVEAT,
     BROADENING_MIN_MEMBERS,
+    NewsFilingsAgent,
+    NEWS_FILINGS_FINDING_TYPES,
+    NEWS_FILINGS_SUBAGENTS,
+    FILING_FACT_FINDINGS,
+    COMPANY_CLAIM_FINDINGS,
+    claim_status_of,
 )
 
 __all__ = [
@@ -192,4 +198,11 @@ __all__ = [
     "THEME_ROTATION_SUBAGENTS",
     "FLOW_PROXY_CAVEAT",
     "BROADENING_MIN_MEMBERS",
+    # sensor agents (012G)
+    "NewsFilingsAgent",
+    "NEWS_FILINGS_FINDING_TYPES",
+    "NEWS_FILINGS_SUBAGENTS",
+    "FILING_FACT_FINDINGS",
+    "COMPANY_CLAIM_FINDINGS",
+    "claim_status_of",
 ]

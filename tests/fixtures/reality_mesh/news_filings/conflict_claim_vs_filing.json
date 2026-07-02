@@ -1,0 +1,44 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a claim-vs-filing conflict about the SAME issuer (PACER). A rosy customer-win press release (company_claim, improving) coexists with a dilutive S-3 filing FACT (canonical verified_fact, deteriorating). BOTH preserved; the claim is never promoted to a fact. No live data.",
+  "events": [
+    {
+      "event_id": "nf.cf.pacer_pr",
+      "timestamp": "2026-06-29T12:15:00Z",
+      "source_id": "company.ir.pacer",
+      "source_type": "press_release",
+      "source_authority": "primary",
+      "claim_status": "company_claim",
+      "raw_payload_ref": "ir://PACER/press/2026-06-29-customer-win",
+      "discipline": "news_filings",
+      "event_type": "press_release_customer_win",
+      "affected_companies": ["PACER"],
+      "observed_fact": "company touted a large new customer win; company characterisation, not verified",
+      "company_claim": "landed a transformational customer contract",
+      "numeric_values": [["contract_value_usd", 60000000, "usd"]],
+      "evidence_refs": ["ex.ir.pacer.pr"],
+      "source_refs": ["ir:PACER/press/2026-06-29-customer-win"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "event_id": "nf.cf.pacer_s3",
+      "timestamp": "2026-06-29T21:40:00Z",
+      "source_id": "sec.edgar",
+      "source_type": "sec_s-3",
+      "source_authority": "canonical",
+      "claim_status": "verified_fact",
+      "raw_payload_ref": "edgar://PACER/S-3/0004445556-26-000021",
+      "discipline": "news_filings",
+      "event_type": "sec_s-3_shelf_registration",
+      "affected_companies": ["PACER"],
+      "observed_fact": "the SAME issuer filed an S-3 shelf registration establishing a large ATM equity program (dilutive)",
+      "numeric_values": [["offering_amount_usd", 200000000, "usd"], ["offering_pct_of_shares", 30, "percent"]],
+      "evidence_refs": ["ex.edgar.pacer.s3"],
+      "source_refs": ["sec:edgar/PACER/S-3/0004445556-26-000021"],
+      "confidence_label": "high",
+      "freshness_label": "fresh",
+      "half_life": "weeks"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a company raised-guidance update. company_claim (forward-looking company statement), never a verified fact. No live data.",
+  "events": [
+    {
+      "event_id": "nf.guid.orbit",
+      "timestamp": "2026-06-29T11:30:00Z",
+      "source_id": "company.ir.orbit",
+      "source_type": "press_release",
+      "source_authority": "primary",
+      "claim_status": "company_claim",
+      "raw_payload_ref": "ir://ORBIT/press/2026-06-29-guidance",
+      "discipline": "news_filings",
+      "event_type": "guidance_update_raise",
+      "affected_companies": ["ORBIT"],
+      "observed_fact": "company raised full-year revenue guidance",
+      "company_claim": "raised FY revenue outlook; company forward statement, not a filed fact",
+      "numeric_values": [["guidance_change_pct", 12, "percent"]],
+      "evidence_refs": ["ex.ir.orbit.guidance"],
+      "source_refs": ["ir:ORBIT/press/2026-06-29-guidance"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    }
+  ]
+}

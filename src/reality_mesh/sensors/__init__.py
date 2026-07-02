@@ -32,6 +32,14 @@ from .rotation import (
     FLOW_PROXY_CAVEAT,
     BROADENING_MIN_MEMBERS,
 )
+from .news_filings import (
+    NewsFilingsAgent,
+    NEWS_FILINGS_FINDING_TYPES,
+    NEWS_FILINGS_SUBAGENTS,
+    FILING_FACT_FINDINGS,
+    COMPANY_CLAIM_FINDINGS,
+    claim_status_of,
+)
 
 __all__ = [
     "MarketRegimeAgent",
@@ -46,4 +54,10 @@ __all__ = [
     "THEME_ROTATION_SUBAGENTS",
     "FLOW_PROXY_CAVEAT",
     "BROADENING_MIN_MEMBERS",
+    "NewsFilingsAgent",
+    "NEWS_FILINGS_FINDING_TYPES",
+    "NEWS_FILINGS_SUBAGENTS",
+    "FILING_FACT_FINDINGS",
+    "COMPANY_CLAIM_FINDINGS",
+    "claim_status_of",
 ]

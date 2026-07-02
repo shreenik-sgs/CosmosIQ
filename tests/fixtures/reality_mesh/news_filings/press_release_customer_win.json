@@ -1,0 +1,25 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a company press release claiming a customer win. company_claim (NOT verified_fact). company-IR primary authority. No live data.",
+  "events": [
+    {
+      "event_id": "nf.pr.nova",
+      "timestamp": "2026-06-29T12:00:00Z",
+      "source_id": "company.ir.nova",
+      "source_type": "press_release",
+      "source_authority": "primary",
+      "claim_status": "company_claim",
+      "raw_payload_ref": "ir://NOVA/press/2026-06-29-customer-win",
+      "discipline": "news_filings",
+      "event_type": "press_release_customer_win",
+      "affected_companies": ["NOVA"],
+      "observed_fact": "company announced it won a major customer (design win); characterised by the company, not independently verified",
+      "company_claim": "won a design win with a large hyperscaler customer",
+      "numeric_values": [["contract_value_usd", 90000000, "usd"]],
+      "evidence_refs": ["ex.ir.nova.pr"],
+      "source_refs": ["ir:NOVA/press/2026-06-29-customer-win"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    }
+  ]
+}

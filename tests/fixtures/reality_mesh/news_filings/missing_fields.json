@@ -1,0 +1,42 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- an S-3 filing with the offering SIZE absent, and a press release with no company identified. Missing/absent fields must surface as explicit data gaps, never fabricated. No live data.",
+  "events": [
+    {
+      "event_id": "nf.miss.exmp_s3",
+      "timestamp": "2026-06-29T21:05:00Z",
+      "source_id": "sec.edgar",
+      "source_type": "sec_s-3",
+      "source_authority": "canonical",
+      "claim_status": "verified_fact",
+      "raw_payload_ref": "edgar://VECTR/S-3/0009998887-26-000003",
+      "discipline": "news_filings",
+      "event_type": "sec_s-3_shelf_registration",
+      "affected_companies": ["VECTR"],
+      "observed_fact": "issuer filed an S-3 shelf registration; dollar amount not yet disclosed in this snapshot",
+      "numeric_values": [],
+      "evidence_refs": ["ex.edgar.vectr.s3"],
+      "source_refs": ["sec:edgar/VECTR/S-3/0009998887-26-000003"],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "weeks"
+    },
+    {
+      "event_id": "nf.miss.unscoped_pr",
+      "timestamp": "2026-06-29T12:00:00Z",
+      "source_id": "company.ir.unknown",
+      "source_type": "press_release",
+      "source_authority": "primary",
+      "claim_status": "company_claim",
+      "discipline": "news_filings",
+      "event_type": "press_release_partnership",
+      "observed_fact": "a partnership was announced but no issuer ticker was identified in this snapshot",
+      "company_claim": "entered a strategic partnership",
+      "numeric_values": [],
+      "evidence_refs": ["ex.ir.unknown.pr"],
+      "source_refs": ["ir:unknown/press/2026-06-29-partnership"],
+      "confidence_label": "low",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a Form 4 insider sale. SEC filing FACT: canonical + verified_fact. Deteriorating direction. No live data.",
+  "events": [
+    {
+      "event_id": "nf.form4.helix",
+      "timestamp": "2026-06-29T22:10:00Z",
+      "source_id": "sec.edgar",
+      "source_type": "sec_insider_form",
+      "source_authority": "canonical",
+      "claim_status": "verified_fact",
+      "raw_payload_ref": "edgar://HELIX/4/0002223334-26-000099",
+      "discipline": "news_filings",
+      "event_type": "sec_form_4_insider_sale",
+      "affected_companies": ["HELIX"],
+      "observed_fact": "an officer reported an open-market sale of common stock on Form 4",
+      "numeric_values": [["shares_sold", 120000, "shares"], ["sale_value_usd", 7200000, "usd"]],
+      "evidence_refs": ["ex.edgar.helix.form4"],
+      "source_refs": ["sec:edgar/HELIX/4/0002223334-26-000099"],
+      "confidence_label": "high",
+      "freshness_label": "fresh",
+      "half_life": "weeks"
+    }
+  ]
+}
