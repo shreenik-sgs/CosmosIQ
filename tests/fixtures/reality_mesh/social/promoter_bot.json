@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a promoter / bot-driven amplification on a ticker. PromotionRiskFinding; risk made VISIBLE (summary + conflict + gap); NEVER a fact.",
+  "events": [
+    {
+      "event_id": "narr.promoter.pmpx",
+      "timestamp": "2026-06-29T13:25:00Z",
+      "source_id": "x.promoter_network.pmpx",
+      "source_type": "x_social",
+      "source_authority": "rumor",
+      "claim_status": "rumor",
+      "raw_payload_ref": "mock://x/promoter/PMPX/2026-06-29",
+      "discipline": "narrative",
+      "event_type": "promoter_bot_amplification",
+      "affected_companies": ["PMPX"],
+      "observed_fact": "coordinated promoter/bot amplification pushing PMPX (paid_promotion / astroturf pattern; inauthentic attention)",
+      "numeric_values": [["mention_count", 8000, "count"], ["mention_velocity_zscore", 6.0, "zscore"], ["bot_risk_pct", 82, "pct"], ["unique_authors", 120, "count"]],
+      "evidence_refs": ["ex.x.pmpx.promoter"],
+      "source_refs": ["x:promoter/PMPX/2026-06-29"],
+      "confidence_label": "very_low",
+      "freshness_label": "fresh",
+      "half_life": "hours"
+    }
+  ]
+}

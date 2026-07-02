@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- an X/social mention spike on a watchlist ticker. Weak narrative velocity, rumor authority, NOT a fact. No live X, no scraping, no credentials.",
+  "events": [
+    {
+      "event_id": "narr.mention.nova",
+      "timestamp": "2026-06-29T13:00:00Z",
+      "source_id": "x.watchlist.mention.NOVA",
+      "source_type": "x_social",
+      "source_authority": "rumor",
+      "claim_status": "rumor",
+      "raw_payload_ref": "mock://x/mentions/NOVA/2026-06-29",
+      "discipline": "narrative",
+      "event_type": "social_mention_spike",
+      "affected_companies": ["NOVA"],
+      "observed_fact": "sharp rise in social mention velocity for NOVA (attention spike; not a verified event)",
+      "numeric_values": [["mention_count", 4200, "count"], ["mention_velocity_zscore", 3.4, "zscore"], ["unique_authors", 900, "count"]],
+      "evidence_refs": ["ex.x.nova.mentions"],
+      "source_refs": ["x:mentions/NOVA/2026-06-29"],
+      "confidence_label": "low",
+      "freshness_label": "fresh",
+      "half_life": "hours"
+    }
+  ]
+}

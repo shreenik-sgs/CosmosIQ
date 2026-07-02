@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a journalist / source X account reporting something. reported_claim flavor, rumor authority; NOT a verified_fact.",
+  "events": [
+    {
+      "event_id": "narr.journalist.nova",
+      "timestamp": "2026-06-29T13:20:00Z",
+      "source_id": "x.journalist.reporter_jane",
+      "source_type": "x_social",
+      "source_authority": "rumor",
+      "claim_status": "reported_claim",
+      "raw_payload_ref": "mock://x/journalist/reporter_jane/2026-06-29",
+      "discipline": "narrative",
+      "event_type": "journalist_account_report",
+      "affected_companies": ["NOVA"],
+      "observed_fact": "a journalist account reports sources saying NOVA is in partnership talks (reported_claim; not independently verified)",
+      "numeric_values": [["mention_count", 950, "count"]],
+      "evidence_refs": ["ex.x.reporter_jane.post"],
+      "source_refs": ["x:journalist/reporter_jane/2026-06-29"],
+      "confidence_label": "low",
+      "freshness_label": "fresh",
+      "half_life": "hours"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- an OFFICIAL company X account posting a claim. company_claim flavor, but still rumor authority on social (could be impersonation/hack); NEVER a verified_fact.",
+  "events": [
+    {
+      "event_id": "narr.company.nova",
+      "timestamp": "2026-06-29T13:15:00Z",
+      "source_id": "x.company_account.NOVA_official",
+      "source_type": "x_social",
+      "source_authority": "rumor",
+      "claim_status": "company_claim",
+      "raw_payload_ref": "mock://x/company_account/NOVA/2026-06-29",
+      "discipline": "narrative",
+      "event_type": "company_account_claim",
+      "affected_companies": ["NOVA"],
+      "observed_fact": "official company account for NOVA posts that a major product milestone was reached (a company statement on social, not independently verified)",
+      "company_claim": "reached a major product milestone",
+      "numeric_values": [["mention_count", 1800, "count"]],
+      "evidence_refs": ["ex.x.nova.company_post"],
+      "source_refs": ["x:company_account/NOVA/2026-06-29"],
+      "confidence_label": "low",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    }
+  ]
+}

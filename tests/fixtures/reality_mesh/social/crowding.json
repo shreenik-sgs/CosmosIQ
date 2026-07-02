@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- narrative crowding / consensus positioning on a ticker. CrowdingFinding (contrarian risk), rumor authority; NOT a fact.",
+  "events": [
+    {
+      "event_id": "narr.crowding.nova",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "x.crowding.NOVA",
+      "source_type": "x_social",
+      "source_authority": "rumor",
+      "claim_status": "rumor",
+      "raw_payload_ref": "mock://x/crowding/NOVA/2026-06-29",
+      "discipline": "narrative",
+      "event_type": "narrative_crowding",
+      "affected_companies": ["NOVA"],
+      "observed_fact": "NOVA narrative is crowded -- consensus long, everyone_long positioning (contrarian risk)",
+      "numeric_values": [["mention_count", 6000, "count"], ["crowding_pct", 80, "pct"]],
+      "evidence_refs": ["ex.x.nova.crowding"],
+      "source_refs": ["x:crowding/NOVA/2026-06-29"],
+      "confidence_label": "low",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    }
+  ]
+}

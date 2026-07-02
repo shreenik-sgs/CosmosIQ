@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- an anonymous/unknown X account posting an unverified rumor. RumorFinding, weak/very_low confidence, rumor authority; NEVER a verified fact.",
+  "events": [
+    {
+      "event_id": "narr.rumor.nova.buyout",
+      "timestamp": "2026-06-29T13:10:00Z",
+      "source_id": "x.unknown_account.anon123",
+      "source_type": "x_social",
+      "source_authority": "rumor",
+      "claim_status": "rumor",
+      "raw_payload_ref": "mock://x/posts/anon123/2026-06-29",
+      "discipline": "narrative",
+      "event_type": "unknown_account_rumor",
+      "affected_companies": ["NOVA"],
+      "observed_fact": "anonymous account claims an unconfirmed buyout rumor for NOVA (speculation; unverified)",
+      "numeric_values": [["mention_count", 300, "count"]],
+      "evidence_refs": ["ex.x.anon123.post"],
+      "source_refs": ["x:posts/anon123/2026-06-29"],
+      "confidence_label": "very_low",
+      "freshness_label": "fresh",
+      "half_life": "hours"
+    }
+  ]
+}

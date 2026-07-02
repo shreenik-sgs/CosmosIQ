@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- an X/social THEME mention spike (theme-scoped, no single company). Weak narrative velocity, rumor authority; social-only -> must NOT ignite a high-confidence theme.",
+  "events": [
+    {
+      "event_id": "narr.theme.ai_agents",
+      "timestamp": "2026-06-29T13:05:00Z",
+      "source_id": "x.theme.mention.ai_agents",
+      "source_type": "x_social",
+      "source_authority": "rumor",
+      "claim_status": "rumor",
+      "raw_payload_ref": "mock://x/themes/ai-agents/2026-06-29",
+      "discipline": "narrative",
+      "event_type": "theme_mention_spike",
+      "affected_themes": ["AI Agents"],
+      "observed_fact": "theme mention velocity spike for 'AI Agents' across social (attention, not a confirmed rotation)",
+      "numeric_values": [["mention_count", 15000, "count"], ["mention_velocity_zscore", 3.1, "zscore"], ["unique_authors", 2100, "count"]],
+      "evidence_refs": ["ex.x.ai_agents.theme"],
+      "source_refs": ["x:themes/ai-agents/2026-06-29"],
+      "confidence_label": "low",
+      "freshness_label": "fresh",
+      "half_life": "hours"
+    }
+  ]
+}

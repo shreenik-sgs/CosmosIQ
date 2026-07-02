@@ -40,6 +40,12 @@ from .news_filings import (
     COMPANY_CLAIM_FINDINGS,
     claim_status_of,
 )
+from .social_narrative import (
+    SocialNarrativeAgent,
+    SOCIAL_NARRATIVE_FINDING_TYPES,
+    SOCIAL_NARRATIVE_SUBAGENTS,
+    assert_narrative_not_verified,
+)
 
 __all__ = [
     "MarketRegimeAgent",
@@ -60,4 +66,8 @@ __all__ = [
     "FILING_FACT_FINDINGS",
     "COMPANY_CLAIM_FINDINGS",
     "claim_status_of",
+    "SocialNarrativeAgent",
+    "SOCIAL_NARRATIVE_FINDING_TYPES",
+    "SOCIAL_NARRATIVE_SUBAGENTS",
+    "assert_narrative_not_verified",
 ]

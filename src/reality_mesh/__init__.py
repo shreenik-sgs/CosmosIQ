@@ -111,6 +111,10 @@ from .sensors import (
     FILING_FACT_FINDINGS,
     COMPANY_CLAIM_FINDINGS,
     claim_status_of,
+    SocialNarrativeAgent,
+    SOCIAL_NARRATIVE_FINDING_TYPES,
+    SOCIAL_NARRATIVE_SUBAGENTS,
+    assert_narrative_not_verified,
 )
 
 __all__ = [
@@ -205,4 +209,9 @@ __all__ = [
     "FILING_FACT_FINDINGS",
     "COMPANY_CLAIM_FINDINGS",
     "claim_status_of",
+    # sensor agents (012H)
+    "SocialNarrativeAgent",
+    "SOCIAL_NARRATIVE_FINDING_TYPES",
+    "SOCIAL_NARRATIVE_SUBAGENTS",
+    "assert_narrative_not_verified",
 ]
