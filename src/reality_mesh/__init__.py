@@ -90,6 +90,7 @@ from .registry import (
     build_default_registry,
 )
 from .router import BuddhiRouter
+from .fusion import FusionResult, TattvaSignalFusionSynthesizer
 
 __all__ = [
     # models
@@ -156,4 +157,7 @@ __all__ = [
     "build_default_registry",
     "DEFAULT_DESCRIPTORS",
     "BuddhiRouter",
+    # fusion synthesizer (012C)
+    "TattvaSignalFusionSynthesizer",
+    "FusionResult",
 ]
