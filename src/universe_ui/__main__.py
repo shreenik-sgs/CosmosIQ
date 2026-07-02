@@ -1,8 +1,12 @@
 """CLI entry point: ``python3 -m universe_ui --out <dir>``.
 
-Builds the seven static Economic Universe pages into ``--out`` (default
-``generated/universe_ui``) and prints the written paths. Generated HTML is a build
-artifact -- do not commit it. Stdlib only; no network, no scheduler, no broker.
+Builds the static Economic Universe pages (universe / dashboard / data_quality / cockpit,
+plus per-ticker cockpits in watchlist mode) into ``--out`` (default
+``generated/universe_ui``) and prints the written paths. Modes: ``demo`` (default),
+``evidence_ingested_fixture``, ``real_evidence_on_demand`` (``--ticker`` / ``--tickers``,
+optionally ``--enrich`` / ``--enable-yfinance``). Generated HTML is a build artifact -- do
+not commit it. Stdlib only; no network on import, no scheduler, no broker. See
+``docs/OPERATOR_GUIDE_011.md``.
 """
 
 from __future__ import annotations
@@ -38,6 +42,14 @@ def main(argv=None) -> int:
     parser.add_argument(
         "--enable-yfinance", action="store_true",
         help="opt in to the yfinance fallback (research-only) in real mode")
+    parser.add_argument(
+        "--enrich", action="store_true",
+        help="opt in to diligence enrichment in real mode (011C): overlay market cap / "
+             "financials from each ticker's already-fetched SEC/FMP payloads onto the "
+             "CompanyNode / Data Quality / cockpit, SOURCE-BACKED ONLY. Unsupported TAM / "
+             "value-chain / bottleneck / IR / leadership stay visible gaps; nothing is "
+             "fabricated; source authority preserved (manual never canonical). Default off "
+             "keeps the honest unenriched sparse terrain.")
     args = parser.parse_args(argv)
 
     build_kwargs = {}
@@ -54,6 +66,7 @@ def main(argv=None) -> int:
             "sec_user_agent": sec_user_agent,
             "fmp_api_key": fmp_api_key,
             "enable_yfinance": args.enable_yfinance,
+            "enrich": args.enrich,
         }
         if args.tickers:
             from universe_ui.watchlist_terrain import normalize_tickers
@@ -71,6 +84,8 @@ def main(argv=None) -> int:
         print("  SEC User-Agent present: {0} · FMP API key present: {1} "
               "(values never printed)".format(
                   presence["sec_user_agent_present"], presence["fmp_api_key_present"]))
+        print("  diligence enrichment: {0} (source-backed only; unsupported areas stay "
+              "gaps)".format("ON (--enrich)" if args.enrich else "off (default)"))
 
     paths = build_universe_app(args.out, mode=args.mode, **build_kwargs)
     print("Built Sudarshan Economic Universe UI (read-only, mode={0}):".format(args.mode))
