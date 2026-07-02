@@ -116,6 +116,18 @@ from .sensors import (
     SOCIAL_NARRATIVE_SUBAGENTS,
     assert_narrative_not_verified,
 )
+from .nivesha_forward import (
+    FORWARD_INPUT_NAMES,
+    SCENARIO_LABELS,
+    ForwardScenarioInput,
+    ForwardScenarioCase,
+    ForwardScenarioPacket,
+    ForwardMappedField,
+    ForwardSidecarMapping,
+    build_forward_scenario_packet,
+    to_nivesha_forward_sidecar,
+    run_nivesha_thesis_on_forward_sidecar,
+)
 
 __all__ = [
     # models
@@ -214,4 +226,15 @@ __all__ = [
     "SOCIAL_NARRATIVE_FINDING_TYPES",
     "SOCIAL_NARRATIVE_SUBAGENTS",
     "assert_narrative_not_verified",
+    # forward scenario engine / sidecar (012I)
+    "FORWARD_INPUT_NAMES",
+    "SCENARIO_LABELS",
+    "ForwardScenarioInput",
+    "ForwardScenarioCase",
+    "ForwardScenarioPacket",
+    "ForwardMappedField",
+    "ForwardSidecarMapping",
+    "build_forward_scenario_packet",
+    "to_nivesha_forward_sidecar",
+    "run_nivesha_thesis_on_forward_sidecar",
 ]
