@@ -735,7 +735,14 @@ NAV_JS = """
         if(skybg){var ps=1+(view.scale-1)*0.35;
           skybg.style.transform='translate('+(view.tx*0.35)+'px,'+(view.ty*0.35)+'px) scale('+ps+')';}
       }
-      function resetView(){view.scale=1;view.tx=0;view.ty=0;applyTransform();}
+      /* clear any persistent .selected ring so it can never go STALE across a level
+         change or view reset (level-change / zoom-back / fit-all / locate / breadcrumb).
+         Visibility-only: it removes a CSS class, never hides data or mutates state. */
+      function clearSelection(){
+        var ss=document.querySelectorAll('.cosmic-object.selected');
+        for(var q=0;q<ss.length;q++){ss[q].classList.remove('selected');}
+      }
+      function resetView(){clearSelection();view.scale=1;view.tx=0;view.ty=0;applyTransform();}
       /* update the floating preview card from a clicked object (existing fields only) */
       function updatePreview(obj){
         if(!fp){return;}
