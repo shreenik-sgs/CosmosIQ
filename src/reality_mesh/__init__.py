@@ -165,6 +165,10 @@ from .stores import (
     AuditStore,
     STORE_CLASSES,
 )
+from .replay import (
+    ReplayHarness,
+    ReplayReconstruction,
+)
 from .nivesha_forward import (
     FORWARD_INPUT_NAMES,
     SCENARIO_LABELS,
@@ -333,4 +337,7 @@ __all__ = [
     "DataQualityStore",
     "AuditStore",
     "STORE_CLASSES",
+    # deterministic replay harness (013C)
+    "ReplayHarness",
+    "ReplayReconstruction",
 ]
