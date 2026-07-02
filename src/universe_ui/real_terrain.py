@@ -239,6 +239,7 @@ def build_real_evidence_terrain_for_ticker(
     profile: Any = None,
     portfolio: Any = None,
     user_selected_size: Optional[float] = None,
+    enrichment: Any = None,
     now: Optional[float] = None,
     actor: str = "real-evidence-on-demand",
 ):
@@ -287,7 +288,8 @@ def build_real_evidence_terrain_for_ticker(
         + tuple("{0}: {1}".format(k, d) for k, d in fetch_gaps))
 
     terrain = terrain_from_slice(
-        result, mode="real_evidence_on_demand", extra_data_gaps=extra_gaps)
+        result, mode="real_evidence_on_demand", extra_data_gaps=extra_gaps,
+        enrichment=enrichment)
 
     status_out = dict(source_status)
     status_out["run_timestamp"] = run_ts

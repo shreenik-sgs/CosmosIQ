@@ -1709,6 +1709,66 @@ def _diagnostics_panel(dq: DataQualityView) -> str:
     return overall_html + table_html + cards_html + actions_block + ve_html
 
 
+def _enrichment_coverage_panel(dq: DataQualityView) -> str:
+    """IMPLEMENTATION-011A diligence-enrichment COVERAGE panel (labels, not scores).
+
+    Per diligence area (market cap / TAM / value-chain / bottleneck / company IR /
+    leadership): available-vs-missing + the source AUTHORITY backing it; per-ticker
+    enrichment GAPS; and recommended DATA-SOURCING actions (add an investor presentation /
+    transcript / IR source / TAM source / supplier-customer source / bottleneck source /
+    leadership source) -- never a trade instruction. Empty (section omitted) unless a real /
+    watchlist run supplied enrichment bundles."""
+    cov = getattr(dq, "enrichment_coverage", None)
+    if cov is None or not getattr(cov, "per_ticker", ()):
+        return ""
+
+    summary_rows = "".join(
+        "<tr><th>{0}</th><td>{1}</td></tr>".format(_esc(area), _esc(val))
+        for area, val in cov.areas_summary)
+    summary_html = (
+        "<h2>Diligence-enrichment coverage</h2>"
+        '<div class="glass-panel"><p class="note">Enrichment collects the missing diligence '
+        "INPUTS (market cap, TAM, value chain, bottleneck, company IR, leadership) with "
+        "EXPLICIT source authority and claim status. Availability is a data-quality LABEL — "
+        "not a score, not a ranking, not a recommendation. Manual / analyst estimates are "
+        "never treated as canonical; company statements are marked as claims.</p>"
+        '<table class="kv">' + summary_rows + "</table></div>")
+
+    # per-ticker area table
+    def _avail(a):
+        return _badge("available", "q-high") if a.available else _badge("missing", "gap")
+
+    ticker_blocks = []
+    for tc in cov.per_ticker:
+        arows = "".join(
+            "<tr><td>{area}</td><td>{avail}</td><td>{auth}</td><td>{claim}</td>"
+            "<td>{detail}</td></tr>".format(
+                area=_esc(a.area_label), avail=_avail(a),
+                auth=_esc(a.authority or "—"), claim=_esc(a.claim_status or "—"),
+                detail=_esc(a.detail))
+            for a in tc.areas)
+        gaps_html = _list(tc.gaps, "no enrichment gaps")
+        actions_html = _list(tc.data_actions, "no data actions outstanding")
+        ticker_blocks.append(
+            '<div class="glass-panel"><div class="brief-label micro">{tk} · enrichment '
+            "status: {st}</div>"
+            '<table class="chain"><tr><th>area</th><th>availability</th><th>authority</th>'
+            "<th>claim status</th><th>detail</th></tr>{rows}</table>"
+            '<div class="brief-label micro">Enrichment gaps</div>{gaps}'
+            '<div class="brief-label micro">Recommended DATA actions (data-sourcing only — '
+            "never a trade instruction)</div>{acts}</div>".format(
+                tk=_esc(tc.ticker), st=_esc(tc.enrichment_status), rows=arows,
+                gaps=gaps_html, acts=actions_html))
+
+    actions_all = _list(cov.recommended_data_actions, "no data actions outstanding")
+    actions_html = (
+        "<h2>Enrichment data-sourcing actions</h2>"
+        '<div class="glass-panel"><p class="note">DATA-SOURCING actions only (add a source) '
+        "— never an execution instruction.</p>" + actions_all + "</div>")
+
+    return summary_html + "".join(ticker_blocks) + actions_html
+
+
 def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
                         notice: str = "") -> str:
     is_ev = "evidence" in (dq.run_mode or "").lower()
@@ -1740,6 +1800,7 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
             '<table class="kv">' + rows + meta + "</table></div>")
     watchlist_html = _watchlist_dq_panel(dq)
     diagnostics_html = _diagnostics_panel(dq)
+    enrichment_html = _enrichment_coverage_panel(dq)
     boundary = "".join([
         "<tr><th>Run mode</th><td>{0}</td></tr>".format(_esc(dq.run_mode)),
         "<tr><th>Fixture / demo</th><td>{0}</td></tr>".format(_esc(dq.fixture_demo_status)),
@@ -1763,6 +1824,8 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
         + watchlist_html
         # 010F: typed TRUST / COMPLETENESS diagnostics + theme classification + encoding
         + diagnostics_html
+        # 011A: diligence-enrichment coverage (data-sourcing actions only; empty otherwise)
+        + enrichment_html
         + '<h2>Source hierarchy pipeline</h2>'
         + '<div class="glass-panel">' + _dq_pipeline(dq)
         + '<p class="note">Authority order: SEC canonical (EDGAR) &gt; FMP convenience &gt; '

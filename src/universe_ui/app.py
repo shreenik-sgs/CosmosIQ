@@ -45,6 +45,7 @@ def build_universe_app(output_dir: str, mode: str = "demo",
                        profile: Optional[object] = None,
                        portfolio: Optional[object] = None,
                        user_selected_size: Optional[float] = None,
+                       enrichment: Optional[object] = None,
                        now: Optional[float] = None) -> Dict[str, str]:
     """Build all pages + local assets into ``output_dir``; return their paths.
 
@@ -87,10 +88,11 @@ def build_universe_app(output_dir: str, mode: str = "demo",
             ticker, transports=transports, sec_user_agent=sec_user_agent,
             fmp_api_key=fmp_api_key, enable_yfinance=enable_yfinance,
             diligence_inputs=diligence_inputs, profile=profile, portfolio=portfolio,
-            user_selected_size=user_selected_size, now=now)
+            user_selected_size=user_selected_size, enrichment=enrichment, now=now)
         slice_result = source_status.pop("slice_result")
         view = build_economic_universe_view(
-            slice_result, terrain=terrain, source_status=source_status)
+            slice_result, terrain=terrain, source_status=source_status,
+            enrichment_bundles=([enrichment] if enrichment is not None else None))
         pages = render_all_pages(view, slice_result)
         return _write_pages(output_dir, assets_dir, pages)
 

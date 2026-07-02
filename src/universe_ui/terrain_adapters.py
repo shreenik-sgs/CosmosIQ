@@ -337,26 +337,88 @@ def _provenance_refs(bi: EvidenceTerrainBuildInput) -> Tuple[str, ...]:
     return tuple(out)
 
 
-def _data_gaps(bi: EvidenceTerrainBuildInput) -> Tuple[str, ...]:
-    """Coverage gaps from the slice + explicit terrain-incompleteness gaps (nothing faked)."""
+def _data_gaps(bi: EvidenceTerrainBuildInput, enrichment: Any = None) -> Tuple[str, ...]:
+    """Coverage gaps from the slice + explicit terrain-incompleteness gaps (nothing faked).
+
+    When a diligence-enrichment bundle (011A) sourced market cap / TAM / bottleneck
+    severity, the corresponding "not surfaced" placeholder line is replaced by an honest
+    "sourced from ..." line; anything the enrichment still lacks stays an explicit gap.
+    """
+    mc = _enrichment_market_cap(enrichment)
+    tam = _enrichment_tam(enrichment)
+    bn_present = (enrichment is not None and enrichment.bottleneck.present)
+
     gaps = [
         "terrain incomplete — single candidate ({0}); value-chain, "
         "bottleneck, TAM and supplier coverage are sparse (missing-data placeholders "
         "shown, nothing fabricated)".format(bi.subject or "candidate"),
-        "market cap not surfaced by the pipeline reasoning objects — neutral size + gap "
-        "marker (no fabricated magnitude)",
-        "theme TAM / revenue pool not quantified by the thesis",
-        "discrete bottleneck not identified by the thesis (bottleneck_type=none) — "
-        "constraint context shown as a placeholder",
-        "supplier-of-supplier / dependency coverage absent (no invented moons)",
     ]
+    if mc is None:
+        gaps.append("market cap not surfaced by the pipeline reasoning objects — neutral "
+                    "size + gap marker (no fabricated magnitude)")
+    else:
+        gaps.append("market cap sourced from diligence enrichment ({0}) — economic "
+                    "magnitude now sized".format(enrichment.market.market_cap.authority))
+    if tam is None:
+        gaps.append("theme TAM / revenue pool not quantified by the thesis")
+    else:
+        gaps.append("theme TAM / revenue pool sourced from diligence enrichment "
+                    "(estimate_type={0}, {1} — not canonical)".format(
+                        enrichment.tam_estimate.estimate_type,
+                        enrichment.tam_estimate.amount.authority))
+    if bn_present:
+        gaps.append("bottleneck severity / duration sourced from diligence enrichment "
+                    "(labelled, {0})".format(enrichment.bottleneck.authority))
+    else:
+        gaps.append("discrete bottleneck not identified by the thesis (bottleneck_type=none) — "
+                    "constraint context shown as a placeholder")
+    if enrichment is None or not enrichment.value_chain.present:
+        gaps.append("supplier-of-supplier / dependency coverage absent (no invented moons)")
+    if enrichment is not None:
+        for g in enrichment.data_gaps:
+            gaps.append("enrichment: {0}".format(g))
     for kind, detail in bi.data_gaps:
         gaps.append("{0}: {1}".format(kind, detail))
     return tuple(gaps)
 
 
+# =========================================================================== #
+# IMPLEMENTATION-011A: OPTIONAL diligence-enrichment overlay. When an           #
+# ``enrichment`` bundle is supplied the builder uses its (sourced, traced)      #
+# market cap / TAM / value-chain / bottleneck evidence to REPLACE the neutral   #
+# data-gap placeholders -- via the SAME ``visual_size`` helper, so size stays a #
+# magnitude projection and NO new metric/score is introduced. When enrichment   #
+# is None every function below is byte-identical to its pre-011A behaviour.      #
+# =========================================================================== #
+def _enrichment_market_cap(enrichment: Any) -> Optional[float]:
+    return enrichment.market_cap_value if enrichment is not None else None
+
+
+def _enrichment_tam(enrichment: Any) -> Optional[float]:
+    return enrichment.tam_value if enrichment is not None else None
+
+
+def _enrichment_flow_layers(enrichment: Any, vc_id: str):
+    """Terrain ValueChainLayers from enrichment value-chain evidence (empty when absent)."""
+    from .terrain import ValueChainLayer
+    if enrichment is None or not enrichment.value_chain.present:
+        return ()
+    out = []
+    for i, ly in enumerate(enrichment.value_chain.layers):
+        seq = ly.sequence if ly.sequence is not None else i
+        out.append(ValueChainLayer(
+            id="{0}--layer-{1}".format(vc_id, seq),
+            label=ly.label, order=seq, description=ly.description,
+            companies=ly.companies,
+            dependencies=ly.suppliers + ly.customers,
+            bottleneck_exposure=ly.bottleneck_exposure,
+            data_quality="partial"))
+    return tuple(out)
+
+
 def _iren_company_node(bi: EvidenceTerrainBuildInput, *, gslug: str, vc_id: str,
-                       bottleneck_id: str, universe_path: str) -> CompanyNode:
+                       bottleneck_id: str, universe_path: str,
+                       enrichment: Any = None) -> CompanyNode:
     st = _real_status(bi)
     th = bi.investment_thesis
     pa = bi.personalized_action
@@ -371,7 +433,10 @@ def _iren_company_node(bi: EvidenceTerrainBuildInput, *, gslug: str, vc_id: str,
     recommendation = st["recommendation_label"]
     catalyst_label = st["catalyst_label"]
     severe = st["capital_structure_risk"]
-    market_cap = None  # not surfaced by the reasoning objects -> a data gap, never faked
+    # market cap: still a data gap UNLESS a diligence-enrichment bundle sourced it (011A).
+    market_cap = _enrichment_market_cap(enrichment)
+    mc_authority = (enrichment.market.market_cap.authority
+                    if (market_cap is not None) else "")
     evidence_count = len(_get(bi.intelligence_assessment, "signals", ()) or ())
     data_quality = "medium"
 
@@ -404,9 +469,11 @@ def _iren_company_node(bi: EvidenceTerrainBuildInput, *, gslug: str, vc_id: str,
 
     catalysts = _catalyst_nodes(bi, universe_path, data_quality)
 
+    size_basis = ("market_cap (economic magnitude; {0})".format(mc_authority)
+                  if market_cap is not None else "market_cap (economic magnitude)")
     enc = VisualEncoding(
         size_value=visual_size(market_cap, "planet"),
-        size_basis="market_cap (economic magnitude)",
+        size_basis=size_basis,
         glow_level=glow_level(investability_label=investability, timing_label=timing,
                               recommendation_label=recommendation),
         glow_basis="investability / timing / recommendation status",
@@ -453,16 +520,47 @@ def _dependency_nodes(bi: EvidenceTerrainBuildInput, vc_id: str) -> Tuple[Depend
     return tuple(out)
 
 
-def _bottleneck_node(bi: EvidenceTerrainBuildInput, *, gslug: str, vc_id: str) -> BottleneckNode:
+def _bottleneck_node(bi: EvidenceTerrainBuildInput, *, gslug: str, vc_id: str,
+                     enrichment: Any = None) -> BottleneckNode:
     """A constraint-CONTEXT bottleneck (evidence-derived from the winner role + OH megatrend).
 
     The thesis did not identify a discrete quantified bottleneck (bottleneck_type=none),
-    so severity / importance stay UNQUANTIFIED (neutral, dashed) and the gap is explicit.
+    so severity / importance stay UNQUANTIFIED (neutral, dashed) and the gap is explicit --
+    UNLESS a diligence-enrichment bundle (011A) supplies labelled severity / duration
+    evidence, in which case those LABELS populate the node (still no numeric metric).
     """
     oh = bi.opportunity_hypothesis
     th = bi.investment_thesis
     winner = (tuple(_get(th, "winner_mapping", ()) or ()) or (None,))[0]
     role = _get(winner, "value_chain_role", "") or "capacity owner"
+
+    bn_ev = (enrichment.bottleneck if enrichment is not None else None)
+    if bn_ev is not None and bn_ev.present:
+        name = bn_ev.name or "Secured power / data-center compute capacity"
+        btype = bn_ev.bottleneck_type or "constraint (from diligence enrichment)"
+        severity = bn_ev.severity
+        duration = bn_ev.expected_duration
+        resource = bn_ev.constrained_resource or "secured power / compute capacity"
+        beneficiaries = (bn_ev.beneficiaries
+                         or ("{0} ({1})".format(bi.subject or "IREN", role),))
+        evidence = (tuple(bn_ev.evidence) or tuple(_get(oh, "megatrend_context", ()) or ()))
+        gaps = () if (severity and duration) else (
+            "bottleneck severity / duration partially specified — add capacity data",)
+        enc = VisualEncoding(
+            size_value=visual_size(None, "star"),
+            size_basis="bottleneck importance (labelled: severity={0})".format(
+                severity or "unspecified"),
+            glow_level=2, glow_basis="severity: {0}".format(severity or "unspecified"),
+            dashed_outline=False, layout_group="bottleneck")
+        return BottleneckNode(
+            id="{0}--star-0".format(gslug), value_chain_id=vc_id, name=name,
+            bottleneck_type=btype, severity=severity, expected_duration=duration,
+            constrained_resource=resource, beneficiaries=tuple(beneficiaries),
+            losers_or_risks=(), resolution_risk="not assessed", evidence=evidence,
+            economic_importance=None, data_gaps=gaps,
+            evidence_quality="medium", source_refs=tuple(bn_ev.source_refs),
+            visual_encoding=enc)
+
     return BottleneckNode(
         id="{0}--star-0".format(gslug), value_chain_id=vc_id,
         name="Secured power / data-center compute capacity",
@@ -482,35 +580,56 @@ def _bottleneck_node(bi: EvidenceTerrainBuildInput, *, gslug: str, vc_id: str) -
             layout_group="bottleneck"))
 
 
-def _value_chain_node(bi: EvidenceTerrainBuildInput, *, gslug: str) -> ValueChainNode:
+def _value_chain_node(bi: EvidenceTerrainBuildInput, *, gslug: str,
+                      enrichment: Any = None) -> ValueChainNode:
     vc_id = "{0}--ai-compute-hosting".format(gslug)
-    bottleneck = _bottleneck_node(bi, gslug=gslug, vc_id=vc_id)
+    bottleneck = _bottleneck_node(bi, gslug=gslug, vc_id=vc_id, enrichment=enrichment)
     deps = _dependency_nodes(bi, vc_id)
-    gaps = ["value-chain node coverage absent (thesis value_chain_summary has no nodes)",
-            "TAM / revenue pool not quantified", "moat / pricing-power not quantified",
-            "supplier-of-supplier coverage absent"]
-    if not deps:
+    tam = _enrichment_tam(enrichment)
+    flow_layers = _enrichment_flow_layers(enrichment, vc_id)
+
+    gaps = ["value-chain node coverage absent (thesis value_chain_summary has no nodes)"]
+    if tam is None:
+        gaps.append("TAM / revenue pool not quantified")
+    else:
+        gaps.append("TAM / revenue pool sourced from diligence enrichment (manual/analyst — "
+                    "not canonical)")
+    gaps.append("moat / pricing-power not quantified")
+    if not flow_layers:
+        gaps.append("supplier-of-supplier coverage absent")
+    if not deps and not flow_layers:
         gaps.append("no named suppliers/customers mapped — no dependency moons placed")
+
+    sized = tam is not None or bool(flow_layers)
+    enc = VisualEncoding(
+        size_value=visual_size(tam, "solar_system"),
+        size_basis=("value-chain revenue pool (TAM, {0})".format(
+            enrichment.tam_estimate.amount.authority) if tam is not None else ""),
+        dashed_outline=not sized,
+        glow_level=2, glow_basis="value-chain (neutral)", layout_group="value_chain")
     return ValueChainNode(
         id=vc_id, theme_id=gslug, name="AI compute-hosting value chain",
         description="Secured-power neocloud compute hosting (coverage incomplete).",
-        flow_layers=(), bottlenecks=(bottleneck,), companies=(), dependencies=deps,
-        revenue_pool_or_tam=None, data_gaps=tuple(gaps),
-        visual_encoding=VisualEncoding(
-            size_value=visual_size(None, "solar_system"), dashed_outline=True,
-            glow_level=2, glow_basis="value-chain (neutral)", layout_group="value_chain"))
+        flow_layers=flow_layers, bottlenecks=(bottleneck,), companies=(), dependencies=deps,
+        revenue_pool_or_tam=tam, data_gaps=tuple(gaps),
+        visual_encoding=enc)
 
 
-def _galaxy_node(bi: EvidenceTerrainBuildInput) -> GalaxyNode:
+def _galaxy_node(bi: EvidenceTerrainBuildInput, enrichment: Any = None) -> GalaxyNode:
     oh = bi.opportunity_hypothesis
     gslug = slugify(bi.domain or _get(oh, "domain", "") or "ai-infrastructure")
-    vc = _value_chain_node(bi, gslug=gslug)
+    vc = _value_chain_node(bi, gslug=gslug, enrichment=enrichment)
     bottleneck_id = vc.bottlenecks[0].id if vc.bottlenecks else "{0}--star-0".format(gslug)
     universe_path = planet_universe_path(gslug, vc.id, bottleneck_id, bi.subject or "IREN")
     company = _iren_company_node(
-        bi, gslug=gslug, vc_id=vc.id, bottleneck_id=bottleneck_id, universe_path=universe_path)
+        bi, gslug=gslug, vc_id=vc.id, bottleneck_id=bottleneck_id, universe_path=universe_path,
+        enrichment=enrichment)
     catalysts = _catalyst_nodes(bi, gslug, "medium")
     risks = _risk_nodes(bi, gslug, "medium")
+
+    # TAM (manual/analyst, never canonical) is the theme/galaxy magnitude BASIS when supplied.
+    tam = _enrichment_tam(enrichment)
+    tam_auth = (enrichment.tam_estimate.amount.authority if tam is not None else "")
 
     convergence = tuple(_get(oh, "cross_domain_convergence", ()) or ())
     theme = ThemeNode(
@@ -524,13 +643,16 @@ def _galaxy_node(bi: EvidenceTerrainBuildInput) -> GalaxyNode:
         value_chains=(vc,), candidate_planets=(company,), catalysts=catalysts,
         red_team_risks=risks, data_gaps=tuple(vc.data_gaps),
         visual_encoding=VisualEncoding(
-            size_value=visual_size(None, "galaxy"), dashed_outline=True,
+            size_value=visual_size(tam, "galaxy"), dashed_outline=(tam is None),
+            size_basis=("theme TAM ({0})".format(tam_auth) if tam is not None else ""),
             glow_level=2, glow_basis="opportunity magnitude", layout_group="galaxy"))
 
     galaxy_enc = VisualEncoding(
-        size_value=visual_size(None, "galaxy"), size_basis="theme TAM (not quantified)",
+        size_value=visual_size(tam, "galaxy"),
+        size_basis=("theme TAM ({0}, not canonical)".format(tam_auth) if tam is not None
+                    else "theme TAM (not quantified)"),
         glow_level=2, glow_basis="opportunity magnitude", opacity_level="medium",
-        opacity_basis="evidence quality", dashed_outline=True, layout_group="galaxy",
+        opacity_basis="evidence quality", dashed_outline=(tam is None), layout_group="galaxy",
         visual_notes="size=magnitude (missing -> neutral); glow=heat; NOT a ranking")
     return GalaxyNode(
         id=gslug, name=_get(oh, "theme", "") or gslug,
@@ -538,14 +660,15 @@ def _galaxy_node(bi: EvidenceTerrainBuildInput) -> GalaxyNode:
         thesis_summary=_get(oh, "opportunity_mechanism", "") or "",
         why_now=_get(oh, "why_now", "") or "",
         why_before_obvious=_get(oh, "why_before_obvious", "") or "",
-        economic_magnitude=None, heat_status="warm", data_quality="medium",
+        economic_magnitude=tam, heat_status="warm", data_quality="medium",
         candidate_count=1, themes=(theme,), risks=risks, catalysts=catalysts,
         visual_encoding=galaxy_enc)
 
 
 def terrain_from_slice(iren_slice, *, mode: str = "evidence_ingested_fixture",
                        title: Optional[str] = None,
-                       extra_data_gaps: Tuple[str, ...] = ()) -> UniverseTerrain:
+                       extra_data_gaps: Tuple[str, ...] = (),
+                       enrichment: Any = None) -> UniverseTerrain:
     """Build a REAL, sparse :class:`UniverseTerrain` from an evidence-alpha slice.
 
     Default mode ``evidence_ingested_fixture``: ONE galaxy / theme (the candidate's), one
@@ -558,9 +681,16 @@ def terrain_from_slice(iren_slice, *, mode: str = "evidence_ingested_fixture",
     ``mode`` may be overridden to ``real_evidence_on_demand`` (IMPLEMENTATION-010D) so the
     exact same node-mapping approach projects a terrain built from REAL, on-demand source
     data. ``extra_data_gaps`` lets the on-demand builder append per-source status gaps.
+
+    ``enrichment`` (IMPLEMENTATION-011A) is an OPTIONAL
+    :class:`~diligence_enrichment.models.DiligenceEnrichmentBundle`. When supplied, its
+    sourced/traced market cap, TAM, value-chain layers and bottleneck severity/duration
+    REPLACE the neutral data-gap placeholders (via the same ``visual_size`` helper -- size
+    stays a magnitude, no new metric). When ``None`` the output is byte-identical to the
+    pre-011A builder, so demo / evidence-fixture / enrichment-free real builds are unchanged.
     """
     bi = build_input_from_evidence_slice(iren_slice)
-    galaxy = _galaxy_node(bi)
+    galaxy = _galaxy_node(bi, enrichment)
     build_id = "{0}-terrain-{1}".format(
         "real" if mode == "real_evidence_on_demand" else "evidence",
         slugify(bi.subject or "candidate"))
@@ -572,7 +702,7 @@ def terrain_from_slice(iren_slice, *, mode: str = "evidence_ingested_fixture",
         mode=mode, build_id=build_id,
         galaxies=(galaxy,), relationship_edges=(),
         source_coverage=_source_coverage(bi),
-        data_gaps=_data_gaps(bi) + tuple(extra_data_gaps),
+        data_gaps=_data_gaps(bi, enrichment) + tuple(extra_data_gaps),
         provenance_refs=_provenance_refs(bi),
         visual_legend=(
             ("size", "economic magnitude (missing here -> neutral, dashed)"),

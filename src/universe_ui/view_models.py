@@ -385,6 +385,9 @@ class DataQualityView:
     data_action_rows: Tuple[Tuple[str, Tuple[str, ...]], ...] = ()
     object_annotations: Tuple[Tuple[str, str], ...] = ()
     visual_encoding_explanations: Tuple[Tuple[str, Tuple[Tuple[str, str], ...]], ...] = ()
+    # IMPLEMENTATION-011A diligence-enrichment coverage (label-only; None unless a real /
+    # watchlist run supplied enrichment bundles). Demo / evidence modes stay None.
+    enrichment_coverage: Any = None
 
 
 @dataclass(frozen=True)
@@ -754,7 +757,7 @@ def build_cio_dashboard_view(themes: Tuple[GalaxyThemeView, ...]) -> CIODashboar
 
 
 def build_data_quality_view(iren_slice, terrain=None, source_status=None,
-                            watchlist_summary=None) -> DataQualityView:
+                            watchlist_summary=None, enrichment_bundles=None) -> DataQualityView:
     """Build the Data-Quality control panel view.
 
     Source coverage counts, data gaps and the provenance chain are read FROM the
@@ -806,6 +809,14 @@ def build_data_quality_view(iren_slice, terrain=None, source_status=None,
     diag_fields = _diagnostic_dq_fields(
         terrain, iren_slice, source_status, watchlist_summary,
         is_real=is_real, is_watchlist=is_watchlist)
+    # IMPLEMENTATION-011A: enrichment-coverage diagnostic (real / watchlist only; None in
+    # demo / evidence modes so those pages stay byte-identical).
+    enrichment_coverage = None
+    if is_real and enrichment_bundles:
+        from diligence_enrichment.coverage import build_enrichment_coverage
+        cov = build_enrichment_coverage(
+            [b for b in enrichment_bundles if b is not None])
+        enrichment_coverage = cov if cov.present else None
     if is_watchlist:
         status_pairs = ()
         run_ts = str(watchlist_summary.run_timestamp)
@@ -857,6 +868,7 @@ def build_data_quality_view(iren_slice, terrain=None, source_status=None,
         mode_label=(str(ss.get("mode_label", ""))
                     or (REAL_ON_DEMAND_MODE if (is_real or is_watchlist) else "")),
         deferred_records_count=deferred_n,
+        enrichment_coverage=enrichment_coverage,
         **wl_fields,
         **diag_fields,
     )
@@ -1028,7 +1040,8 @@ def _diagnostic_dq_fields(terrain, iren_slice, source_status, watchlist_summary,
 
 def build_economic_universe_view(iren_slice, terrain=None, source_status=None,
                                  slice_by_subject=None,
-                                 watchlist_summary=None) -> EconomicUniverseView:
+                                 watchlist_summary=None,
+                                 enrichment_bundles=None) -> EconomicUniverseView:
     """Assemble the whole read-only Economic Universe view by PROJECTING the typed
     terrain (the source of truth). If ``terrain`` is None it is built from the slice.
 
@@ -1044,7 +1057,8 @@ def build_economic_universe_view(iren_slice, terrain=None, source_status=None,
     if terrain is not None and _is_evidence_terrain_mode(getattr(terrain, "mode", "")):
         return _build_evidence_universe_view(
             iren_slice, terrain, source_status=source_status,
-            slice_by_subject=slice_by_subject, watchlist_summary=watchlist_summary)
+            slice_by_subject=slice_by_subject, watchlist_summary=watchlist_summary,
+            enrichment_bundles=enrichment_bundles)
     from .demo_terrain import build_demo_terrain
     universe = build_demo_universe()
     terrain = terrain or build_demo_terrain(iren_slice, universe)
@@ -1213,7 +1227,8 @@ def _evidence_theme_view(g, iren_slice, slice_by_subject=None,
 
 def _build_evidence_universe_view(iren_slice, terrain, source_status=None,
                                   slice_by_subject=None,
-                                  watchlist_summary=None) -> EconomicUniverseView:
+                                  watchlist_summary=None,
+                                  enrichment_bundles=None) -> EconomicUniverseView:
     """Project the whole Economic Universe view from an evidence / real terrain.
 
     For a 010E watchlist, ``slice_by_subject`` maps ticker -> that company's slice (so each
@@ -1227,7 +1242,7 @@ def _build_evidence_universe_view(iren_slice, terrain, source_status=None,
     dashboard = build_cio_dashboard_view(themes)
     data_quality = build_data_quality_view(
         iren_slice, terrain, source_status=source_status,
-        watchlist_summary=watchlist_summary)
+        watchlist_summary=watchlist_summary, enrichment_bundles=enrichment_bundles)
     name_by_slug = {g.id: g.name for g in terrain.galaxies}
     edges = tuple(
         ThemeEdgeView(
