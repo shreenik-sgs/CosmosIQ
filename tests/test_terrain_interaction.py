@@ -403,8 +403,9 @@ class SparseTerrainTests(unittest.TestCase):
         paths = _build_watchlist("ix_missing_", ["IREN", "AAOI"], _tbt("IREN", "AAOI"))
         uni = _read(paths, "universe.html")
         low = uni.lower()
-        # neutral-size + dashed-outline visual explanation for missing magnitude
-        self.assertIn("dashed-outline", uni)
+        # neutral-size missing magnitude is explained without boxed/dashed cosmos bodies
+        self.assertIn("magnitude-missing", uni)
+        self.assertNotIn('class="cosmic-object k-galaxy body-milkyway glow-2 variant-nebula dashed-outline', uni)
         self.assertIn("neutral size", low)
         self.assertIn("magnitude missing", low)
         # data gaps are surfaced, not hidden
@@ -412,10 +413,10 @@ class SparseTerrainTests(unittest.TestCase):
         self.assertIn("terrain incomplete", low)
 
     def test_missing_market_cap_is_neutral_not_fabricated(self):
-        # the legend explains missing magnitude -> neutral / dashed (never invented)
+        # the page explains missing magnitude -> neutral size (never invented)
         paths = _build_watchlist("ix_mc_", ["IREN"], _tbt("IREN"))
         uni = _read(paths, "universe.html")
-        self.assertIn("dashed-outline", uni)
+        self.assertIn("magnitude-missing", uni)
         self.assertIn("neutral", uni.lower())
 
 

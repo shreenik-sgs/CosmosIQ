@@ -14,6 +14,7 @@ import os
 from typing import Dict, Optional
 
 from .assets import COSMIC_CSS, NAV_JS
+from .celestial_assets import CELESTIAL_ASSETS
 from .iren_slice import load_iren_slice
 from .render import render_all_pages
 from .sky_asset import deep_space_background_svg
@@ -211,9 +212,15 @@ def _write_pages(output_dir, assets_dir, pages) -> Dict[str, str]:
     css_path = os.path.join(assets_dir, "universe.css")
     js_path = os.path.join(assets_dir, "universe.js")
     svg_path = os.path.join(assets_dir, "deep_space_background.svg")
+    celestial_dir = os.path.join(assets_dir, "celestial")
+    os.makedirs(celestial_dir, exist_ok=True)
     _write(css_path, COSMIC_CSS)
     _write(js_path, NAV_JS)
     _write(svg_path, deep_space_background_svg())  # local deep-space asset (no network)
+    for name, svg in CELESTIAL_ASSETS.items():
+        cpath = os.path.join(celestial_dir, name)
+        _write(cpath, svg)
+        paths["assets/celestial/{0}".format(name)] = cpath
     paths["assets/universe.css"] = css_path
     paths["assets/universe.js"] = js_path
     paths["assets/deep_space_background.svg"] = svg_path

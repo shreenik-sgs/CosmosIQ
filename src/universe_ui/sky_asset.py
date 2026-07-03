@@ -2,9 +2,9 @@
 
 ``deep_space_background_svg()`` returns a self-contained SVG string — a telescope /
 deep-field night sky: a deep black-indigo gradient, a faint deep-field glow, soft
-nebula clouds, dark dust lanes, a distant galaxy, and a dense star field (hundreds of
-stars with varied size / brightness / colour-temperature, plus a few bright glow
-stars). The app writes it once to ``assets/deep_space_background.svg`` and the hero
+nebula clouds, dark dust lanes, and a dense star field (hundreds of stars with varied
+size / brightness / colour-temperature, plus a few bright glow stars). The app writes
+it once to ``assets/deep_space_background.svg`` and the hero
 references it as a LOCAL background image.
 
 Discipline: it is a checked-in-style LOCAL asset built at BUILD time (not runtime, not
@@ -70,11 +70,6 @@ def deep_space_background_svg() -> str:
         '<stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>'
         '<stop offset="35%" stop-color="#cfe0ff" stop-opacity="0.35"/>'
         '<stop offset="100%" stop-color="#cfe0ff" stop-opacity="0"/></radialGradient>'
-        '<radialGradient id="galaxy" cx="50%" cy="50%" r="50%">'
-        '<stop offset="0%" stop-color="#fff7e6" stop-opacity="0.95"/>'
-        '<stop offset="24%" stop-color="#ffd79a" stop-opacity="0.5"/>'
-        '<stop offset="60%" stop-color="#a86bd0" stop-opacity="0.22"/>'
-        '<stop offset="100%" stop-color="#a86bd0" stop-opacity="0"/></radialGradient>'
         '<linearGradient id="dustLine" x1="0%" y1="0%" x2="100%" y2="0%">'
         '<stop offset="0%" stop-color="#02020a" stop-opacity="0"/>'
         '<stop offset="42%" stop-color="#02020a" stop-opacity="0.9"/>'
@@ -117,25 +112,8 @@ def deep_space_background_svg() -> str:
                  'transform="rotate(18 560 190)" opacity="0.24"/>')
     parts.append("</g>")
 
-    # ---- elegant distant galaxy CLUSTERS (soft luminous spiral discs) ----
-    galaxies = (
-        (1700, 320, 24, 200, 70, 0.95),
-        (460, 900, -18, 128, 44, 0.68),
-        (1160, 240, 8, 88, 30, 0.55),
-        (1850, 930, 40, 104, 34, 0.56),
-        (760, 520, -32, 72, 22, 0.38),
-    )
-    for cx, cy, rot, rx, ry, op in galaxies:
-        parts.append(
-            '<g transform="translate({cx} {cy}) rotate({rot})" opacity="{op}">'
-            '<ellipse cx="0" cy="0" rx="{rx}" ry="{ry}" fill="url(#galaxy)"/>'
-            '<path d="M-{rx} 0 C -{h} -{q} {h} {q} {rx} 0" '
-            'stroke="#fff2cf" stroke-opacity="0.2" stroke-width="2" fill="none"/>'
-            '<path d="M-{rx} 0 C -{h} {q} {h} -{q} {rx} 0" '
-            'stroke="#b9a8ff" stroke-opacity="0.16" stroke-width="2" fill="none"/>'
-            '<ellipse cx="0" cy="0" rx="{cr}" ry="{cr}" fill="url(#galaxy)" opacity="0.7"/>'
-            "</g>".format(cx=cx, cy=cy, rot=rot, rx=rx, ry=ry, op=op,
-                          h=rx * 0.42, q=ry * 1.05, cr=ry * 1.05))
+    # No decorative galaxy/infinity shapes here. In the Universe Canvas, every
+    # infinity-shaped galaxy must be a named, clickable Mega Theme object.
 
     # ---- dense star field (deterministic) ----
     parts.append("<g>")

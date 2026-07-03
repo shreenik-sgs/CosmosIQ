@@ -288,9 +288,9 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
   transition:box-shadow .2s ease,transform .2s ease}
 .cosmic-object:hover .body{transform:scale(1.16)}
 .cosmic-object.ev-low{opacity:.72}.cosmic-object.ev-sparse{opacity:.5}
-.cosmic-object.dashed-outline .body{outline:2px dashed #ffbf87;outline-offset:3px}
+.cosmic-object.magnitude-missing .body{outline:none!important}
 /* persistent SELECTED state: a cyan accent halo ring */
-.cosmic-object.selected .body{box-shadow:0 0 0 2px var(--cyan),0 0 26px 8px rgba(79,224,255,.5)}
+.cosmic-object.selected .body:not(.image-body){box-shadow:0 0 0 2px var(--cyan),0 0 26px 8px rgba(79,224,255,.5)}
 .cosmic-object.selected .body-label{color:#fff;border-color:var(--cyan)}
 
 /* name chip under the body (clean, legible) */
@@ -764,7 +764,39 @@ body.sky .navlink{
   transition:box-shadow .22s ease,transform .22s ease,filter .22s ease;
   isolation:isolate;
 }
-.cosmic-object.selected .body{
+.celestial-img{
+  display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;
+  filter:drop-shadow(0 0 12px rgba(160,190,255,.42));
+}
+.image-body{background:none!important;border-radius:0!important;overflow:visible}
+.image-body::before,.image-body::after{display:none!important}
+.body-milkyway .celestial-img{transform:scale(1.04);filter:drop-shadow(0 0 22px rgba(176,150,220,.48))}
+.body-themecloud .celestial-img{transform:scale(1.08);filter:drop-shadow(0 0 18px rgba(150,185,255,.42))}
+.body-nebula .celestial-img{transform:scale(1.08);filter:drop-shadow(0 0 20px rgba(255,175,90,.36))}
+.body-star .celestial-img{transform:scale(1.18)}
+.body-planet .celestial-img{transform:scale(1.08)}
+.body-moon .celestial-img{transform:scale(1.05)}
+.glow-1 .image-body,.glow-2 .image-body,.glow-3 .image-body,
+.redshadow .image-body,.halo .image-body,.bottleneck-central .image-body,
+.variant-comet .image-body,.variant-blackhole .image-body{
+  box-shadow:none!important;outline:none!important;background:transparent!important;
+}
+.cosmic-object.magnitude-missing .image-body{outline:none!important}
+.cosmic-object.magnitude-missing .celestial-img{
+  filter:drop-shadow(0 0 10px rgba(255,191,135,.5)) drop-shadow(0 0 2px rgba(255,222,190,.45));
+}
+.glow-3 .celestial-img{filter:drop-shadow(0 0 22px rgba(255,170,90,.55)) drop-shadow(0 0 8px rgba(255,235,190,.5))}
+.glow-2 .celestial-img{filter:drop-shadow(0 0 16px rgba(255,210,120,.4))}
+.glow-1 .celestial-img{filter:drop-shadow(0 0 10px rgba(150,170,230,.3))}
+.redshadow .celestial-img{filter:drop-shadow(0 0 16px rgba(255,46,99,.55)) drop-shadow(0 0 5px rgba(255,140,100,.36))}
+.halo .celestial-img{filter:drop-shadow(0 0 18px rgba(255,201,112,.45))}
+.cosmic-object.selected .image-body{
+  box-shadow:none!important;outline:none!important;background:transparent!important;
+}
+.cosmic-object.selected .celestial-img{
+  filter:drop-shadow(0 0 18px rgba(79,224,255,.72)) drop-shadow(0 0 4px rgba(234,252,255,.9));
+}
+.cosmic-object.selected .body:not(.image-body){
   transform:scale(1.18);
   box-shadow:0 0 0 1px #eafcff,0 0 0 7px rgba(79,224,255,.14),
     0 0 42px 14px rgba(79,224,255,.5);

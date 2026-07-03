@@ -511,6 +511,32 @@ class ZoomableUniverseTests(unittest.TestCase):
             css = fh.read()
         self.assertIn(".body-milkyway .body", css)
         self.assertIn(".body-themecloud .body", css)
+        self.assertIn(".glow-1 .image-body,.glow-2 .image-body,.glow-3 .image-body", css)
+        self.assertIn("box-shadow:none!important;outline:none!important", css)
+
+    def test_celestial_images_are_type_mapped(self):
+        expected = (
+            ("galaxy", "mega-theme-galaxy.svg"),
+            ("theme", "theme-milky-way.svg"),
+            ("value_chain", "value-chain-solar-system.svg"),
+            ("star", "bottleneck-star.svg"),
+            ("planet", "stock-planet.svg"),
+            ("moon", "supplier-customer-moon.svg"),
+        )
+        for kind, asset in expected:
+            pattern = (
+                r'data-kind="{kind}"[^>]*>.*?'
+                r'<img class="celestial-img" src="assets/celestial/{asset}"'
+            ).format(kind=re.escape(kind), asset=re.escape(asset))
+            self.assertRegex(self.u, pattern, "wrong celestial image for {0}".format(kind))
+            self.assertIn("assets/celestial/{0}".format(asset), self.paths)
+            self.assertTrue(os.path.exists(self.paths["assets/celestial/{0}".format(asset)]))
+        self.assertRegex(
+            self.u,
+            r'k-galaxy body-milkyway[^"]*"[^>]*data-kind="galaxy"[^>]*>.*?'
+            r'class="body image-body" style="width:[2-9][0-9]{2}px;height:[0-9]{2,3}px"'
+            r' data-visual-size="[0-9]+"',
+            "Mega Theme Galaxies must render as wide infinity images")
 
     # 3. value-chain level = local system without connector lines
     def test_value_chain_local_system_without_flow_lines(self):
@@ -619,7 +645,7 @@ class ZoomableUniverseTests(unittest.TestCase):
             re.search(r'class="cosmic-object[^"]*" style="left:[0-9.]+%;top:[0-9.]+%"', self.u),
             "cosmic objects are not absolutely positioned in the scene")
         # the body diameter is driven by the magnitude-derived visual size
-        self.assertIn('class="body" style="width:', self.u)
+        self.assertIn('class="body image-body" style="width:', self.u)
         # positioned bodies still drive zoom + intel pane
         self.assertIn("data-target-path=", self.u)
         self.assertIn('class="intel-template"', self.u)
@@ -979,9 +1005,13 @@ class TelescopeVisualAssetTests(unittest.TestCase):
         import xml.dom.minidom as minidom
         minidom.parseString(self.svg)                          # valid XML
         self.assertGreater(self.svg.count("<circle"), 900)     # dense star field
-        self.assertIn("<ellipse", self.svg)                    # nebula clouds / galaxy
-        self.assertIn("<path", self.svg)                       # dust lanes / galaxy arms
+        self.assertIn("<ellipse", self.svg)                    # nebula clouds / dust
+        self.assertIn("<path", self.svg)                       # dust lanes only
         self.assertIn("url(#nVio)", self.svg)                  # nebula gradient fills
+        self.assertNotIn("url(#galaxy)", self.svg)             # no unnamed galaxy art
+        self.assertNotIn('id="galaxy"', self.svg)
+        self.assertNotIn('stroke="#fff2cf"', self.svg)
+        self.assertNotIn('stroke="#b9a8ff"', self.svg)
         self.assertIn('filter id="soft"', self.svg)            # blur/bloom
         self.assertIn('filter id="wideSoft"', self.svg)        # broad telescope bloom
         # deterministic across builds

@@ -436,6 +436,22 @@ def _legend() -> str:
 # --------------------------------------------------------------------------- #
 _BODY_KIND = {"galaxy": "milkyway", "theme": "themecloud", "value_chain": "nebula",
               "star": "star", "planet": "planet", "moon": "moon"}
+_BODY_ASSET = {
+    "galaxy": "mega-theme-galaxy.svg",
+    "theme": "theme-milky-way.svg",
+    "value_chain": "value-chain-solar-system.svg",
+    "star": "bottleneck-star.svg",
+    "planet": "stock-planet.svg",
+    "moon": "supplier-customer-moon.svg",
+}
+_BODY_ASPECT = {
+    "galaxy": (3.45, 1.12),
+    "theme": (1.45, 1.08),
+    "value_chain": (1.82, 1.02),
+    "star": (1.0, 1.0),
+    "planet": (1.0, 1.0),
+    "moon": (1.0, 1.0),
+}
 
 # Each zoom level gets a distinct CSS class so a glance tells you where you are.
 _LEVEL_CLASS = {0: "level-universe", 1: "level-galaxy", 2: "level-theme",
@@ -459,7 +475,7 @@ def _cosmic_object(*, kind: str, path: str, target_path: str, target_level,
     if variant:
         classes.append("variant-{0}".format(variant))
     if dashed:
-        classes.append("dashed-outline")
+        classes.append("magnitude-missing")
     if redshadow:
         classes.append("redshadow")
     if halo:
@@ -480,7 +496,16 @@ def _cosmic_object(*, kind: str, path: str, target_path: str, target_level,
         attrs += ' data-cockpit="{0}"'.format(_esc(cockpit))
     gapbadge = (' <span class="badge gap">magnitude missing — neutral size</span>'
                 if dashed else "")
-    body = '<div class="body" style="width:{s}px;height:{s}px"></div>'.format(s=int(size_px))
+    asset = _BODY_ASSET.get(kind, "stock-planet.svg")
+    aw, ah = _BODY_ASPECT.get(kind, (1.0, 1.0))
+    bw = int(round(size_px * aw))
+    bh = int(round(size_px * ah))
+    body = (
+        '<div class="body image-body" style="width:{w}px;height:{h}px"'
+        ' data-visual-size="{s}">'
+        '<img class="celestial-img" src="assets/celestial/{asset}" alt="" aria-hidden="true">'
+        '</div>'
+    ).format(w=bw, h=bh, s=int(size_px), asset=_esc(asset))
     marker_html = '<div class="body-marker micro">{0}</div>'.format(_esc(marker)) if marker else ""
     if preview_html:
         tip = '<span class="body-tip">{0}{1}</span>'.format(preview_html, gapbadge)
