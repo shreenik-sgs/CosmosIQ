@@ -1,0 +1,1 @@
+{ "_comment": "deliberately malformed (IMPLEMENTATION-014C test fixture): truncated JSON", "as_of": "2026-06-25T00:00:00Z", "claims": [ { "slide": 1, "claim": "unterminated

@@ -1,0 +1,41 @@
+{
+  "_comment": "OPERATOR-DROPPED LOCAL FILE (test copy, IMPLEMENTATION-014C) -- structured extract of an IREN earnings-call transcript. Company speakers (prepared remarks + Q&A answers) are company_claim; an analyst's question is reported_claim; an unrecognised speaker role (the operator) is conservatively reported_claim with a visible gap. Deterministic; local file only.",
+  "as_of": "2026-06-25T00:00:00Z",
+  "period": "2026Q1",
+  "event_name": "IREN Q1 FY2026 earnings call",
+  "prepared_remarks": [
+    {
+      "speaker": "Daniel Roberts",
+      "role": "Co-CEO",
+      "section": "opening",
+      "text": "We energized the first 50 megawatts of liquid-cooled AI data center capacity at Childress during the quarter"
+    },
+    {
+      "speaker": "Belinda Nucifora",
+      "role": "CFO",
+      "section": "financials",
+      "text": "Cash and equivalents ended the quarter at $1.8 billion and the Horizon build remains fully funded"
+    }
+  ],
+  "qa": [
+    {
+      "speaker": "Jane Smith",
+      "role": "analyst",
+      "firm": "Example Securities",
+      "kind": "question",
+      "text": "How should we think about the trajectory of power costs at Childress as the new capacity ramps?"
+    },
+    {
+      "speaker": "Daniel Roberts",
+      "role": "Co-CEO",
+      "kind": "answer",
+      "text": "We expect power costs to remain in the low three cents per kilowatt hour range as we scale"
+    },
+    {
+      "speaker": "Operator",
+      "role": "operator",
+      "kind": "",
+      "text": "Our next question comes from the line of Jane Smith with Example Securities"
+    }
+  ]
+}

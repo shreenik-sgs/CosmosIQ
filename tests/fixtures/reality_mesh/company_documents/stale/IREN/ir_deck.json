@@ -1,0 +1,25 @@
+{
+  "_comment": "OPERATOR-DROPPED LOCAL FILE (test copy, IMPLEMENTATION-014C) -- STALE variant: as_of is older than DOCUMENT_STALE_AFTER_DAYS versus the injected now, so every event is marked freshness_label=stale (preserved, never dropped, never silently refreshed). Also carries a unit-less guidance figure: the number is NOT emitted as a reading (visible gap, nothing fabricated).",
+  "as_of": "2026-01-15T00:00:00Z",
+  "title": "IREN Investor Presentation - January 2026 (superseded)",
+  "claims": [
+    {
+      "slide": 2,
+      "claim": "IREN expects to reach 50 exaflops of AI compute capacity"
+    }
+  ],
+  "guidance": [
+    {
+      "slide": 8,
+      "metric": "ai_cloud_gpus_deployed",
+      "value": 23000,
+      "statement": "guidance of 23,000 GPUs deployed by the end of calendar 2026"
+    }
+  ],
+  "tam_statements": [
+    {
+      "slide": 3,
+      "statement": "the company sizes its addressable AI compute market in the hundreds of billions of dollars"
+    }
+  ]
+}

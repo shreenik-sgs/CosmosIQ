@@ -1,0 +1,55 @@
+{
+  "_comment": "OPERATOR-DROPPED LOCAL FILE (test copy, IMPLEMENTATION-014C) -- structured extract of an IREN investor presentation. Everything the company says about itself is a company_claim at primary authority -- NEVER a verified_fact, never canonical. Deterministic; local file only: no network, no credential.",
+  "as_of": "2026-06-25T00:00:00Z",
+  "title": "IREN Investor Presentation - June 2026",
+  "source_document": "IREN_Investor_Presentation_June_2026.pdf",
+  "claims": [
+    {
+      "slide": 4,
+      "claim": "IREN signed a multi-year AI cloud services contract win with a major hyperscaler customer"
+    },
+    {
+      "slide": 6,
+      "claim": "Horizon 1 liquid-cooled data center build remains fully funded and on track for late 2026 energization"
+    }
+  ],
+  "guidance": [
+    {
+      "slide": 12,
+      "metric": "revenue_fy2026_usd",
+      "value": 500000000,
+      "unit": "usd",
+      "period": "FY2026",
+      "statement": "management guidance of approximately $500 million FY2026 revenue"
+    }
+  ],
+  "tam_statements": [
+    {
+      "slide": 3,
+      "statement": "management estimates a $1 trillion total addressable opportunity for AI infrastructure by 2030",
+      "value": 1000000000000,
+      "unit": "usd"
+    }
+  ],
+  "customer_mentions": [
+    {
+      "slide": 9,
+      "name": "Poolside",
+      "statement": "Poolside named as a multi-year AI cloud services customer"
+    }
+  ],
+  "supplier_mentions": [
+    {
+      "slide": 11,
+      "name": "NVIDIA",
+      "statement": "NVIDIA named as GPU supplier with priority allocation for next-generation Blackwell systems"
+    }
+  ],
+  "leadership_statements": [
+    {
+      "name": "Daniel Roberts",
+      "role": "Co-CEO",
+      "statement": "co-CEO states IREN will be among the largest vertically integrated AI infrastructure providers"
+    }
+  ]
+}

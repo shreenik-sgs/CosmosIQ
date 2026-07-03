@@ -1,0 +1,23 @@
+{
+  "_comment": "OPERATOR-DROPPED LOCAL FILE (test copy, IMPLEMENTATION-014C) -- STALE transcript variant (as_of older than the staleness threshold). Includes an analyst entry explicitly marked as an estimate -> claim_status=analyst_estimate (never company_claim, never verified_fact).",
+  "as_of": "2026-01-15T00:00:00Z",
+  "period": "2025Q4",
+  "event_name": "IREN Q4 FY2025 earnings call",
+  "prepared_remarks": [
+    {
+      "speaker": "Daniel Roberts",
+      "role": "Co-CEO",
+      "section": "opening",
+      "text": "Construction at Sweetwater commenced during the quarter"
+    }
+  ],
+  "qa": [
+    {
+      "speaker": "Jane Smith",
+      "role": "analyst",
+      "firm": "Example Securities",
+      "kind": "estimate",
+      "text": "We model roughly $120 million of quarterly revenue exiting fiscal 2026"
+    }
+  ]
+}

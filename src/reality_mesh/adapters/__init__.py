@@ -12,7 +12,12 @@ concrete adapter, the LOCAL-FILE-BACKED :class:`LocalMarketDataAdapter`
 / Theme Rotation agents -- LOCAL FILES ONLY: no credential, no rate limit -- and the 014B
 SEC/FMP evidence adapter :class:`SecFmpEvidenceAdapter`
 (:mod:`reality_mesh.adapters.evidence_sources`) feeding the News/Filings +
-Financial-Inflection consumers via explicitly INJECTED transports (the 010D bundle shape).
+Financial-Inflection consumers via explicitly INJECTED transports (the 010D bundle shape),
+and the 014C company IR documents adapter :class:`CompanyDocumentsAdapter`
+(:mod:`reality_mesh.adapters.company_documents`) reading OPERATOR-DROPPED local
+investor-presentation / earnings-transcript extracts -- everything a company says about
+itself is a ``company_claim`` at ``primary`` authority, never a verified fact, never
+canonical.
 There is still NO production network path (that is the LAST onboarding stage of the
 contract's §4 sequence and does not exist in this slice -- ``fetch_checked`` refuses a
 ``network_required`` adapter unless its transports were injected, in which case no ambient
@@ -34,6 +39,17 @@ from .base import (
     SourceAdapterResult,
     deterministic_adapter_run_id,
     source_health_from_result,
+)
+from .company_documents import (
+    COMPANY_DOCUMENTS_ADAPTER_ID,
+    COMPANY_DOCUMENTS_DESCRIPTOR,
+    COMPANY_DOCUMENTS_DISCIPLINES,
+    DESCRIPTOR_ONLY_CONSUMER_GAPS,
+    DOCUMENT_STALE_AFTER_DAYS,
+    IR_DECK_FILENAMES,
+    TAM_NOT_INDEPENDENTLY_VERIFIED_GAP,
+    TRANSCRIPT_FILE_PREFIX,
+    CompanyDocumentsAdapter,
 )
 from .evidence_sources import (
     FINANCIAL_INFLECTION_CONSUMER_GAP,
@@ -80,4 +96,14 @@ __all__ = [
     "FMP_TRANSPORT_KEYS",
     "FINANCIAL_INFLECTION_CONSUMER_GAP",
     "SecFmpEvidenceAdapter",
+    # company IR documents adapter (014C)
+    "COMPANY_DOCUMENTS_ADAPTER_ID",
+    "COMPANY_DOCUMENTS_DESCRIPTOR",
+    "COMPANY_DOCUMENTS_DISCIPLINES",
+    "DESCRIPTOR_ONLY_CONSUMER_GAPS",
+    "DOCUMENT_STALE_AFTER_DAYS",
+    "IR_DECK_FILENAMES",
+    "TAM_NOT_INDEPENDENTLY_VERIFIED_GAP",
+    "TRANSCRIPT_FILE_PREFIX",
+    "CompanyDocumentsAdapter",
 ]

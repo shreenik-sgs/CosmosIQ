@@ -1,0 +1,19 @@
+{
+  "_comment": "OPERATOR-DROPPED LOCAL FILE (test copy, IMPLEMENTATION-014C) -- the VALID transcript sitting next to the malformed deck: the parse error on the deck is isolated (partial result), this file still delivers. Also carries one invalid entry (missing text) rejected as a per-entry parse error.",
+  "as_of": "2026-06-25T00:00:00Z",
+  "period": "2026Q1",
+  "prepared_remarks": [
+    {
+      "speaker": "Daniel Roberts",
+      "role": "Co-CEO",
+      "section": "opening",
+      "text": "We energized the first 50 megawatts of liquid-cooled AI data center capacity at Childress during the quarter"
+    },
+    {
+      "speaker": "Belinda Nucifora",
+      "role": "CFO",
+      "section": "financials"
+    }
+  ],
+  "qa": []
+}
