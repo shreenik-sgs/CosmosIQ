@@ -1,4 +1,4 @@
-"""Universe UI -- Sudarshan "Economic Universe" static command-center (010A).
+"""Universe UI -- CosmosIQ "Universe Canvas" static command-center (010A).
 
 A runnable, LOCAL, static-HTML/CSS product UI over the existing EIOS pipeline. It is
 a pure READ-ONLY PROJECTION and presentation layer:

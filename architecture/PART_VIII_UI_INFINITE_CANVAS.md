@@ -11,7 +11,7 @@ instructed. It does not modify the Architecture Book and introduces no ADR.
 The UI is built only after Saarathi (✓ accepted, 006) and the Kriya integration cleanup (007).
 
 ## What Part VIII is — an alpha decision cockpit, not a dashboard
-The UI's job is to **expose Sudarshan's alpha reasoning chain visually** so the user can *inspect*
+The UI's job is to **expose CosmosIQ's alpha reasoning chain visually** so the user can *inspect*
 the reasoning, not just read a verdict. It is **not** a generic stock dashboard and must never be a
 pretty surface that hides the reasoning.
 

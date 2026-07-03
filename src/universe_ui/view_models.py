@@ -764,7 +764,7 @@ def build_cio_dashboard_view(themes: Tuple[GalaxyThemeView, ...]) -> CIODashboar
                                   cards=_order_cards(in_bucket)))
     real_count = sum(1 for c in all_cards if c.is_real)
     return CIODashboardView(
-        banner="Demo candidate dashboard — live ranking not enabled yet.",
+        banner="CosmosIQ Capital demo cockpit — Live Data: Off.",
         buckets=tuple(buckets), total_candidates=len(all_cards),
         real_candidate_count=real_count,
     )
@@ -865,8 +865,8 @@ def build_data_quality_view(iren_slice, terrain=None, source_status=None,
         run_mode=run_mode,
         fixture_demo_status=fixture_status,
         live_enabled=False,
-        scheduler_status="not enabled",
-        broker_automation_status="disabled",
+        scheduler_status="Off",
+        broker_automation_status="Disabled",
         manual_review_required=True,
         source_hierarchy="SEC EDGAR (canonical) > FMP (convenience) > yfinance (fallback)",
         canonical_count=int(coverage.get("canonical", 0)),

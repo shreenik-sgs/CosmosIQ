@@ -20,7 +20,7 @@ from .app import PAGE_ORDER, build_universe_app
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
         prog="universe_ui",
-        description="Build the static Sudarshan Economic Universe UI (read-only).")
+        description="Build the static CosmosIQ Universe Canvas UI (read-only).")
     parser.add_argument(
         "--out", default="generated/universe_ui",
         help="output directory for the generated static pages (default: generated/universe_ui)")
@@ -88,7 +88,7 @@ def main(argv=None) -> int:
               "gaps)".format("ON (--enrich)" if args.enrich else "off (default)"))
 
     paths = build_universe_app(args.out, mode=args.mode, **build_kwargs)
-    print("Built Sudarshan Economic Universe UI (read-only, mode={0}):".format(args.mode))
+    print("Built CosmosIQ Universe Canvas UI (read-only, mode={0}):".format(args.mode))
     for name in PAGE_ORDER:
         print("  {0}".format(paths[name]))
     for name in sorted(paths):
@@ -96,7 +96,7 @@ def main(argv=None) -> int:
             print("  {0}".format(paths[name]))
     print("  {0}".format(paths["assets/universe.css"]))
     print("  {0}".format(paths["assets/universe.js"]))
-    print("Open {0} in a browser. Live data / scheduler / broker: not enabled.".format(
+    print("Open {0} in a browser. Live Data: Off · Scheduler: Off · Broker: Disabled.".format(
         paths["universe.html"]))
     return 0
 

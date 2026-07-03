@@ -1,6 +1,6 @@
-# Operator Guide — Economic Universe (Phase 011)
+# Operator Guide — Universe Canvas (Phase 011)
 
-How to run the Sudarshan Economic Universe research surface. It is a **manual, on-demand,
+How to run the CosmosIQ Universe Canvas research surface. It is a **manual, on-demand,
 read-only research tool**. It is **not** scheduled, **not** real-time, **not** broker-connected,
 and it places **no orders**. Missing data is expected and is shown as visible gaps — never
 fabricated. Governance: `architecture/SPEC-011_END_TO_END_DILIGENCE_RESEARCH_MVP.md`,

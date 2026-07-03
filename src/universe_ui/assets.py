@@ -8,7 +8,7 @@ Two deterministic strings only:
 * :data:`NAV_JS` -- navigation-ONLY JavaScript. It attaches click listeners (via
   ``addEventListener``, never inline ``onclick``) that toggle tab visibility and
   expand/collapse panels, and nothing else. It contains NO ``fetch`` / ``XMLHttpRequest``
-  / live call, NO ``<form>`` handling, NO submit, and NO order / buy / sell affordance.
+  / live call and NO action-taking affordance.
   It can only switch views, scroll, and drive CSS zoom transitions -- it can never
   hide a data gap (gaps are always rendered outside any collapsible region).
 
@@ -162,7 +162,7 @@ table.chain th{background:#121a3d;color:#cdd6ff}
 .bucket{margin:1.2rem 0}
 .bucket h3{display:flex;align-items:center;gap:.5rem}
 .bucket .count{font-size:.78rem;color:var(--muted);font-weight:600}
-/* visual-size orb: SIZE = economic magnitude; GLOW = status; NOT a ranking input */
+/* visual-size orb: SIZE = economic magnitude; GLOW = status */
 .orb-wrap{display:flex;align-items:center;gap:.6rem;margin:.4rem 0}
 .orb{border-radius:50%;flex:none;
   background:radial-gradient(circle at 35% 30%, #aab6ff, #4756c8 60%, #23306e);
@@ -273,10 +273,7 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
 
 .scene-layer{position:absolute;inset:0;z-index:2;opacity:0;transition:opacity .32s ease}
 .scene-layer.active{opacity:1}
-/* faint SVG relationship / orbit lines connecting parent -> child bodies */
-.orbit-lines{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
-.orbit-lines line{stroke:rgba(150,170,255,.16);stroke-width:.14;
-  stroke-dasharray:.6 .8;stroke-linecap:round}
+/* Connector SVGs are intentionally not emitted in the immersive canvas. */
 .scene-caption{position:absolute;left:1rem;top:.7rem;z-index:6;max-width:64%}
 .scene-caption h2{margin:.1rem 0;font-size:1.1rem;text-shadow:0 2px 14px #000}
 .scene-caption .level-head{margin:0}
@@ -286,6 +283,7 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
 .cosmic-object{position:absolute;transform:translate(-50%,-50%);cursor:pointer;
   text-align:center;z-index:3}
 .cosmic-object:hover{z-index:9}
+.cosmic-object:focus-visible{outline:2px solid var(--cyan);outline-offset:8px;border-radius:999px;z-index:10}
 .cosmic-object .body{position:relative;margin:0 auto;border-radius:50%;
   transition:box-shadow .2s ease,transform .2s ease}
 .cosmic-object:hover .body{transform:scale(1.16)}
@@ -445,8 +443,8 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
   background:radial-gradient(70% 55% at 50% 42%,color-mix(in srgb,var(--lvl) 12%,transparent),transparent 72%)}
 .level-valuechain .scene-transform{--flowhint:1}
 
-/* MILKY WAY (theme) = concentrated thematic cloud w/ a visible center + band --
-   clearly different from the galaxy disc */
+/* MILKY WAY / GALAXY BAND (mega theme) = the infinity-shaped galaxy body the user
+   recognizes as the top-level Mega Theme Galaxy. */
 .body-milkyway .body{
   background:radial-gradient(circle at 50% 50%,#ffffff 0%,#bcdcff 15%,
     rgba(120,140,255,.42) 42%,rgba(60,50,160,.14) 70%,rgba(20,16,60,0) 100%);
@@ -456,12 +454,25 @@ footer{color:#4b5687;font-size:.75rem;margin-top:2.5rem;border-top:1px solid var
 .body-milkyway .body::after{content:"";position:absolute;inset:34%;border-radius:50%;
   background:#fff;box-shadow:0 0 10px 3px rgba(200,220,255,.7)}
 
-/* small orbiting evidence/catalyst/risk markers around the milky-way center */
+/* THEME CLOUD = concentrated local star cloud inside a Mega Theme Galaxy. */
+.body-themecloud .body{
+  border-radius:48% 52% 50% 50%;
+  background:
+    radial-gradient(circle at 50% 48%,#fff 0%,#dff0ff 8%,transparent 13%),
+    radial-gradient(circle at 38% 42%,rgba(255,255,255,.72) 0 1px,transparent 2px),
+    radial-gradient(circle at 62% 55%,rgba(214,228,255,.68) 0 1px,transparent 2px),
+    radial-gradient(ellipse at 50% 50%,rgba(130,175,255,.46) 0%,rgba(82,92,210,.2) 58%,transparent 76%);
+  filter:drop-shadow(0 0 16px rgba(120,165,255,.38))}
+.body-themecloud .body::before{content:"";position:absolute;inset:22% -20%;border-radius:50%;
+  background:linear-gradient(90deg,transparent,rgba(190,215,255,.28),transparent);
+  transform:rotate(-12deg);filter:blur(.4px)}
+.body-themecloud .body::after{content:"";position:absolute;inset:40%;border-radius:50%;
+  background:#fff;box-shadow:0 0 8px 2px rgba(210,230,255,.62)}
+
+/* small orbiting evidence/catalyst/risk markers around the galaxy band center */
 .body-milkyway.halo .body{box-shadow:0 0 0 1px rgba(181,101,29,.5),0 0 22px rgba(181,101,29,.3)}
 
-/* directional FLOW connectors (value-chain level) */
-.flow-lines line{stroke:rgba(79,224,255,.4);stroke-width:.22;stroke-dasharray:none}
-.flow-lines polygon{fill:rgba(79,224,255,.7)}
+/* Value-chain meaning appears through local celestial placement and the briefing panel. */
 
 /* small node marker label above a flow node */
 .body-marker{position:absolute;left:50%;top:-1.35rem;transform:translateX(-50%);
@@ -572,19 +583,13 @@ body.sky .command-bar{max-width:none;width:100%;padding:.4rem 1rem .3rem}
 @media(max-width:620px){.floating-preview{width:min(288px,86vw)}}
 
 /* ==================================================================== */
-/* 010A-FIX: no false universe centre; panoramic L0 field; semantic edges */
+/* 010A-FIX: no false universe centre; panoramic L0 field; no visible graph lines */
 /* ==================================================================== */
-/* full-width app shell for the Economic Universe page (never a 1200px wrap) */
+/* full-width app shell for the Universe Canvas page */
 .universe-app{width:100vw;max-width:none}
 /* the UNIVERSE (L0) field is WIDER than the viewport -> the user pans across space.
-   Galaxies float here with NO centre; only semantic edges connect related pairs. */
+   Galaxies float here with NO centre and NO visible connector graph. */
 .level-universe .scene-transform{width:150%;height:126%;left:-25%;top:-13%}
-/* semantic relationship edges (L0 only) -- styled by strength; NOT hub-and-spoke */
-.rel-lines{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
-.rel-lines line{fill:none;stroke-linecap:round;pointer-events:stroke}
-.rel-lines line.rel-strong{stroke:rgba(120,210,255,.42);stroke-width:.34}
-.rel-lines line.rel-medium{stroke:rgba(130,150,255,.30);stroke-width:.24}
-.rel-lines line.rel-weak{stroke:rgba(150,160,220,.18);stroke-width:.16;stroke-dasharray:.7 .9}
 
 /* ==================================================================== */
 /* 010A-SKY-VISUAL: telescope deep-field LOCAL asset + richer bodies      */
@@ -670,6 +675,243 @@ table.matrix td,table.matrix th{vertical-align:middle}
   margin:0 .2rem 0 .5rem;vertical-align:middle}
 .lg-dot.grp-reason{background:#ffb03a}.lg-dot.grp-cap{background:#39e0a0}
 .lg-dot.grp-op{background:#4fe0ff}
+
+/* ==================================================================== */
+/* COSMOSIQ-SKY-PREMIUM: deep-field seriousness + command-center polish  */
+/* ==================================================================== */
+body.sky{
+  background:
+    radial-gradient(1200px 760px at 12% -10%, rgba(55,70,150,.28), transparent 58%),
+    radial-gradient(900px 620px at 92% 12%, rgba(82,44,130,.22), transparent 60%),
+    linear-gradient(180deg,#050611,#02030a 70%,#050611);
+}
+body.sky .status-strip{
+  display:flex;align-items:center;gap:.45rem;min-height:34px;
+  background:linear-gradient(180deg,rgba(7,10,24,.9),rgba(7,10,24,.68));
+  border-bottom:1px solid rgba(170,190,255,.16);
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 14px 36px rgba(0,0,0,.28);
+  color:#b9c5f3;
+}
+body.sky .status-strip::before{
+  content:"CosmosIQ";color:#fff;font-weight:900;letter-spacing:.5px;margin-right:.35rem;
+}
+body.sky .status-strip::after{
+  content:"Reality Mesh";margin-left:auto;color:#7f8bc0;font-size:10px;
+  text-transform:uppercase;letter-spacing:1.4px;
+}
+body.sky .command-bar{
+  position:sticky;top:34px;z-index:49;
+  background:linear-gradient(180deg,rgba(5,7,17,.78),rgba(5,7,17,.46));
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  border-bottom:1px solid rgba(170,190,255,.1);
+}
+body.sky .brand{display:flex;align-items:baseline;gap:.65rem;margin-right:1.2rem}
+body.sky .brand small{display:inline;color:#91a0d6}
+body.sky .navlink{
+  background:rgba(13,18,42,.58);box-shadow:0 1px 0 rgba(255,255,255,.04) inset;
+}
+.universe-hero{padding:0;background:#02030a}
+.universe-hero .top-canvas{
+  border-radius:0;border-left:0;border-right:0;
+  box-shadow:0 28px 90px rgba(0,0,0,.62),0 0 0 1px rgba(160,180,255,.08) inset;
+}
+.viewport{
+  background:
+    radial-gradient(80% 60% at 45% 42%,rgba(32,25,80,.34),transparent 70%),
+    linear-gradient(180deg,#050713,#010208 80%);
+}
+.deep-space-bg{filter:saturate(1.08) contrast(1.04) brightness(.92)}
+.star-far,.star-mid,.star-near{mix-blend-mode:screen}
+.star-near{animation:cosmos-twinkle 8s ease-in-out infinite}
+@keyframes cosmos-twinkle{0%,100%{opacity:.42}50%{opacity:.62}}
+.dust-lane{mix-blend-mode:multiply}
+.scene-layer{transition:opacity .38s ease,filter .38s ease}
+.scene-layer:not(.active){pointer-events:none;filter:blur(4px) saturate(.8)}
+.scene-transform{transition:transform .18s cubic-bezier(.2,.8,.2,1)}
+.canvas-bar{
+  padding:.85rem 1rem;background:
+    linear-gradient(180deg,rgba(4,6,16,.82),rgba(4,6,16,.28) 74%,transparent);
+}
+.breadcrumb{
+  min-height:34px;padding:.38rem .85rem .38rem 2.15rem;position:relative;
+  background:rgba(8,12,28,.68);box-shadow:0 1px 0 rgba(255,255,255,.05) inset;
+}
+.breadcrumb::before{
+  content:"You are here";position:absolute;left:.75rem;top:50%;transform:translateY(-50%);
+  color:#6470a8;font-size:9px;text-transform:uppercase;letter-spacing:1.1px;
+}
+.breadcrumb .crumb:first-child{margin-left:3.8rem}
+.zoom-ctrl{
+  min-height:32px;background:rgba(9,13,30,.72);
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 8px 24px rgba(0,0,0,.18);
+}
+.hint{
+  background:rgba(8,12,28,.5);border:1px solid rgba(140,160,255,.1);
+  border-radius:999px;padding:.28rem .6rem;color:#8e9bd0;
+}
+.level-universe .scene-transform{width:172%;height:138%;left:-36%;top:-18%}
+.level-universe .body-label{font-size:10px;opacity:.78;transform:translateY(2px)}
+.level-universe .cosmic-object:hover .body-label,
+.level-universe .cosmic-object.selected .body-label{opacity:1}
+.body-label{
+  max-width:190px;overflow:hidden;text-overflow:ellipsis;
+  background:linear-gradient(180deg,rgba(8,11,26,.78),rgba(8,11,26,.56));
+  box-shadow:0 8px 28px rgba(0,0,0,.28);
+}
+.cosmic-object{transition:opacity .2s ease,filter .2s ease,z-index .2s ease}
+.cosmic-object:hover{filter:saturate(1.12)}
+.cosmic-object .body{
+  transition:box-shadow .22s ease,transform .22s ease,filter .22s ease;
+  isolation:isolate;
+}
+.cosmic-object.selected .body{
+  transform:scale(1.18);
+  box-shadow:0 0 0 1px #eafcff,0 0 0 7px rgba(79,224,255,.14),
+    0 0 42px 14px rgba(79,224,255,.5);
+}
+.cosmic-object.focus-pulse .body{animation:focus-pulse 900ms ease-out 1}
+@keyframes focus-pulse{
+  0%{box-shadow:0 0 0 0 rgba(79,224,255,.52)}
+  100%{box-shadow:0 0 0 24px rgba(79,224,255,0)}
+}
+.body-galaxy .body{
+  border-radius:48% 52% 50% 50%;
+  background:
+    radial-gradient(circle at 50% 50%,#fffdf0 0%,#ffe3a6 10%,rgba(255,176,82,.78) 20%,transparent 28%),
+    conic-gradient(from 24deg,transparent 0 16%,rgba(210,190,255,.36) 18%,transparent 34%,
+      rgba(255,205,150,.34) 44%,transparent 58%,rgba(150,170,255,.28) 70%,transparent 84%),
+    radial-gradient(ellipse at center,rgba(164,112,230,.55) 0%,rgba(75,64,160,.22) 62%,transparent 78%);
+}
+.body-galaxy .body::before{
+  inset:-24%;background:
+    conic-gradient(from 32deg,rgba(255,245,220,.36),transparent 18%,rgba(147,159,255,.25) 42%,
+      transparent 64%,rgba(255,188,132,.28) 78%,transparent);
+  filter:blur(8px);opacity:.86;
+}
+.body-galaxy .body::after{
+  content:"";position:absolute;left:-16%;right:-16%;top:46%;height:12%;
+  border-radius:50%;background:linear-gradient(90deg,transparent,rgba(2,2,8,.66),transparent);
+  transform:rotate(-16deg);filter:blur(3px);opacity:.72;
+}
+.body-milkyway .body{
+  border-radius:46% 54% 50% 50%;
+  background:
+    radial-gradient(circle at 50% 48%,#fff 0%,#cfe5ff 9%,transparent 15%),
+    radial-gradient(ellipse at 50% 50%,rgba(150,185,255,.58) 0%,rgba(105,110,220,.22) 58%,transparent 76%);
+}
+.body-milkyway .body::before{
+  inset:20% -38%;background:
+    radial-gradient(circle at 24% 50%,rgba(255,255,255,.72) 0 1px,transparent 2px),
+    radial-gradient(circle at 42% 44%,rgba(210,225,255,.6) 0 1px,transparent 2px),
+    radial-gradient(circle at 64% 54%,rgba(255,235,205,.56) 0 1px,transparent 2px),
+    linear-gradient(90deg,transparent,rgba(170,195,255,.26),transparent);
+  border:0;filter:blur(.2px);opacity:.92;
+}
+.body-themecloud .body{
+  background:
+    radial-gradient(circle at 48% 48%,#fff 0%,#dcecff 9%,transparent 15%),
+    radial-gradient(circle at 34% 38%,rgba(255,255,255,.72) 0 1px,transparent 2px),
+    radial-gradient(circle at 68% 46%,rgba(212,228,255,.62) 0 1px,transparent 2px),
+    radial-gradient(circle at 56% 66%,rgba(255,235,205,.52) 0 1px,transparent 2px),
+    radial-gradient(ellipse at 50% 50%,rgba(120,170,255,.42) 0%,rgba(86,92,210,.18) 60%,transparent 78%);
+}
+.body-themecloud .body::before{
+  content:"";position:absolute;inset:24% -24%;border-radius:50%;
+  background:linear-gradient(90deg,transparent,rgba(190,215,255,.24),transparent);
+  transform:rotate(-12deg);filter:blur(.4px);opacity:.9;
+}
+.body-themecloud .body::after{
+  content:"";position:absolute;inset:39%;border-radius:50%;
+  background:#fff;box-shadow:0 0 8px 2px rgba(210,230,255,.62);
+}
+.body-nebula .body,.variant-nebula .body{
+  background:
+    radial-gradient(circle at 45% 42%,rgba(220,245,255,.72),rgba(90,180,255,.22) 36%,transparent 68%),
+    radial-gradient(circle at 60% 56%,rgba(170,100,230,.32),transparent 70%);
+  filter:blur(4px) saturate(1.1);
+}
+.body-star .body{
+  background:
+    radial-gradient(circle,#fff 0%,#fff6d7 14%,#ffd27d 35%,rgba(255,147,54,.72) 56%,transparent 72%);
+}
+.body-star .body::before{width:2px;height:320%;opacity:.9}
+.body-star .body::after{width:320%;height:2px;opacity:.82}
+.bottleneck-central .body{
+  box-shadow:0 0 72px 26px rgba(255,183,84,.62),0 0 120px 34px rgba(255,92,59,.22),
+    0 0 0 1px rgba(255,235,188,.65);
+}
+.body-planet .body{
+  background:
+    radial-gradient(circle at 28% 24%,rgba(255,255,255,.95) 0%,rgba(255,255,255,.25) 10%,transparent 21%),
+    radial-gradient(circle at 36% 32%,#d9e8ff 0%,#8ca1ed 32%,#36448e 62%,#111738 100%);
+}
+.body-planet .body::after{
+  border-color:rgba(180,210,255,.4);box-shadow:0 0 12px rgba(120,160,255,.2);
+}
+.halo.body-planet .body::after{border-color:rgba(255,201,112,.72);box-shadow:0 0 18px rgba(255,177,58,.38)}
+.variant-comet .body{box-shadow:0 0 24px 8px rgba(180,220,255,.42)}
+.variant-comet .body::before{
+  width:230%;height:28%;right:58%;top:34%;
+  background:linear-gradient(90deg,rgba(150,210,255,0),rgba(190,230,255,.72),rgba(255,255,255,.88));
+}
+.variant-blackhole .body::after{
+  content:"";position:absolute;inset:-44%;border-radius:50%;
+  background:conic-gradient(from 20deg,transparent,rgba(255,80,120,.5),transparent 38%,
+    rgba(255,180,80,.28),transparent 70%);
+  filter:blur(4px);z-index:-1;
+}
+.body-moon .body{
+  box-shadow:inset -4px -5px 8px rgba(0,0,0,.42),0 0 12px rgba(180,190,230,.18);
+}
+.body-tip{
+  top:140%;width:254px;padding:.65rem .72rem;
+  background:linear-gradient(180deg,rgba(14,20,44,.92),rgba(8,12,28,.88));
+  border:1px solid rgba(170,190,255,.2);box-shadow:0 22px 70px rgba(0,0,0,.58);
+}
+.floating-preview{
+  width:330px;background:linear-gradient(180deg,rgba(15,22,48,.74),rgba(8,12,28,.7));
+  border-color:rgba(180,205,255,.18);box-shadow:0 28px 90px rgba(0,0,0,.56);
+}
+.floating-preview::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(160,230,255,.55),transparent);
+}
+.fp-type{color:#7ff0ff}
+.fp-title{font-size:17px;line-height:1.2}
+.fp-body{display:grid;gap:.14rem}
+.fp-body .pv-name{padding-bottom:.35rem;margin-bottom:.25rem;border-bottom:1px solid rgba(140,160,255,.14)}
+.fp-actions{border-top:1px solid rgba(140,160,255,.14);padding-top:.65rem}
+.fp-btn{box-shadow:0 8px 24px rgba(79,224,255,.22)}
+.legend{
+  width:238px;background:linear-gradient(180deg,rgba(14,20,44,.72),rgba(8,12,28,.68));
+  border-color:rgba(180,205,255,.16);
+}
+.intel-section{
+  background:
+    radial-gradient(900px 520px at 16% 0%,rgba(47,107,208,.14),transparent 62%),
+    linear-gradient(180deg,#050713,#070a18 40%,#050611);
+}
+.exec-header,.brief-card,.glass-panel,.stat-card{
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 18px 52px rgba(0,0,0,.22);
+}
+@media(prefers-reduced-motion:reduce){
+  .star-near,.body-galaxy .body,.body-planet.glow-3 .body,.bottleneck-central .body::after,
+  .cosmic-object.focus-pulse .body{
+    animation:none !important;
+  }
+  .scene-transform,.scene-layer,.floating-preview{transition:none !important}
+}
+@media(max-width:760px){
+  body.sky .brand{width:100%;gap:.45rem}
+  body.sky .command-bar{top:34px}
+  .universe-hero{height:calc(100vh - 126px);min-height:520px;padding:0}
+  .canvas-bar{align-items:flex-start}
+  .zoom-controls{max-width:100%;overflow:auto;padding-bottom:.15rem}
+  .hint{display:none}
+  .breadcrumb{width:100%}
+  .floating-preview{left:.75rem;top:5.2rem;width:min(330px,90vw)}
+  .legend{display:none}
+}
 """
 
 
@@ -678,8 +920,8 @@ NAV_JS = """
    push/pop, back/up, bottom Intelligence Pane swap (copies a pre-rendered .intel-template
    by id into #intel-body), hash/query deep-link focus, AND continuous view zoom+pan
    (mouse wheel / +- buttons / drag) applied as a CSS transform on the active level's
-   .scene-transform. NO network, NO form, NO submit, NO trade-execution affordance, NO
-   scoring, NO random, NO data mutation. It only toggles visibility, copies pre-rendered
+   .scene-transform. NO network, NO form, NO action-taking affordance, NO
+   hidden metric, NO random, NO data mutation. It only toggles visibility, copies pre-rendered
    DOM, and transforms the view -- it can never hide a data gap. */
 (function(){
   function ready(fn){
@@ -742,6 +984,12 @@ NAV_JS = """
         var ss=document.querySelectorAll('.cosmic-object.selected');
         for(var q=0;q<ss.length;q++){ss[q].classList.remove('selected');}
       }
+      function pulseObject(obj){
+        if(!obj){return;}
+        obj.classList.remove('focus-pulse');
+        void obj.offsetWidth;
+        obj.classList.add('focus-pulse');
+      }
       function resetView(){clearSelection();view.scale=1;view.tx=0;view.ty=0;applyTransform();}
       /* update the floating preview card from a clicked object (existing fields only) */
       function updatePreview(obj){
@@ -797,6 +1045,7 @@ NAV_JS = """
         objs[i].addEventListener('click',function(){
           for(var s=0;s<objs.length;s++){objs[s].classList.remove('selected');}
           this.classList.add('selected');       /* persistent SELECTED state */
+          pulseObject(this);
           updatePreview(this);                   /* floating preview inside the hero */
           var myIntel=this.getAttribute('data-intel');
           var tp=this.getAttribute('data-target-path');
@@ -805,6 +1054,9 @@ NAV_JS = """
              level's intel can never overwrite the explicitly selected object; the
              below-the-fold intelligence pane updates from the SAME id */
           setIntel(myIntel);
+        });
+        objs[i].addEventListener('keydown',function(e){
+          if(e.key==='Enter' || e.key===' '){e.preventDefault();this.click();}
         });
       }
       document.addEventListener('click',function(e){
@@ -860,6 +1112,7 @@ NAV_JS = """
         var cy=(r.top+r.bottom)/2-vr.top-vr.height/2;
         var s=clamp(2.2,0.6,6);
         view.scale=s;view.tx=-cx*s;view.ty=-cy*s;applyTransform();
+        pulseObject(sel);
       }
       if(zfit){zfit.addEventListener('click',function(e){e.preventDefault();fitToAll();});}
       if(zloc){zloc.addEventListener('click',function(e){e.preventDefault();locateSelected();});}
@@ -905,6 +1158,15 @@ NAV_JS = """
       }
       focusFromLocation();
       window.addEventListener('hashchange',focusFromLocation);
+      document.addEventListener('keydown',function(e){
+        if(e.target && /input|textarea|select/i.test(e.target.tagName||'')){return;}
+        if(e.key==='+' || e.key==='='){view.scale=clamp(view.scale*1.16,0.6,6);applyTransform();}
+        else if(e.key==='-' || e.key==='_'){view.scale=clamp(view.scale/1.16,0.6,6);applyTransform();}
+        else if(e.key==='0'){resetView();}
+        else if(e.key==='f' || e.key==='F'){fitToAll();}
+        else if(e.key==='l' || e.key==='L'){locateSelected();}
+        else if(e.key==='Escape'){clearSelection(); if(fp){fp.classList.add('dismissed');}}
+      });
     }
 
     /* ---- expand / collapse -- visibility only; data gaps live outside these ---- */

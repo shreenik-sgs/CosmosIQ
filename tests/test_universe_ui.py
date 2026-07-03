@@ -64,11 +64,11 @@ _REMOVED_PAGES = ("galaxy.html", "solar_system.html", "star.html")
 _UNIVERSE_UI_DIR = os.path.join(_SRC, "universe_ui")
 
 _STRIP_TOKENS = (
-    "Mode: fixture/demo",
-    "Live data: not enabled",
-    "Scheduler: not enabled",
-    "Broker automation: disabled",
-    "Manual review required",
+    "Mode: Demo Fixture",
+    "Live Data: Off",
+    "Scheduler: Off",
+    "Broker: Disabled",
+    "Execution: Manual Review Only",
 )
 
 
@@ -121,15 +121,70 @@ class UniverseUIBuildTests(unittest.TestCase):
             for token in _STRIP_TOKENS:
                 self.assertIn(token, h, "{0} missing status token: {1}".format(name, token))
 
-    # --- dashboard: live ranking off, no master score ---------------------
+    # --- dashboard: live data off, no master score ------------------------
     def test_dashboard_no_master_score_no_live_ranking(self):
         d = self.html["dashboard.html"]
-        self.assertIn("live ranking not enabled", d.lower())
+        self.assertIn("Live Data: Off", d)
         self.assertNotIn("master score", d.lower())
-        self.assertIn("Demo candidate dashboard", d)
+        self.assertIn("CosmosIQ Capital", d)
 
     def test_no_new_master_score_field_anywhere(self):
         self.assertNotIn("master score", self.all_html.lower())
+
+    def test_cosmosiq_public_naming_and_retired_terms_absent(self):
+        generated = self.all_html
+        with open(self.paths["assets/universe.css"], encoding="utf-8") as fh:
+            generated += "\n" + fh.read()
+        with open(self.paths["assets/universe.js"], encoding="utf-8") as fh:
+            generated += "\n" + fh.read()
+        for required in ("CosmosIQ", "Universal Intelligence OS", "Universe Canvas",
+                         "CosmosIQ Capital", "Trust &amp; Data Quality",
+                         "Foundation Layer", "Intelligence Governance Layer",
+                         "Reality Intelligence Layer", "Signal Fusion",
+                         "Opportunity Discovery Layer", "Investment Diligence Layer",
+                         "Portfolio Intelligence Layer", "Execution Preview Layer",
+                         "Learning &amp; Feedback Layer"):
+            self.assertIn(required, generated)
+        for retired in ("SUDARSHAN", "Sudarshan", "Adhāra", "Adhara", "Buddhi",
+                        "Tattva", "Sphurana", "Nivesha", "Saarathi", "Kriya",
+                        "Anubhava", "Alpha Decision Cockpit"):
+            self.assertNotIn(retired, generated)
+
+    def test_generated_artifacts_no_action_or_hidden_scoring_language(self):
+        generated = self.all_html
+        with open(self.paths["assets/universe.css"], encoding="utf-8") as fh:
+            generated += "\n" + fh.read()
+        with open(self.paths["assets/universe.js"], encoding="utf-8") as fh:
+            generated += "\n" + fh.read()
+        low = generated.lower()
+        for banned in ("<button", "<form", "onclick", "type=\"submit\"",
+                       "broker automation", "not enabled"):
+            self.assertNotIn(banned, low)
+        self.assertIsNone(re.search(r"\b(buy|sell|submit|order|score|rank|ranking)\b", low))
+
+    def test_generated_links_and_focus_anchors_resolve(self):
+        for page, h in self.html.items():
+            ids = set(re.findall(r'id="([^"]+)"', h))
+            paths = set(re.findall(r'data-path="([^"]+)"', h))
+            for href in re.findall(r'href="([^"]+)"', h):
+                if "+" in href:
+                    continue
+                if href == "#":
+                    continue
+                if href.startswith("#"):
+                    frag = href[1:]
+                    if frag.startswith("path="):
+                        self.assertIn(frag.split("=", 1)[1], paths, (page, href))
+                    elif frag:
+                        self.assertIn(frag, ids, (page, href))
+                    continue
+                if href.startswith("http"):
+                    continue
+                fname, _, frag = href.partition("#")
+                self.assertIn(fname, self.paths, (page, href))
+                if frag.startswith("focus="):
+                    target_paths = set(re.findall(r'data-path="([^"]+)"', self.html[fname]))
+                    self.assertIn(frag.split("=", 1)[1], target_paths, (page, href))
 
     # --- ticker/security mapping only AFTER value-chain/winner -------------
     def test_ticker_mapping_carries_after_value_chain_qualifier(self):
@@ -164,7 +219,7 @@ class UniverseUIBuildTests(unittest.TestCase):
         c = self.html["cockpit.html"]
         self.assertIn("<!-- BEGIN-SECTION:", c)
         self.assertIn('id="panel-', c)
-        self.assertIn("Alpha Decision Cockpit", c)
+        self.assertIn("Company Cockpit", c)
         # wrapped with the status strip (still the accepted doc underneath)
         for token in _STRIP_TOKENS:
             self.assertIn(token, c)
@@ -280,9 +335,10 @@ class ZoomableUniverseTests(unittest.TestCase):
     # --- each object type has a bottom-pane intelligence template ---------
     def test_each_object_type_has_intel_template(self):
         # The intel templates carry per-type headings.
-        for marker in ("Universe — Intelligence Pane", "Galaxy / Megatrend",
-                       "Milky Way / Theme", "Solar System / Value Chain",
-                       "Bottleneck Star", "Planet / Company", "Moon / Supplier"):
+        for marker in ("Universe Canvas — Intelligence Briefing", "Mega Theme / Galaxy",
+                       "Theme / Milky Way", "Value Chain / Solar System",
+                       "Bottleneck / Star", "Stock / Planet",
+                       "Supplier or Customer / Moon"):
             self.assertIn(marker, self.u, "missing intel template: {0}".format(marker))
         self.assertIn('class="intel-template"', self.u)
 
@@ -392,13 +448,13 @@ class ZoomableUniverseTests(unittest.TestCase):
         self.assertNotIn("object-grid", self.u)       # not a card grid
         self.assertIn('class="scene-bodies"', self.u)
 
-    # --- faint SVG relationship / orbit lines connect parent -> children ---
-    def test_orbit_relationship_lines_present(self):
-        self.assertIn('class="orbit-lines"', self.u)
-        self.assertIn("<line ", self.u)               # actual connecting segments
-        # orbit lines are inside the pan/zoom transform layer (move with bodies)
-        self.assertIsNotNone(
-            re.search(r'<div class="scene-transform">\s*<svg class="orbit-lines"', self.u))
+    # --- no visible connector graph in the immersive canvas ----------------
+    def test_no_visible_connector_lines_in_canvas(self):
+        top = self._top_canvas()
+        for cls in ("rel-lines", "orbit-lines", "flow-lines"):
+            self.assertNotIn(cls, top)
+        self.assertNotIn("<line ", top)
+        self.assertNotIn("<polygon", top)
 
     # --- a compact collapsible LEGEND card exists -------------------------
     def test_legend_card_present(self):
@@ -440,20 +496,26 @@ class ZoomableUniverseTests(unittest.TestCase):
             css = fh.read()
         self.assertIn(".scene-layer::before", css)         # per-level accent rail
 
-    # 2. theme / Milky-Way is its own body kind, distinct from galaxy
-    def test_theme_is_milkyway_body(self):
-        self.assertIn("body-milkyway", self.u)
+    # 2. Mega Theme Galaxies use the infinity / galaxy-band visual; Themes are clouds
+    def test_mega_theme_galaxy_is_milkyway_band_and_theme_is_cloud(self):
+        self.assertRegex(
+            self.u,
+            r'class="cosmic-object k-galaxy body-milkyway[^"]*"[^>]*data-kind="galaxy"',
+            "Mega Theme / Galaxy must use the infinity-like galaxy-band body")
+        self.assertRegex(
+            self.u,
+            r'class="cosmic-object k-theme body-themecloud[^"]*"[^>]*data-kind="theme"',
+            "Theme / Milky Way must use a distinct concentrated cloud body")
         self.assertIn('data-kind="theme"', self.u)
         with open(self.paths["assets/universe.css"], encoding="utf-8") as fh:
             css = fh.read()
         self.assertIn(".body-milkyway .body", css)
-        self.assertIn(".body-galaxy .body", css)           # still distinct from galaxy
+        self.assertIn(".body-themecloud .body", css)
 
-    # 3. value-chain level = a legible directional economic flow
-    def test_value_chain_directional_flow(self):
-        self.assertIn("flow-lines", self.u)                # directional connectors
-        self.assertIn("<polygon", self.u)                  # flow arrowheads
-        # flow bodies laid left->right (multiple distinct left% positions in a band)
+    # 3. value-chain level = local system without connector lines
+    def test_value_chain_local_system_without_flow_lines(self):
+        self.assertNotIn("flow-lines", self.u)
+        # bodies still lay left->right as a local system (multiple distinct left% positions)
         lefts = re.findall(r'style="left:([0-9.]+)%;top:66\.\d+%"', self.u) \
             + re.findall(r'style="left:([0-9.]+)%;top:69\.\d+%"', self.u) \
             + re.findall(r'style="left:([0-9.]+)%;top:62\.\d+%"', self.u)
@@ -475,7 +537,7 @@ class ZoomableUniverseTests(unittest.TestCase):
         i = self.u.find("<b>(IREN)</b>")
         self.assertGreater(i, 0, "IREN preview chip not found")
         seg = self.u[i:i + 800]
-        for field in ("theme/galaxy", "value-chain role", "candidate bucket",
+        for field in ("mega theme / galaxy", "value-chain role", "candidate bucket",
                       "top reason", "top risk", "market cap"):
             self.assertIn(field, seg, "planet hover missing {0}".format(field))
         self.assertIn("Timing-Confirmed", seg)             # its EXISTING status bucket
@@ -496,10 +558,11 @@ class ZoomableUniverseTests(unittest.TestCase):
     def test_legend_lists_eight_channels(self):
         low = self.u.lower()
         for term in ("economic magnitude", "signal convergence", "status / risk",
-                     "directness of exposure", "catalyst / crowding",
+                     "economic / exposure neighborhood", "catalyst / crowding",
                      "red-team / dilution / insolvency", "evidence quality",
                      "missing data"):
             self.assertIn(term, low, "legend missing channel: {0}".format(term))
+        self.assertIn("celestial metaphor only", low)
 
     # --- design system + FULL-SCREEN layout -------------------------------
     def test_design_system_and_layout(self):
@@ -548,7 +611,8 @@ class ZoomableUniverseTests(unittest.TestCase):
         self.assertNotIn('<body class="sky">', dash)
 
     def test_objects_are_positioned_luminous_bodies(self):
-        for cls in ("body-galaxy", "body-planet", "body-star", "body-nebula", "body-moon"):
+        for cls in ("body-milkyway", "body-themecloud", "body-planet",
+                    "body-star", "body-nebula", "body-moon"):
             self.assertIn(cls, self.u, "missing luminous body class {0}".format(cls))
         # bodies are absolutely positioned in space (inline left%/top%)
         self.assertIsNotNone(
@@ -677,7 +741,7 @@ class VisualSizeEncodingTests(unittest.TestCase):
             uni = fh.read()
         self.assertIn("market cap (DEMO)", dash)      # raw label present
         self.assertIn("$3.40T", dash)                 # MEGAX raw market cap
-        self.assertIn("theme TAM (DEMO)", uni)        # galaxy raw TAM label
+        self.assertIn("mega-theme TAM (DEMO)", uni)   # galaxy raw TAM label
 
 
 class UniverseUISafetyGuardTests(unittest.TestCase):
@@ -743,7 +807,7 @@ if __name__ == "__main__":
 
 
 class UniverseCenterFixTests(unittest.TestCase):
-    """010A-FIX: no false 'centre of the universe'; semantic edges; full-width shell;
+    """010A-FIX: no false 'centre of the universe'; no visible graph lines; full-width shell;
     reliable bottom pane; pan/zoom/fit/locate."""
 
     @classmethod
@@ -758,6 +822,8 @@ class UniverseCenterFixTests(unittest.TestCase):
             cls.css = fh.read()
         with open(os.path.join(cls._tmp, "assets", "universe.js"), encoding="utf-8") as fh:
             cls.js = fh.read()
+        with open(os.path.join(cls._tmp, "assets", "universe.js"), encoding="utf-8") as fh:
+            cls.js = fh.read()
         cls.view = build_economic_universe_view(load_iren_slice())
 
     def _l0(self):
@@ -767,27 +833,34 @@ class UniverseCenterFixTests(unittest.TestCase):
 
     def test_universe_level_has_no_hub_and_spoke(self):
         l0 = self._l0()
-        # the centre-spoke SVG must NOT be at the Universe level; semantic edges instead
+        # no visible connector graph at the Universe level
         self.assertNotIn('class="orbit-lines"', l0)
-        self.assertIn('class="rel-lines"', l0)
-        # endpoints must be varied -- a hub would share ONE common source coordinate
-        x1s = re.findall(r'<line[^>]*x1="([0-9.]+)"', l0)
-        self.assertGreater(len(set(x1s)), 1, "L0 lines share a common centre (hub-and-spoke)")
-        # no line to the old artificial centre (50.00, 47.00)
+        self.assertNotIn('class="rel-lines"', l0)
+        self.assertNotIn("<line ", l0)
         self.assertNotIn('x2="50.00" y2="47.00"', l0)
 
-    def test_universe_lines_are_the_semantic_edges(self):
+    def test_relationships_move_to_briefing_not_canvas_lines(self):
         l0 = self._l0()
-        self.assertEqual(l0.count("<line "), len(self.view.edges),
-                         "L0 must draw exactly one line per valid semantic edge")
-        # a named related pair is present (HTML-escaped &); an unrelated pair is not
-        self.assertIn("AI Infrastructure ↔ Power &amp; Grid", self.u)
+        self.assertEqual(l0.count("<line "), 0)
+        self.assertIn("Related domains", self.u)
+        self.assertIn("AI Infrastructure depends on / relates to Power &amp; Grid", self.u)
         self.assertNotIn("Robotics ↔ Nuclear", self.u)
         self.assertNotIn("Nuclear &amp; Energy ↔ Robotics", self.u)
 
-    def test_deeper_levels_keep_focus_lines(self):
-        # the selected-object local focus IS allowed inside deeper levels
-        self.assertIn('class="orbit-lines"', self.u)
+    def test_deeper_levels_also_have_no_connector_lines(self):
+        for cls in ("orbit-lines", "rel-lines", "flow-lines"):
+            self.assertNotIn(cls, self.u)
+
+    def test_celestial_objects_are_clickable_and_focusable(self):
+        for kind in ("galaxy", "theme", "value_chain", "star", "planet", "moon"):
+            self.assertRegex(
+                self.u,
+                r'role="button" tabindex="0" aria-label="[^"]*" '
+                r'data-kind="{0}"'.format(kind),
+                "missing focusable clickable object kind {0}".format(kind))
+        self.assertIn("data-target-path=", self.u)
+        self.assertIn("data-intel=", self.u)
+        self.assertIn("addEventListener('keydown'", self.js)
 
     def test_full_width_universe_app_shell(self):
         self.assertIn("universe-app", self.u)
@@ -893,6 +966,8 @@ class TelescopeVisualAssetTests(unittest.TestCase):
             cls.svg = fh.read()
         with open(os.path.join(cls._tmp, "assets", "universe.css"), encoding="utf-8") as fh:
             cls.css = fh.read()
+        with open(os.path.join(cls._tmp, "assets", "universe.js"), encoding="utf-8") as fh:
+            cls.js = fh.read()
 
     def test_local_deep_space_asset_written_and_referenced(self):
         self.assertIn("assets/deep_space_background.svg", self.paths)
@@ -903,10 +978,12 @@ class TelescopeVisualAssetTests(unittest.TestCase):
     def test_asset_is_a_rich_deterministic_svg(self):
         import xml.dom.minidom as minidom
         minidom.parseString(self.svg)                          # valid XML
-        self.assertGreater(self.svg.count("<circle"), 300)     # dense star field
+        self.assertGreater(self.svg.count("<circle"), 900)     # dense star field
         self.assertIn("<ellipse", self.svg)                    # nebula clouds / galaxy
+        self.assertIn("<path", self.svg)                       # dust lanes / galaxy arms
         self.assertIn("url(#nVio)", self.svg)                  # nebula gradient fills
         self.assertIn('filter id="soft"', self.svg)            # blur/bloom
+        self.assertIn('filter id="wideSoft"', self.svg)        # broad telescope bloom
         # deterministic across builds
         other = tempfile.mkdtemp(prefix="universe_visual2_")
         p2 = _build(other)
@@ -923,20 +1000,31 @@ class TelescopeVisualAssetTests(unittest.TestCase):
         page_remote = re.findall(r'(?:href|src)="https?://[^"]+"', self.u)
         self.assertEqual(page_remote, [])
 
-    def test_sky_layout_and_semantics_unchanged(self):
+    def test_sky_layout_and_clean_cosmos_semantics(self):
         # SKY layout preserved (no split-pane regression)
         self.assertIn('<body class="sky">', self.u)
         self.assertIn('class="universe-hero"', self.u)
         self.assertIn('class="intel-pane intel-section"', self.u)
         self.assertLess(self.u.index('class="universe-hero"'), self.u.index('id="intel-pane"'))
         self.assertIn('id="floating-preview"', self.u)
-        # semantic relationship lines remain; NO centre hub restored
+        # no relationship-line SVGs; relationship meaning lives in the briefing
         l0 = re.search(r'data-level="0"[^>]*>(.*?)</section>', self.u, re.S).group(1)
-        self.assertIn('class="rel-lines"', l0)
+        self.assertNotIn('class="rel-lines"', l0)
         self.assertNotIn('class="orbit-lines"', l0)
+        self.assertIn("Related domains", self.u)
         # object visual encoding still exists
-        for cls in ("body-galaxy", "body-milkyway", "body-star", "body-planet"):
+        for cls in ("body-milkyway", "body-themecloud", "body-star", "body-planet"):
             self.assertIn(cls, self.u)
+
+    def test_premium_universe_canvas_interaction_hooks(self):
+        for token in ("CosmosIQ", "Reality Mesh", "You are here", "cosmos-twinkle",
+                      "focus-pulse", "prefers-reduced-motion"):
+            self.assertIn(token, self.css)
+        for token in ("pulseObject", "keydown", "fitToAll", "locateSelected"):
+            self.assertIn(token, self.js)
+        for row in ("object type", "signal state", "evidence quality",
+                    "source authority", "data gaps", "risk flags"):
+            self.assertIn(row, self.u)
 
     def test_no_affordance_or_scoring_regression(self):
         low = self.u.lower()
@@ -982,18 +1070,21 @@ class VisualReferenceAlignmentTests(unittest.TestCase):
 
     def test_corrected_eios_labels_present(self):
         self.assertIn('class="layer-map', self.dq)
-        self.assertIn("Nivesha", self.dq)
-        self.assertIn("Investment Diligence / Capital Candidate", self.dq)
-        self.assertIn("Personal CIO / Portfolio Fit / Sizing Guardrails", self.dq)
-        self.assertIn("Manual Execution Preview", self.dq)
-        # the retired "Capital Allocation" wording is not used for Nivesha in the label map
-        self.assertNotIn("Nivesha</span><span class=\"layer-label\">Capital Allocation", self.dq)
+        for label in ("Foundation Layer", "Intelligence Governance Layer",
+                      "Reality Intelligence Layer", "Signal Fusion",
+                      "Opportunity Discovery Layer", "Investment Diligence Layer",
+                      "Portfolio Intelligence Layer", "Execution Preview Layer",
+                      "Learning &amp; Feedback Layer"):
+            self.assertIn(label, self.dq)
+        for retired in ("Adhāra", "Adhara", "Buddhi", "Tattva", "Sphurana",
+                        "Nivesha", "Saarathi", "Kriya", "Anubhava"):
+            self.assertNotIn(retired, self.dq)
 
     def test_dashboard_executive_candidate_cards(self):
         self.assertIn('class="card', self.dash)            # glass candidate cards
         self.assertIn("Locate in Universe", self.dash)
         self.assertIn("Open Cockpit", self.dash)
-        self.assertIn("Demo candidate dashboard", self.dash)
+        self.assertIn("CosmosIQ Capital", self.dash)
         for bad in ("<button", "<form", " buy ", " sell "):
             self.assertNotIn(bad, self.dash.lower())
 

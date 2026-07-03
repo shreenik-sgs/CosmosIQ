@@ -263,7 +263,7 @@ class DefaultUnenrichedPathTests(unittest.TestCase):
             "IREN", transports=_mock(), now=_NOW)
         self.assertEqual(terrain.validate(), ())
         self.assertEqual(terrain.relationship_edges, ())
-        self.assertEqual(self.wl_uni.rel_line_edges(), 0)
+        self.assertEqual(self.wl_uni.connector_classes(), [])
 
     def test_no_demo_galaxies_leak_into_real_build(self):
         blob = _all_html(self.single) + _all_html(self.wl)
@@ -345,7 +345,7 @@ class EnrichedPathTests(unittest.TestCase):
     def test_cockpit_shows_readonly_enrichment_note_broker_none_no_trade(self):
         ck = _read(self.single, "cockpit.html")
         self.assertIn("Diligence enrichment (read-only evidence)", ck)
-        self.assertIn("broker order: none", ck.lower())
+        self.assertIn("broker record: none", ck.lower())
         _no_trade_affordance(self, ck)
 
     def test_unsupported_areas_still_gaps_source_backed_only(self):
@@ -474,7 +474,7 @@ class ScenarioCoverageTests(unittest.TestCase):
         g = HtmlLinkGraph(_read(paths, "universe.html"))
         planets = [p for p in g.panel_paths if "/pl:" in p]
         self.assertGreaterEqual(len(planets), 3)
-        self.assertEqual(g.rel_line_edges(), 0)   # merged, but no invented centre/hub edges
+        self.assertEqual(g.connector_classes(), [])   # merged, but no invented centre/hub edges
 
     def test_failed_ticker_recorded_visible_run_continues_not_dropped(self):
         tbt = {"IREN": _mock(), "BADX": _BrokenTransports(), "INOD": _mock()}
@@ -567,7 +567,7 @@ class FullChainTests(unittest.TestCase):
         for name in _PAGES:
             self.assertTrue(os.path.exists(paths[name]))
         ck = _read(paths, "cockpit.html")
-        self.assertIn("broker order: none", ck.lower())
+        self.assertIn("broker record: none", ck.lower())
         _no_trade_affordance(self, _all_html(paths))
 
     def test_chain_stops_at_a_visible_gap_when_diligence_input_missing(self):

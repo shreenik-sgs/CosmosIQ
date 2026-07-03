@@ -20,8 +20,8 @@ checked by shape (ids / paths / parent chains) rather than by brittle string mat
   text, never a dead anchor;
 * NO dead anchors: every ``href="#x"`` resolves to an id / path, is a known-safe JS-wired
   control (zoom / floating-preview), or the known in-page ``#intel-pane`` anchor;
-* NO fake relationship edges (the ``rel-lines`` svg holds zero ``<line>`` for the fixtures);
-  no centre-of-universe / hub; only the four base pages (+ conditional per-ticker cockpit).
+* NO fake relationship edges / connector SVGs in the immersive cosmos; no centre-of-universe
+  hub; only the four base pages (+ conditional per-ticker cockpit).
 
 Plus NAV_JS hardening checks (stale ``.selected`` cleared on level change / reset, the
 below-fold / floating-preview "Missing intelligence template" fallback) and the standing
@@ -222,9 +222,8 @@ class HtmlLinkGraph:
                 tc.assertIn(ck, cockpit_files,
                             "cockpit link points to a missing page: {0}".format(ck))
 
-    def rel_line_edges(self):
-        m = re.search(r'<svg class="rel-lines".*?</svg>', self.body, re.S)
-        return 0 if not m else m.group(0).count("<line")
+    def connector_classes(self):
+        return re.findall(r'class="[^"]*(?:rel-lines|orbit-lines|flow-lines)[^"]*"', self.body)
 
 
 def _graph(paths, name):
@@ -294,7 +293,7 @@ class WatchlistLinkGraphTests(unittest.TestCase):
         self.assertNotIn('href="cockpit_', self.uni.raw)
 
     def test_no_fake_edges_no_centre_hub(self):
-        self.assertEqual(self.uni.rel_line_edges(), 0)  # 0 evidence-backed edges
+        self.assertEqual(self.uni.connector_classes(), [])
         low = self.uni.raw.lower()
         self.assertNotIn("centre-of-universe", low)
         self.assertNotIn("center-of-universe", low)

@@ -50,7 +50,32 @@ def _val(value: Any) -> str:
     if isinstance(value, float):
         # Deterministic, lossless-enough display; no rounding that invents precision.
         return _esc(("%g" % value))
-    return _esc(value)
+    return _esc(_public_text(value))
+
+
+_PUBLIC_LAYER_NAMES = {
+    "Adhara": "Foundation Layer",
+    "Adhāra": "Foundation Layer",
+    "Buddhi": "Intelligence Governance Layer",
+    "Tattva": "Reality Intelligence Layer",
+    "Sphurana": "Opportunity Discovery Layer",
+    "Nivesha": "Investment Diligence Layer",
+    "Saarathi": "Portfolio Intelligence Layer",
+    "Kriya": "Execution Preview Layer",
+    "Anubhava": "Learning & Feedback Layer",
+}
+
+
+def _public_layer(value: Any) -> str:
+    text = "" if value is None else str(value)
+    return _PUBLIC_LAYER_NAMES.get(text, text)
+
+
+def _public_text(value: Any) -> str:
+    text = "" if value is None else str(value)
+    for old, new in _PUBLIC_LAYER_NAMES.items():
+        text = text.replace(old, new)
+    return text
 
 
 def _row(label: str, value: Any) -> str:
@@ -79,7 +104,7 @@ def _meta_rows(panel: Any) -> str:
     """The cross-cutting provenance/meta every panel carries."""
     rows = [
         _row("panel_id", getattr(panel, "panel_id", "")),
-        _row("source_layer", getattr(panel, "source_layer", "")),
+        _row("source_layer", _public_layer(getattr(panel, "source_layer", ""))),
         _row("source_class", getattr(panel, "source_class", "")),
     ]
     ids = tuple(getattr(panel, "source_object_ids", ()) or ())
@@ -146,12 +171,12 @@ def _header(cockpit: AlphaDecisionCockpitView) -> str:
         _row("Provenance-chain length", len(cockpit.provenance_chain)),
     ])
     body = (
-        "<p class=\"lead\">Alpha Decision Cockpit &mdash; read-only presentation of "
-        "the assembled view. No reasoning, scoring, ingestion, or order affordance "
+        "<p class=\"lead\">Company Cockpit &mdash; read-only presentation of "
+        "the assembled view. No reasoning, ingestion, or execution affordance "
         "is originated here.</p>\n" + _table(rows)
     )
     return (
-        "<header id=\"case-summary\">\n<h1>Alpha Decision Cockpit</h1>\n" + body + "\n</header>\n"
+        "<header id=\"case-summary\">\n<h1>Company Cockpit</h1>\n" + body + "\n</header>\n"
     )
 
 
@@ -213,9 +238,9 @@ def _value_chain_bottleneck(p: Any) -> str:
             _val(w.margin_capture_ability),
         )
     winners_tbl = (
-        "<h4>Winner mapping (scored players)</h4>"
+        "<h4>Winner mapping (mapped players)</h4>"
         "<table class=\"grid\"><tr><th>name</th><th>ticker</th><th>role</th>"
-        "<th>winner score</th><th>exposure directness</th>"
+        "<th>winner mapping value</th><th>exposure directness</th>"
         "<th>margin capture</th></tr>{0}</table>"
     ).format(win_rows or "<tr><td colspan=\"6\">(none)</td></tr>")
 
@@ -335,7 +360,7 @@ def _financial_inflection(p: Any) -> str:
         _row("Customer concentration", p.customer_concentration),
         _row("Inflection timing", p.inflection_timing),
         _row("Financial-inflection probability", p.financial_inflection_probability),
-        _row("Financial-inflection score", p.financial_inflection_score),
+        _row("Financial-inflection value", p.financial_inflection_score),
         _list_block("Notes", p.notes),
     ])
     return _section("financial_inflection", "4. Financial Inflection",
@@ -348,7 +373,7 @@ def _financial_inflection(p: Any) -> str:
 def _scenario_asymmetry(p: Any) -> str:
     rows = _meta_rows(p) + "".join([
         _row("Asymmetry label (classification)", p.asymmetry_label),
-        _row("Asymmetry score", p.asymmetry_score),
+        _row("Asymmetry value", p.asymmetry_score),
         _row("Upside potential", p.upside_potential),
         _row("Downside risk", p.downside_risk),
         _row("Upside/downside ratio", p.upside_downside_ratio),
@@ -395,14 +420,14 @@ def _technical(p: Any) -> str:
         _row("Failed-breakout risk", p.failed_breakout_risk),
         _row("Dilution / ATM overhang penalty", p.dilution_overhang_penalty),
         _row("Invalidation level", p.invalidation_level),
-        _row("Technical setup score", p.technical_setup_score),
+        _row("Technical setup value", p.technical_setup_score),
         _row("Timing quality", p.timing_quality),
         _row("Technical timing-confirmation", timing),
         _list_block("Notes", p.notes),
     ])
     note = (
         "<p class=\"flag\">Timing-confirmation read only — this confirms timing, "
-        "it is not an action or order signal.</p>"
+        "it is not an action or execution signal.</p>"
     )
     return _section("technical_confirmation", "6. Technical Confirmation",
                     note + _table(rows) + _missing_block(p))
@@ -443,11 +468,11 @@ def _personalized_action(p: Any) -> str:
     hi = sizing[1] if len(sizing) > 1 else None
     rows = _meta_rows(p) + "".join([
         _row("Recommendation status", p.recommendation_status),
-        _row("Suitability score", p.suitability_score),
-        _row("Concentration score", p.concentration_score),
-        _row("Liquidity score", p.liquidity_score),
-        _row("Risk-fit score", p.risk_fit_score),
-        _row("Portfolio-fit score", p.portfolio_fit_score),
+        _row("Suitability value", p.suitability_score),
+        _row("Concentration value", p.concentration_score),
+        _row("Liquidity value", p.liquidity_score),
+        _row("Risk-fit value", p.risk_fit_score),
+        _row("Portfolio-fit value", p.portfolio_fit_score),
         _row("Recommended max exposure %", p.recommended_max_exposure_pct),
         _row("Suggested sizing range % (low)", lo),
         _row("Suggested sizing range % (high)", hi),
@@ -475,8 +500,8 @@ def _manual_execution(p: Any) -> str:
         return _section("manual_execution", "9. Manual Execution", body)
 
     banner = (
-        "<div class=\"banner\">MANUAL EXECUTION — performed by hand outside the "
-        "system; no automated order, no broker routing, no automated trade "
+        "<div class=\"banner\">MANUAL EXECUTION PREVIEW — performed by hand outside the "
+        "system; no automated routing, no automated trade "
         "placement. This is a read-only preview only.</div>"
     )
 
@@ -497,7 +522,7 @@ def _manual_execution(p: Any) -> str:
         _row("Ticket id", p.ticket_id),
         _row("Ticket preview state", p.ticket_state),
         _row("Ticket quantity", p.ticket_quantity),
-        _row("Order type", p.order_type),
+        _row("Ticket type", p.order_type),
         _row("Limit price", p.limit_price),
         _row("Estimated cost", p.estimated_cost),
         _row("Preview hash", p.preview_hash),
@@ -508,7 +533,7 @@ def _manual_execution(p: Any) -> str:
     )
 
     record_rows = "".join([
-        _row("Broker order id (manual recording, after hand-placed trade)", p.broker_order_id),
+        _row("Broker record id (manual recording, after hand-placed trade)", p.broker_order_id),
         _row("Reconciliation all-reconciled", p.reconciliation_all_reconciled),
         _row("Audit entry count", p.audit_entry_count),
     ])
@@ -545,7 +570,7 @@ def _provenance(cockpit: AlphaDecisionCockpitView) -> str:
         upstream = ", ".join(getattr(prov, "upstream_observation_ids", ()) or ()) or "(none)"
         panel_rows += "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td></tr>".format(
             _esc(getattr(panel, "panel_id", "")),
-            _esc(getattr(panel, "source_layer", "")),
+            _esc(_public_layer(getattr(panel, "source_layer", ""))),
             _esc(paired), _esc(upstream))
     panel_tbl = (
         "<h4>Per-panel source objects + upstream observations</h4>"
@@ -611,7 +636,7 @@ def render_cockpit_html(cockpit: AlphaDecisionCockpitView) -> str:
     is fully self-contained (inline ``<style>`` only) and carries NO JavaScript, NO
     form, NO button, and no submit/order affordance -- it is display only.
     """
-    title = "Alpha Decision Cockpit — {0}".format(cockpit.subject or "(no subject)")
+    title = "Company Cockpit — {0}".format(cockpit.subject or "(no subject)")
     parts = [
         "<!DOCTYPE html>",
         "<html lang=\"en\">",

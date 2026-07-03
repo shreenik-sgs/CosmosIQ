@@ -401,8 +401,9 @@ class GuardrailTests(unittest.TestCase):
             self.assertNotIn(banned, low, "forbidden wording: {0}".format(banned))
 
     def test_visible_manual_only_banner_with_counts(self):
-        self.assertIn("Manual refresh only", self.html)
-        self.assertIn("Not broker-connected", self.html)
+        self.assertIn("Manual Refresh Only", self.html)
+        self.assertIn("Scheduler: Off", self.html)
+        self.assertIn("Broker: Disabled", self.html)
         self.assertIn("requested / ", self.html)
         self.assertIn("built / ", self.html)
 

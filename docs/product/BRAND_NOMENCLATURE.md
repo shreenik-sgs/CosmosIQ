@@ -1,58 +1,88 @@
-# Sudarshan — Product Nomenclature
+# CosmosIQ — Product Nomenclature
 
-**Status:** product-naming layer (non-architectural) · **Date:** 2026-06-30
+**Status:** product-naming layer (non-architectural) · **Supersedes** the retired *Sudarshan / EIOS*
+public naming.
 
-This document locks the **user-facing product nomenclature** for the platform. It is a *naming
-layer*, not an architecture change. No architecture ID, namespace, filename, generated
-specification path, ADR, Architectural Rule (`AR-`), or Requirement (`REQ-`) is renamed by this
-document.
+This document locks the **user-facing product nomenclature**. It is a *naming layer*, not an
+architecture change: no architecture ID, namespace, filename, generated `specification/` path, ADR,
+Architectural Rule (`AR-`), or Requirement (`REQ-`) is renamed by this document. Layer
+responsibilities are unchanged — only the public names.
 
-## The two naming registers
+## Platform, category, and architecture
 
-| Register | Name | Where it is used |
-|----------|------|------------------|
-| **Product (user-facing)** | **Sudarshan** | UI, product copy, user-facing docs, investor-facing explanations, marketing |
-| **Architecture (internal)** | **EIOS** — Economic Intelligence Operating System | `specification/`, `architecture/EIOS_Architecture_Book.md`, ADRs, code, all IDs/namespaces |
+| Register | Name |
+|---|---|
+| **Parent platform** (public) | **CosmosIQ** |
+| **Category / tagline** | **Universal Intelligence OS** |
+| **Agentic architecture** | **Reality Mesh** |
+| **Interactive UI / visualization** | **Universe Canvas** |
+| **First vertical product** | **CosmosIQ Capital — Personal CIO / Investment Intelligence** |
 
-- **Sudarshan** is the user-facing product name. *Sudarshan* — clear/auspicious vision (the discus of clear sight).
-- **EIOS** remains the internal architecture / engine name and the canonical source of truth.
-- The Sanskrit names below are **product-facing layer names**; the `EIOS / GEN / PROM / CIO / EXEC`
-  identifiers remain **canonical internally** and stable.
-- Use the product names externally; **internal specs continue using `EIOS / GEN / PROM / CIO / EXEC`
-  for precision and traceability.** The two registers coexist; neither overrides the other.
+**Positioning.** *CosmosIQ is a Universal Intelligence OS that maps reality across domains, detects
+emerging signals, synthesizes opportunity, and supports high-quality decisions through specialized
+agentic intelligence layers.*
 
-## Naming map
+**Investment vertical.** *CosmosIQ Capital is the first vertical application of CosmosIQ — a Personal
+CIO / Investment Intelligence product that turns real-world signals, market structure, sector
+rotation, value chains, forward scenarios, and portfolio context into disciplined capital-allocation
+intelligence.*
 
-```
-Sudarshan
-├── Adhara    = Foundation
-├── Buddhi    = Cognitive Architecture
-├── Tattva    = Reality Intelligence
-├── Sphurana  = Opportunity Generation / Genesis
-├── Nivesha   = Capital Allocation / Prometheus
-├── Saarathi  = Personal CIO
-├── Kriya     = Manual Execution
-└── Anubhava  = Feedback / Learning
-```
+**Future verticals:** CosmosIQ Health · CosmosIQ Defense · CosmosIQ Supply Chain · CosmosIQ Food
+Systems · CosmosIQ Security · CosmosIQ Energy.
 
-| Product name | Meaning (Sanskrit/Vedic) | Architecture layer | Internal ID / namespace |
-|--------------|--------------------------|--------------------|--------------------------|
-| **Sudarshan** | clear vision | the platform | **EIOS** |
-| **Adhara** | foundation, support | Foundation (Part I) | `EIOS-000`…`EIOS-006` |
-| **Buddhi** | intellect, cognition | Cognitive Architecture (Part II) | `EIOS-007`…`EIOS-009` |
-| **Tattva** | reality, essence | Reality Intelligence (Part III) | `EIOS-010`…`EIOS-014` |
-| **Sphurana** | emergence, flashing-forth | Opportunity Generation / Genesis (Part IV) | `GEN` |
-| **Nivesha** | investment, placement | Capital Allocation / Prometheus (Part V) | `PROM` |
-| **Saarathi** | charioteer, guide | Personal CIO (Part VI) | `CIO` |
-| **Kriya** | action, doing | Manual Execution (Part VII) | `EXEC` |
-| **Anubhava** | experience, learning from it | Feedback / Learning Loop | the upward Observation flow (EXEC-001 AR-1913) |
+## Canonical English layer names (public-facing)
 
-## Rules of use
+| Public layer name | Responsibility (unchanged) | Retired name |
+|---|---|---|
+| **Foundation Layer** | identity, provenance, authority, freshness, conflicts, security, storage | Adhara |
+| **Intelligence Governance Layer** | orchestration, routing, boundary enforcement, policy gates, mode control | Buddhi |
+| **Reality Intelligence Layer** | source sensing, real-world events, agent findings, reality signals | Tattva |
+| **Signal Fusion** | freshness, authority, corroboration, contradiction, clustering | (Tattva Signal Fusion) |
+| **Opportunity Discovery Layer** | theme pulse, megatrends, value chains, bottlenecks, beneficiaries, opportunity hypotheses | Sphurana |
+| **Investment Diligence Layer** | company positioning, forward scenarios, valuation, red team, timing, capital candidate | Nivesha |
+| **Portfolio Intelligence Layer** | portfolio fit, exposure, concentration, risk budget, sizing guardrails | Saarathi |
+| **Execution Preview Layer** | manual execution preview only, execution risk, audit | Kriya |
+| **Learning & Feedback Layer** | outcomes, signal reliability, thesis review, timing review, archetype learning | Anubhava |
 
-- **External / product / investor:** prefer the product names (Sudarshan, Adhara, Buddhi, Tattva,
-  Sphurana, Nivesha, Saarathi, Kriya, Anubhava). "Powered by EIOS" is the approved attribution.
-- **Internal / engineering / specification:** continue to use `EIOS`, `GEN`, `PROM`, `CIO`, `EXEC`
-  and the numbered chapter/AR/REQ identifiers. These are the traceability backbone and **do not
-  change**.
-- This naming layer **adds vocabulary; it renames nothing.** The Architecture Book remains the
-  single source of truth, and its identifiers are authoritative for any architectural reference.
+Public stack order: **Foundation → Intelligence Governance → Reality Intelligence → Signal Fusion →
+Opportunity Discovery → Investment Diligence → Portfolio Intelligence → Execution Preview → Learning &
+Feedback.**
+
+## App navigation & Universe Canvas terms
+
+Public nav labels: **Universe Canvas** · **CosmosIQ Capital** · **Trust & Data Quality** · **Reality
+Mesh** (future/internal until implemented). Retired: *Economic Universe* → Universe Canvas; *CIO
+Dashboard* → CosmosIQ Capital; *Data Quality* → Trust & Data Quality.
+
+Universe Canvas celestial mapping: Universe = full CosmosIQ intelligence space · **Galaxy = Mega
+Theme** (not a generic domain) · Milky Way = Theme · Solar System = Value Chain · Star = Bottleneck ·
+Planet = Company / Capital Candidate · Moon = Supplier / Customer / Dependency · Comet = Catalyst ·
+Black Hole = Major Risk / Red-Team Hazard · Nebula = Emerging Weak Signal / Early Theme Cloud.
+
+## Retired public names
+
+The following are **retired from all public-facing surfaces** (UI, generated reports, diagrams,
+public docs, operator docs): the **Sudarshan / Sudarshana** product label; **EIOS** as a *public*
+product label; and the Sanskrit layer names **Adhara, Buddhi, Tattva, Sphurana, Nivesha, Saarathi,
+Kriya, Anubhava**.
+
+> Legacy Sanskrit layer names were retired in favor of English product terminology for clarity,
+> marketability, and user comprehension.
+
+## Internal legacy aliases (backward compatibility)
+
+Some internal module identifiers temporarily retain legacy names for backward compatibility and
+architectural traceability. Public-facing terminology has migrated to CosmosIQ and the English layer
+names above; these internal identifiers do **not** appear in any public output:
+
+- `src/reality_mesh/` internals and some symbol names (e.g. `tattva_*` fusion, `sphurana.py`,
+  `nivesha_forward.py`) — the Reality Mesh implementation.
+- `src/tattva_pulse/` — the manual pulse CLI package (its user-facing output uses CosmosIQ terms).
+- `src/prometheus/`, `src/genesis/`, `src/personal_cio/`, `src/execution_manual/` — internal engines.
+- `EIOS` and the `EIOS / GEN / PROM / CIO / EXEC` identifiers + numbered IDs in
+  `architecture/` / `specification/` — the internal architecture source of truth and its ADR/AR/REQ
+  traceability, which remain stable and are not renamed by this naming layer.
+
+Renaming these internal identifiers is deferred to a later, separately-gated pass so imports and
+architecture traceability are not broken. This document is the single source of naming truth; where
+an internal identifier is surfaced to a user, it is mapped to the public names above.

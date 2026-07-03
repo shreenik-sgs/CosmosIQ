@@ -323,7 +323,7 @@ class CockpitEnrichmentNoteTests(unittest.TestCase):
             transports=_mock(), enrich=True, now=_NOW)
         ck = _read(paths, "cockpit.html")
         self.assertIn("Diligence enrichment (read-only evidence)", ck)
-        self.assertIn("broker order: none", ck.lower())
+        self.assertIn("broker record: none", ck.lower())
         low = ck.lower()
         self.assertIsNone(re.search(r"\b(buy|sell)\b", low))
         for banned in ("<button", "<form", "onclick", 'type="submit"', "place order"):
@@ -355,7 +355,7 @@ class WatchlistEnrichmentGraphTests(unittest.TestCase):
         # three co-located company planets, one merged theme, no centre / fake edges
         planets = [p for p in self.uni.panel_paths if "/pl:" in p]
         self.assertGreaterEqual(len(planets), 3)
-        self.assertEqual(self.uni.rel_line_edges(), 0)  # no invented centre/hub lines
+        self.assertEqual(self.uni.connector_classes(), [])  # no invented centre/hub lines
 
     def test_every_data_intel_resolves_and_no_dead_anchors(self):
         self.uni.assert_intel_closed(self)

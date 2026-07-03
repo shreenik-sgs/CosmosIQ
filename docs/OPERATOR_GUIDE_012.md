@@ -54,11 +54,11 @@ One pulse runs the full sensor chain, deterministically and offline:
 
 ```
 fixtures (RealityEvents)
-   → Tattva sensor agents (run_checked, discipline-bounded)
+   → Reality Intelligence Layer sensor agents (run_checked, discipline-bounded)
         market regime · sector rotation · theme rotation · news/filings · X/social narrative
-   → Buddhi routing (HandoffEnvelope per finding)
-   → Tattva Signal Fusion  → RealitySignals + SignalClusters
-   → Sphurana Theme Pulse   → ThemePulses
+   → Intelligence Governance routing (HandoffEnvelope per finding)
+   → Signal Fusion            → RealitySignals + SignalClusters
+   → Opportunity Discovery Theme Pulse   → ThemePulses
    → Data-Quality roll-up   → signals/pulses + honest gaps
 ```
 
@@ -66,7 +66,7 @@ Every agent emits qualitative **labels** only (direction / magnitude / urgency /
 freshness / corroboration / contradiction). **No numeric investability score, rank, or rating**
 appears anywhere; **no buy / sell / hold / order / broker** field exists on any output.
 
-The produced signals and theme pulses are rendered into the Economic Universe **Data-Quality page**
+The produced signals and theme pulses are rendered into the Universe Canvas **Trust & Data Quality page**
 as **evidence** (the 012J panel), and a machine-readable `pulse_summary.json` (labels / gaps /
 provenance — no scores) is written alongside the pages.
 
@@ -78,7 +78,7 @@ Under `--out`:
 
 | File | What it is |
 |------|------------|
-| `universe.html`, `dashboard.html`, `data_quality.html`, `cockpit.html` | the Economic Universe pages (demo terrain). **Data Quality** carries the manual-pulse reality-signal evidence panel. |
+| `universe.html`, `dashboard.html`, `data_quality.html`, `cockpit.html` | the Universe Canvas pages (demo terrain). **Trust & Data Quality** carries the manual-pulse reality-signal evidence panel. |
 | `pulse_summary.json` | machine-readable pulse summary: watchlist / themes, per-agent run status, signal labels + provenance, theme-pulse states, and the consolidated data gaps. **Labels only — no scores.** |
 | `assets/…` | local CSS / JS / SVG (no network). |
 
@@ -124,10 +124,11 @@ On the Data-Quality page and in `pulse_summary.json`:
 - **No investment ranking / score / rank / rating.** The mesh emits reality **evidence** only.
 - **No secrets in output.** No API keys in HTML, JSON, or logs.
 
-The downstream layer boundaries remain **intact**: a `ThemePulse` is not a Nivesha investment
-thesis; **Nivesha** tests hypotheses (it is not run by the pulse), **Saarathi** would show sizing
-ranges / guardrails (not orders), and **Kriya** is manual execution **preview** only
-(`broker_order_id` always `None`). The pulse stops at Tattva-fusion + Sphurana evidence.
+The downstream layer boundaries remain **intact**: a `ThemePulse` is not an Investment Diligence
+thesis; the **Investment Diligence Layer** tests hypotheses (it is not run by the pulse), the
+**Portfolio Intelligence Layer** would show sizing ranges / guardrails (not orders), and the
+**Execution Preview Layer** is manual execution **preview** only (`broker_order_id` always `None`).
+The pulse stops at Signal Fusion + Opportunity Discovery evidence.
 
 ---
 

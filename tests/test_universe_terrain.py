@@ -297,7 +297,7 @@ class RendererFromTerrainTests(unittest.TestCase):
         for b in self.view.dashboard.buckets:
             for card in b.cards:
                 self.assertIn(card.ticker, tickers)
-        self.assertIn("Demo candidate dashboard", dash)
+        self.assertIn("CosmosIQ Capital", dash)
         # floating preview + cockpit action present in the universe page
         u = self.html["universe.html"]
         self.assertIn('id="floating-preview"', u)
@@ -308,9 +308,10 @@ class RendererFromTerrainTests(unittest.TestCase):
         self.assertEqual(len(self.view.edges), len(self.terrain.relationship_edges))
         l0 = re.search(r'data-level="0"[^>]*>(.*?)</section>',
                        self.html["universe.html"], re.S).group(1)
-        self.assertIn('class="rel-lines"', l0)
-        self.assertNotIn('class="orbit-lines"', l0)   # no hub-and-spoke at L0
-        self.assertNotIn('x2="50.00" y2="47.00"', l0)  # no artificial centre
+        self.assertNotIn('class="rel-lines"', l0)
+        self.assertNotIn('class="orbit-lines"', l0)
+        self.assertNotIn("<line ", l0)
+        self.assertIn("Related domains", self.html["universe.html"])
 
 
 # =========================================================================== #

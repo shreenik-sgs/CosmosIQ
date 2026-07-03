@@ -18,8 +18,8 @@ B. IREN vertical slice -- the terrain builds from the accepted slice; IREN is a 
 C. renderer -- the evidence-mode build renders universe / dashboard / data_quality from
    the evidence terrain; every ``data-intel`` resolves; the floating preview carries
    evidence-derived fields; the missing-data placeholders + "terrain incomplete" notice
-   are visible; the accepted SKY layout (body.sky hero + below-fold pane + semantic
-   rel-lines, no centre hub) is preserved; the mode is shown as
+   are visible; the accepted SKY layout (body.sky hero + below-fold pane + no visible
+   connector graph / centre hub) is preserved; the mode is shown as
    ``evidence_ingested_fixture`` (never live / demo);
 D. guardrails -- no live network / API / secret import (AST); no scheduler; no broker; no
    buy/sell/order/submit affordance; no new ``*score`` function; no unrelated demo
@@ -280,13 +280,14 @@ class EvidenceRendererTests(unittest.TestCase):
         self.assertIn('class="universe-hero"', u)
         self.assertIn('class="intel-pane intel-section"', u)
         self.assertLess(u.index('class="universe-hero"'), u.index('id="intel-pane"'))
-        # semantic relationship lines, NO centre hub-and-spoke at L0
+        # clean cosmos: no visible relationship-line / hub-and-spoke SVG at L0
         l0 = re.search(r'data-level="0"[^>]*>(.*?)</section>', u, re.S).group(1)
-        self.assertIn('class="rel-lines"', l0)
+        self.assertNotIn('class="rel-lines"', l0)
         self.assertNotIn('class="orbit-lines"', l0)
-        # mode is shown as evidence_ingested_fixture -- never live, never demo
-        self.assertIn("Mode: evidence_ingested_fixture", u)
-        self.assertNotIn("Mode: fixture/demo", u)
+        self.assertNotIn("<line ", l0)
+        # mode is shown as the evidence fixture -- never live, never demo
+        self.assertIn("Mode: Evidence Fixture", u)
+        self.assertNotIn("Mode: Demo Fixture", u)
         self.assertNotIn("DEMO", u)
 
 
@@ -363,7 +364,7 @@ class EvidenceGuardrailTests(unittest.TestCase):
         paths = build_universe_app(d)  # default mode="demo"
         with open(paths["universe.html"], encoding="utf-8") as fh:
             u = fh.read()
-        self.assertIn("Mode: fixture/demo", u)
+        self.assertIn("Mode: Demo Fixture", u)
         self.assertIn("AI Infrastructure", u)
         self.assertIn("Data Centers", u)
 
