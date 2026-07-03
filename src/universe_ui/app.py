@@ -52,6 +52,7 @@ def build_universe_app(output_dir: str, mode: str = "demo",
                        signal_clusters: Optional[object] = None,
                        theme_pulses: Optional[object] = None,
                        pulse_authority_by_signal: Optional[object] = None,
+                       run_observability_html: str = "",
                        now: Optional[float] = None) -> Dict[str, str]:
     """Build all pages + local assets into ``output_dir``; return their paths.
 
@@ -76,6 +77,12 @@ def build_universe_app(output_dir: str, mode: str = "demo",
     per-company enrichment cards, the Data-Quality enrichment-coverage panel, and a read-only
     cockpit enrichment note. Absent both, the terrain stays honestly sparse (missing → visible
     gap) and the build is byte-identical to the pre-011C output. Demo NEVER enriches.
+
+    ``run_observability_html`` (IMPLEMENTATION-013F) is an OPT-IN pre-rendered persisted-run
+    observability panel (see ``reality_mesh.render_adapters.build_run_observability_panel``)
+    appended to the Data-Quality page directly after the 012J pulse panel — the same additive
+    seam: the empty default keeps every mode's output byte-identical. Evidence + observability
+    only; never a trade action.
 
     Deterministic: demo / fixture builds into two fresh directories are byte-identical.
     Real mode is deterministic only when ``transports`` + ``now`` are injected (tests).
@@ -128,7 +135,8 @@ def build_universe_app(output_dir: str, mode: str = "demo",
         view = build_economic_universe_view(
             slice_result, terrain=terrain, source_status=source_status,
             enrichment_bundles=bundles, enrichment_by_subject=by_subject)
-        pages = render_all_pages(view, slice_result, pulse_panel_html=pulse_panel_html)
+        pages = render_all_pages(view, slice_result, pulse_panel_html=pulse_panel_html,
+                                 run_observability_html=run_observability_html)
         return _write_pages(output_dir, assets_dir, pages)
 
     slice_result = iren_slice if iren_slice is not None else load_iren_slice(fixture_dir)
@@ -148,7 +156,8 @@ def build_universe_app(output_dir: str, mode: str = "demo",
         view = build_economic_universe_view(slice_result)
     else:
         raise ValueError("unknown mode: {0!r}".format(mode))
-    pages = render_all_pages(view, slice_result, pulse_panel_html=pulse_panel_html)
+    pages = render_all_pages(view, slice_result, pulse_panel_html=pulse_panel_html,
+                             run_observability_html=run_observability_html)
     return _write_pages(output_dir, assets_dir, pages)
 
 

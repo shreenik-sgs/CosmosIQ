@@ -99,7 +99,10 @@ from .fusion import (
     TattvaSignalFusionSynthesizer,
 )
 from .sphurana import OpportunityDiscoveryResult, SphuranaResult, ThemePulseSynthesizer
-from .render_adapters import build_pulse_data_quality_panel
+from .render_adapters import (
+    build_pulse_data_quality_panel,
+    build_run_observability_panel,
+)
 from .pulse import (
     DEFAULT_PULSE_FIXTURE_DIR,
     PulseAgentRun,
@@ -175,6 +178,11 @@ from .stores import (
 from .replay import (
     ReplayHarness,
     ReplayReconstruction,
+)
+from .pulse_persistence import (
+    PULSE_FIXTURE_SOURCE_ID,
+    agent_results_from_pulse,
+    persist_and_summarize,
 )
 from .ledger import (
     AgentRunLedger,
@@ -336,6 +344,7 @@ __all__ = [
     "run_nivesha_thesis_on_forward_sidecar",
     # data-quality / universe signal integration (012J)
     "build_pulse_data_quality_panel",
+    "build_run_observability_panel",
     # manual/on-demand pulse orchestrator (012K)
     "run_pulse",
     "PulseResult",
@@ -384,6 +393,10 @@ __all__ = [
     # deterministic replay harness (013C)
     "ReplayHarness",
     "ReplayReconstruction",
+    # pulse persistence + observability glue (013F)
+    "PULSE_FIXTURE_SOURCE_ID",
+    "agent_results_from_pulse",
+    "persist_and_summarize",
     # agent run ledger + failure-isolating runner (013D)
     "AgentRunLedger",
     "run_agent_isolated",

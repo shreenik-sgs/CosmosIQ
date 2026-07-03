@@ -1320,7 +1320,7 @@ def render_universe(view: EconomicUniverseView, strip_text: Optional[str] = None
         '<a id="zoom-fit" class="zoom-ctrl" href="#">Fit all</a>'
         '<a id="zoom-locate" class="zoom-ctrl" href="#">Locate</a>'
         '<a id="zoom-reset" class="zoom-ctrl" href="#">Reset</a>'
-        '<span class="hint">scroll = zoom · drag = pan · click = descend</span>'
+        '<span class="hint">scroll = zoom · drag = swivel · click = descend</span>'
         "</div></div>"
         + viewport + "</section>")
     # HERO = the full-viewport telescope universe (first screen); the intelligence
@@ -1886,7 +1886,8 @@ def _enrichment_coverage_panel(dq: DataQualityView) -> str:
 
 
 def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
-                        notice: str = "", pulse_panel_html: str = "") -> str:
+                        notice: str = "", pulse_panel_html: str = "",
+                        run_observability_html: str = "") -> str:
     is_ev = "evidence" in (dq.run_mode or "").lower()
     terrain_badge = (_badge("evidence-ingested terrain", "evidence") if is_ev
                      else _badge("DEMO terrain", "demo"))
@@ -1945,6 +1946,10 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
         # 012J: manual-pulse reality-signal EVIDENCE panel (empty unless pulse signals supplied;
         # additive/opt-in so demo/real/enriched default output stays byte-identical)
         + pulse_panel_html
+        # 013F: persisted-run OBSERVABILITY panel (run/agent/source health + gate results +
+        # replay metadata). Same additive/opt-in seam as the pulse panel: empty default ->
+        # byte-identical page; evidence + observability only, never a trade action.
+        + run_observability_html
         + '<h2>Source hierarchy pipeline</h2>'
         + '<div class="glass-panel">' + _dq_pipeline(dq)
         + '<p class="note">Authority hierarchy: SEC canonical (EDGAR) &gt; FMP convenience &gt; '
@@ -1978,7 +1983,8 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
 # Convenience: render every page from one view                               #
 # --------------------------------------------------------------------------- #
 def render_all_pages(view: EconomicUniverseView, iren_slice,
-                     pulse_panel_html: str = "") -> Tuple[Tuple[str, str], ...]:
+                     pulse_panel_html: str = "",
+                     run_observability_html: str = "") -> Tuple[Tuple[str, str], ...]:
     """Return an ordered ((filename, html), ...) for all four pages.
 
     Galaxy / value-chain / bottleneck are zoom LEVELS inside ``universe.html`` — not
@@ -1995,7 +2001,8 @@ def render_all_pages(view: EconomicUniverseView, iren_slice,
         ("dashboard.html", render_dashboard(view.dashboard, strip_text=strip_text)),
         ("data_quality.html", render_data_quality(
             view.data_quality, strip_text=strip_text, notice=notice,
-            pulse_panel_html=pulse_panel_html)),
+            pulse_panel_html=pulse_panel_html,
+            run_observability_html=run_observability_html)),
         ("cockpit.html", render_cockpit(
             iren_slice, strip_text=strip_text, enrichment_note=enrichment_note)),
     )

@@ -46,6 +46,17 @@ def main(argv=None) -> int:
         "--fixture-dir", default=None,
         help="optional override for the bundled pulse fixture directory (OFFLINE JSON only; "
              "there is no live/network source).")
+    parser.add_argument(
+        "--persist-dir", default=None,
+        help="OPT-IN (IMPLEMENTATION-013F, default OFF): also persist this run into append-only "
+             "JSONL stores under this local directory, verify it replays deterministically, and "
+             "render the run-observability panel into the Data-Quality page. Local files only -- "
+             "no network, no scheduler, no broker.")
+    parser.add_argument(
+        "--run-id", default=None,
+        help="optional stable run id for --persist-dir (default: derived deterministically from "
+             "the watchlist + themes). Re-persisting the same run id into the same store dir "
+             "appends new history (stores are append-only) -- use a fresh id per persisted run.")
     args = parser.parse_args(argv)
 
     watch = [t for t in (args.watchlist or "").split(",") if t.strip()]
@@ -62,6 +73,22 @@ def main(argv=None) -> int:
 
     result = run_pulse(watch, themes, fixture_dir=args.fixture_dir)
 
+    # 013F OPT-IN persistence: only when --persist-dir is explicitly passed (default OFF -- the
+    # CLI output and pages stay byte-identical without it). Persists the run into append-only
+    # local stores, verifies a deterministic replay, and renders the observability panel.
+    pulse_run = replay_result = None
+    run_observability_html = ""
+    if args.persist_dir:
+        import hashlib
+
+        from reality_mesh.pulse_persistence import persist_and_summarize
+
+        run_id = args.run_id or "pulse-{0}".format(hashlib.md5(
+            ("|".join(result.watchlist) + "||" + "|".join(result.themes)).encode(
+                "utf-8")).hexdigest()[:12])
+        pulse_run, replay_result, run_observability_html = persist_and_summarize(
+            result, store_dir=args.persist_dir, run_id=run_id)
+
     # Render the produced signals / clusters / theme pulses into the Economic Universe Data-Quality
     # page as EVIDENCE (012J panel). Demo mode + the opt-in pulse args only -- the demo default
     # stays byte-identical when no pulse args are passed. No network, no scheduler, no broker.
@@ -70,7 +97,8 @@ def main(argv=None) -> int:
         pulse_signals=result.signals,
         signal_clusters=result.clusters,
         theme_pulses=result.theme_pulses,
-        pulse_authority_by_signal=result.authority_by_signal)
+        pulse_authority_by_signal=result.authority_by_signal,
+        run_observability_html=run_observability_html)
 
     # Machine-readable summary (labels / gaps / provenance; no scores).
     summary = build_pulse_summary(result)
@@ -100,6 +128,11 @@ def main(argv=None) -> int:
             print("    - {0}".format(g))
     else:
         print("  data gaps: none recorded in this pulse")
+    if pulse_run is not None and replay_result is not None:
+        print("  run persisted · replayable (deterministic_match: {0})".format(
+            replay_result.deterministic_match))
+        print("    run_id: {0} · stores (append-only JSONL): {1}".format(
+            pulse_run.run_id, args.persist_dir))
     print("Outputs written under {0}:".format(args.out))
     for name in PAGE_ORDER:
         print("  {0}".format(paths[name]))
