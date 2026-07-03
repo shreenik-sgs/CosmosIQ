@@ -73,6 +73,8 @@ class AgentRegistry:
         return tuple(self._descriptors[k] for k in sorted(self._descriptors))
 
     def list_by_layer(self, layer: str) -> Tuple[AgentDescriptor, ...]:
+        # Accept a legacy Sanskrit name or the English value (descriptors store English).
+        layer = _labels.normalize_layer(layer)
         return tuple(
             d for d in self.descriptors() if d.layer == layer)
 
@@ -167,26 +169,31 @@ def _build_default_descriptors() -> Tuple[AgentDescriptor, ...]:
     out = []
     for agent_id, name, record, desc in _ADHARA:
         out.append(AgentDescriptor(
-            agent_id=agent_id, agent_name=name, layer="Adhara", discipline="",
+            agent_id=agent_id, agent_name=name, layer="foundation", discipline="",
             agent_type="foundation", consumes=("RealityEvent", "raw_payload_ref"),
-            emits=(record,), allowed_downstream_layers=("Buddhi",), description=desc))
+            emits=(record,), allowed_downstream_layers=("intelligence_governance",),
+            description=desc))
     for agent_id, name, record, desc in _BUDDHI:
         out.append(AgentDescriptor(
-            agent_id=agent_id, agent_name=name, layer="Buddhi", discipline="",
+            agent_id=agent_id, agent_name=name, layer="intelligence_governance", discipline="",
             agent_type="governance", consumes=("AgentFinding", "RealityEvent"),
             emits=(record,),
-            allowed_downstream_layers=("Tattva", "Sphurana", "Nivesha", "Saarathi", "Kriya"),
+            allowed_downstream_layers=(
+                "reality_intelligence", "opportunity_discovery", "investment_diligence",
+                "portfolio_intelligence", "execution_preview"),
             description=desc))
     for (agent_id, discipline, subagents), subtype in zip(_TATTVA, TATTVA_FINDING_SUBTYPES):
         name = agent_id.split(".", 1)[1].replace("_", " ").title()
         allowed_sources = ("rumor", "social") if discipline == "narrative" else ()
         out.append(AgentDescriptor(
-            agent_id=agent_id, agent_name=name, layer="Tattva", discipline=discipline,
+            agent_id=agent_id, agent_name=name, layer="reality_intelligence",
+            discipline=discipline,
             agent_type="sensor", consumes=("RealityEvent",),
             emits=("AgentFinding", subtype), subagents=subagents,
-            allowed_sources=allowed_sources, allowed_downstream_layers=("Tattva",),
+            allowed_sources=allowed_sources,
+            allowed_downstream_layers=("reality_intelligence",),
             requires_human_review_by_default=(discipline == "narrative"),
-            description="Tattva {0} sensor; emits {1} (an AgentFinding)".format(
+            description="Reality Intelligence {0} sensor; emits {1} (an AgentFinding)".format(
                 discipline, subtype)))
     return tuple(out)
 

@@ -94,7 +94,7 @@ TATTVA_FINDING_SUBTYPES: Tuple[str, ...] = (
 # (DataQuality / RedTeam) are diagnostic surfaces with no built-in agent in this slice; their
 # emits are still token-checked but not subset-restricted.
 LAYER_ALLOWED_EMITS = {
-    "Adhara": frozenset(
+    "foundation": frozenset(
         {
             "EntityIdentityRecord",
             "ProvenanceRecord",
@@ -104,7 +104,7 @@ LAYER_ALLOWED_EMITS = {
             "SecurityGateResult",
         }
     ),
-    "Buddhi": frozenset(
+    "intelligence_governance": frozenset(
         {
             "ArchitectureComplianceResult",
             "HandoffEnvelope",
@@ -114,8 +114,8 @@ LAYER_ALLOWED_EMITS = {
             "ModeState",
         }
     ),
-    "Tattva": frozenset({"AgentFinding"}) | frozenset(TATTVA_FINDING_SUBTYPES),
-    "Sphurana": frozenset(
+    "reality_intelligence": frozenset({"AgentFinding"}) | frozenset(TATTVA_FINDING_SUBTYPES),
+    "opportunity_discovery": frozenset(
         {
             "ThemePulse",
             "MegatrendHypothesis",
@@ -127,7 +127,7 @@ LAYER_ALLOWED_EMITS = {
             "OpportunityHypothesisPacket",
         }
     ),
-    "Nivesha": frozenset(
+    "investment_diligence": frozenset(
         {
             "CompanyPositioningAssessment",
             "ForwardRevenueAssessment",
@@ -142,7 +142,7 @@ LAYER_ALLOWED_EMITS = {
             "InvestmentThesis",
         }
     ),
-    "Saarathi": frozenset(
+    "portfolio_intelligence": frozenset(
         {
             "PortfolioFitAssessment",
             "SizingGuardrail",
@@ -150,7 +150,7 @@ LAYER_ALLOWED_EMITS = {
             "ConcentrationWarning",
         }
     ),
-    "Kriya": frozenset(
+    "execution_preview": frozenset(
         {
             "ManualExecutionIntent",
             "ManualExecutionPreview",
@@ -158,7 +158,7 @@ LAYER_ALLOWED_EMITS = {
             "AuditRecord",
         }
     ),
-    "Anubhava": frozenset(
+    "learning_feedback": frozenset(
         {
             "OutcomeRecord",
             "SignalReliabilityUpdate",
@@ -174,7 +174,7 @@ LAYER_ALLOWED_EMITS = {
 # subset rule above already excludes these; this map gives a precise, testable error message
 # and a second, independent guard.
 LAYER_FORBIDDEN_EMITS = {
-    "Tattva": frozenset(
+    "reality_intelligence": frozenset(
         {
             "RealitySignal",
             "SignalCluster",
@@ -187,12 +187,12 @@ LAYER_FORBIDDEN_EMITS = {
             "ManualExecutionIntent",
         }
     ),
-    "Sphurana": frozenset(
+    "opportunity_discovery": frozenset(
         {"InvestmentThesis", "PersonalizedAction", "ManualExecutionPreview"}
     ),
-    "Nivesha": frozenset({"PersonalizedAction", "ManualExecutionPreview"}),
-    "Saarathi": frozenset({"ManualExecutionPreview"}),
-    "Kriya": frozenset({"broker_order", "auto_execute"}),
+    "investment_diligence": frozenset({"PersonalizedAction", "ManualExecutionPreview"}),
+    "portfolio_intelligence": frozenset({"ManualExecutionPreview"}),
+    "execution_preview": frozenset({"broker_order", "auto_execute"}),
 }
 
 
@@ -230,6 +230,12 @@ class AgentDescriptor:
     def __post_init__(self) -> None:
         if not isinstance(self.agent_id, str) or self.agent_id.strip() == "":
             raise ValueError("AgentDescriptor.agent_id is required and must be non-empty")
+        # Backward compatibility: canonicalise legacy Sanskrit layer names to their approved
+        # English serialized value BEFORE validation, so an old ``layer=`` still validates.
+        object.__setattr__(self, "layer", _labels.normalize_layer(self.layer))
+        object.__setattr__(
+            self, "allowed_downstream_layers",
+            tuple(_labels.normalize_layer(dl) for dl in self.allowed_downstream_layers))
         if self.layer not in _labels.LAYERS:
             raise ValueError(
                 "AgentDescriptor.layer {0!r} is not a registry layer (allowed: {1})".format(

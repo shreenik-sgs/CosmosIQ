@@ -13,7 +13,7 @@ intelligence for the next layer:
   possible beneficiary / loser CANDIDATES (roles, not a ranked pick list) + the
   ``required_diligence_questions`` Nivesha must answer + both-sided evidence refs;
 * a :class:`~reality_mesh.models.HandoffEnvelope` to Nivesha
-  (``to_layer="Nivesha"``, ``payload_type="OpportunityHypothesisPacket"``, allowed
+  (``to_layer="investment_diligence"``, ``payload_type="OpportunityHypothesisPacket"``, allowed
   ``("diligence-input", "test")``), ``requires_human_review=True``.
 
 DISCIPLINE baked into the shape (ARCHITECTURE_CONTRACT_012 §A/§E/§F). Sphurana may form
@@ -180,8 +180,8 @@ class ThemePulseSynthesizer:
     never emits a thesis / decision / ranking / score.
     """
 
-    from_layer = "Sphurana"
-    to_layer = "Nivesha"
+    from_layer = "opportunity_discovery"
+    to_layer = "investment_diligence"
     from_agent = "sphurana.theme_pulse"
     payload_type = "OpportunityHypothesisPacket"
     allowed_downstream_uses: Tuple[str, ...] = ("diligence-input", "test")
@@ -544,3 +544,8 @@ class ThemePulseSynthesizer:
             allowed_downstream_uses=self.allowed_downstream_uses,
             forbidden_downstream_uses=self.forbidden_downstream_uses,
         )
+
+
+# Migrated (English) name for the opportunity-discovery synthesizer result bundle. The legacy
+# ``SphuranaResult`` name is retained as the definition; new code should use this alias.
+OpportunityDiscoveryResult = SphuranaResult

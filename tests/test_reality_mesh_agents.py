@@ -55,9 +55,9 @@ def _boom_socket(*a, **k):
 # --------------------------------------------------------------------------- #
 def _macro_descriptor():
     return A.AgentDescriptor(
-        agent_id="tattva.macro_regime", agent_name="Macro Regime", layer="Tattva",
+        agent_id="tattva.macro_regime", agent_name="Macro Regime", layer="reality_intelligence",
         discipline="macro_regime", agent_type="sensor", consumes=("RealityEvent",),
-        emits=("AgentFinding", "MacroRegimeFinding"), allowed_downstream_layers=("Tattva",),
+        emits=("AgentFinding", "MacroRegimeFinding"), allowed_downstream_layers=("reality_intelligence",),
         description="dummy macro sensor")
 
 
@@ -87,7 +87,7 @@ class DummyMacroAgent(A.SensorAgent):
 
     def run(self, context, events):
         return (M.AgentFinding(
-            finding_id="F.macro", agent_id="tattva.macro_regime", agent_layer="Tattva",
+            finding_id="F.macro", agent_id="tattva.macro_regime", agent_layer="reality_intelligence",
             agent_name="Macro Regime", discipline="macro_regime",
             input_events=tuple(e.event_id for e in events),
             finding_type="MacroRegimeFinding", finding_summary="liquidity tightening",
@@ -96,7 +96,7 @@ class DummyMacroAgent(A.SensorAgent):
             half_life="days", source_authority_summary="convenience",
             corroboration_status="uncorroborated", contradiction_status="unopposed",
             evidence_refs=("ex1",), data_gaps=("g1",),
-            routing_targets=("TattvaSignalFusion",)),)
+            routing_targets=("SignalFusion",)),)
 
 
 class DummyNarrativeAgent(A.SensorAgent):
@@ -105,15 +105,15 @@ class DummyNarrativeAgent(A.SensorAgent):
     @property
     def descriptor(self):
         return A.AgentDescriptor(
-            agent_id="tattva.narrative", agent_name="Narrative", layer="Tattva",
+            agent_id="tattva.narrative", agent_name="Narrative", layer="reality_intelligence",
             discipline="narrative", agent_type="sensor", consumes=("RealityEvent",),
             emits=("AgentFinding", "NarrativeFinding"),
-            allowed_downstream_layers=("Tattva",),
+            allowed_downstream_layers=("reality_intelligence",),
             requires_human_review_by_default=True, description="dummy X/social sensor")
 
     def run(self, context, events):
         return (M.AgentFinding(
-            finding_id="F.narr", agent_id="tattva.narrative", agent_layer="Tattva",
+            finding_id="F.narr", agent_id="tattva.narrative", agent_layer="reality_intelligence",
             agent_name="Narrative", discipline="narrative",
             input_events=tuple(e.event_id for e in events),
             finding_type="NarrativeFinding", finding_summary="attention spike (weak)",
@@ -121,7 +121,7 @@ class DummyNarrativeAgent(A.SensorAgent):
             confidence_label="low", freshness_label="fresh",
             source_authority_summary="rumor", corroboration_status="uncorroborated",
             evidence_refs=("ex1",), data_gaps=("g1",),
-            routing_targets=("TattvaSignalFusion",)),)
+            routing_targets=("SignalFusion",)),)
 
 
 @dataclass(frozen=True)
@@ -162,13 +162,13 @@ class DescriptorTests(unittest.TestCase):
     def test_valid_descriptor_constructs(self):
         d = _macro_descriptor()
         self.assertEqual(d.agent_id, "tattva.macro_regime")
-        self.assertEqual(d.layer, "Tattva")
+        self.assertEqual(d.layer, "reality_intelligence")
         self.assertEqual(d.discipline, "macro_regime")
         self.assertIn("MacroRegimeFinding", d.emits)
 
     def test_empty_agent_id_rejected(self):
         with self.assertRaises(ValueError):
-            A.AgentDescriptor(agent_id="", layer="Tattva", discipline="macro_regime",
+            A.AgentDescriptor(agent_id="", layer="reality_intelligence", discipline="macro_regime",
                               emits=("AgentFinding",))
 
     def test_invalid_layer_rejected(self):
@@ -178,19 +178,19 @@ class DescriptorTests(unittest.TestCase):
 
     def test_invalid_discipline_rejected(self):
         with self.assertRaises(ValueError):
-            A.AgentDescriptor(agent_id="x.y", layer="Tattva", discipline="astrology",
+            A.AgentDescriptor(agent_id="x.y", layer="reality_intelligence", discipline="astrology",
                               emits=("AgentFinding",))
 
     def test_missing_forbidden_output_merged(self):
         # A descriptor built with an empty forbidden_outputs still ends up with the four.
         d = A.AgentDescriptor(
-            agent_id="x.y", layer="Tattva", discipline="macro_regime",
+            agent_id="x.y", layer="reality_intelligence", discipline="macro_regime",
             emits=("AgentFinding",), forbidden_outputs=())
         for out in A.MANDATORY_FORBIDDEN_OUTPUTS:
             self.assertIn(out, d.forbidden_outputs)
         # a caller-supplied forbidden set is preserved AND the four are merged in
         d2 = A.AgentDescriptor(
-            agent_id="x.z", layer="Tattva", discipline="macro_regime",
+            agent_id="x.z", layer="reality_intelligence", discipline="macro_regime",
             emits=("AgentFinding",), forbidden_outputs=("custom_forbidden",))
         self.assertIn("custom_forbidden", d2.forbidden_outputs)
         for out in A.MANDATORY_FORBIDDEN_OUTPUTS:
@@ -201,7 +201,7 @@ class DescriptorTests(unittest.TestCase):
 
     def test_xsocial_defaults_to_weak_narrative_rumor(self):
         d = A.AgentDescriptor(
-            agent_id="tattva.narrative", layer="Tattva", discipline="narrative",
+            agent_id="tattva.narrative", layer="reality_intelligence", discipline="narrative",
             agent_type="sensor", emits=("AgentFinding", "NarrativeFinding"))
         # allowed_sources default to weak/narrative/rumor
         self.assertEqual(d.allowed_sources, ("rumor", "social"))
@@ -210,14 +210,14 @@ class DescriptorTests(unittest.TestCase):
         for banned in ("verified_fact", "canonical"):
             with self.assertRaises(ValueError):
                 A.AgentDescriptor(
-                    agent_id="tattva.narrative", layer="Tattva", discipline="narrative",
+                    agent_id="tattva.narrative", layer="reality_intelligence", discipline="narrative",
                     emits=("AgentFinding",), allowed_sources=(banned,))
 
     def test_descriptor_may_not_declare_broker_or_score_output(self):
         for bad in ("broker_order", "buy_sell_recommendation", "auto_execute",
                     "hidden_score", "investability_score", "submit_order"):
             with self.assertRaises(ValueError):
-                A.AgentDescriptor(agent_id="x.y", layer="Tattva", discipline="macro_regime",
+                A.AgentDescriptor(agent_id="x.y", layer="reality_intelligence", discipline="macro_regime",
                                   emits=(bad,))
 
 
@@ -230,9 +230,9 @@ class RegistryTests(unittest.TestCase):
 
     def test_builtin_descriptors_load(self):
         self.assertEqual(len(self.reg), 26)
-        self.assertEqual(len(self.reg.list_by_layer("Adhara")), 6)
-        self.assertEqual(len(self.reg.list_by_layer("Buddhi")), 6)
-        self.assertEqual(len(self.reg.list_by_layer("Tattva")), 14)
+        self.assertEqual(len(self.reg.list_by_layer("foundation")), 6)
+        self.assertEqual(len(self.reg.list_by_layer("intelligence_governance")), 6)
+        self.assertEqual(len(self.reg.list_by_layer("reality_intelligence")), 14)
 
     def test_every_agent_has_stable_id_one_layer_one_discipline_typed_emit(self):
         seen = set()
@@ -258,8 +258,8 @@ class RegistryTests(unittest.TestCase):
 
     def test_every_tattva_agent_emits_only_agentfinding_subtypes(self):
         # B2: a Tattva discipline agent's declared emits are AgentFinding (+ its subtype) ONLY.
-        allowed = A.LAYER_ALLOWED_EMITS["Tattva"]
-        for d in self.reg.list_by_layer("Tattva"):
+        allowed = A.LAYER_ALLOWED_EMITS["reality_intelligence"]
+        for d in self.reg.list_by_layer("reality_intelligence"):
             for out in d.emits:
                 self.assertIn(out, allowed)
             # never a cross-layer packet / order / thesis
@@ -320,7 +320,7 @@ class SensorAgentTests(unittest.TestCase):
 
             def run(self, context, events):
                 return (M.AgentFinding(
-                    finding_id="F", agent_id="tattva.macro_regime", agent_layer="Tattva",
+                    finding_id="F", agent_id="tattva.macro_regime", agent_layer="reality_intelligence",
                     discipline="options_flow", evidence_refs=("e",)),)
 
         with self.assertRaises(ValueError):
@@ -350,9 +350,9 @@ class RouterTests(unittest.TestCase):
     def test_finding_wrapped_into_envelope_with_correct_routing(self):
         finding = DummyMacroAgent().run_checked(None, (_macro_event(),))[0]
         env = self.router.route_finding(finding)
-        self.assertEqual(env.from_layer, "Tattva")
-        self.assertEqual(env.to_layer, "Tattva")
-        self.assertEqual(env.to_synthesizer, "TattvaSignalFusion")
+        self.assertEqual(env.from_layer, "reality_intelligence")
+        self.assertEqual(env.to_layer, "reality_intelligence")
+        self.assertEqual(env.to_synthesizer, "SignalFusion")
         self.assertEqual(env.payload_type, "AgentFinding")
         self.assertEqual(env.payload_ids, ("F.macro",))
         self.assertIn("fuse", env.allowed_downstream_uses)
@@ -402,24 +402,24 @@ class BoundaryTests(unittest.TestCase):
         for bad in ("OpportunityHypothesisPacket", "InvestmentThesis", "ThemePulse",
                     "RealitySignal", "PersonalizedAction", "ManualExecutionPreview"):
             with self.assertRaises(ValueError):
-                A.AgentDescriptor(agent_id="tattva.bad", layer="Tattva",
+                A.AgentDescriptor(agent_id="tattva.bad", layer="reality_intelligence",
                                   discipline="macro_regime", emits=("AgentFinding", bad))
 
     def test_tattva_agent_cannot_declare_nivesha_output(self):
         for nivesha_out in ("CapitalCandidate", "InvestmentThesis", "ValuationAssessment"):
             with self.assertRaises(ValueError):
-                A.AgentDescriptor(agent_id="tattva.x", layer="Tattva",
+                A.AgentDescriptor(agent_id="tattva.x", layer="reality_intelligence",
                                   discipline="financial_inflection",
                                   emits=("AgentFinding", nivesha_out))
 
     def test_kriya_cannot_declare_broker_or_auto_execute(self):
         for bad in ("broker_order", "auto_execute"):
             with self.assertRaises(ValueError):
-                A.AgentDescriptor(agent_id="kriya.bad", layer="Kriya",
+                A.AgentDescriptor(agent_id="kriya.bad", layer="execution_preview",
                                   discipline="", agent_type="execution_preview",
                                   emits=("ManualExecutionPreview", bad))
         # a legitimate Kriya preview descriptor is fine
-        ok = A.AgentDescriptor(agent_id="kriya.manual_ticket", layer="Kriya", discipline="",
+        ok = A.AgentDescriptor(agent_id="kriya.manual_ticket", layer="execution_preview", discipline="",
                                agent_type="execution_preview",
                                emits=("ManualExecutionIntent", "ManualExecutionPreview"))
         self.assertIn("ManualExecutionPreview", ok.emits)
@@ -428,7 +428,7 @@ class BoundaryTests(unittest.TestCase):
         for bad in ("buy_signal", "sell_order", "place_order_intent", "hidden_score",
                     "investability_score", "rank_output"):
             with self.assertRaises(ValueError):
-                A.AgentDescriptor(agent_id="tattva.x", layer="Tattva",
+                A.AgentDescriptor(agent_id="tattva.x", layer="reality_intelligence",
                                   discipline="macro_regime", emits=(bad,))
 
     # -- AST / offline / determinism guards ------------------------------- #
@@ -483,7 +483,7 @@ class BoundaryTests(unittest.TestCase):
             env = router.route_finding(finding)
         finally:
             socket.socket = real
-        self.assertEqual(env.to_synthesizer, "TattvaSignalFusion")
+        self.assertEqual(env.to_synthesizer, "SignalFusion")
 
     def test_builds_are_deterministic(self):
         a = rm.build_default_registry()

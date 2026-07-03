@@ -52,12 +52,12 @@ def _boom_socket(*a, **k):
 # --------------------------------------------------------------------------- #
 def _finding(finding_id, agent_id, discipline, **kw):
     base = dict(
-        agent_layer="Tattva", agent_name=agent_id,
+        agent_layer="reality_intelligence", agent_name=agent_id,
         finding_type="{0}Finding".format(discipline),
         confidence_label="moderate", freshness_label="fresh", half_life="days",
         evidence_refs=("ev.{0}".format(finding_id),),
         source_refs=("src.{0}".format(finding_id),),
-        routing_targets=("TattvaSignalFusion",))
+        routing_targets=("SignalFusion",))
     base.update(kw)
     return M.AgentFinding(
         finding_id=finding_id, agent_id=agent_id, discipline=discipline, **base)
@@ -278,8 +278,8 @@ class EnvelopeTests(unittest.TestCase):
     def test_envelope_addressed_to_sphurana_as_tattva_signal_packet(self):
         res = self.fuser.fuse((), (_macro("F1", "a1"),), now="2026-06-29T00:00:00Z")
         env = res.envelope
-        self.assertEqual(env.from_layer, "Tattva")
-        self.assertEqual(env.to_layer, "Sphurana")
+        self.assertEqual(env.from_layer, "reality_intelligence")
+        self.assertEqual(env.to_layer, "opportunity_discovery")
         self.assertEqual(env.payload_type, "TattvaSignalPacket")
         self.assertIn("hypothesize", env.allowed_downstream_uses)
         self.assertIn(res.signals[0].signal_id, env.payload_ids)
@@ -412,7 +412,7 @@ class GuardrailTests(unittest.TestCase):
             res = fuser.fuse((), (_macro("F1", "a1"), _macro("F2", "a2")))
         finally:
             socket.socket = real
-        self.assertEqual(res.envelope.to_layer, "Sphurana")
+        self.assertEqual(res.envelope.to_layer, "opportunity_discovery")
 
     def test_demo_default_byte_identical(self):
         from universe_ui.app import build_universe_app

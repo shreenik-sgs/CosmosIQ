@@ -55,6 +55,7 @@ from .coverage import (
     build_enrichment_coverage,
 )
 from .nivesha_adapter import (
+    InvestmentDiligenceInputMapping,
     MappedField,
     NiveshaInputMapping,
     run_nivesha_thesis_on_enrichment,
@@ -89,6 +90,7 @@ __all__ = [
     "build_enrichment_coverage",
     "MappedField",
     "NiveshaInputMapping",
+    "InvestmentDiligenceInputMapping",
     "run_nivesha_thesis_on_enrichment",
     "to_nivesha_diligence_inputs",
 ]

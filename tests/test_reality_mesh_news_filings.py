@@ -305,9 +305,9 @@ class RouteAndFuseTests(unittest.TestCase):
         findings = _run("dilution_s3")
         env = self.router.route_finding(findings[0])
         self.assertIsInstance(env, M.HandoffEnvelope)
-        self.assertEqual(env.from_layer, "Tattva")
+        self.assertEqual(env.from_layer, "reality_intelligence")
         self.assertEqual(env.from_agent, "tattva.news_filings")
-        self.assertEqual(env.to_synthesizer, "TattvaSignalFusion")
+        self.assertEqual(env.to_synthesizer, "SignalFusion")
         self.assertEqual(env.payload_type, "AgentFinding")
         self.assertIn("fuse", env.allowed_downstream_uses)
         for use in ("broker_order", "auto_execute",
@@ -323,7 +323,7 @@ class RouteAndFuseTests(unittest.TestCase):
         self.assertIsInstance(sig, M.RealitySignal)
         self.assertEqual(sig.discipline, "news_filings")
         self.assertEqual(sig.direction_label, "deteriorating")
-        self.assertEqual(res.envelope.to_layer, "Sphurana")
+        self.assertEqual(res.envelope.to_layer, "opportunity_discovery")
 
     def test_full_offline_pipeline_under_socket_killswitch(self):
         real = socket.socket
@@ -335,7 +335,7 @@ class RouteAndFuseTests(unittest.TestCase):
             res = self.fuser.fuse(evs, findings, now="")
         finally:
             socket.socket = real
-        self.assertEqual(env.to_synthesizer, "TattvaSignalFusion")
+        self.assertEqual(env.to_synthesizer, "SignalFusion")
         self.assertTrue(res.signals)
         self.assertEqual(res.signals[0].discipline, "news_filings")
 

@@ -81,7 +81,7 @@ def _persisted_harness(store_dir=None, *, run_id="RUN1", watchlist=("IREN", "NVD
 
 def _finding(finding_id, agent_id, direction, companies=("IREN",), themes=("physical_ai",)):
     return M.AgentFinding(
-        finding_id=finding_id, agent_id=agent_id, agent_layer="Tattva",
+        finding_id=finding_id, agent_id=agent_id, agent_layer="reality_intelligence",
         agent_name="News Filings", discipline="news_filings", input_events=("E1",),
         finding_type="FilingFactFinding", affected_companies=companies,
         affected_themes=themes, direction_label=direction, magnitude_label="major",
@@ -89,7 +89,7 @@ def _finding(finding_id, agent_id, direction, companies=("IREN",), themes=("phys
         half_life="days", source_authority_summary="canonical",
         corroboration_status="uncorroborated", contradiction_status="unopposed",
         evidence_refs=("ex.{0}".format(finding_id),), source_refs=("sec:{0}".format(finding_id),),
-        routing_targets=("TattvaSignalFusion",))
+        routing_targets=("SignalFusion",))
 
 
 def _persist_custom_run(h, run_id, findings, *, now=_NOW):

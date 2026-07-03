@@ -21,11 +21,15 @@ Generated HTML and `pulse_summary.json` are build **artifacts** — do not commi
 Run from the repo root. Output goes to `--out` (default `generated/tattva_pulse`).
 
 ```bash
-PYTHONPATH=src python3 -m tattva_pulse \
+PYTHONPATH=src python3 -m cosmosiq_pulse \
   --watchlist IREN,AAOI,AMBA,OUST \
   --themes physical-ai,robotics,ai-power \
   --out generated/tattva_pulse
 ```
+
+`cosmosiq_pulse` is the approved (English-named) entry point. The legacy `python3 -m tattva_pulse`
+invocation remains a working **deprecated alias** with byte-identical output; prefer
+`cosmosiq_pulse` in new runbooks.
 
 - `--watchlist` — **REQUIRED**, comma-separated tickers (normalised: strip / upper / dedupe).
   An empty watchlist is **rejected** and nothing is produced — exactly as real mode requires a

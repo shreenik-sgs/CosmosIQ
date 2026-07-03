@@ -325,8 +325,8 @@ class EnvelopeTests(unittest.TestCase):
         s = _signal("sig.1", "theme_rotation", "improving", themes=("AI",), companies=("NVDA",))
         res = self.syn.synthesize((), (s,), now="2026-06-29T00:00:00Z")
         env = res.envelope
-        self.assertEqual(env.from_layer, "Sphurana")
-        self.assertEqual(env.to_layer, "Nivesha")
+        self.assertEqual(env.from_layer, "opportunity_discovery")
+        self.assertEqual(env.to_layer, "investment_diligence")
         self.assertEqual(env.payload_type, "OpportunityHypothesisPacket")
         self.assertIn("diligence-input", env.allowed_downstream_uses)
         self.assertIn("test", env.allowed_downstream_uses)
@@ -382,11 +382,11 @@ class FusionToSphuranaTests(unittest.TestCase):
     def test_theme_rotation_findings_flow_through_fusion_into_a_pulse(self):
         def _finding(fid, agent, discipline, **kw):
             base = dict(
-                agent_layer="Tattva", agent_name=agent,
+                agent_layer="reality_intelligence", agent_name=agent,
                 finding_type="{0}Finding".format(discipline),
                 confidence_label="moderate", freshness_label="fresh", half_life="days",
                 evidence_refs=("ev.{0}".format(fid),), source_refs=("src.{0}".format(fid),),
-                routing_targets=("TattvaSignalFusion",))
+                routing_targets=("SignalFusion",))
             base.update(kw)
             return M.AgentFinding(finding_id=fid, agent_id=agent, discipline=discipline, **base)
 
@@ -408,7 +408,7 @@ class FusionToSphuranaTests(unittest.TestCase):
         self.assertIn(pulse.state, ("Warming", "Igniting", "Broadening"))
         self.assertEqual(len(res.hypotheses), 1)
         self.assertTrue(res.hypotheses[0].required_diligence_questions)
-        self.assertEqual(res.envelope.to_layer, "Nivesha")
+        self.assertEqual(res.envelope.to_layer, "investment_diligence")
 
 
 # =========================================================================== #
@@ -459,7 +459,7 @@ class GuardrailTests(unittest.TestCase):
             res = syn.synthesize((), (s,))
         finally:
             socket.socket = real
-        self.assertEqual(res.envelope.to_layer, "Nivesha")
+        self.assertEqual(res.envelope.to_layer, "investment_diligence")
 
     def test_demo_default_byte_identical(self):
         from universe_ui.app import build_universe_app

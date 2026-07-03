@@ -5,7 +5,7 @@ The FIRST synthesizer. It consumes Tattva :class:`~reality_mesh.models.AgentFind
 freshness / conflict summaries) and FUSES them into higher-order reality intelligence --
 :class:`~reality_mesh.models.RealitySignal`s and :class:`~reality_mesh.models.SignalCluster`s --
 wrapped for Sphurana in a :class:`~reality_mesh.models.HandoffEnvelope`
-(``to_layer="Sphurana"``, ``payload_type="TattvaSignalPacket"``, allowed ``("hypothesize",)``).
+(``to_layer="opportunity_discovery"``, ``payload_type="TattvaSignalPacket"``, allowed ``("hypothesize",)``).
 
 EVIDENCE INTEGRITY (ARCHITECTURE_CONTRACT_012 §D). The synthesizer NEVER:
 
@@ -193,7 +193,7 @@ class TattvaSignalFusionSynthesizer:
     helper. Never mutates its inputs; never averages a contradiction away; never invents data.
     """
 
-    to_layer = "Sphurana"
+    to_layer = "opportunity_discovery"
     payload_type = "TattvaSignalPacket"
     allowed_downstream_uses: Tuple[str, ...] = ("hypothesize",)
     # All members of the closed FORBIDDEN_DOWNSTREAM_USES vocab; the envelope additionally
@@ -524,7 +524,7 @@ class TattvaSignalFusionSynthesizer:
         return HandoffEnvelope(
             envelope_id="env.fusion.{0}".format(digest),
             created_at=now,
-            from_layer="Tattva",
+            from_layer="reality_intelligence",
             to_layer=self.to_layer,
             from_agent="tattva.signal_fusion",
             to_synthesizer="Sphurana",
@@ -556,3 +556,9 @@ def _union(iterables) -> Tuple[str, ...]:
         for v in it:
             seen.add(v)
     return tuple(sorted(seen))
+
+
+# Migrated (English) name for the reality-intelligence signal-fusion synthesizer. The legacy
+# ``TattvaSignalFusionSynthesizer`` class name is retained as the definition; new code should
+# use this alias. Both are exported.
+RealityIntelligenceSignalFusion = TattvaSignalFusionSynthesizer

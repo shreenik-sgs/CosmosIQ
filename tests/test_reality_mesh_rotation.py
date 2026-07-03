@@ -372,9 +372,9 @@ class RouteAndFuseTests(unittest.TestCase):
         findings = _sector("sector_rotation_into")
         env = self.router.route_finding(findings[0])
         self.assertIsInstance(env, M.HandoffEnvelope)
-        self.assertEqual(env.from_layer, "Tattva")
+        self.assertEqual(env.from_layer, "reality_intelligence")
         self.assertEqual(env.from_agent, "tattva.sector_rotation")
-        self.assertEqual(env.to_synthesizer, "TattvaSignalFusion")
+        self.assertEqual(env.to_synthesizer, "SignalFusion")
         self.assertEqual(env.payload_type, "AgentFinding")
         self.assertIn("fuse", env.allowed_downstream_uses)
         for use in ("broker_order", "auto_execute",
@@ -388,7 +388,7 @@ class RouteAndFuseTests(unittest.TestCase):
             None, events_from_fixture(os.path.join(_MR_FIXTURES, "risk_off.json")))
         for f in list(sector_findings) + list(mr_findings):
             env = self.router.route_finding(f)
-            self.assertEqual(env.to_synthesizer, "TattvaSignalFusion")
+            self.assertEqual(env.to_synthesizer, "SignalFusion")
 
         sector_events = _load("sector_rotation_out_semis")
         mr_events = events_from_fixture(os.path.join(_MR_FIXTURES, "risk_off.json"))
@@ -402,7 +402,7 @@ class RouteAndFuseTests(unittest.TestCase):
         self.assertIn("market_regime", disciplines)
         for s in res.signals:
             self.assertIsInstance(s, M.RealitySignal)
-        self.assertEqual(res.envelope.to_layer, "Sphurana")
+        self.assertEqual(res.envelope.to_layer, "opportunity_discovery")
 
     def test_theme_fuses_into_reality_signal(self):
         evs = _load("theme_into_physical_ai")
@@ -421,7 +421,7 @@ class RouteAndFuseTests(unittest.TestCase):
             res = self.fuser.fuse(evs, findings, now="")
         finally:
             socket.socket = real
-        self.assertEqual(env.to_synthesizer, "TattvaSignalFusion")
+        self.assertEqual(env.to_synthesizer, "SignalFusion")
         self.assertTrue(res.signals)
 
 

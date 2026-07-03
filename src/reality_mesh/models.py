@@ -46,6 +46,18 @@ def _require_ids(obj, names: Tuple[str, ...]) -> None:
                     type(obj).__name__, name))
 
 
+def _normalize_layer_fields(obj, names) -> None:
+    """Canonicalise the named layer fields to their approved English value (in place).
+
+    Backward compatibility: a legacy Sanskrit layer name (or a display label) is rewritten to
+    its English serialized value BEFORE label validation, so any old value still validates.
+    """
+    for name in names:
+        value = getattr(obj, name, "")
+        if value:
+            object.__setattr__(obj, name, _labels.normalize_layer(value))
+
+
 def _validate_labels(obj) -> None:
     """Validate every closed-label field of ``obj`` against its vocabulary.
 
@@ -176,6 +188,7 @@ class AgentFinding:
 
     def __post_init__(self) -> None:
         _require_ids(self, ("finding_id", "agent_id"))
+        _normalize_layer_fields(self, ("agent_layer",))
         _validate_labels(self)
         _guard_provenance(self)
 
@@ -217,6 +230,7 @@ class HandoffEnvelope:
             if use not in merged:
                 merged.append(use)
         object.__setattr__(self, "forbidden_downstream_uses", tuple(merged))
+        _normalize_layer_fields(self, ("from_layer", "to_layer"))
         _validate_labels(self)
 
     def permits(self, use: str) -> bool:

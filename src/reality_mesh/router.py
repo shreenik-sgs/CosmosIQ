@@ -27,9 +27,9 @@ from .models import AgentFinding, HandoffEnvelope, RealityEvent
 # from_layer -> (to_layer, to_synthesizer, allowed_downstream_uses). A discipline agent emits
 # an AgentFinding; a Tattva finding routes to the Tattva Signal Fusion synthesizer (HANDOFF §4.2).
 _FINDING_ROUTE = {
-    "Tattva": ("Tattva", "TattvaSignalFusion", ("fuse",)),
+    "reality_intelligence": ("reality_intelligence", "SignalFusion", ("fuse",)),
 }
-_DEFAULT_ROUTE = ("Tattva", "TattvaSignalFusion", ("fuse",))
+_DEFAULT_ROUTE = ("reality_intelligence", "SignalFusion", ("fuse",))
 
 # Forbidden downstream uses stamped on every finding envelope (all members of the closed
 # FORBIDDEN_DOWNSTREAM_USES vocab). The envelope additionally merges in the four mandatory
@@ -61,7 +61,7 @@ class BuddhiRouter:
         if discipline == "":
             return tuple()
         matches = [
-            d for d in self._registry.list_by_layer("Tattva")
+            d for d in self._registry.list_by_layer("reality_intelligence")
             if d.agent_type == "sensor" and d.discipline == discipline
         ]
         return tuple(sorted(matches, key=lambda d: d.agent_id))
@@ -79,7 +79,7 @@ class BuddhiRouter:
                 "route_finding expects an AgentFinding, got {0}".format(type(finding).__name__))
 
         to_layer, to_synth, allowed_uses = _FINDING_ROUTE.get(
-            finding.agent_layer, _DEFAULT_ROUTE)
+            _labels.normalize_layer(finding.agent_layer), _DEFAULT_ROUTE)
 
         requires_review = False
         if self._registry is not None and self._registry.has(finding.agent_id):
@@ -105,3 +105,8 @@ class BuddhiRouter:
             allowed_downstream_uses=allowed_uses,
             forbidden_downstream_uses=_FINDING_FORBIDDEN_USES,
         )
+
+
+# Migrated (English) name for the intelligence-governance router. The legacy ``BuddhiRouter``
+# class name is retained as the definition; new code should use this alias. Both are exported.
+IntelligenceGovernanceRouter = BuddhiRouter

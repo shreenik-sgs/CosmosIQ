@@ -489,7 +489,7 @@ class SocialNarrativeAgent(SensorAgent):
         return AgentFinding(
             finding_id=r.finding_id,
             agent_id=_AGENT_ID,
-            agent_layer="Tattva",
+            agent_layer="reality_intelligence",
             agent_name=self._AGENT_NAME,
             discipline=_DISCIPLINE,
             input_events=(r.event.event_id,),

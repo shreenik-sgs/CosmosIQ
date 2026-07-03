@@ -78,14 +78,14 @@ def _event(event_id="E1", companies=("IREN",), themes=("physical_ai",)):
 def _finding(finding_id="F1", agent_id="tattva.market_regime", companies=("IREN",),
              themes=("physical_ai",)):
     return M.AgentFinding(
-        finding_id=finding_id, agent_id=agent_id, agent_layer="Tattva",
+        finding_id=finding_id, agent_id=agent_id, agent_layer="reality_intelligence",
         agent_name="Market Regime", discipline="market_regime", input_events=("E1",),
         finding_type="MarketRegimeFinding", affected_companies=companies,
         affected_themes=themes, direction_label="deteriorating",
         magnitude_label="moderate", urgency_label="elevated", confidence_label="moderate",
         freshness_label="recent", half_life="days", source_authority_summary="convenience",
         corroboration_status="uncorroborated", contradiction_status="unopposed",
-        evidence_refs=("ex1",), data_gaps=("g1",), routing_targets=("TattvaSignalFusion",))
+        evidence_refs=("ex1",), data_gaps=("g1",), routing_targets=("SignalFusion",))
 
 
 def _signal(signal_id="S1", companies=("IREN",), themes=("physical_ai",),

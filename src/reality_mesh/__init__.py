@@ -34,6 +34,8 @@ from .labels import (
     FRESHNESS_LABELS,
     HALF_LIFE_LABELS,
     LAYERS,
+    LAYER_DISPLAY,
+    LEGACY_LAYER_ALIASES,
     MAGNITUDE_LABELS,
     PAYLOAD_TYPES,
     ROUTING_TARGETS,
@@ -47,6 +49,7 @@ from .labels import (
     is_social_source,
     is_source_authority,
     is_theme_pulse_state,
+    normalize_layer,
     ordered_authorities,
 )
 from .models import (
@@ -89,9 +92,13 @@ from .registry import (
     AgentRegistry,
     build_default_registry,
 )
-from .router import BuddhiRouter
-from .fusion import FusionResult, TattvaSignalFusionSynthesizer
-from .sphurana import SphuranaResult, ThemePulseSynthesizer
+from .router import BuddhiRouter, IntelligenceGovernanceRouter
+from .fusion import (
+    FusionResult,
+    RealityIntelligenceSignalFusion,
+    TattvaSignalFusionSynthesizer,
+)
+from .sphurana import OpportunityDiscoveryResult, SphuranaResult, ThemePulseSynthesizer
 from .render_adapters import build_pulse_data_quality_panel
 from .pulse import (
     DEFAULT_PULSE_FIXTURE_DIR,
@@ -238,6 +245,9 @@ __all__ = [
     "CONTRADICTION_STATUSES",
     "THEME_PULSE_STATES",
     "LAYERS",
+    "LAYER_DISPLAY",
+    "LEGACY_LAYER_ALIASES",
+    "normalize_layer",
     "ROUTING_TARGETS",
     "PAYLOAD_TYPES",
     "ALLOWED_DOWNSTREAM_USES",
@@ -278,12 +288,15 @@ __all__ = [
     "build_default_registry",
     "DEFAULT_DESCRIPTORS",
     "BuddhiRouter",
+    "IntelligenceGovernanceRouter",
     # fusion synthesizer (012C)
     "TattvaSignalFusionSynthesizer",
+    "RealityIntelligenceSignalFusion",
     "FusionResult",
     # sphurana theme-pulse synthesizer (012F)
     "ThemePulseSynthesizer",
     "SphuranaResult",
+    "OpportunityDiscoveryResult",
     # sensor agents (012D)
     "MarketRegimeAgent",
     "MARKET_REGIME_FINDING_TYPES",

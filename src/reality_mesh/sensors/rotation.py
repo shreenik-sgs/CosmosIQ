@@ -206,7 +206,7 @@ def _finding_from_reading(reading: _Reading, agent_id: str, agent_name: str, dis
     return AgentFinding(
         finding_id="finding.{0}.{1}.{2}".format(discipline, reading.finding_type, subject_slug),
         agent_id=agent_id,
-        agent_layer="Tattva",
+        agent_layer="reality_intelligence",
         agent_name=agent_name,
         discipline=discipline,
         input_events=tuple(e.event_id for e in evs),

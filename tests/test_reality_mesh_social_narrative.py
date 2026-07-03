@@ -228,7 +228,7 @@ class SocialStaysWeakTests(unittest.TestCase):
         narrative = _run("mention_spike")
         news = M.AgentFinding(
             finding_id="finding.news_filings.contract.nova",
-            agent_id="tattva.news_filings", agent_layer="Tattva", agent_name="News Filings",
+            agent_id="tattva.news_filings", agent_layer="reality_intelligence", agent_name="News Filings",
             discipline="news_filings", input_events=("nf.nova",),
             finding_type="contract_validation",
             finding_summary="contract validated | claim_status=verified_fact",
@@ -236,7 +236,7 @@ class SocialStaysWeakTests(unittest.TestCase):
             urgency_label="watch", confidence_label="moderate", freshness_label="fresh",
             half_life="weeks", source_authority_summary="canonical",
             corroboration_status="partially_corroborated", contradiction_status="unopposed",
-            routing_targets=("TattvaSignalFusion",))
+            routing_targets=("SignalFusion",))
         res = self.fuser.fuse(evs, tuple(narrative) + (news,), now="")
         narr_sigs = [s for s in res.signals if s.discipline == "narrative"]
         self.assertTrue(narr_sigs)
@@ -367,7 +367,7 @@ class RouteAndFuseTests(unittest.TestCase):
         env = self.router.route_finding(findings[0])
         self.assertIsInstance(env, M.HandoffEnvelope)
         self.assertEqual(env.from_agent, "tattva.narrative")
-        self.assertEqual(env.to_synthesizer, "TattvaSignalFusion")
+        self.assertEqual(env.to_synthesizer, "SignalFusion")
         self.assertEqual(env.authority_summary, "rumor")
         # narrative findings default to requiring human review.
         self.assertTrue(env.requires_human_review)
@@ -386,7 +386,7 @@ class RouteAndFuseTests(unittest.TestCase):
             sph = rm.ThemePulseSynthesizer().synthesize(res.clusters, res.signals, now="")
         finally:
             socket.socket = real
-        self.assertEqual(env.to_synthesizer, "TattvaSignalFusion")
+        self.assertEqual(env.to_synthesizer, "SignalFusion")
         self.assertTrue(res.signals)
         self.assertEqual(res.signals[0].discipline, "narrative")
         self.assertEqual(sph.theme_pulses[0].state, "Data insufficient")

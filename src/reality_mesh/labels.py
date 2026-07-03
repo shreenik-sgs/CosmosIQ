@@ -211,24 +211,84 @@ HEALTH_STATES: FrozenSet[str] = frozenset(
 # --------------------------------------------------------------------------- #
 
 # Layers a HandoffEnvelope may route between (011/012 layer registry).
+#
+# MIGRATION (LAYER SYSTEM): the eight architectural layers are now serialized with their
+# APPROVED ENGLISH identifiers. The retired Sanskrit names (Adhara/Buddhi/Tattva/...) are kept
+# working through ``LEGACY_LAYER_ALIASES`` + :func:`normalize_layer`, so any legacy value still
+# validates and is canonicalised to its English form. ``DataQuality`` / ``RedTeam`` are
+# diagnostic surfaces (never Sanskrit) and are unchanged.
 LAYERS: FrozenSet[str] = frozenset(
     {
-        "Adhara",
-        "Buddhi",
-        "Tattva",
-        "Sphurana",
-        "Nivesha",
-        "Saarathi",
-        "Kriya",
-        "Anubhava",
+        "foundation",
+        "intelligence_governance",
+        "reality_intelligence",
+        "opportunity_discovery",
+        "investment_diligence",
+        "portfolio_intelligence",
+        "execution_preview",
+        "learning_feedback",
         "DataQuality",
         "RedTeam",
     }
 )
 
-# Which synthesizer(s) / surfaces a finding or signal may be routed to.
+# Human-facing display label for each serialized layer value (value -> "… Layer").
+LAYER_DISPLAY = {
+    "foundation": "Foundation Layer",
+    "intelligence_governance": "Intelligence Governance Layer",
+    "reality_intelligence": "Reality Intelligence Layer",
+    "opportunity_discovery": "Opportunity Discovery Layer",
+    "investment_diligence": "Investment Diligence Layer",
+    "portfolio_intelligence": "Portfolio Intelligence Layer",
+    "execution_preview": "Execution Preview Layer",
+    "learning_feedback": "Learning & Feedback Layer",
+    "DataQuality": "Data Quality Layer",
+    "RedTeam": "Red Team Layer",
+}
+
+# Retired Sanskrit layer name -> approved English serialized value. The compatibility layer:
+# every legacy identifier maps to exactly one English value so old data / callers still validate.
+LEGACY_LAYER_ALIASES = {
+    "adhara": "foundation",
+    "buddhi": "intelligence_governance",
+    "tattva": "reality_intelligence",
+    "sphurana": "opportunity_discovery",
+    "nivesha": "investment_diligence",
+    "saarathi": "portfolio_intelligence",
+    "kriya": "execution_preview",
+    "anubhava": "learning_feedback",
+}
+
+# Case-insensitive lookup for normalize_layer(): legacy names, English values, and display
+# forms all resolve to the canonical English serialized value. Built once, deterministic.
+_LAYER_NORMALIZE_INDEX = {}
+for _new_value in LAYERS:
+    _LAYER_NORMALIZE_INDEX[_new_value.lower()] = _new_value
+for _legacy, _canonical in LEGACY_LAYER_ALIASES.items():
+    _LAYER_NORMALIZE_INDEX[_legacy.lower()] = _canonical
+for _value, _display in LAYER_DISPLAY.items():
+    _LAYER_NORMALIZE_INDEX[_display.lower()] = _value
+del _new_value, _legacy, _canonical, _value, _display
+
+
+def normalize_layer(value: str) -> str:
+    """Return the approved English serialized layer value for ``value``.
+
+    Accepts a legacy Sanskrit name, an English serialized value, or a display label (any
+    case). The empty string (explicit gap) passes through unchanged. An UNKNOWN value is
+    returned as-is so downstream membership validation can reject it with a precise error.
+    """
+    if not value:
+        return value
+    return _LAYER_NORMALIZE_INDEX.get(value.strip().lower(), value)
+
+
+# Which synthesizer(s) / surfaces a finding or signal may be routed to. ``SignalFusion`` is the
+# migrated name of the reality-intelligence signal-fusion synthesizer; the retired
+# ``TattvaSignalFusion`` token is retained so legacy routing values still validate.
 ROUTING_TARGETS: FrozenSet[str] = frozenset(
     {
+        "SignalFusion",
         "TattvaSignalFusion",
         "Sphurana",
         "Nivesha",

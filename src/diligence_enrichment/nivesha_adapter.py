@@ -342,3 +342,8 @@ def run_nivesha_thesis_on_enrichment(
     thesis = generate_investment_thesis(
         opportunity_hypothesis, diligence_inputs, actor=actor, now=now)
     return thesis, mapping
+
+
+# Migrated (English) name for the investment-diligence input-mapping sidecar. The legacy
+# ``NiveshaInputMapping`` name is retained as the definition; new code should use this alias.
+InvestmentDiligenceInputMapping = NiveshaInputMapping

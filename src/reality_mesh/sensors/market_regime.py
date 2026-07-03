@@ -422,7 +422,7 @@ class MarketRegimeAgent(SensorAgent):
         return AgentFinding(
             finding_id="finding.market_regime.{0}".format(finding_type),
             agent_id=_AGENT_ID,
-            agent_layer="Tattva",
+            agent_layer="reality_intelligence",
             agent_name=self._AGENT_NAME,
             discipline=_DISCIPLINE,
             input_events=tuple(e.event_id for e in evs),

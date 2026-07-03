@@ -62,12 +62,12 @@ def _event(event_id="E1", discipline="market_regime"):
 
 def _finding(finding_id="F1", discipline="market_regime"):
     return rm.AgentFinding(
-        finding_id=finding_id, agent_id="a", agent_layer="Tattva", agent_name="n",
+        finding_id=finding_id, agent_id="a", agent_layer="reality_intelligence", agent_name="n",
         discipline=discipline, input_events=("E1",), finding_type="AgentFinding",
         affected_companies=("IREN",), affected_themes=("physical_ai",),
         direction_label="stable", magnitude_label="minor", confidence_label="moderate",
         freshness_label="recent", half_life="days", source_authority_summary="canonical",
-        evidence_refs=("ex1",), data_gaps=(), routing_targets=("TattvaSignalFusion",))
+        evidence_refs=("ex1",), data_gaps=(), routing_targets=("SignalFusion",))
 
 
 class _FakeAgent(rm.SensorAgent):
@@ -81,7 +81,7 @@ class _FakeAgent(rm.SensorAgent):
     @property
     def descriptor(self):
         return rm.AgentDescriptor(
-            agent_id=self._agent_id, layer="Tattva", discipline=self._discipline,
+            agent_id=self._agent_id, layer="reality_intelligence", discipline=self._discipline,
             agent_type="sensor", emits=("AgentFinding",))
 
     def run(self, context, events):
