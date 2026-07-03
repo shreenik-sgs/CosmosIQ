@@ -1,0 +1,170 @@
+{
+  "_comment": "OPERATOR-SUPPLIED LOCAL FILE (test copy, IMPLEMENTATION-014A) -- STALE variant: as_of is far older than the injected pulse now, so the adapter must mark every event stale (preserved, never dropped, never silently refreshed). Local file only. Deterministic.",
+  "as_of": "2026-06-20T00:00:00Z",
+  "events": [
+    {
+      "event_id": "local.th.pai.basket",
+      "timestamp": "2026-06-20T00:00:00Z",
+      "source_id": "local_file.theme_basket",
+      "source_type": "theme_basket_definition",
+      "discipline": "theme_rotation",
+      "event_type": "theme_basket_builder",
+      "observed_fact": "explicit physical-ai theme basket composition (operator download)",
+      "affected_themes": [
+        "physical-ai"
+      ],
+      "affected_companies": [
+        "IREN",
+        "AAOI",
+        "AMBA",
+        "OUST"
+      ],
+      "numeric_values": [
+        [
+          "basket_expected_size",
+          4,
+          "count"
+        ]
+      ],
+      "evidence_refs": [
+        "ex.local.theme.physical_ai.basket"
+      ],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "event_id": "local.th.pai.strength",
+      "timestamp": "2026-06-20T00:00:00Z",
+      "source_id": "local_file.theme_strength",
+      "source_type": "theme_relative_strength_series",
+      "discipline": "theme_rotation",
+      "event_type": "theme_relative_strength_reading",
+      "observed_fact": "physical-ai basket relative strength and momentum versus market (operator download)",
+      "affected_themes": [
+        "physical-ai"
+      ],
+      "numeric_values": [
+        [
+          "theme_relative_strength",
+          2.4,
+          "zscore"
+        ],
+        [
+          "theme_momentum",
+          1.1,
+          "zscore"
+        ],
+        [
+          "theme_crowding_pressure",
+          34,
+          "index"
+        ],
+        [
+          "narrative_breadth",
+          41,
+          "index"
+        ]
+      ],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "timestamp": "2026-06-20T00:00:00Z",
+      "source_id": "local_file.theme_member",
+      "source_type": "theme_member_series",
+      "discipline": "theme_rotation",
+      "event_type": "theme_member_reading",
+      "observed_fact": "physical-ai member IREN participation (operator download)",
+      "affected_themes": [
+        "physical-ai"
+      ],
+      "affected_companies": [
+        "IREN"
+      ],
+      "numeric_values": [
+        [
+          "member_advancing",
+          1,
+          "flag"
+        ]
+      ],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "timestamp": "2026-06-20T00:00:00Z",
+      "source_id": "local_file.theme_member",
+      "source_type": "theme_member_series",
+      "discipline": "theme_rotation",
+      "event_type": "theme_member_reading",
+      "observed_fact": "physical-ai member AAOI participation (operator download)",
+      "affected_themes": [
+        "physical-ai"
+      ],
+      "affected_companies": [
+        "AAOI"
+      ],
+      "numeric_values": [
+        [
+          "member_advancing",
+          1,
+          "flag"
+        ]
+      ],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "timestamp": "2026-06-20T00:00:00Z",
+      "source_id": "local_file.theme_member",
+      "source_type": "theme_member_series",
+      "discipline": "theme_rotation",
+      "event_type": "theme_member_reading",
+      "observed_fact": "physical-ai member AMBA participation (operator download)",
+      "affected_themes": [
+        "physical-ai"
+      ],
+      "affected_companies": [
+        "AMBA"
+      ],
+      "numeric_values": [
+        [
+          "member_advancing",
+          1,
+          "flag"
+        ]
+      ],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    },
+    {
+      "timestamp": "2026-06-20T00:00:00Z",
+      "source_id": "local_file.theme_member",
+      "source_type": "theme_member_series",
+      "discipline": "theme_rotation",
+      "event_type": "theme_member_reading",
+      "observed_fact": "physical-ai member OUST not participating (operator download)",
+      "affected_themes": [
+        "physical-ai"
+      ],
+      "affected_companies": [
+        "OUST"
+      ],
+      "numeric_values": [
+        [
+          "member_advancing",
+          0,
+          "flag"
+        ]
+      ],
+      "confidence_label": "moderate",
+      "freshness_label": "fresh",
+      "half_life": "days"
+    }
+  ]
+}

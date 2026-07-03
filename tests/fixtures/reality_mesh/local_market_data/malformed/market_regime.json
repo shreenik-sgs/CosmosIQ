@@ -1,0 +1,1 @@
+{ "_comment": "deliberately MALFORMED JSON for the parse_error test", "events": [ {"event_id": "broken"

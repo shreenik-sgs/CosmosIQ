@@ -29,7 +29,10 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+
+if TYPE_CHECKING:  # 014A: annotation-only -- the adapter runtime is imported lazily at use.
+    from .adapters.base import SourceAdapterResult
 
 from .fusion import TattvaSignalFusionSynthesizer
 from .models import (
@@ -129,6 +132,10 @@ class PulseResult:
     handoff_envelopes: Tuple[HandoffEnvelope, ...] = field(default_factory=tuple)
     fusion_envelope: Optional[HandoffEnvelope] = None
     sphurana_envelope: Optional[HandoffEnvelope] = None
+    # 014A: the SourceAdapterResult of each source adapter this pulse consumed (empty tuple on
+    # the default fixture-only path -- byte-identical). Each feeds a real SourceHealthRecord
+    # via reality_mesh.adapters.source_health_from_result (013F consumes these).
+    adapter_results: Tuple["SourceAdapterResult", ...] = field(default_factory=tuple)
 
 
 # --------------------------------------------------------------------------- #
@@ -161,6 +168,8 @@ def run_pulse(
     *,
     fixture_dir: Optional[str] = None,
     now: str = "",
+    data_dir: Optional[str] = None,
+    adapters=None,
 ) -> PulseResult:
     """Run ONE manual, on-demand pulse over the bundled fixtures. Deterministic + OFFLINE.
 
@@ -168,6 +177,16 @@ def run_pulse(
     ticker): an empty watchlist or an empty theme list is rejected with ``ValueError`` and nothing
     is produced. Requested tickers / themes with no fixture coverage become explicit ``data_gaps``
     -- never fabricated, never a silent demo fall-back.
+
+    OPT-IN source adapters (014A): ``data_dir`` and ``adapters`` default to ``None`` and the
+    default fixture path stays byte-identical. When ``data_dir`` is supplied, a
+    :class:`~reality_mesh.adapters.local_market_data.LocalMarketDataAdapter` reads the
+    operator's LOCAL market-data files and its events REPLACE the bundled fixture events for
+    the disciplines it covers (market/sector/theme rotation) -- a missing/failed file stays a
+    VISIBLE gap on the result, never a silent fall-back to the fixtures. ``adapters`` may pass
+    pre-built :class:`~reality_mesh.adapters.base.SourceAdapter` instances instead (each run
+    through its boundary-enforcing ``fetch_checked``); their :class:`SourceAdapterResult`s are
+    returned on :attr:`PulseResult.adapter_results`. Still LOCAL FILES ONLY -- no network.
 
     The chain is: fixtures -> sensor agents (``run_checked``) -> Buddhi routing -> Tattva signal
     fusion -> Sphurana theme pulses -> Data-Quality roll-up. ``now`` is injected (no wall-clock).
@@ -185,6 +204,30 @@ def run_pulse(
 
     fx_dir = fixture_dir or DEFAULT_PULSE_FIXTURE_DIR
     events = _load_pulse_events(fx_dir)
+
+    # -- OPT-IN source adapters (014A). Default None/None -> the branch is skipped entirely and
+    # the fixture path stays byte-identical. ------------------------------------------------- #
+    adapter_list = tuple(adapters) if adapters is not None else ()
+    if data_dir is not None and not adapter_list:
+        from .adapters.local_market_data import LocalMarketDataAdapter  # lazy: opt-in only
+        adapter_list = (LocalMarketDataAdapter(data_dir),)
+
+    adapter_results: List = []
+    adapter_gaps: List[str] = []
+    if adapter_list:
+        adapter_events: List[RealityEvent] = []
+        covered_disciplines = set()
+        for adapter in adapter_list:
+            a_events, a_result = adapter.fetch_checked(
+                watchlist=watch, themes=theme_list, now=now)
+            adapter_events.extend(a_events)
+            adapter_results.append(a_result)
+            adapter_gaps.extend(a_result.data_gaps)
+            covered_disciplines.update(adapter.covered_disciplines)
+        # Covered disciplines come from the adapter ONLY: a missing/failed source file stays a
+        # VISIBLE gap (recorded above), never a silent fall-back to the bundled fixtures.
+        events = tuple(e for e in events if e.discipline not in covered_disciplines)
+        events = tuple(sorted(events + tuple(adapter_events), key=lambda e: e.event_id))
 
     # -- run the five sensor agents through their boundary-enforcing wrapper ----------------- #
     registry = build_default_registry()
@@ -228,6 +271,10 @@ def run_pulse(
     data_gaps = _rollup_gaps(
         fusion.signals, fusion.clusters, sphurana.theme_pulses,
         watch, theme_list, set(covered_companies), covered_theme_norms)
+    if adapter_list:
+        # Merge the adapters' explicit source gaps (missing/malformed/stale files) into the
+        # roll-up -- a source failure is a VISIBLE gap on the pulse itself.
+        data_gaps = tuple(sorted(dict.fromkeys(list(data_gaps) + adapter_gaps)))
 
     return PulseResult(
         watchlist=watch,
@@ -249,6 +296,7 @@ def run_pulse(
         handoff_envelopes=envelopes,
         fusion_envelope=fusion.envelope,
         sphurana_envelope=sphurana.envelope,
+        adapter_results=tuple(adapter_results),
     )
 
 
