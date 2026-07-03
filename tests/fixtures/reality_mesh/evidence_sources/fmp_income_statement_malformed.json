@@ -1,0 +1,4 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a MALFORMED FMP income-statement payload (an object, not the expected list of period objects). The adapter must record a parse_error gap, never fabricate figures.",
+  "unexpected": "shape"
+}

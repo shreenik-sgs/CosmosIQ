@@ -1,0 +1,12 @@
+[
+  {
+    "_comment": "FIXTURE/MOCK ONLY -- real-shaped FMP profile (trimmed from tests/fixtures/fmp/profile_iren.json).",
+    "symbol": "IREN",
+    "companyName": "IREN Limited",
+    "exchange": "NASDAQ",
+    "sector": "Technology",
+    "industry": "Data Center Infrastructure",
+    "mktCap": 4200000000,
+    "sharesOutstanding": 210000000
+  }
+]

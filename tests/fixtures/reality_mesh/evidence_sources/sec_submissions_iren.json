@@ -1,0 +1,26 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a real-shaped data.sec.gov submissions document (trimmed from tests/fixtures/sec/submissions_iren.json). Carries a dilutive S-3 (ATM shelf), an 8-K Item 1.01 material definitive contract, and a 10-Q (deliberately NOT a news_filings catalyst). No live data.",
+  "cik": "0001878848",
+  "name": "IREN Limited",
+  "tickers": ["IREN"],
+  "exchanges": ["NASDAQ"],
+  "filings": {
+    "recent": {
+      "accessionNumber": [
+        "0001878848-26-000045",
+        "0001878848-26-000032",
+        "0001878848-26-000021"
+      ],
+      "form": ["S-3", "8-K", "10-Q"],
+      "filingDate": ["2026-05-15", "2026-05-01", "2026-04-20"],
+      "reportDate": ["", "2026-05-01", "2026-03-31"],
+      "primaryDocument": ["irens3.htm", "iren8k.htm", "iren10q.htm"],
+      "primaryDocDescription": [
+        "FORM S-3 SHELF REGISTRATION - PROSPECTUS SUPPLEMENT FOR AT-THE-MARKET OFFERING",
+        "FORM 8-K",
+        "FORM 10-Q"
+      ],
+      "items": ["", "1.01", ""]
+    }
+  }
+}

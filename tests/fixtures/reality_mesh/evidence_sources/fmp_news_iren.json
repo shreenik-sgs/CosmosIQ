@@ -1,0 +1,21 @@
+[
+  {
+    "_comment": "FIXTURE/MOCK ONLY -- a PRESS-RELEASE customer win (company text -> company_claim, never verified_fact).",
+    "symbol": "IREN",
+    "publishedDate": "2026-06-20 09:30:00",
+    "title": "IREN announces multi-year AI compute contract with major cloud provider",
+    "site": "example-ir.invalid",
+    "text": "IREN Limited today announced a multi-year contract to supply AI compute capacity.",
+    "url": "https://example-ir.invalid/iren-contract",
+    "type": "press_release"
+  },
+  {
+    "_comment": "FIXTURE/MOCK ONLY -- third-party REPORTED news (reported_claim, convenience).",
+    "symbol": "IREN",
+    "publishedDate": "2026-06-18 14:05:00",
+    "title": "IREN provides quarterly operational update",
+    "site": "example-media.invalid",
+    "text": "IREN Limited shared an operational update covering the quarter.",
+    "url": "https://example-media.invalid/iren-update"
+  }
+]
