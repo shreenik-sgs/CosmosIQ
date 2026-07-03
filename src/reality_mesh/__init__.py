@@ -186,6 +186,20 @@ from .health import (
     RunHealthSummary,
     SourceHealthRecord,
 )
+from .gates import (
+    GATE_CATEGORIES,
+    GATE_STATUSES,
+    POLICY_OR_SECURITY_CATEGORIES,
+    REAL_DATA_MODES,
+    NETWORK_IMPORT_ROOTS,
+    SCHEDULER_BROKER_SOURCE_TOKENS,
+    SECRET_VALUE_PATTERNS,
+    FORBIDDEN_RECORD_FIELD_WORDS,
+    DataQualityGateResult,
+    SecurityGateResult,
+    PolicyGateResult,
+    DataQualityGateRunner,
+)
 from .nivesha_forward import (
     FORWARD_INPUT_NAMES,
     SCENARIO_LABELS,
@@ -372,4 +386,17 @@ __all__ = [
     "HEALTH_RECORDS",
     "CREDENTIALS_STATUSES",
     "RATE_LIMIT_STATUSES",
+    # data-quality / security / policy gate runner (013E)
+    "GATE_CATEGORIES",
+    "GATE_STATUSES",
+    "POLICY_OR_SECURITY_CATEGORIES",
+    "REAL_DATA_MODES",
+    "NETWORK_IMPORT_ROOTS",
+    "SCHEDULER_BROKER_SOURCE_TOKENS",
+    "SECRET_VALUE_PATTERNS",
+    "FORBIDDEN_RECORD_FIELD_WORDS",
+    "DataQualityGateResult",
+    "SecurityGateResult",
+    "PolicyGateResult",
+    "DataQualityGateRunner",
 ]
