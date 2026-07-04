@@ -45,10 +45,19 @@ from reality_mesh import (
     EventStore,
     FindingStore,
     ForwardScenarioInput,
+    HOLDINGS_RELPATH,
+    PORTFOLIO_THRESHOLDS,
     SignalStore,
     ThemePulseStore,
     alerts_with_status,
+    build_concentration,
+    build_correlation_labels,
+    build_exposure,
     build_forward_scenario_packet,
+    build_rotation_alignment,
+    compare_candidate,
+    load_holdings,
+    ticker_theme_map,
     to_nivesha_forward_sidecar,
 )
 from diligence_enrichment import (
@@ -74,6 +83,7 @@ __all__ = [
     "persisted_theme_ids",
     "render_candidate_cockpit",
     "render_company_cockpit",
+    "render_portfolio_page",
     "render_theme_cockpit",
     "render_theme_list",
 ]
@@ -128,6 +138,16 @@ _FIT_KINDS = {
     "priority_candidate": "ok", "suitable_candidate": "ok",
     "blocked_for_user": "bad", "exit_candidate": "bad",
 }
+
+# Portfolio-intelligence label -> badge kind (018A; colour == meaning, never a score).
+_BAND_KINDS = {"minimal": "ok", "moderate": "", "elevated": "warn",
+               "dominant": "bad", "unknown": "warn"}
+_ALIGNMENT_KINDS = {"aligned": "ok", "against": "bad", "no_signal": "warn"}
+_CORRELATION_KINDS = {"co_exposed": "warn", "partially_co_exposed": "",
+                      "distinct": "ok", "unknown": "warn"}
+_FRESHNESS_KINDS = {"current": "ok", "stale": "warn", "no_run_to_compare": "warn"}
+_COMPARISON_KINDS = {"new_theme": "ok", "diversifies": "ok",
+                     "adds_concentration": "warn", "no_theme_signal": "warn"}
 
 # The enrichment areas an operator input file may carry (passed through verbatim to the
 # accepted bundle builder -- never synthesized here).
@@ -521,6 +541,7 @@ def render_candidate_cockpit(store_dir: str, ticker: str) -> str:
         thesis_html, thesis = thesis_html
     forward_html = _forward_section(spec, symbol, thesis)
     fit_html = _fit_section(store_dir, spec, thesis)
+    comparison_html = _holdings_comparison_section(store_dir, symbol, spec)
     preview_html = _preview_section(store_dir, symbol)
 
     intro = ('<p class="note">Capital-candidate cockpit for <span class="mono">{t}</span>. '
@@ -531,7 +552,7 @@ def render_candidate_cockpit(store_dir: str, ticker: str) -> str:
              "numeric internals are not shown.</p>").format(t=_esc(symbol))
     return _page(store_dir, "Candidate {0}".format(symbol), "",
                  intro + inputs_html + thesis_html + mapping_html + forward_html
-                 + fit_html + preview_html)
+                 + fit_html + comparison_html + preview_html)
 
 
 def _inputs_panel(spec: Optional[Dict[str, Any]], symbol: str) -> str:
@@ -843,3 +864,303 @@ def _preview_section(store_dir: str, symbol: str) -> str:
         "displayed READ-ONLY: {noorder}. This page cannot create, change, confirm or "
         "act on it.</p>"
         '<table class="kv">' + rows + "</table></div>").format(noorder=_NO_ORDER)
+
+
+# --------------------------------------------------------------------------- #
+# /portfolio -- READ-ONLY portfolio intelligence (018A)                         #
+# --------------------------------------------------------------------------- #
+def _label_text(label: Any) -> str:
+    return str(label or "").replace("_", " ") or "&mdash;"
+
+
+def _no_holdings_note(reason: str) -> str:
+    return ('<p class="note"><strong>No holdings recorded</strong> &mdash; this '
+            "section stays honestly empty. {0}</p>").format(_esc(reason))
+
+
+def _holdings_comparison_section(store_dir: str, symbol: str,
+                                 spec: Optional[Dict[str, Any]]) -> str:
+    """Candidate vs the recorded portfolio: a LABEL from persisted theme membership.
+
+    Honest absence when no holdings statement is recorded; nothing is compared
+    against an assumed portfolio. Read-and-inspect only -- no control exists here.
+    """
+    heading = "<h2>Candidate vs recorded portfolio</h2>"
+    loaded, reason = load_holdings(store_dir)
+    if loaded is None:
+        return (heading + '<div class="panel">' + _no_holdings_note(reason)
+                + '<p class="note">Record one at <span class="mono">&lt;store&gt;/'
+                + _esc(HOLDINGS_RELPATH) + "</span> (see the Phase-018 operator "
+                "guide) to enable this comparison.</p></div>")
+    provided: Tuple[str, ...] = ()
+    if isinstance(spec, dict) and str(spec.get("domain", "") or "").strip():
+        if symbol not in ticker_theme_map(store_dir):
+            provided = (str(spec["domain"]),)
+    comparison = compare_candidate(store_dir, symbol, candidate_themes=provided)
+    gap_items = "".join("<li>{0}</li>".format(_esc(gap))
+                        for gap in tuple(comparison.data_gaps))
+    return (
+        heading + '<div class="panel"><table class="kv">'
+        "<tr><th>Comparison label</th><td>{label}</td></tr>"
+        "<tr><th>Candidate themes</th><td>{cthemes}</td></tr>"
+        "<tr><th>Overlapping with current exposure</th><td>{overlap}</td></tr>"
+        "<tr><th>New theme exposure</th><td>{new}</td></tr>"
+        "<tr><th>Already a recorded position</th><td>{already}</td></tr>"
+        "<tr><th>Basis</th><td>{basis}</td></tr>"
+        "</table>{gaps}"
+        '<p class="note">A label from persisted theme membership against the '
+        "operator-recorded statement (as of {asof}) &mdash; not advice, not a "
+        "sizing, and nothing here can act on it.</p></div>").format(
+            label=_badge(_label_text(comparison.comparison_label),
+                         _COMPARISON_KINDS.get(comparison.comparison_label, "warn")),
+            cthemes=_esc(", ".join(comparison.candidate_themes) or "none mapped"),
+            overlap=_esc(", ".join(comparison.overlapping_themes) or "none"),
+            new=_esc(", ".join(comparison.new_themes) or "none"),
+            already=("yes &mdash; more of it concentrates the existing position"
+                     if comparison.already_recorded else "no"),
+            basis=_esc(comparison.basis),
+            gaps=('<ul class="gaps">' + gap_items + "</ul>") if gap_items else "",
+            asof=_esc(loaded.as_of))
+
+
+def _holdings_panel(loaded: Any, reason: str) -> str:
+    heading = "<h2>Recorded holdings</h2>"
+    if loaded is None:
+        return (heading + '<div class="panel">' + _no_holdings_note(reason)
+                + '<p class="note">To record one, write <span class="mono">'
+                "&lt;store&gt;/" + _esc(HOLDINGS_RELPATH) + "</span> by hand: "
+                '<span class="mono">as_of</span> + <span class="mono">positions'
+                '</span> [ticker, quantity, cost_basis?, account_label?, '
+                'liquidity_note?] + optional <span class="mono">cash</span>. '
+                "The app only ever READS it.</p></div>")
+    rows = ""
+    for position in loaded.positions:
+        if position.liquidity_note:
+            liquidity = _badge(position.liquidity_note, "warn")
+        else:
+            liquidity = _badge("unknown -- no liquidity note recorded", "warn")
+        rows += (
+            "<tr><th>{ticker}</th><td>{qty}</td><td>{basis}</td><td>{account}</td>"
+            "<td>{liquidity}</td></tr>").format(
+                ticker=_esc(position.ticker),
+                qty=_esc(position.quantity_text or "&mdash;"),
+                basis=_esc(position.cost_basis_text) if position.cost_basis_text
+                else "not recorded",
+                account=_esc(position.account_label or "&mdash;"),
+                liquidity=liquidity)
+    cash_line = (loaded.cash_text if loaded.cash_recorded
+                 else "not recorded")
+    return (
+        heading + '<div class="panel"><table class="kv">'
+        "<tr><th>As of</th><td>{asof} {fresh}</td></tr>"
+        "<tr><th>Freshness basis</th><td>{fbasis}</td></tr>"
+        "<tr><th>Positions</th><td>{count} recorded</td></tr>"
+        "<tr><th>Cash (as recorded)</th><td>{cash}</td></tr>"
+        "</table>"
+        '<table class="kv"><tr><th>Ticker</th><td>Quantity (as recorded)</td>'
+        "<td>Cost basis (as recorded)</td><td>Account label</td>"
+        "<td>Liquidity note</td></tr>" + rows + "</table>"
+        '<p class="note">The operator&#39;s own recorded statement, displayed '
+        "verbatim &mdash; never fetched, never valued, never changed by this app."
+        "</p></div>").format(
+            asof=_esc(loaded.as_of),
+            fresh=_badge(_label_text(loaded.freshness_label),
+                         _FRESHNESS_KINDS.get(loaded.freshness_label, "warn")),
+            fbasis=_esc(loaded.basis), count=_esc(loaded.position_count),
+            cash=_esc(cash_line))
+
+
+def _exposure_panel(store_dir: str, loaded: Any, reason: str) -> str:
+    heading = "<h2>Exposure by theme</h2>"
+    if loaded is None:
+        return heading + '<div class="panel">' + _no_holdings_note(reason) + "</div>"
+    views = build_exposure(store_dir)
+    mapping = ticker_theme_map(store_dir)
+    unmapped = sorted(p.ticker for p in loaded.positions
+                      if not mapping.get(p.ticker))
+    unmapped_note = ""
+    if unmapped:
+        unmapped_note = ('<p class="note">No persisted signal or theme pulse maps '
+                         '<span class="mono">{0}</span> to any theme &mdash; an '
+                         "honest gap, never guessed.</p>").format(
+                             _esc(", ".join(unmapped)))
+    if not views:
+        return (heading + '<div class="panel"><p class="note">No persisted theme '
+                "names any recorded position yet &mdash; run a pulse whose records "
+                "cover these tickers.</p>" + unmapped_note + "</div>")
+    rows = "".join(
+        "<tr><th>{theme}</th><td><span class=\"mono\">{tickers}</span></td>"
+        "<td>{count} position(s)</td><td>{band}</td><td>{gaps}</td></tr>".format(
+            theme=_esc(view.theme_id),
+            tickers=_esc(", ".join(view.position_tickers)),
+            count=_esc(view.position_count),
+            band=_badge(_label_text(view.exposure_band),
+                        _BAND_KINDS.get(view.exposure_band, "warn")),
+            gaps=_esc("; ".join(view.data_gaps) or "&mdash;"))
+        for view in views)
+    return (
+        heading + '<div class="panel">'
+        '<p class="note">Which recorded positions the PERSISTED signals / theme '
+        "pulses map to each theme. The combined-exposure band is a LABEL from the "
+        "published thresholds &mdash; no ratio is stored or shown.</p>"
+        '<table class="kv"><tr><th>Theme</th><td>Positions</td><td>Volume</td>'
+        "<td>Exposure band</td><td>Gaps</td></tr>" + rows + "</table>"
+        + unmapped_note + "</div>")
+
+
+def _concentration_panel(store_dir: str, loaded: Any, reason: str) -> str:
+    heading = "<h2>Concentration bands</h2>"
+    if loaded is None:
+        return heading + '<div class="panel">' + _no_holdings_note(reason) + "</div>"
+    views = build_concentration(store_dir)
+    rows = "".join(
+        "<tr><th>{ticker}</th><td>{band}</td><td>{gaps}</td></tr>".format(
+            ticker=_esc(view.ticker),
+            band=_badge(_label_text(view.weight_band),
+                        _BAND_KINDS.get(view.weight_band, "warn")),
+            gaps=_esc("; ".join(view.data_gaps) or "&mdash;"))
+        for view in views)
+    edges = ("moderate at {m}%, elevated at {e}%, dominant at {d}% "
+             "of the recorded total").format(
+                 m=PORTFOLIO_THRESHOLDS["position_weight_moderate_pct"],
+                 e=PORTFOLIO_THRESHOLDS["position_weight_elevated_pct"],
+                 d=PORTFOLIO_THRESHOLDS["position_weight_dominant_pct"])
+    return (
+        heading + '<div class="panel">'
+        '<p class="note">Each position&#39;s recorded cost basis &times; quantity, '
+        "measured transiently against the recorded total and collapsed to a BAND "
+        "({0}). The band is the only value kept &mdash; no weight or ratio is "
+        "stored or rendered. A position that cannot be weighed is honestly "
+        "unknown.</p>"
+        '<table class="kv"><tr><th>Position</th><td>Weight band</td><td>Gaps</td>'
+        "</tr>".format(_esc(edges)) + rows + "</table></div>")
+
+
+def _correlation_panel(store_dir: str, loaded: Any, reason: str) -> str:
+    heading = "<h2>Co-exposure (correlation labels)</h2>"
+    if loaded is None:
+        return heading + '<div class="panel">' + _no_holdings_note(reason) + "</div>"
+    views = build_correlation_labels(store_dir)
+    if not views:
+        return (heading + '<div class="panel"><p class="note">Fewer than two '
+                "recorded positions &mdash; no pair to label.</p></div>")
+    rows = "".join(
+        "<tr><th><span class=\"mono\">{a} &harr; {b}</span></th><td>{label}</td>"
+        "<td>{shared}</td><td>{basis}</td></tr>".format(
+            a=_esc(view.ticker_a), b=_esc(view.ticker_b),
+            label=_badge(_label_text(view.correlation_label),
+                         _CORRELATION_KINDS.get(view.correlation_label, "warn")),
+            shared=_esc(", ".join(view.shared_themes) or "&mdash;"),
+            basis=_esc(view.basis))
+        for view in views)
+    return (
+        heading + '<div class="panel">'
+        '<p class="note">A LABEL from shared persisted-theme membership &mdash; '
+        "no numeric correlation exists anywhere in this app.</p>"
+        '<table class="kv"><tr><th>Pair</th><td>Label</td><td>Shared themes</td>'
+        "<td>Basis</td></tr>" + rows + "</table></div>")
+
+
+def _rotation_panel(store_dir: str, loaded: Any, reason: str) -> str:
+    heading = "<h2>Rotation alignment</h2>"
+    if loaded is None:
+        return heading + '<div class="panel">' + _no_holdings_note(reason) + "</div>"
+    views = build_rotation_alignment(store_dir)
+    rows = "".join(
+        "<tr><th>{ticker}</th><td>{theme}</td><td>{state}</td><td>{label}</td>"
+        "<td>{basis}</td></tr>".format(
+            ticker=_esc(view.ticker), theme=_esc(view.theme_id or "&mdash;"),
+            state=_state_badge(view.theme_state),
+            label=_badge(_label_text(view.alignment_label),
+                         _ALIGNMENT_KINDS.get(view.alignment_label, "warn")),
+            basis=_esc(view.basis))
+        for view in views)
+    return (
+        heading + '<div class="panel">'
+        '<p class="note">Each recorded position against the LATEST persisted '
+        "theme-pulse state of its mapped themes. Alignment is a label from the "
+        "published state table; a position with no persisted signal honestly "
+        "reads no signal.</p>"
+        '<table class="kv"><tr><th>Position</th><td>Theme</td><td>Latest state</td>'
+        "<td>Alignment</td><td>Basis</td></tr>" + rows + "</table></div>")
+
+
+def _guardrail_section(store_dir: str) -> str:
+    heading = "<h2>Risk budget and sizing guardrails</h2>"
+    try:
+        profile_spec = _load_json(os.path.join(store_dir, PROFILE_FILENAME))
+    except ValueError as exc:
+        return (heading + '<div class="panel"><p class="note">The recorded profile '
+                "file could not be parsed ({0}). No guardrail is computed."
+                "</p></div>").format(_esc(exc))
+    if profile_spec is None:
+        return (heading + '<div class="panel"><p class="note">No personal profile '
+                "is recorded &mdash; guardrails are not shown (honest absence, "
+                "never a default persona). Record one at "
+                '<span class="mono">&lt;store&gt;/{0}</span> to enable this '
+                "section.</p></div>").format(_esc(PROFILE_FILENAME))
+    try:
+        pnow = float(profile_spec.get("now", 0.0) or 0.0)
+        account = str(profile_spec.get("account", "operator") or "operator")
+        profile = make_personal_investment_profile(
+            account, actor=_ACTOR, now=pnow, **_kw(profile_spec.get("profile")))
+    except (ValueError, TypeError, KeyError) as exc:
+        return (heading + '<div class="panel"><p class="note">The accepted profile '
+                "function refused the recorded profile: {0}. Nothing is computed."
+                "</p></div>").format(_esc(exc))
+    permissions = []
+    if not profile.options_allowed:
+        permissions.append("derivative routes not permitted")
+    if not profile.leverage_allowed:
+        permissions.append("leveraged routes not permitted")
+    return (
+        heading + '<div class="panel">'
+        '<p class="note">The user&#39;s STANDING limits, read verbatim from the '
+        "recorded profile via the accepted Personal-CIO profile function &mdash; "
+        "ranges and ceilings only, re-stated, never re-decided here.</p>"
+        '<table class="kv">'
+        "<tr><th>Risk tolerance</th><td>{rt}</td></tr>"
+        "<tr><th>Max single position</th><td>up to {single} of the portfolio</td></tr>"
+        "<tr><th>Max theme exposure</th><td>up to {theme} of the portfolio</td></tr>"
+        "<tr><th>Minimum cash reserve</th><td>at least {cash} of the portfolio</td></tr>"
+        "<tr><th>Drawdown tolerance</th><td>up to {dd}</td></tr>"
+        "<tr><th>Time horizon / liquidity need</th><td>{horizon} / {liq}</td></tr>"
+        "<tr><th>Route limits</th><td>{perm}</td></tr>"
+        "</table>"
+        '<p class="note">A per-candidate sizing RANGE (never an exact amount) '
+        "renders on that candidate&#39;s cockpit when diligence inputs are "
+        "recorded; manual confirmation is ALWAYS required downstream.</p>"
+        "</div>").format(
+            rt=_badge(profile.risk_tolerance, "warn"),
+            single=_esc(_pct(profile.max_single_position_pct)),
+            theme=_esc(_pct(profile.max_theme_exposure_pct)),
+            cash=_esc(_pct(profile.min_cash_reserve_pct)),
+            dd=_esc(_pct(profile.max_drawdown_tolerance_pct)),
+            horizon=_esc(_label_text(profile.preferred_time_horizon)),
+            liq=_esc(profile.liquidity_requirement),
+            perm=_esc("; ".join(permissions) or "no route limit recorded"))
+
+
+def render_portfolio_page(store_dir: str) -> str:
+    """The READ-ONLY portfolio page: the operator's recorded statement + labels.
+
+    Every value is the operator's own recorded text, a closed LABEL, or a volume
+    count. No external account connection exists; nothing here can place, change
+    or re-weight any market position; missing inputs are stated, never filled.
+    """
+    loaded, reason = load_holdings(store_dir)
+    intro = ('<p class="note">READ-ONLY portfolio intelligence over the '
+             "operator-recorded holdings statement at "
+             '<span class="mono">&lt;store&gt;/{path}</span> and the persisted '
+             "pulse stores. Bands, labels and volume counts only &mdash; no stored "
+             "ratio, no numeric correlation, no market action, no automatic "
+             "re-weighting of anything.</p>").format(path=_esc(HOLDINGS_RELPATH))
+    return _page(
+        store_dir, "Portfolio", "/portfolio",
+        intro
+        + _holdings_panel(loaded, reason)
+        + _exposure_panel(store_dir, loaded, reason)
+        + _concentration_panel(store_dir, loaded, reason)
+        + _correlation_panel(store_dir, loaded, reason)
+        + _rotation_panel(store_dir, loaded, reason)
+        + _guardrail_section(store_dir))

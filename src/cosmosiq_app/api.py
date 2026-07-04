@@ -626,6 +626,11 @@ def _dispatch_page(segments: List[str], raw: List[str],
     if len(segments) == 2 and segments[0] == "candidates":
         from . import cockpits as _cockpits
         return _html(200, _cockpits.render_candidate_cockpit(store_dir, raw[1]))
+    # 018A portfolio -- READ-ONLY intelligence over the operator-recorded holdings
+    # statement (labels / bands / counts only; no market surface of any kind).
+    if segments == ["portfolio"]:
+        from . import cockpits as _cockpits
+        return _html(200, _cockpits.render_portfolio_page(store_dir))
     if len(segments) == 2 and segments[0] == "canvas":
         name = raw[1]
         if name in _pages.CANVAS_PAGES:
