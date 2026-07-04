@@ -1,6 +1,9 @@
-"""CosmosIQ application package (IMPLEMENTATION-016A) -- the first full-product slice.
+"""CosmosIQ application package (IMPLEMENTATION-016A/016B) -- the first full-product slice.
 
-Two modules, deliberately separated:
+Modules, deliberately separated (016B adds :mod:`cosmosiq_app.pages` +
+:mod:`cosmosiq_app.app_assets`: PURE server-rendered HTML pages over the same stores,
+served by the dispatcher at ``/``, ``/runs``, ``/runs/<id>``, ``/replay/<id>``,
+``/alerts``, ``/settings`` -- no JavaScript, no external asset, no trade affordance):
 
 * :mod:`cosmosiq_app.api` -- the PURE dispatcher. ``dispatch(request, *, store_dir, now="")``
   maps a plain request dict onto the Phase-013/015 stores and returns a plain response dict.
@@ -20,10 +23,26 @@ Deterministic, stdlib-only, Python 3.9.
 from __future__ import annotations
 
 from .api import APP_NAME, EXECUTION_REFUSAL, SettingsStore, dispatch
+from .pages import (
+    render_alert_inbox,
+    render_app_home,
+    render_not_found,
+    render_replay_view,
+    render_run_detail,
+    render_run_history,
+    render_settings_page,
+)
 
 __all__ = [
     "APP_NAME",
     "EXECUTION_REFUSAL",
     "SettingsStore",
     "dispatch",
+    "render_alert_inbox",
+    "render_app_home",
+    "render_not_found",
+    "render_replay_view",
+    "render_run_detail",
+    "render_run_history",
+    "render_settings_page",
 ]

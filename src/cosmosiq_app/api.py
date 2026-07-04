@@ -91,6 +91,7 @@ TRADE_PATH_TOKENS: Tuple[str, ...] = (
 )
 
 _JSON_HEADERS = {"Content-Type": "application/json"}
+_HTML_HEADERS = {"Content-Type": "text/html; charset=utf-8"}
 
 # The record kinds the per-run stores expose (URL tail -> store class + response key).
 _RUN_RECORD_STORES = {
@@ -169,6 +170,11 @@ def _ok(body: Any) -> Dict[str, Any]:
 
 def _error(status: int, reason: str) -> Dict[str, Any]:
     return _json(status, {"error": str(reason)})
+
+
+def _html(status: int, text: str) -> Dict[str, Any]:
+    """A server-rendered HTML page response (016B). Body is the full page string."""
+    return {"status": int(status), "headers": dict(_HTML_HEADERS), "body": str(text)}
 
 
 def _to_plain(obj: Any) -> Any:
@@ -520,8 +526,13 @@ def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[
                 return _error(403, EXECUTION_REFUSAL)
 
     if not segments or segments[0] != "api":
-        return _error(404, "unknown route {0!r} -- the CosmosIQ API lives under /api".format(
-            path))
+        # 016B: the server-rendered app pages live OUTSIDE /api (GET-only, text/html).
+        if method == "GET":
+            page = _dispatch_page(segments, raw, store_dir)
+            if page is not None:
+                return page
+        return _error(404, "unknown route {0!r} -- the CosmosIQ pages live at / /runs "
+                           "/alerts /settings and the API lives under /api".format(path))
     tail = segments[1:]
     raw_tail = raw[1:]
 
@@ -569,6 +580,47 @@ def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[
         return _require(method, "GET", path) or _handle_coverage()
 
     return _error(404, "unknown route {0!r}".format(path))
+
+
+def _dispatch_page(segments: List[str], raw: List[str],
+                   store_dir: str) -> Optional[Dict[str, Any]]:
+    """Route ONE GET request onto the 016B server-rendered pages (None -> not a page route).
+
+    Pages are PURE functions from the stores to full HTML (:mod:`cosmosiq_app.pages`); the
+    import is deliberately function-local so the pure-dispatcher module keeps loading first
+    and the page layer stays an additive slice on top of it. An unknown run id renders the
+    honest 404 page with a 404 status. ``/canvas/<name>`` serves a generated Universe Canvas
+    artifact READ-ONLY when (and only when) it exists under the store -- never a dead link.
+    """
+    from . import pages as _pages
+
+    if not segments:
+        return _html(200, _pages.render_app_home(store_dir))
+    if segments == ["runs"]:
+        return _html(200, _pages.render_run_history(store_dir))
+    if len(segments) == 2 and segments[0] == "runs":
+        run_id = raw[1]
+        if _get_run(store_dir, run_id) is None:
+            return _html(404, _pages.render_not_found(store_dir, "/runs/" + run_id))
+        return _html(200, _pages.render_run_detail(store_dir, run_id))
+    if len(segments) == 2 and segments[0] == "replay":
+        run_id = raw[1]
+        if _get_run(store_dir, run_id) is None:
+            return _html(404, _pages.render_not_found(store_dir, "/replay/" + run_id))
+        return _html(200, _pages.render_replay_view(store_dir, run_id))
+    if segments == ["alerts"]:
+        return _html(200, _pages.render_alert_inbox(store_dir))
+    if segments == ["settings"]:
+        return _html(200, _pages.render_settings_page(store_dir))
+    if len(segments) == 2 and segments[0] == "canvas":
+        name = raw[1]
+        if name in _pages.CANVAS_PAGES:
+            artifact = os.path.join(store_dir, _pages.CANVAS_DIRNAME, name)
+            if os.path.isfile(artifact):
+                with open(artifact, encoding="utf-8") as handle:
+                    return _html(200, handle.read())
+        return _html(404, _pages.render_not_found(store_dir, "/canvas/" + name))
+    return None
 
 
 def _require(method: str, allowed: str, path: str) -> Optional[Dict[str, Any]]:

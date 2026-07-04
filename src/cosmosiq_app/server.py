@@ -36,6 +36,7 @@ __all__ = [
     "LOCAL_HOSTS",
     "BANNER",
     "CosmosIQRequestHandler",
+    "form_body",
     "serve",
     "wall_clock_now",
 ]
@@ -63,6 +64,28 @@ def wall_clock_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+# 016B: form keys the browser posts as comma-separated text but the dispatcher expects as
+# JSON lists (the operator forms on the server-rendered pages).
+_FORM_LIST_KEYS = ("watchlist", "watchlists", "themes", "subscriptions")
+
+
+def form_body(raw_text: str, now: str) -> dict:
+    """Decode ONE urlencoded operator-form body into the dispatcher's plain-dict shape.
+
+    Boundary adaptation only (016B): comma-separated list fields become lists, and the
+    injected ``at`` instant is added HERE (the shell boundary) when the form did not carry
+    one -- the dispatcher itself still never reads a clock.
+    """
+    data: dict = {}
+    for key, value in parse_qsl(raw_text, keep_blank_values=True):
+        if key in _FORM_LIST_KEYS:
+            data[key] = [item.strip() for item in value.split(",") if item.strip()]
+        else:
+            data[key] = value
+    data.setdefault("at", now)
+    return data
+
+
 class CosmosIQRequestHandler(BaseHTTPRequestHandler):
     """Parse one HTTP request -> the dispatcher's request dict -> one JSON response."""
 
@@ -70,22 +93,38 @@ class CosmosIQRequestHandler(BaseHTTPRequestHandler):
 
     def _handle(self) -> None:
         parts = urlsplit(self.path)
+        now = wall_clock_now()
         body = None
+        method = self.command
         length = int(self.headers.get("Content-Length") or 0)
         if length:
             raw = self.rfile.read(length)
-            try:
-                body = json.loads(raw.decode("utf-8"))
-            except ValueError:
-                body = raw.decode("utf-8", "replace")   # dispatch answers 400 with a reason
+            content_type = (self.headers.get("Content-Type") or "").split(";")[0].strip()
+            if content_type.lower() == "application/x-www-form-urlencoded":
+                # 016B: an operator form posted from a server-rendered page.
+                body = form_body(raw.decode("utf-8", "replace"), now)
+                override = str(body.pop("_method", "") or "")
+                if override:
+                    method = override.upper()   # HTML forms cannot send PUT themselves
+            else:
+                try:
+                    body = json.loads(raw.decode("utf-8"))
+                except ValueError:
+                    body = raw.decode("utf-8", "replace")   # dispatch answers 400 + reason
         request = {
-            "method": self.command,
+            "method": method,
             "path": parts.path,
             "query": dict(parse_qsl(parts.query)),
             "body": body,
         }
-        response = dispatch(request, store_dir=self.server.store_dir, now=wall_clock_now())
-        payload = json.dumps(response.get("body"), sort_keys=True).encode("utf-8")
+        response = dispatch(request, store_dir=self.server.store_dir, now=now)
+        headers = dict(response.get("headers") or {})
+        response_body = response.get("body")
+        if isinstance(response_body, str) and \
+                not headers.get("Content-Type", "").startswith("application/json"):
+            payload = response_body.encode("utf-8")    # 016B: server-rendered HTML page
+        else:
+            payload = json.dumps(response_body, sort_keys=True).encode("utf-8")
         self.send_response(int(response.get("status", 200)))
         for name, value in (response.get("headers") or {}).items():
             self.send_header(name, value)

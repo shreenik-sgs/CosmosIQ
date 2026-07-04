@@ -513,7 +513,10 @@ class CoverageEndpointTests(unittest.TestCase):
 # =========================================================================== #
 class RoutingGuardrailTests(unittest.TestCase):
     def test_unknown_route_is_404_json(self):
-        for path in ("/api/nope", "/nope", "/", "/api", "/api/runs/x/unknownkind"):
+        # NOTE (016B): "/" is no longer unknown -- it serves the app home page (tested in
+        # test_cosmosiq_app_pages.py); every path here stays an unknown JSON 404.
+        for path in ("/api/nope", "/nope", "/pages/nope", "/api",
+                     "/api/runs/x/unknownkind"):
             response = _call("GET", path)
             self.assertEqual(response["status"], 404, path)
             self.assertIn("error", response["body"], path)
