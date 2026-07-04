@@ -169,12 +169,16 @@ RUN_MODES: FrozenSet[str] = frozenset(
     {"demo", "fixture", "real_evidence_on_demand", "enriched", "pulse"}
 )
 
-# How a pulse was triggered. In Phase 013 ONLY ``manual`` is ALLOWED at construction;
-# ``scheduled`` / ``streaming`` are RESERVED/DEFERRED (rejected until Phase 015 + a new ADR).
-# The full closed vocabulary is kept so the reserved members are named (and provably rejected),
-# but only ``ALLOWED_TRIGGER_TYPES`` may be constructed.
-ALLOWED_TRIGGER_TYPES: FrozenSet[str] = frozenset({"manual"})
-RESERVED_TRIGGER_TYPES: FrozenSet[str] = frozenset({"scheduled", "streaming"})
+# How a pulse was triggered. ``manual`` has been allowed since Phase 013. ``scheduled`` is
+# UNLOCKED as of Phase 015B (ADR-CANDIDATE-015): it is recorded ONLY by the explicitly-started
+# pulse orchestrator (one synchronous tick, never a daemon), and every scheduled run carries
+# the CadencePolicy ``policy_id`` that scheduled it (``scheduled_by_policy:<id>`` in
+# ``PulseRun.generated_outputs`` + an audit attribution). ``streaming`` stays RESERVED/DEFERRED
+# (rejected at construction until a later phase + its own ADR). The full closed vocabulary is
+# kept so the reserved member is named (and provably rejected), but only
+# ``ALLOWED_TRIGGER_TYPES`` may be constructed.
+ALLOWED_TRIGGER_TYPES: FrozenSet[str] = frozenset({"manual", "scheduled"})
+RESERVED_TRIGGER_TYPES: FrozenSet[str] = frozenset({"streaming"})
 TRIGGER_TYPES: FrozenSet[str] = ALLOWED_TRIGGER_TYPES | RESERVED_TRIGGER_TYPES
 
 # Overall run / data-quality status (RUNTIME_CONTRACT_013 §1; OBSERVABILITY_CONTRACT_013 §2).
@@ -472,15 +476,16 @@ def is_run_mode(value: str) -> bool:
 
 
 def is_trigger_type(value: str) -> bool:
-    """True iff ``value`` is an ALLOWED (constructible) trigger type -- ``manual`` only.
+    """True iff ``value`` is an ALLOWED (constructible) trigger type -- ``manual`` or
+    ``scheduled`` (the latter unlocked by 015B per ADR-CANDIDATE-015).
 
-    ``scheduled`` / ``streaming`` are RESERVED and return False (rejected at construction).
+    ``streaming`` is RESERVED and returns False (rejected at construction).
     """
     return is_member(ALLOWED_TRIGGER_TYPES, value)
 
 
 def is_reserved_trigger_type(value: str) -> bool:
-    """True iff ``value`` is a RESERVED/DEFERRED trigger type (``scheduled`` / ``streaming``)."""
+    """True iff ``value`` is a RESERVED/DEFERRED trigger type (``streaming``)."""
     return value in RESERVED_TRIGGER_TYPES
 
 

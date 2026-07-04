@@ -546,10 +546,13 @@ class NoDaemonGuardTests(unittest.TestCase):
                             "banned import {0!r} in {1}".format(name, path))
 
     def test_reserved_trigger_types_still_rejected(self):
-        # 015A DECIDES only; the 'scheduled' trigger unlock belongs to 015B.
-        for reserved in ("scheduled", "streaming"):
-            with self.assertRaises(ValueError):
-                rm.PulseRun(run_id="X", trigger_type=reserved)
+        # 015A DECIDES only; 015B unlocked 'scheduled' (with its explicit-start runner, per
+        # ADR-CANDIDATE-015 -- see test_reality_mesh_orchestrator.py). 'streaming' stays
+        # RESERVED and rejected.
+        with self.assertRaises(ValueError):
+            rm.PulseRun(run_id="X", trigger_type="streaming")
+        self.assertEqual(
+            rm.PulseRun(run_id="X", trigger_type="scheduled").trigger_type, "scheduled")
 
 
 # =========================================================================== #

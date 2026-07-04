@@ -9,9 +9,12 @@ INFRASTRUCTURE ONLY: typed contracts + closed vocabularies + validation + tests.
 scheduler, NO daemon, NO streaming, NO 24x7 loop, NO broker, NO order, and NO buy/sell/order
 affordance anywhere. In particular:
 
-* **Manual-only trigger.** :attr:`PulseRun.trigger_type` accepts ``manual`` only; ``scheduled``
-  and ``streaming`` are RESERVED/DEFERRED and are REJECTED at construction with a clear
-  ``ValueError`` -- they are not permitted until Phase 015 (and then only behind a new ADR).
+* **Closed trigger vocabulary.** :attr:`PulseRun.trigger_type` accepts ``manual`` and -- as of
+  Phase 015B (ADR-CANDIDATE-015) -- ``scheduled``, which is recorded ONLY by the
+  explicitly-started pulse orchestrator (:mod:`reality_mesh.orchestrator`); every scheduled run
+  carries the CadencePolicy that scheduled it (``scheduled_by_policy:<id>`` in
+  ``generated_outputs`` + an audit attribution). ``streaming`` stays RESERVED/DEFERRED and is
+  REJECTED at construction with a clear ``ValueError`` (a later phase + its own ADR).
 * **No broker, offline-by-default.** :class:`AgentRunContext` has NO ``broker_allowed`` field;
   ``network_allowed`` defaults ``False`` (and is False under the offline test suite). No order,
   affordance, or score is reachable from any runtime object.
@@ -97,17 +100,18 @@ def _validate_labels(obj) -> None:
 
 
 def _validate_trigger_type(obj) -> None:
-    """Enforce the manual-only trigger rule (RUNTIME_CONTRACT_013 §1).
+    """Enforce the closed trigger vocabulary (RUNTIME_CONTRACT_013 §1; 015B unlock).
 
-    ``manual`` (or the "" gap sentinel) is accepted; ``scheduled`` / ``streaming`` are
-    RESERVED and rejected with an explicit message; any other value is an invalid label.
+    ``manual`` / ``scheduled`` (or the "" gap sentinel) are accepted -- ``scheduled`` was
+    unlocked by IMPLEMENTATION-015B per ADR-CANDIDATE-015; ``streaming`` stays RESERVED and
+    rejected with an explicit message; any other value is an invalid label.
     """
     value = getattr(obj, "trigger_type", "")
     if _labels.is_reserved_trigger_type(value):
         raise ValueError(
-            "{0}.trigger_type {1!r} is RESERVED/DEFERRED and rejected in Phase 013 -- only "
-            "'manual' is permitted (scheduled/streaming require Phase 015 + a new ADR)".format(
-                type(obj).__name__, value))
+            "{0}.trigger_type {1!r} is RESERVED/DEFERRED and rejected -- only 'manual' and "
+            "'scheduled' (015B, ADR-CANDIDATE-015) are permitted (streaming requires a later "
+            "phase + a new ADR)".format(type(obj).__name__, value))
     if not _labels.is_member(_labels.ALLOWED_TRIGGER_TYPES, value):
         raise ValueError(
             "{0}.trigger_type: invalid value {1!r} (allowed: {2})".format(
@@ -119,12 +123,12 @@ def _validate_trigger_type(obj) -> None:
 # --------------------------------------------------------------------------- #
 @dataclass(frozen=True)
 class PulseRun:
-    """The record of ONE manual pulse. Counts are VOLUMES, never scores; trigger is manual-only."""
+    """The record of ONE pulse. Counts are VOLUMES, never scores; trigger is manual/scheduled."""
     run_id: str = ""
     started_at: str = ""                    # injected timestamp (no wall-clock)
     completed_at: str = ""                  # injected timestamp
     mode: str = "demo"                      # closed: RUN_MODES (demo stays the DEFAULT)
-    trigger_type: str = "manual"            # manual ONLY; scheduled/streaming REJECTED
+    trigger_type: str = "manual"            # manual or scheduled (015B); streaming REJECTED
     watchlist: Tuple[str, ...] = field(default_factory=tuple)
     themes: Tuple[str, ...] = field(default_factory=tuple)
     source_adapters_requested: Tuple[str, ...] = field(default_factory=tuple)

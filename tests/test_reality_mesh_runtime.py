@@ -7,8 +7,8 @@ the global guardrails §I):
 
 * A1 -- PulseRun / AgentRunContext / AgentRunResult / AgentHealthRecord / ReplayRequest /
   ReplayResult all construct, are frozen, and default cleanly;
-* A2 -- PulseRun.trigger_type accepts ``manual`` and REJECTS ``scheduled`` / ``streaming``
-  (RESERVED/DEFERRED -- rejected until Phase 015);
+* A2 -- PulseRun.trigger_type accepts ``manual`` and (since the 015B unlock per
+  ADR-CANDIDATE-015) ``scheduled``, and REJECTS ``streaming`` (still RESERVED/DEFERRED);
 * A3 -- AgentRunContext.network_allowed defaults False; there is NO broker_allowed(-true) field;
 * A4 -- AgentRunResult.status is limited to {success,partial,failed,skipped,blocked_by_policy};
 * A5 -- counts are integer VOLUMES; NO order/score/rank/rating/buy-sell field on ANY object;
@@ -164,21 +164,28 @@ class ConstructionTests(unittest.TestCase):
 
 
 # =========================================================================== #
-# A2. trigger_type manual-only; scheduled/streaming reserved -> rejected      #
+# A2. trigger_type manual/scheduled (015B unlock); streaming reserved ->      #
+#     rejected                                                                #
 # =========================================================================== #
 class TriggerTypeTests(unittest.TestCase):
     def test_manual_accepted(self):
         self.assertEqual(R.PulseRun(run_id="R", trigger_type="manual").trigger_type, "manual")
         self.assertEqual(R.PulseRun(run_id="R").trigger_type, "manual")   # default
 
-    def test_scheduled_and_streaming_rejected(self):
-        for reserved in ("scheduled", "streaming"):
-            with self.assertRaises(ValueError):
-                R.PulseRun(run_id="R", trigger_type=reserved)
+    def test_scheduled_accepted_since_015b(self):
+        # Unlocked by IMPLEMENTATION-015B per ADR-CANDIDATE-015 (recorded only by the
+        # explicitly-started orchestrator, with policy attribution -- see
+        # test_reality_mesh_orchestrator.py).
+        run = R.PulseRun(run_id="R", trigger_type="scheduled")
+        self.assertEqual(run.trigger_type, "scheduled")
+
+    def test_streaming_still_rejected(self):
+        with self.assertRaises(ValueError):
+            R.PulseRun(run_id="R", trigger_type="streaming")
 
     def test_reserved_error_message_is_clear(self):
         try:
-            R.PulseRun(run_id="R", trigger_type="scheduled")
+            R.PulseRun(run_id="R", trigger_type="streaming")
             self.fail("expected ValueError")
         except ValueError as exc:
             self.assertIn("RESERVED", str(exc))
@@ -188,11 +195,13 @@ class TriggerTypeTests(unittest.TestCase):
             R.PulseRun(run_id="R", trigger_type="cron")
 
     def test_trigger_vocabularies(self):
-        self.assertEqual(L.ALLOWED_TRIGGER_TYPES, frozenset({"manual"}))
-        self.assertEqual(L.RESERVED_TRIGGER_TYPES, frozenset({"scheduled", "streaming"}))
+        self.assertEqual(L.ALLOWED_TRIGGER_TYPES, frozenset({"manual", "scheduled"}))
+        self.assertEqual(L.RESERVED_TRIGGER_TYPES, frozenset({"streaming"}))
         self.assertTrue(L.is_trigger_type("manual"))
-        self.assertFalse(L.is_trigger_type("scheduled"))
+        self.assertTrue(L.is_trigger_type("scheduled"))
+        self.assertFalse(L.is_trigger_type("streaming"))
         self.assertTrue(L.is_reserved_trigger_type("streaming"))
+        self.assertFalse(L.is_reserved_trigger_type("scheduled"))
 
 
 # =========================================================================== #

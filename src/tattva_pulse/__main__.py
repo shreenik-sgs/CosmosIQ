@@ -57,7 +57,34 @@ def main(argv=None) -> int:
         help="optional stable run id for --persist-dir (default: derived deterministically from "
              "the watchlist + themes). Re-persisting the same run id into the same store dir "
              "appends new history (stores are append-only) -- use a fresh id per persisted run.")
+    parser.add_argument(
+        "--scheduled-tick", action="store_true", default=False,
+        help="OPT-IN (IMPLEMENTATION-015B, default OFF): run exactly ONE synchronous scheduled "
+             "tick and exit -- ask the 015A cadence core what is due at --tick-now, run each due "
+             "policy's subscribed pulse through the full 013 chain, journal the schedule state, "
+             "print what ran/was skipped and why, and STOP. Explicitly started, never a daemon: "
+             "no loop, no waiting, no background anything. Requires --persist-dir, --tick-now "
+             "and --subscriptions. Offline; still no live data, no broker, no orders.")
+    parser.add_argument(
+        "--subscriptions", default=None,
+        help="for --scheduled-tick: a local JSON file of watchlist/theme subscriptions "
+             "(subscription_id / watchlist / themes / policy_ids [/ data_dir]; optional "
+             "'calendar' and 'max_runs_per_hour' keys). Labels and local paths only -- "
+             "no secrets, no endpoints.")
+    parser.add_argument(
+        "--tick-now", default=None,
+        help="for --scheduled-tick: the injected ISO-8601 instant the tick decides at "
+             "(e.g. 2026-06-29T15:00:00Z). REQUIRED -- the wall clock is never read.")
+    parser.add_argument(
+        "--max-pulses", type=int, default=1,
+        help="for --scheduled-tick: at most this many pulse attempts in the one tick "
+             "(default 1). Remaining due policies wait for the next explicit tick.")
     args = parser.parse_args(argv)
+
+    # 015B OPT-IN: one scheduled tick, then exit. Branches BEFORE the manual-pulse argument
+    # checks so the default CLI path below stays byte-identical when the flag is absent.
+    if args.scheduled_tick:
+        return _run_scheduled_tick(args, parser)
 
     watch = [t for t in (args.watchlist or "").split(",") if t.strip()]
     themes = [t for t in (args.themes or "").split(",") if t.strip()]
@@ -140,6 +167,83 @@ def main(argv=None) -> int:
     print("Open {0} -> Data Quality for the reality-signal evidence panel.".format(
         paths["universe.html"]))
     print("Live data / scheduler / broker / orders: NOT enabled.")
+    return 0
+
+
+def _run_scheduled_tick(args, parser) -> int:
+    """Run exactly ONE scheduled tick (IMPLEMENTATION-015B) and exit. Never a daemon.
+
+    Loads the subscriptions JSON, resumes the journaled schedule state from --persist-dir (or
+    starts from the accepted default cadence policies), runs ONE synchronous
+    :func:`reality_mesh.orchestrator.run_due_pulses` pass at the injected --tick-now, prints
+    what ran / failed / was skipped and WHY (throttled / backoff / market closed / paused /
+    interval / no subscription -- all named), and returns 0. The next tick happens only when
+    the operator runs this command again.
+    """
+    from reality_mesh.orchestrator import (
+        load_schedule_state,
+        run_due_pulses,
+        subscription_from_dict,
+    )
+    from reality_mesh.scheduler import (
+        DEFAULT_MARKET_HOURS,
+        build_default_schedule,
+        calendar_from_dict,
+    )
+
+    if not args.persist_dir:
+        parser.error("--scheduled-tick requires --persist-dir (the append-only local store "
+                     "directory the tick persists into)")
+    if not args.tick_now:
+        parser.error("--scheduled-tick requires --tick-now (an injected ISO-8601 instant; "
+                     "the wall clock is never read)")
+    if not args.subscriptions:
+        parser.error("--scheduled-tick requires --subscriptions (a local JSON file of "
+                     "watchlist/theme subscriptions; nothing runs without an explicit scope)")
+
+    with open(args.subscriptions, encoding="utf-8") as fh:
+        config = json.load(fh)
+    subscriptions = tuple(subscription_from_dict(entry)
+                          for entry in config.get("subscriptions", ()) or ())
+    calendar = (calendar_from_dict(config["calendar"])
+                if config.get("calendar") else DEFAULT_MARKET_HOURS)
+
+    schedule = load_schedule_state(args.persist_dir)
+    resumed = schedule is not None
+    if schedule is None:
+        schedule = build_default_schedule(
+            max_runs_per_hour=int(config.get("max_runs_per_hour", 60)))
+
+    print("ONE scheduled tick (015B) · explicitly started by the operator · not a daemon · "
+          "no loop · offline · fixture/local-file backed · no live data, no broker, no orders.")
+    print("  tick instant (injected): {0}".format(args.tick_now))
+    print("  schedule state: {0}".format(
+        "resumed from journal" if resumed else "fresh default cadence policies"))
+    print("  subscriptions: {0}".format(
+        ", ".join(s.subscription_id for s in subscriptions) or "none"))
+
+    result = run_due_pulses(
+        schedule, now=args.tick_now, store_dir=args.persist_dir,
+        subscriptions=subscriptions, calendar=calendar, max_pulses=args.max_pulses,
+        fixture_dir=args.fixture_dir)
+
+    print("  ran ({0}):".format(len(result.ran)))
+    for line in result.ran:
+        print("    - {0}".format(line))
+    if result.failed:
+        print("  failed ({0}) -- recorded honestly (backoff + health), tick not aborted:"
+              .format(len(result.failed)))
+        for line in result.failed:
+            print("    - {0}".format(line))
+    print("  skipped ({0}) -- with reasons:".format(len(result.skipped)))
+    for line in result.skipped:
+        print("    - {0}".format(line))
+    for line in result.notes:
+        print("  note: {0}".format(line))
+    print("  schedule state appended (append-only journal): {0}".format(
+        os.path.join(args.persist_dir, "schedule_state_store.jsonl")))
+    print("One tick only -- exiting. Run this command again for the next tick. "
+          "Streaming / auto-trading: NOT enabled.")
     return 0
 
 

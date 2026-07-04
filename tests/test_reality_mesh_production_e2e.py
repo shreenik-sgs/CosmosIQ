@@ -474,10 +474,11 @@ class GuardrailTests(unittest.TestCase):
                                  "demo default drifted for {0}".format(name))
             self.assertNotIn("Run observability", _read(a["data_quality.html"]))
 
-    def test_trigger_type_is_manual_only(self):
-        for reserved in ("scheduled", "streaming"):
-            with self.assertRaises(ValueError):
-                PulseRun(run_id="X", trigger_type=reserved)
+    def test_trigger_type_manual_here_streaming_still_rejected(self):
+        # 015B unlocked 'scheduled' (explicit-start orchestrator only, per ADR-CANDIDATE-015);
+        # 'streaming' stays RESERVED/rejected, and THIS manual run persists as manual.
+        with self.assertRaises(ValueError):
+            PulseRun(run_id="X", trigger_type="streaming")
         self.assertEqual(_STATE["pulse_run"].trigger_type, "manual")
         persisted = S.RunStore(_STATE["store_dir"]).query(run_id=_RUN_ID)
         self.assertEqual([r.trigger_type for r in persisted], ["manual"])

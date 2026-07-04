@@ -318,6 +318,20 @@ from .scheduler import (
     state_to_dict,
     throttled,
 )
+from .orchestrator import (
+    ORCHESTRATOR_ACTOR,
+    SCHEDULED_BY_POLICY_PREFIX,
+    PulseOrchestrator,
+    ScheduleStateStore,
+    Subscription,
+    TickResult,
+    append_schedule_state,
+    load_schedule_state,
+    run_due_pulses,
+    scheduled_policy_for,
+    subscription_from_dict,
+    subscription_to_dict,
+)
 from .nivesha_forward import (
     FORWARD_INPUT_NAMES,
     SCENARIO_LABELS,
@@ -636,4 +650,17 @@ __all__ = [
     "calendar_from_dict",
     "schedule_to_dict",
     "schedule_from_dict",
+    # pulse orchestrator -- explicit-start scheduled-pulse runner, never a daemon (015B)
+    "ORCHESTRATOR_ACTOR",
+    "SCHEDULED_BY_POLICY_PREFIX",
+    "PulseOrchestrator",
+    "ScheduleStateStore",
+    "Subscription",
+    "TickResult",
+    "append_schedule_state",
+    "load_schedule_state",
+    "run_due_pulses",
+    "scheduled_policy_for",
+    "subscription_from_dict",
+    "subscription_to_dict",
 ]
