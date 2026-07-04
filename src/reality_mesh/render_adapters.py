@@ -22,13 +22,21 @@ as EVIDENCE + OBSERVABILITY for the Trust & Data-Quality surface. Labels + volum
 degraded / failed states are shown honestly, never hidden; no ``data-intel``, no ``href`` anchor,
 no trade affordance, no hidden metric, no credential value; English layer terminology only (a
 legacy layer prefix in an agent id is normalized to its approved English value for display).
+
+IMPLEMENTATION-015C adds :func:`build_alert_inbox_panel` under the SAME discipline again: the
+persisted alert inbox rendered as OBSERVATIONS. Alerts observe, they never execute: severities are
+labels (info / notice / warning / critical, never a score), every row shows its plain-English
+reason, and NOTHING in the panel is clickable -- no ``href``, no ``data-intel``, no ``<button>``,
+no form, no acknowledge affordance. Acknowledgment happens via the CLI (``--ack-alert``), never a
+click. Empty input -> ``""`` so every default page stays byte-identical.
 """
 
 from typing import Any, Dict, Iterable, Optional, Tuple
 
 from . import labels as _labels
 
-__all__ = ["build_pulse_data_quality_panel", "build_run_observability_panel"]
+__all__ = ["build_pulse_data_quality_panel", "build_run_observability_panel",
+           "build_alert_inbox_panel"]
 
 _RUMOR = "rumor"
 _NARRATIVE = "narrative"
@@ -376,3 +384,69 @@ def build_run_observability_panel(
 
     return ("<h2>Run observability — persisted pulse</h2>" + note
             + run_html + agent_html + source_html + gate_html + replay_html)
+
+
+# --------------------------------------------------------------------------- #
+# IMPLEMENTATION-015C — persisted alert-inbox panel (observations, no clicks)   #
+# --------------------------------------------------------------------------- #
+
+# Severity label -> badge kind. Labels on a human-attention ladder, never a score.
+_SEVERITY_BADGE_KINDS = {
+    "info": "q-high",
+    "notice": "gap",
+    "warning": "hazard",
+    "critical": "hazard",
+}
+
+
+def build_alert_inbox_panel(*, alerts: Iterable[Any] = (),
+                            acknowledged_ids: Iterable[str] = ()) -> str:
+    """Render the persisted alert inbox (or ``""`` when no alerts are supplied).
+
+    OBSERVATIONS only: each row shows the severity LABEL, the closed category, the
+    plain-English reason, its subjects and evidence volume, and whether it has been
+    acknowledged. Nothing is clickable — no ``href``, no ``data-intel``, no ``<button>``,
+    no acknowledge affordance: acknowledgment happens via the CLI (``--ack-alert``), which
+    appends a NEW record referencing the alert (the alert line itself is never edited).
+    Additive + opt-in: empty input -> ``""`` -> every default page stays byte-identical.
+    """
+    alerts = sorted(alerts or (), key=lambda a: getattr(a, "alert_id", ""))
+    if not alerts:
+        return ""  # opt-in: nothing supplied -> byte-identical to the pre-015C page
+    acked = set(acknowledged_ids or ())
+
+    note = ('<p class="note">Alert inbox — alerts OBSERVE, they never execute. Each alert '
+            "names a state change between two persisted pulse runs and points at its "
+            "evidence; severities are labels, never scores. Nothing here is clickable: "
+            "acknowledgment happens via the CLI (a new append-only record), not a button. "
+            "Nothing acts automatically and there is no way to act from this panel.</p>")
+
+    rows = ""
+    for a in alerts:
+        alert_id = str(getattr(a, "alert_id", ""))
+        acknowledged = bool(getattr(a, "acknowledged", False)) or alert_id in acked
+        status = (_badge("acknowledged", "q-high") if acknowledged
+                  else _badge("open", "gap"))
+        severity = str(getattr(a, "severity", "") or "info")
+        subjects = ", ".join(
+            tuple(getattr(a, "subject_tickers", ()) or ())
+            + tuple(getattr(a, "subject_themes", ()) or ())) or "—"
+        rows += (
+            "<tr><th>{sev}</th><td>{cat}</td><td>{reason}</td><td>{run}</td>"
+            "<td>{subjects}</td><td>{ev} evidence ref(s)</td><td>{status}</td></tr>".format(
+                sev=_badge(severity, _SEVERITY_BADGE_KINDS.get(severity, "gap")),
+                cat=_label(a, "category"),
+                reason=_label(a, "human_readable_reason"),
+                run=_label(a, "run_id"),
+                subjects=_esc(subjects),
+                ev=_esc(len(tuple(getattr(a, "evidence_refs", ()) or ()))),
+                status=status))
+
+    return ("<h2>Alert inbox — persisted observations</h2>" + note
+            + '<div class="glass-panel"><table class="kv">'
+            "<tr><th>Severity</th><td>Category</td><td>Reason (plain English)</td>"
+            "<td>Run</td><td>Subjects</td><td>Evidence</td><td>Status</td></tr>"
+            + rows + "</table></div>"
+            + '<p class="note">To acknowledge: run the CLI with --ack-alert and the alert '
+            "id. The acknowledgment is a NEW append-only record referencing the alert; the "
+            "original alert line stays byte-unchanged.</p>")

@@ -100,6 +100,7 @@ from .fusion import (
 )
 from .sphurana import OpportunityDiscoveryResult, SphuranaResult, ThemePulseSynthesizer
 from .render_adapters import (
+    build_alert_inbox_panel,
     build_pulse_data_quality_panel,
     build_run_observability_panel,
 )
@@ -331,6 +332,25 @@ from .orchestrator import (
     scheduled_policy_for,
     subscription_from_dict,
     subscription_to_dict,
+)
+from .alerts import (
+    ALERT_CATEGORIES,
+    ALERT_SEVERITIES,
+    CATEGORY_SEVERITY,
+    Alert,
+    AlertAcknowledgment,
+    AlertAcknowledgmentStore,
+    AlertGenerationResult,
+    AlertStore,
+    acknowledge_alert,
+    acknowledged_alert_ids,
+    acknowledged_alerts,
+    alerts_with_status,
+    diff_persisted_runs,
+    generate_alerts_for_run,
+    previous_persisted_run_id,
+    record_failed_pulse_alert,
+    unacknowledged_alerts,
 )
 from .nivesha_forward import (
     FORWARD_INPUT_NAMES,
@@ -663,4 +683,23 @@ __all__ = [
     "scheduled_policy_for",
     "subscription_from_dict",
     "subscription_to_dict",
+    # diff-based alerts + append-only alert inbox -- observe, never execute (015C)
+    "ALERT_CATEGORIES",
+    "ALERT_SEVERITIES",
+    "CATEGORY_SEVERITY",
+    "Alert",
+    "AlertAcknowledgment",
+    "AlertAcknowledgmentStore",
+    "AlertGenerationResult",
+    "AlertStore",
+    "acknowledge_alert",
+    "acknowledged_alert_ids",
+    "acknowledged_alerts",
+    "alerts_with_status",
+    "diff_persisted_runs",
+    "generate_alerts_for_run",
+    "previous_persisted_run_id",
+    "record_failed_pulse_alert",
+    "unacknowledged_alerts",
+    "build_alert_inbox_panel",
 ]

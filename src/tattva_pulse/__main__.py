@@ -79,7 +79,47 @@ def main(argv=None) -> int:
         "--max-pulses", type=int, default=1,
         help="for --scheduled-tick: at most this many pulse attempts in the one tick "
              "(default 1). Remaining due policies wait for the next explicit tick.")
+    parser.add_argument(
+        "--pause-policy", default=None, metavar="POLICY_ID|all",
+        help="OPT-IN operator control (IMPLEMENTATION-015C): pause one cadence policy (or "
+             "'all') and journal the new schedule state, then exit. One-shot, offline. "
+             "Requires --persist-dir and --tick-now (the injected instant journaled; the "
+             "wall clock is never read). Nothing runs while paused.")
+    parser.add_argument(
+        "--resume-policy", default=None, metavar="POLICY_ID|all",
+        help="OPT-IN operator control (015C): resume one cadence policy (or 'all') and "
+             "journal the new schedule state, then exit. One-shot, offline. Requires "
+             "--persist-dir and --tick-now. Resume lifts the pause only -- an unexpired "
+             "failure backoff still applies.")
+    parser.add_argument(
+        "--ack-alert", default=None, metavar="ALERT_ID",
+        help="OPT-IN operator control (015C): acknowledge one alert by APPENDING a new "
+             "acknowledgment record referencing it (the alert line itself is never "
+             "edited), then exit. One-shot, offline. Requires --persist-dir and "
+             "--tick-now.")
+    parser.add_argument(
+        "--list-alerts", action="store_true", default=False,
+        help="OPT-IN operator control (015C): print the persisted alert inbox (severity "
+             "label, category, plain-English reason, acknowledged/open), then exit. "
+             "One-shot, offline, read-only. Requires --persist-dir.")
     args = parser.parse_args(argv)
+
+    # 015C OPT-IN operator controls: each is ONE offline action, then exit. They branch
+    # BEFORE the manual-pulse argument checks so the default CLI path stays byte-identical
+    # when no control flag is passed. Exactly one control per invocation -- honest and
+    # unambiguous.
+    controls = [name for name, value in (
+        ("--pause-policy", args.pause_policy),
+        ("--resume-policy", args.resume_policy),
+        ("--ack-alert", args.ack_alert),
+        ("--list-alerts", args.list_alerts),
+    ) if value]
+    if controls:
+        if len(controls) > 1 or args.scheduled_tick:
+            parser.error("operator controls are one-shot: pass exactly ONE of "
+                         "--pause-policy / --resume-policy / --ack-alert / --list-alerts "
+                         "(and not together with --scheduled-tick)")
+        return _run_operator_control(args, parser)
 
     # 015B OPT-IN: one scheduled tick, then exit. Branches BEFORE the manual-pulse argument
     # checks so the default CLI path below stays byte-identical when the flag is absent.
@@ -240,10 +280,112 @@ def _run_scheduled_tick(args, parser) -> int:
         print("    - {0}".format(line))
     for line in result.notes:
         print("  note: {0}".format(line))
+    if result.alerts:
+        print("  alerts ({0}) -- observations only, nothing acts on them; read with "
+              "--list-alerts, acknowledge with --ack-alert:".format(len(result.alerts)))
+        for alert in result.alerts:
+            print("    - [{0}] {1}: {2}".format(
+                alert.severity, alert.category, alert.human_readable_reason))
     print("  schedule state appended (append-only journal): {0}".format(
         os.path.join(args.persist_dir, "schedule_state_store.jsonl")))
     print("One tick only -- exiting. Run this command again for the next tick. "
           "Streaming / auto-trading: NOT enabled.")
+    return 0
+
+
+def _run_operator_control(args, parser) -> int:
+    """Run exactly ONE offline operator control (IMPLEMENTATION-015C) and exit.
+
+    ``--pause-policy`` / ``--resume-policy`` journal the NEW schedule state (append-style:
+    a new JSONL line, prior lines byte-unchanged). ``--ack-alert`` APPENDS an acknowledgment
+    record referencing the alert (the alert line itself is never edited). ``--list-alerts``
+    is read-only. Every action prints honestly what it did and nothing keeps running.
+    """
+    from reality_mesh.alerts import acknowledge_alert, alerts_with_status
+    from reality_mesh.orchestrator import append_schedule_state, load_schedule_state
+    from reality_mesh.scheduler import build_default_schedule
+    from reality_mesh.scheduler import pause as pause_schedule
+    from reality_mesh.scheduler import resume as resume_schedule
+
+    if not args.persist_dir:
+        parser.error("operator controls require --persist-dir (the local append-only "
+                     "store directory they read from / journal into)")
+
+    # ---- --list-alerts: read-only inbox print ------------------------------------------- #
+    if args.list_alerts:
+        entries = alerts_with_status(args.persist_dir)
+        print("Alert inbox (015C) · append-only · offline · alerts OBSERVE, nothing acts "
+              "on them.")
+        if not entries:
+            print("  no alerts recorded in {0} -- an unchanged reality stays quiet.".format(
+                args.persist_dir))
+        else:
+            open_count = sum(1 for a in entries if not a.acknowledged)
+            print("  {0} alert(s): {1} open · {2} acknowledged".format(
+                len(entries), open_count, len(entries) - open_count))
+            for alert in entries:
+                print("  - [{0}] {1} · run {2} · {3}".format(
+                    alert.severity, alert.category, alert.run_id,
+                    "acknowledged" if alert.acknowledged else "open"))
+                print("      id: {0}".format(alert.alert_id))
+                print("      reason: {0}".format(alert.human_readable_reason))
+        print("One-shot action -- exiting. Acknowledge with --ack-alert <id>; nothing "
+              "runs by itself.")
+        return 0
+
+    # The mutating controls journal an injected instant -- the wall clock is never read.
+    if not args.tick_now:
+        parser.error("--pause-policy / --resume-policy / --ack-alert require --tick-now "
+                     "(an injected ISO-8601 instant; the wall clock is never read)")
+
+    # ---- --ack-alert: a NEW acknowledgment record, never a mutation ---------------------- #
+    if args.ack_alert:
+        try:
+            ack_id = acknowledge_alert(args.persist_dir, args.ack_alert, at=args.tick_now)
+        except ValueError as exc:
+            parser.error(str(exc))
+        print("Alert acknowledged (015C) · append-only · offline.")
+        print("  alert: {0}".format(args.ack_alert))
+        print("  acknowledgment record APPENDED: {0} (a NEW record referencing the alert; "
+              "the original alert line is byte-unchanged)".format(ack_id))
+        print("  store: {0}".format(os.path.join(args.persist_dir,
+                                                 "alert_ack_store.jsonl")))
+        print("One-shot action -- exiting. Nothing runs by itself.")
+        return 0
+
+    # ---- --pause-policy / --resume-policy: journal the NEW schedule state ---------------- #
+    pausing = args.pause_policy is not None
+    target = args.pause_policy if pausing else args.resume_policy
+    schedule = load_schedule_state(args.persist_dir)
+    resumed_from_journal = schedule is not None
+    if schedule is None:
+        schedule = build_default_schedule()
+    try:
+        new_schedule = (pause_schedule if pausing else resume_schedule)(
+            schedule, target, args.tick_now)
+    except ValueError as exc:
+        parser.error(str(exc))
+    verb = "paused" if pausing else "resumed"
+    append_schedule_state(
+        args.persist_dir, new_schedule, now=args.tick_now,
+        note="operator {0} policy {1} (015C operator control)".format(verb, target))
+    print("Schedule {0} (015C operator control) · one-shot · offline · journaled.".format(
+        verb))
+    print("  schedule state: {0}".format(
+        "resumed from journal" if resumed_from_journal
+        else "fresh default cadence policies (nothing journaled before this)"))
+    print("  target: {0}".format("ALL policies" if target == "all" else target))
+    if pausing:
+        print("  effect: {0} will not run until resumed (--resume-policy).".format(
+            "no policy" if target == "all" else "policy {0}".format(target)))
+    else:
+        print("  effect: {0} may run again when due. Resume lifts the pause only -- an "
+              "unexpired failure backoff still applies.".format(
+                  "every policy" if target == "all" else "policy {0}".format(target)))
+    print("  new state APPENDED to the journal (prior lines byte-unchanged): {0}".format(
+        os.path.join(args.persist_dir, "schedule_state_store.jsonl")))
+    print("One-shot action -- exiting. Nothing runs by itself; the next tick happens only "
+          "when an operator runs --scheduled-tick.")
     return 0
 
 

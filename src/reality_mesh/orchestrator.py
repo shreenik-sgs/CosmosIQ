@@ -23,7 +23,12 @@ NOT a daemon. :func:`run_due_pulses` is ONE synchronous, operator-invoked tick:
 
 Per ADR-CANDIDATE-015 the reserved ``scheduled`` trigger type unlocks WITH this runner
 (``streaming`` stays reserved/rejected). Everything ARCHITECTURE_CONTRACT_012 §G forbids beyond
-cadence + evidence stays forbidden and approval-gated; alerting is 015C, not this slice.
+cadence + evidence stays forbidden and approval-gated. IMPLEMENTATION-015C adds the alert hook:
+after each persisted scheduled pulse the tick asks the diff-based engine in
+:mod:`reality_mesh.alerts` to observe state changes vs the previous persisted run (alerts
+OBSERVE -- they never act; first run -> baseline note; unchanged -> quiet). A failed pulse is
+also alerted (one honest failure record). Alert generation failing NEVER fails the pulse -- it
+surfaces as a visible note instead.
 
 Deterministic, stdlib-only, Python 3.9, OFFLINE: every timestamp is an injected ISO-8601 string
 (the wall clock is never read), run ids derive from policy id + injected instant, and all
@@ -36,6 +41,7 @@ import os
 from dataclasses import dataclass, field, replace
 from typing import Dict, List, Mapping, Optional, Tuple
 
+from .alerts import Alert, generate_alerts_for_run, record_failed_pulse_alert
 from .ledger import AgentRunLedger
 from .pulse import run_pulse
 from .pulse_persistence import persist_and_summarize
@@ -197,7 +203,9 @@ class TickResult:
 
     ``ran`` / ``failed`` / ``skipped`` / ``notes`` are honest human-readable lines naming
     every policy the tick touched and WHY anything did not run (paused / backoff / throttled /
-    market closed / interval not elapsed / max_pulses / no subscription).
+    market closed / interval not elapsed / max_pulses / no subscription). ``alerts`` (015C)
+    are the frozen observation records the tick's alert hook appended to the inbox --
+    observations only, nothing acts on them.
     """
 
     schedule: PulseSchedule = field(default_factory=PulseSchedule)
@@ -206,6 +214,7 @@ class TickResult:
     failed: Tuple[str, ...] = field(default_factory=tuple)
     skipped: Tuple[str, ...] = field(default_factory=tuple)
     notes: Tuple[str, ...] = field(default_factory=tuple)
+    alerts: Tuple[Alert, ...] = field(default_factory=tuple)
 
     def __iter__(self):
         """Support ``new_schedule, runs = run_due_pulses(...)`` (the documented contract)."""
@@ -361,6 +370,7 @@ def run_due_pulses(
     failed: List[str] = []
     skipped: List[str] = []
     notes: List[str] = []
+    alerts: List[Alert] = []
     attempts = 0
 
     if schedule.paused_all:
@@ -428,6 +438,20 @@ def run_due_pulses(
             pulse_runs.append(scheduled_run)
             ran.append("{0}: ran pulse {1} over {2} (replay deterministic_match={3})".format(
                 policy_id, run_id, ",".join(watchlist), replay_result.deterministic_match))
+
+            # 015C alert hook: AFTER persist + record_run, observe this run against the
+            # previous persisted run (diff-based; first run -> baseline note; unchanged ->
+            # quiet). Alerts OBSERVE only -- and an alert-generation failure never fails
+            # the pulse: it is surfaced as a visible note instead.
+            try:
+                observed = generate_alerts_for_run(store_dir, run_id, now=now)
+                alerts.extend(observed.alerts)
+                for note in observed.notes:
+                    notes.append("{0}: {1}".format(policy_id, note))
+            except Exception as alert_exc:
+                notes.append("{0}: alert generation FAILED ({1}) -- the pulse itself "
+                             "succeeded; the failure is surfaced here, not hidden".format(
+                                 policy_id, _safe_message(alert_exc)))
         except Exception as exc:  # failure isolation: this policy backs off, the tick goes on
             message = _safe_message(exc)
             current = record_run(current, policy_id, now, False)
@@ -437,6 +461,16 @@ def run_due_pulses(
                           "(consecutive_failures={4}); other due policies were not "
                           "affected".format(policy_id, run_id, message, state.backoff_until,
                                             state.consecutive_failures))
+            # 015C: a failed scheduled pulse is itself an observable state change -- one
+            # honest failure alert (idempotent per run id; never aborts the tick).
+            try:
+                failure_alert = record_failed_pulse_alert(
+                    store_dir, run_id, policy_id=policy_id, message=message, now=now)
+                if failure_alert is not None:
+                    alerts.append(failure_alert)
+            except Exception as alert_exc:
+                notes.append("{0}: failure-alert generation FAILED ({1}) -- surfaced, "
+                             "not hidden".format(policy_id, _safe_message(alert_exc)))
 
     tick_note = "tick at {0}: ran={1} failed={2} skipped={3} notes={4}".format(
         now, len(ran), len(failed), len(skipped), len(notes))
@@ -444,7 +478,8 @@ def run_due_pulses(
 
     return TickResult(
         schedule=current, pulse_runs=tuple(pulse_runs), ran=tuple(ran),
-        failed=tuple(failed), skipped=tuple(skipped), notes=tuple(notes))
+        failed=tuple(failed), skipped=tuple(skipped), notes=tuple(notes),
+        alerts=tuple(alerts))
 
 
 # --------------------------------------------------------------------------- #

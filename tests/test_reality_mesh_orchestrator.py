@@ -76,6 +76,9 @@ _NOW = "2026-06-29T15:00:00Z"
 _SATURDAY = "2026-06-27T15:00:00Z"
 
 # The same ban lists the 012/013/015A guards enforce, re-asserted over orchestrator.py.
+# 015C NOTE: "alert"/"alerts" left this list when the observe-only alert hook landed in the
+# tick (IMPLEMENTATION-015C) -- alerts OBSERVE, they never execute, and the execution/trading
+# vocabulary below stays banned (see tests/test_reality_mesh_alerts.py for the alert guards).
 _BANNED_IMPORT_ROOTS = ("socket", "requests", "urllib", "http", "sched", "schedule",
                         "apscheduler", "asyncio", "threading", "multiprocessing",
                         "subprocess", "smtplib", "ftplib", "socketserver", "broker",
@@ -83,8 +86,7 @@ _BANNED_IMPORT_ROOTS = ("socket", "requests", "urllib", "http", "sched", "schedu
 _BANNED_CALL_NAMES = ("sleep", "run_forever", "serve_forever", "start_polling", "Thread",
                       "Timer", "Process", "fork", "spawn", "run_in_executor", "setdaemon")
 _EXECUTION_WORDS = ("buy", "sell", "hold", "order", "orders", "trade", "trades", "trading",
-                    "broker", "execute", "execution", "rebalance", "rebalancing", "position",
-                    "alert", "alerts")
+                    "broker", "execute", "execution", "rebalance", "rebalancing", "position")
 _WALL_CLOCK_TOKENS = ("time.time(", "datetime.now(", "datetime.utcnow(", "utcnow(",
                       "time.monotonic(", "perf_counter(")
 
