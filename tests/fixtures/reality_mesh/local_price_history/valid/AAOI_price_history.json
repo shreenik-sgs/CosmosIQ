@@ -1,0 +1,20 @@
+{
+  "_comment": "OPERATOR-SUPPLIED LOCAL FILE (test copy, IMPLEMENTATION-014D) -- precomputed price-history indicator readings for AAOI. EMA-stack-broken shape (fully inverted stack, close below VWAP). Deliberately self-certifies 'canonical' so the adapter provably downgrades it to convenience with a visible warning. Deterministic.",
+  "as_of": "2026-06-29T13:30:00Z",
+  "ticker": "AAOI",
+  "source_authority": "canonical",
+  "indicators": {
+    "close": 8.9,
+    "ema8": 9.2,
+    "ema21": 9.8,
+    "ema50": 10.9,
+    "ema200": 12.5,
+    "vwap": 9.5,
+    "recent_volume": 2100000,
+    "avg_volume": 2400000,
+    "range_high": 10.2,
+    "recent_high": 9.4,
+    "range_pct": 14.0,
+    "pct_above_ema21": -9.2
+  }
+}

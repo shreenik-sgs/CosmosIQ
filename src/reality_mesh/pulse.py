@@ -50,6 +50,7 @@ from .sensors import (
     NewsFilingsAgent,
     SectorRotationAgent,
     SocialNarrativeAgent,
+    TechnicalRegimeAgent,
     ThemeRotationAgent,
     events_from_fixture,
 )
@@ -70,6 +71,14 @@ _SENSOR_AGENT_FACTORIES = (
     ThemeRotationAgent,
     NewsFilingsAgent,
     SocialNarrativeAgent,
+)
+
+# CONDITIONAL sensor agents (014D): each runs ONLY when the pulse's event stream carries at
+# least one event in its discipline. The bundled default fixtures carry no technical_regime
+# events, so the DEFAULT pulse output stays byte-identical -- the Technical Regime agent
+# joins the run only when a price-history adapter (or a fixture) supplies its events.
+_CONDITIONAL_SENSOR_AGENT_FACTORIES = (
+    (TechnicalRegimeAgent, "technical_regime"),
 )
 
 
@@ -233,9 +242,17 @@ def run_pulse(
     registry = build_default_registry()
     router = BuddhiRouter(registry=registry)
 
+    # Additive (014D): a conditional agent joins ONLY when its discipline has events, so the
+    # default fixture-only pulse (no technical_regime events) stays byte-identical.
+    event_disciplines = {e.discipline for e in events}
+    factories = list(_SENSOR_AGENT_FACTORIES)
+    for conditional_factory, conditional_discipline in _CONDITIONAL_SENSOR_AGENT_FACTORIES:
+        if conditional_discipline in event_disciplines:
+            factories.append(conditional_factory)
+
     all_findings: List[AgentFinding] = []
     agent_runs: List[PulseAgentRun] = []
-    for factory in _SENSOR_AGENT_FACTORIES:
+    for factory in factories:
         agent = factory()
         desc = agent.descriptor
         discipline = desc.discipline

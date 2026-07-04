@@ -68,6 +68,15 @@ from .local_market_data import (
     STALE_AFTER_HOURS,
     LocalMarketDataAdapter,
 )
+from .local_price_history import (
+    LOCAL_PRICE_HISTORY_ADAPTER_ID,
+    LOCAL_PRICE_HISTORY_DESCRIPTOR,
+    LOCAL_PRICE_HISTORY_DISCIPLINES,
+    PRICE_HISTORY_FILE_SUFFIX,
+    PRICE_HISTORY_INDICATOR_UNITS,
+    PRICE_HISTORY_STALE_AFTER_HOURS,
+    LocalPriceHistoryAdapter,
+)
 
 __all__ = [
     # runtime (base)
@@ -88,6 +97,14 @@ __all__ = [
     "LOCAL_MARKET_DATA_FILES",
     "STALE_AFTER_HOURS",
     "LocalMarketDataAdapter",
+    # local price-history adapter (014D)
+    "LOCAL_PRICE_HISTORY_ADAPTER_ID",
+    "LOCAL_PRICE_HISTORY_DESCRIPTOR",
+    "LOCAL_PRICE_HISTORY_DISCIPLINES",
+    "PRICE_HISTORY_FILE_SUFFIX",
+    "PRICE_HISTORY_INDICATOR_UNITS",
+    "PRICE_HISTORY_STALE_AFTER_HOURS",
+    "LocalPriceHistoryAdapter",
     # SEC/FMP evidence adapter (014B)
     "SEC_FMP_EVIDENCE_ADAPTER_ID",
     "SEC_FMP_EVIDENCE_DESCRIPTOR",

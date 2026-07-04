@@ -46,6 +46,15 @@ from .social_narrative import (
     SOCIAL_NARRATIVE_SUBAGENTS,
     assert_narrative_not_verified,
 )
+from .technical_regime import (
+    TechnicalRegimeAgent,
+    TECHNICAL_REGIME_FINDING_TYPES,
+    TECHNICAL_REGIME_SUBAGENTS,
+    TECHNICAL_SUBAGENT_REQUIRED_KEYS,
+    COMPRESSION_MAX_RANGE_PCT,
+    OVEREXTENSION_MIN_PCT,
+    VOLUME_CONFIRM_MULT,
+)
 
 __all__ = [
     "MarketRegimeAgent",
@@ -70,4 +79,11 @@ __all__ = [
     "SOCIAL_NARRATIVE_FINDING_TYPES",
     "SOCIAL_NARRATIVE_SUBAGENTS",
     "assert_narrative_not_verified",
+    "TechnicalRegimeAgent",
+    "TECHNICAL_REGIME_FINDING_TYPES",
+    "TECHNICAL_REGIME_SUBAGENTS",
+    "TECHNICAL_SUBAGENT_REQUIRED_KEYS",
+    "COMPRESSION_MAX_RANGE_PCT",
+    "OVEREXTENSION_MIN_PCT",
+    "VOLUME_CONFIRM_MULT",
 ]

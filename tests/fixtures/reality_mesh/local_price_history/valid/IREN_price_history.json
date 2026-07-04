@@ -1,0 +1,19 @@
+{
+  "_comment": "OPERATOR-SUPPLIED LOCAL FILE (test copy, IMPLEMENTATION-014D) -- precomputed price-history indicator readings for IREN. Breakout-confirmed shape: close above the prior range high on expanding volume, EMA stack aligned, close above VWAP. Local file only: no network, no credential. Deterministic.",
+  "as_of": "2026-06-29T13:30:00Z",
+  "ticker": "IREN",
+  "indicators": {
+    "close": 18.4,
+    "ema8": 17.9,
+    "ema21": 17.1,
+    "ema50": 15.8,
+    "ema200": 12.4,
+    "vwap": 17.6,
+    "recent_volume": 9100000,
+    "avg_volume": 5400000,
+    "range_high": 17.8,
+    "recent_high": 18.6,
+    "range_pct": 8.5,
+    "pct_above_ema21": 7.6
+  }
+}
