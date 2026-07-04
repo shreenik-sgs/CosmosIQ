@@ -1,0 +1,1 @@
+{ this is not valid JSON -- a malformed operator file must become a visible parse_error, never a crash and never fabricated events

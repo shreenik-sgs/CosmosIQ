@@ -1,0 +1,35 @@
+{
+  "_comment": "OPERATOR-DROPPED LOCAL FILE (test copy, IMPLEMENTATION-014F) -- structured extract of an IREN earnings-call transcript carrying capacity / lead-time / shortage statements for the Bottleneck Evidence sensor. Company speakers are company_claim; an analyst's question is reported_claim. Deterministic; local file only.",
+  "as_of": "2026-06-25T00:00:00Z",
+  "period": "2026Q1",
+  "event_name": "IREN Q1 FY2026 earnings call (evidence slice)",
+  "prepared_remarks": [
+    {
+      "speaker": "R. Founder",
+      "role": "CEO",
+      "section": "operations",
+      "text": "We energized 30 megawatts of new capacity during the quarter and the expansion remains on plan"
+    },
+    {
+      "speaker": "S. Steward",
+      "role": "CFO",
+      "section": "supply chain",
+      "text": "Lead times for our actuator modules extended to 52 weeks this quarter"
+    },
+    {
+      "speaker": "S. Steward",
+      "role": "CFO",
+      "section": "supply chain",
+      "text": "We remain on allocation with several component suppliers and supply remains tight across the fleet"
+    }
+  ],
+  "qa": [
+    {
+      "speaker": "Jane Doe",
+      "role": "analyst",
+      "firm": "Example Securities",
+      "kind": "question",
+      "text": "How much additional capacity will the Phase 2 expansion add next year?"
+    }
+  ]
+}

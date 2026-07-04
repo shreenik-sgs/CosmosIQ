@@ -46,13 +46,19 @@ from .models import (
 from .registry import build_default_registry
 from .router import BuddhiRouter
 from .sensors import (
+    BottleneckEvidenceAgent,
+    CustomerEvidenceAgent,
+    LeadershipEvidenceAgent,
+    MacroRegimeAgent,
     MarketRegimeAgent,
     NewsFilingsAgent,
     SectorRotationAgent,
     SocialNarrativeAgent,
+    SupplierEvidenceAgent,
     TechnicalRegimeAgent,
     ThemeRotationAgent,
     events_from_fixture,
+    has_bottleneck_evidence_events,
 )
 from .sphurana import ThemePulseSynthesizer
 
@@ -73,12 +79,19 @@ _SENSOR_AGENT_FACTORIES = (
     SocialNarrativeAgent,
 )
 
-# CONDITIONAL sensor agents (014D): each runs ONLY when the pulse's event stream carries at
-# least one event in its discipline. The bundled default fixtures carry no technical_regime
-# events, so the DEFAULT pulse output stays byte-identical -- the Technical Regime agent
-# joins the run only when a price-history adapter (or a fixture) supplies its events.
+# CONDITIONAL sensor agents (014D pattern; 014F additions): each runs ONLY when the pulse's
+# event stream carries something it can read -- a discipline-string gate matches events in
+# that discipline; a callable gate inspects the events directly (the Bottleneck Evidence
+# agent reads capacity / lead-time statements out of company-document events that 014C
+# stamps ``news_filings``, so it cannot gate on its own discipline). The bundled default
+# fixtures trigger NONE of these gates, so the DEFAULT pulse output stays byte-identical.
 _CONDITIONAL_SENSOR_AGENT_FACTORIES = (
     (TechnicalRegimeAgent, "technical_regime"),
+    (MacroRegimeAgent, "macro_regime"),
+    (CustomerEvidenceAgent, "customer_evidence"),
+    (SupplierEvidenceAgent, "supplier_evidence"),
+    (BottleneckEvidenceAgent, has_bottleneck_evidence_events),
+    (LeadershipEvidenceAgent, "leadership_evidence"),
 )
 
 
@@ -246,8 +259,12 @@ def run_pulse(
     # default fixture-only pulse (no technical_regime events) stays byte-identical.
     event_disciplines = {e.discipline for e in events}
     factories = list(_SENSOR_AGENT_FACTORIES)
-    for conditional_factory, conditional_discipline in _CONDITIONAL_SENSOR_AGENT_FACTORIES:
-        if conditional_discipline in event_disciplines:
+    for conditional_factory, conditional_gate in _CONDITIONAL_SENSOR_AGENT_FACTORIES:
+        if callable(conditional_gate):
+            triggered = conditional_gate(events)
+        else:
+            triggered = conditional_gate in event_disciplines
+        if triggered:
             factories.append(conditional_factory)
 
     all_findings: List[AgentFinding] = []
@@ -289,6 +306,19 @@ def run_pulse(
         fusion.signals, fusion.clusters, sphurana.theme_pulses,
         watch, theme_list, set(covered_companies), covered_theme_norms)
     if adapter_list:
+        # 014F: the 014C adapter still records its honest "descriptor-only consumer" gap
+        # per evidence discipline (the adapter is frozen). When that discipline's sensor
+        # actually RAN in this pulse, the gap is no longer true -- the delivery WAS
+        # interpreted into findings -- so the satisfied gap is dropped here rather than
+        # carried as a false statement. Unsatisfied gaps (sensor did not run) stay visible.
+        from .adapters.company_documents import (  # lazy: adapter path is opt-in only
+            DESCRIPTOR_ONLY_CONSUMER_GAPS,
+        )
+        ran_disciplines = {run.discipline for run in agent_runs}
+        satisfied = {gap for disc, gap in DESCRIPTOR_ONLY_CONSUMER_GAPS.items()
+                     if disc in ran_disciplines}
+        if satisfied:
+            adapter_gaps = [g for g in adapter_gaps if g not in satisfied]
         # Merge the adapters' explicit source gaps (missing/malformed/stale files) into the
         # roll-up -- a source failure is a VISIBLE gap on the pulse itself.
         data_gaps = tuple(sorted(dict.fromkeys(list(data_gaps) + adapter_gaps)))

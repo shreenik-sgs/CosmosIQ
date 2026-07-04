@@ -1,0 +1,76 @@
+{
+  "_comment": "OPERATOR-DROPPED LOCAL FILE (test copy, IMPLEMENTATION-014F) -- structured extract of an IREN investor presentation exercising the customer / supplier / bottleneck / leadership evidence sensors. Everything the company says about itself is a company_claim at primary authority -- NEVER a verified_fact, never canonical. Deterministic; local file only.",
+  "as_of": "2026-06-25T00:00:00Z",
+  "title": "IREN Investor Presentation - Evidence Slice - June 2026",
+  "source_document": "IREN_Investor_Presentation_Evidence_June_2026.pdf",
+  "claims": [
+    {
+      "slide": 5,
+      "claim": "Phase 2 adds 100 megawatts of additional data center capacity in 2027"
+    },
+    {
+      "slide": 14,
+      "claim": "Share count increased 18% since 2024 across two equity raises and an ATM program"
+    },
+    {
+      "slide": 15,
+      "claim": "Our capital allocation framework prioritises high-return reinvestment ahead of any buyback"
+    }
+  ],
+  "customer_mentions": [
+    {
+      "slide": 8,
+      "name": "Acme Cloud",
+      "statement": "Acme Cloud signed a multi-year AI cloud services agreement covering two campuses"
+    },
+    {
+      "slide": 9,
+      "name": "Titan Robotics",
+      "statement": "Titan Robotics is our largest customer at approximately 45 percent of FY2026 revenue"
+    },
+    {
+      "slide": 9,
+      "name": "Borealis Labs",
+      "statement": "Borealis Labs named as an early adoption customer for the inference platform"
+    },
+    {
+      "slide": 10,
+      "name": "Cypress Systems",
+      "statement": "Cypress Systems named as a customer"
+    }
+  ],
+  "supplier_mentions": [
+    {
+      "slide": 11,
+      "name": "NovaFab",
+      "statement": "NovaFab named as sole supplier of the custom actuator module"
+    },
+    {
+      "slide": 11,
+      "name": "Meridian Power",
+      "statement": "We are qualifying a second-source supplier for power modules to reduce reliance on Meridian Power"
+    },
+    {
+      "slide": 12,
+      "name": "Helios Materials",
+      "statement": "Helios Materials named as battery cell partner"
+    }
+  ],
+  "leadership_statements": [
+    {
+      "name": "R. Founder",
+      "role": "CEO",
+      "statement": "Our founder-led team has delivered every data center milestone on schedule"
+    },
+    {
+      "name": "S. Steward",
+      "role": "CFO",
+      "statement": "Management acknowledges the prior product launch was delayed by two quarters"
+    },
+    {
+      "name": "R. Founder",
+      "role": "CEO",
+      "statement": "The board reviews capital allocation quarterly with a preference for reinvestment"
+    }
+  ]
+}

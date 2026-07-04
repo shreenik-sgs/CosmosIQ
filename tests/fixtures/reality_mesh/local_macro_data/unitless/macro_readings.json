@@ -1,0 +1,8 @@
+{
+  "_comment": "OPERATOR-DROPPED LOCAL FILE (test copy, IMPLEMENTATION-014F) -- one good reading plus one reading WITHOUT a unit: a bare number is not a reading, so the unit-less entry is rejected as a visible parse_error (never a fabricated unit).",
+  "as_of": "2026-07-01T13:30:00Z",
+  "readings": [
+    {"name": "vix_level", "value": 22, "unit": "index"},
+    {"name": "curve_2s10s_bps", "value": -15}
+  ]
+}

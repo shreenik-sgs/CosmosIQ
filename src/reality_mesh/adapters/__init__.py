@@ -60,6 +60,14 @@ from .evidence_sources import (
     SEC_TRANSPORT_KEYS,
     SecFmpEvidenceAdapter,
 )
+from .local_macro_data import (
+    LOCAL_MACRO_DATA_ADAPTER_ID,
+    LOCAL_MACRO_DATA_DESCRIPTOR,
+    LOCAL_MACRO_DATA_DISCIPLINES,
+    MACRO_READINGS_FILENAME,
+    MACRO_STALE_AFTER_HOURS,
+    LocalMacroDataAdapter,
+)
 from .local_market_data import (
     LOCAL_MARKET_DATA_ADAPTER_ID,
     LOCAL_MARKET_DATA_DESCRIPTOR,
@@ -100,6 +108,13 @@ __all__ = [
     "SourceAdapter",
     "deterministic_adapter_run_id",
     "source_health_from_result",
+    # local macro-data adapter (014F)
+    "LOCAL_MACRO_DATA_ADAPTER_ID",
+    "LOCAL_MACRO_DATA_DESCRIPTOR",
+    "LOCAL_MACRO_DATA_DISCIPLINES",
+    "MACRO_READINGS_FILENAME",
+    "MACRO_STALE_AFTER_HOURS",
+    "LocalMacroDataAdapter",
     # local market-data adapter
     "LOCAL_MARKET_DATA_ADAPTER_ID",
     "LOCAL_MARKET_DATA_DESCRIPTOR",

@@ -457,12 +457,17 @@ class CompanyDocsPulseEndToEndTests(unittest.TestCase):
             self.assertEqual(f.source_authority_summary, "primary")
             self.assertEqual(f.corroboration_status, "uncorroborated")
 
-    def test_descriptor_only_consumers_get_honest_gaps_no_finding_fabricated(self):
+    def test_former_descriptor_only_consumers_now_produce_findings_not_gaps(self):
+        # 014F: the customer / supplier / leadership evidence sensors are IMPLEMENTED --
+        # the 014C delivery is now interpreted into real findings, so the adapter's
+        # "descriptor-only" gap is satisfied (the sensor ran) and no longer carried on
+        # the pulse roll-up. The adapter itself still records the gap (it is frozen);
+        # the adapter-level assertion lives in test_descriptor_only_consumer_gaps_recorded.
         for discipline in ("customer_evidence", "supplier_evidence",
                            "leadership_evidence"):
-            self.assertFalse(any(f.discipline == discipline for f in self.r.findings),
-                             discipline)
-            self.assertIn(DESCRIPTOR_ONLY_CONSUMER_GAPS[discipline], self.r.data_gaps)
+            self.assertTrue(any(f.discipline == discipline for f in self.r.findings),
+                            discipline)
+            self.assertNotIn(DESCRIPTOR_ONLY_CONSUMER_GAPS[discipline], self.r.data_gaps)
 
     def test_adapter_result_surfaces_on_the_pulse(self):
         self.assertEqual(len(self.r.adapter_results), 1)

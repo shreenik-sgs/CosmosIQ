@@ -1,0 +1,20 @@
+{
+  "_comment": "OPERATOR-DROPPED LOCAL FILE (test copy, IMPLEMENTATION-014F) -- a RISK-ON macro set: an easing policy step, a positive steepening curve, a sliding dollar, narrowing credit spreads, no inflation surprise, an expanding liquidity proxy, and a calm VIX. One reading carries an optional themes list (theme scoping honoured where present).",
+  "as_of": "2026-07-01T13:00:00Z",
+  "readings": [
+    {"name": "policy_rate_delta_bps", "value": -25, "unit": "bps",
+     "observed": "policy rate stepped down 25bps at the latest meeting"},
+    {"name": "curve_2s10s_bps", "value": 60, "unit": "bps",
+     "observed": "2s10s treasury spread at +60bps"},
+    {"name": "curve_2s10s_delta_bps", "value": 30, "unit": "bps",
+     "observed": "2s10s spread widened 30bps over the reading window"},
+    {"name": "dxy_change_pct", "value": -2.2, "unit": "percent"},
+    {"name": "credit_spread_delta_bps", "value": -60, "unit": "bps",
+     "observed": "high-yield credit spreads narrowed 60bps"},
+    {"name": "cpi_surprise_pct", "value": -0.1, "unit": "percent"},
+    {"name": "net_liquidity_change_pct", "value": 3.0, "unit": "percent",
+     "observed": "net-liquidity proxy expanded 3.0%",
+     "themes": ["physical-ai"]},
+    {"name": "vix_level", "value": 14, "unit": "index"}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "_comment": "OPERATOR-DROPPED LOCAL FILE (test copy, IMPLEMENTATION-014F) -- a STALE macro file: as_of is far older than the injected now, so every event is marked stale (preserved, never dropped, never silently refreshed). Only two readings: the other subagents surface missing-reading gaps.",
+  "as_of": "2026-06-20T12:00:00Z",
+  "readings": [
+    {"name": "curve_2s10s_bps", "value": -40, "unit": "bps",
+     "observed": "2s10s treasury spread at -40bps (inverted)"},
+    {"name": "vix_level", "value": 28, "unit": "index"}
+  ]
+}

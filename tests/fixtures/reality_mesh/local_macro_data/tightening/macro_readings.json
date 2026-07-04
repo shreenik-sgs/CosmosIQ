@@ -1,0 +1,21 @@
+{
+  "_comment": "OPERATOR-DROPPED LOCAL FILE (test copy, IMPLEMENTATION-014F) -- a TIGHTENING macro regime: a policy-rate step up, an inverted 2s10s curve, a dollar spike, widening credit spreads, a hot CPI surprise, a contracting liquidity proxy, and an elevated VIX. Market-wide readings; deterministic; local file only: no network, no credential.",
+  "as_of": "2026-07-01T12:00:00Z",
+  "readings": [
+    {"name": "policy_rate_delta_bps", "value": 25, "unit": "bps",
+     "observed": "policy rate stepped up 25bps at the latest meeting"},
+    {"name": "curve_2s10s_bps", "value": -40, "unit": "bps",
+     "observed": "2s10s treasury spread at -40bps (inverted)"},
+    {"name": "curve_2s10s_delta_bps", "value": -10, "unit": "bps"},
+    {"name": "dxy_change_pct", "value": 2.5, "unit": "percent",
+     "observed": "dollar index up 2.5% over the reading window"},
+    {"name": "credit_spread_delta_bps", "value": 60, "unit": "bps",
+     "observed": "high-yield credit spreads widened 60bps"},
+    {"name": "cpi_surprise_pct", "value": 0.4, "unit": "percent",
+     "observed": "CPI printed 0.4pp above consensus"},
+    {"name": "jobs_surprise_thousands", "value": -30, "unit": "thousands"},
+    {"name": "net_liquidity_change_pct", "value": -3.0, "unit": "percent",
+     "observed": "net-liquidity proxy contracted 3.0%"},
+    {"name": "vix_level", "value": 28, "unit": "index"}
+  ]
+}
