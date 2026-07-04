@@ -388,6 +388,29 @@ from .learning import (
     roll_theme_pulse_accuracy,
     track_outcomes,
 )
+from .reviews import (
+    JOURNAL_VERDICTS,
+    POSTMORTEM_LABELS,
+    REVIEW_RECORDS,
+    REVIEW_THRESHOLDS,
+    TIMING_CLAIMS,
+    TIMING_LABELS,
+    ArchetypeUpdate,
+    ExperienceLayerUpdate,
+    ExpertAccountReliabilityRecord,
+    RedTeamReview,
+    ThesisJournalEntry,
+    ThesisJournalStore,
+    ThesisPostmortem,
+    TimingReview,
+    append_experience_update,
+    journal_thesis,
+    review_red_team,
+    review_thesis,
+    review_timing,
+    roll_archetypes,
+    roll_expert_reliability,
+)
 
 __all__ = [
     # models
@@ -749,4 +772,27 @@ __all__ = [
     "roll_source_reliability",
     "roll_theme_pulse_accuracy",
     "track_outcomes",
+    # learning reviews -- thesis journal + postmortem / red-team / timing /
+    # expert-account / archetype / experience records (017B)
+    "JOURNAL_VERDICTS",
+    "POSTMORTEM_LABELS",
+    "REVIEW_RECORDS",
+    "REVIEW_THRESHOLDS",
+    "TIMING_CLAIMS",
+    "TIMING_LABELS",
+    "ArchetypeUpdate",
+    "ExperienceLayerUpdate",
+    "ExpertAccountReliabilityRecord",
+    "RedTeamReview",
+    "ThesisJournalEntry",
+    "ThesisJournalStore",
+    "ThesisPostmortem",
+    "TimingReview",
+    "append_experience_update",
+    "journal_thesis",
+    "review_red_team",
+    "review_thesis",
+    "review_timing",
+    "roll_archetypes",
+    "roll_expert_reliability",
 ]
