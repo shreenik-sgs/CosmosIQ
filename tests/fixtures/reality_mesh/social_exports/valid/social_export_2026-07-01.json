@@ -1,0 +1,99 @@
+{
+  "_comment": "OPERATOR-DOWNLOADED local X/social export (IMPLEMENTATION-014E test fixture). NO live X, NO API, NO scraping, NO credentials -- an operator saved this file by hand. Every post is weak-signal only: rumor authority always; the account type flavours the claim only. Entries for ZZTOP / metaverse-land exist to PROVE watchlist/theme scoping (they must never be emitted unless requested).",
+  "as_of": "2026-07-01T18:00:00Z",
+  "posts": [
+    {
+      "text": "IREN mentions ripping across the feed today, volume way above trend",
+      "author_handle": "@chartwatcher_88",
+      "author_type": "unknown",
+      "follower_count": 3200,
+      "bot_risk_pct": 4,
+      "tickers": ["IREN"],
+      "themes": [],
+      "posted_at": "2026-07-01T09:00:00Z",
+      "mention_count": 5200,
+      "mention_velocity_zscore": 3.6,
+      "unique_authors": 1400
+    },
+    {
+      "text": "everyone suddenly talking quantum networking buildouts this week",
+      "author_handle": "@meshscanner",
+      "author_type": "unknown",
+      "follower_count": 8900,
+      "bot_risk_pct": 6,
+      "tickers": [],
+      "themes": ["Quantum Networking"],
+      "posted_at": "2026-07-01T10:30:00Z",
+      "mention_count": 15400,
+      "mention_velocity_zscore": 3.1,
+      "unique_authors": 2100
+    },
+    {
+      "text": "We are pleased to announce our next-generation data center campus is now fully energized.",
+      "author_handle": "@IREN_official",
+      "author_type": "company_official",
+      "follower_count": 152000,
+      "bot_risk_pct": 2,
+      "tickers": ["IREN"],
+      "themes": [],
+      "posted_at": "2026-07-01T11:00:00Z",
+      "mention_count": 1800
+    },
+    {
+      "text": "Sources tell me IREN is in advanced talks on a new compute offtake agreement. Story developing.",
+      "author_handle": "@reporter_jane",
+      "author_type": "journalist",
+      "follower_count": 87000,
+      "bot_risk_pct": 3,
+      "tickers": ["IREN", "ZZTOP"],
+      "themes": [],
+      "posted_at": "2026-07-01T12:15:00Z",
+      "mention_count": 950
+    },
+    {
+      "text": "The physical-ai capex cycle is broader than people model; IREN is one of several beneficiaries.",
+      "author_handle": "@gpu_economist",
+      "author_type": "expert",
+      "follower_count": 41000,
+      "bot_risk_pct": 5,
+      "tickers": ["IREN"],
+      "themes": ["physical-ai"],
+      "posted_at": "2026-07-01T13:40:00Z"
+    },
+    {
+      "text": "IREN to the moon, insiders loading, do not miss the pump window",
+      "author_handle": "@moonshot_alerts",
+      "author_type": "unknown",
+      "follower_count": 500,
+      "bot_risk_pct": 87,
+      "tickers": ["IREN"],
+      "themes": [],
+      "posted_at": "2026-07-01T14:05:00Z",
+      "mention_count": 8000,
+      "mention_velocity_zscore": 6.2,
+      "unique_authors": 120
+    },
+    {
+      "text": "ZZTOP quietly building a monster base, nobody watching",
+      "author_handle": "@smallcap_sniper",
+      "author_type": "unknown",
+      "follower_count": 2100,
+      "bot_risk_pct": 9,
+      "tickers": ["ZZTOP"],
+      "themes": [],
+      "posted_at": "2026-07-01T15:00:00Z",
+      "mention_count": 300
+    },
+    {
+      "text": "metaverse land prices bottoming, the next narrative is loading",
+      "author_handle": "@voxel_vulture",
+      "author_type": "unknown",
+      "follower_count": 12000,
+      "bot_risk_pct": 11,
+      "tickers": [],
+      "themes": ["metaverse-land"],
+      "posted_at": "2026-07-01T16:20:00Z",
+      "mention_count": 4400
+    }
+  ]
+}

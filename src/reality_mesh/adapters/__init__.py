@@ -77,6 +77,16 @@ from .local_price_history import (
     PRICE_HISTORY_STALE_AFTER_HOURS,
     LocalPriceHistoryAdapter,
 )
+from .social_exports import (
+    PROMOTER_BOT_RISK_VISIBLE_PCT,
+    SOCIAL_EXPORT_ACCOUNT_TYPES,
+    SOCIAL_EXPORT_FILE_PREFIX,
+    SOCIAL_EXPORT_STALE_AFTER_HOURS,
+    SOCIAL_EXPORTS_ADAPTER_ID,
+    SOCIAL_EXPORTS_DESCRIPTOR,
+    SOCIAL_EXPORTS_DISCIPLINES,
+    SocialExportsAdapter,
+)
 
 __all__ = [
     # runtime (base)
@@ -123,4 +133,13 @@ __all__ = [
     "TAM_NOT_INDEPENDENTLY_VERIFIED_GAP",
     "TRANSCRIPT_FILE_PREFIX",
     "CompanyDocumentsAdapter",
+    # X/social local-export adapter (014E)
+    "SOCIAL_EXPORTS_ADAPTER_ID",
+    "SOCIAL_EXPORTS_DESCRIPTOR",
+    "SOCIAL_EXPORTS_DISCIPLINES",
+    "SOCIAL_EXPORT_FILE_PREFIX",
+    "SOCIAL_EXPORT_STALE_AFTER_HOURS",
+    "SOCIAL_EXPORT_ACCOUNT_TYPES",
+    "PROMOTER_BOT_RISK_VISIBLE_PCT",
+    "SocialExportsAdapter",
 ]

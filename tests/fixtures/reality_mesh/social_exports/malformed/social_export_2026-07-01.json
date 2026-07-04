@@ -1,0 +1,1 @@
+{ this is not valid JSON -- the 014E adapter must surface a parse_error naming this file, never crash, never fabricate

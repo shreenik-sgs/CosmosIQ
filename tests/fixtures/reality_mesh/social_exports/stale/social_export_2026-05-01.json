@@ -1,0 +1,29 @@
+{
+  "_comment": "OPERATOR-DOWNLOADED local X/social export (014E STALE fixture). Two-month-old posts versus the injected now: every event must be marked stale -- preserved, never dropped, never silently refreshed. The second post has NO posted_at, so staleness falls back to the file's as_of.",
+  "as_of": "2026-05-01T12:00:00Z",
+  "posts": [
+    {
+      "text": "Our expansion remains on schedule and on budget.",
+      "author_handle": "@IREN_official",
+      "author_type": "company_official",
+      "follower_count": 140000,
+      "bot_risk_pct": 2,
+      "tickers": ["IREN"],
+      "themes": [],
+      "posted_at": "2026-05-01T09:30:00Z",
+      "mention_count": 1200
+    },
+    {
+      "text": "IREN chatter picking up again into the print",
+      "author_handle": "@old_feed_watcher",
+      "author_type": "unknown",
+      "follower_count": 900,
+      "bot_risk_pct": 7,
+      "tickers": ["IREN"],
+      "themes": [],
+      "mention_count": 2600,
+      "mention_velocity_zscore": 2.4,
+      "unique_authors": 640
+    }
+  ]
+}

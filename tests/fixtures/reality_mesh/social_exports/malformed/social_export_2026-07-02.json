@@ -1,0 +1,34 @@
+{
+  "_comment": "OPERATOR-DOWNLOADED local X/social export (014E MALFORMED-dir companion). The file itself parses; posts[1] (missing text) and posts[2] (not an object) and posts[3] (non-numeric follower_count) must each be rejected PER ENTRY as parse errors while posts[0] still delivers -- surfaced, never silently repaired.",
+  "as_of": "2026-07-02T09:00:00Z",
+  "posts": [
+    {
+      "text": "IREN offtake speculation making the rounds again this morning",
+      "author_handle": "@reporter_jane",
+      "author_type": "journalist",
+      "follower_count": 87000,
+      "bot_risk_pct": 3,
+      "tickers": ["IREN"],
+      "themes": [],
+      "posted_at": "2026-07-02T08:30:00Z",
+      "mention_count": 700
+    },
+    {
+      "author_handle": "@no_text_bot",
+      "author_type": "unknown",
+      "tickers": ["IREN"],
+      "themes": [],
+      "posted_at": "2026-07-02T08:45:00Z"
+    },
+    "this entry is not a JSON object",
+    {
+      "text": "IREN squeeze setup forming",
+      "author_handle": "@fat_finger",
+      "author_type": "unknown",
+      "follower_count": "lots",
+      "tickers": ["IREN"],
+      "themes": [],
+      "posted_at": "2026-07-02T08:50:00Z"
+    }
+  ]
+}
