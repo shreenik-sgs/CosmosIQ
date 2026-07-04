@@ -512,7 +512,7 @@ class ExistingBehaviourTests(unittest.TestCase):
                 open(p1[name], "rb").read(), open(p2[name], "rb").read(),
                 "demo not byte-identical: {0}".format(name))
         with open(p1["universe.html"], encoding="utf-8") as fh:
-            self.assertNotIn("reality_mesh", fh.read())
+            self.assertIn("reality_mesh.html", fh.read())
 
 
 if __name__ == "__main__":

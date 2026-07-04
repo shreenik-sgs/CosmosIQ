@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 170">
+  <defs>
+    <radialGradient id="planet" cx="66%" cy="36%" r="72%">
+      <stop offset="0" stop-color="#eef8ff"/>
+      <stop offset=".18" stop-color="#6fb5ff"/>
+      <stop offset=".48" stop-color="#245fa8"/>
+      <stop offset=".72" stop-color="#10284e"/>
+      <stop offset="1" stop-color="#02050c"/>
+    </radialGradient>
+    <radialGradient id="rim" cx="72%" cy="40%" r="58%">
+      <stop offset=".62" stop-color="#1a5ab4" stop-opacity="0"/>
+      <stop offset=".86" stop-color="#38a9ff" stop-opacity=".62"/>
+      <stop offset="1" stop-color="#9fdcff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="2.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="clouds" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="5" seed="73"/>
+      <feColorMatrix type="matrix" values=".35 .35 .35 0 .05  .35 .45 .55 0 .08  .45 .55 .75 0 .18  0 0 0 .5 0"/>
+      <feBlend mode="screen" in2="SourceGraphic"/>
+    </filter>
+    <clipPath id="disc"><circle cx="86" cy="84" r="58"/></clipPath>
+  </defs>
+  <circle cx="86" cy="84" r="62" fill="#03060d" opacity=".9"/>
+  <g clip-path="url(#disc)">
+    <circle cx="86" cy="84" r="58" fill="url(#planet)" filter="url(#soft)"/>
+    <circle cx="86" cy="84" r="58" fill="#5eb6ff" filter="url(#clouds)" opacity=".72"/>
+    <path d="M33 112 C58 92 76 107 102 88 C116 78 132 82 144 70"
+      fill="none" stroke="#d8edff" stroke-opacity=".42" stroke-width="8"/>
+    <path d="M50 60 C70 74 86 58 111 63 C124 66 133 56 145 48"
+      fill="none" stroke="#eaf6ff" stroke-opacity=".34" stroke-width="5"/>
+    <rect x="15" y="20" width="62" height="130" fill="#000" opacity=".45"/>
+    <circle cx="86" cy="84" r="58" fill="url(#rim)"/>
+  </g>
+  <circle cx="86" cy="84" r="58" fill="none" stroke="#78beff" stroke-opacity=".36" stroke-width="2"/>
+</svg>

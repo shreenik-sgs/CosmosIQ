@@ -1,25 +1,10 @@
-"""Static local assets for the Universe UI (IMPLEMENTATION-010A).
-
-Two deterministic strings only:
-
-* :data:`COSMIC_CSS` -- an executive, sci-fi command-center stylesheet (cosmic dark
-  background, luminous galaxy/planet/star nodes, heat/urgency indicators, evidence
-  and source-authority badges, red-team / black-hole markers, data-gap warnings).
-* :data:`NAV_JS` -- navigation-ONLY JavaScript. It attaches click listeners (via
-  ``addEventListener``, never inline ``onclick``) that toggle tab visibility and
-  expand/collapse panels, and nothing else. It contains NO ``fetch`` / ``XMLHttpRequest``
-  / live call and NO action-taking affordance.
-  It can only switch views, scroll, and drive CSS zoom transitions -- it can never
-  hide a data gap (gaps are always rendered outside any collapsible region).
-
-Both are emitted as local assets (``assets/universe.css`` / ``assets/universe.js``)
-and are also inlined so every page is self-contained. Local assets only -- no CDN,
-no remote font, no network reference of any kind.
-"""
-
-from __future__ import annotations
-
-COSMIC_CSS = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portfolio Intelligence</title>
+<style>
 :root{
   /* --- 010A-S design system: near-black indigo base, glass surfaces --- */
   --bg:#060814; --bg2:#0a0e1e; --panel:#0e1330; --panel2:#131a3d;
@@ -156,7 +141,7 @@ table.chain th{background:#121a3d;color:#cdd6ff}
 
 /* collapsible (never wraps a data gap) */
 .collapse-head{cursor:pointer;user-select:none;color:#cdd6ff;font-weight:700}
-.collapse-head::before{content:"\\25BE  "}
+.collapse-head::before{content:"\25BE  "}
 .collapsible.collapsed{display:none}
 
 .bucket{margin:1.2rem 0}
@@ -945,10 +930,16 @@ body.sky .navlink{
   .floating-preview{left:.75rem;top:5.2rem;width:min(330px,90vw)}
   .legend{display:none}
 }
-"""
-
-
-NAV_JS = """
+</style>
+</head>
+<body>
+<div class="status-strip">Mode: Demo Fixture · Live Data: Off · Scheduler: Off · Broker: Disabled · Execution: Manual Review Only</div>
+<div class="command-bar"><div class="brand">CosmosIQ<small>Universal Intelligence OS · Universe Canvas</small></div><a class="navlink" href="universe.html">Universe Canvas</a><a class="navlink" href="dashboard.html">CosmosIQ Capital</a><a class="navlink" href="capital_candidates.html">Capital Candidates</a><a class="navlink" href="cockpit.html">Company Cockpit</a><a class="navlink" href="data_quality.html">Trust &amp; Data Quality</a><a class="navlink" href="reality_mesh.html">Reality Mesh</a><a class="navlink here" href="portfolio_intelligence.html">Portfolio Intelligence</a></div>
+<div class="wrap">
+<h1>Portfolio Intelligence</h1><p class="lead">Exposure, concentration, correlation, risk budget, Portfolio Fit, Sizing Guardrails and rotation analysis. Demo mode shows review scaffolding only; portfolio context must be supplied before exposure math is shown.</p><div class="glass-panel"><table class="chain"><tr><th>candidate</th><th>mega theme</th><th>Portfolio Fit</th><th>Sizing Guardrails</th><th>rotation analysis</th><th>risk notes</th></tr><tr><td>(demo) HBMX</td><td>Semiconductors</td><td>Portfolio Fit review ready</td><td>Sizing Guardrails to confirm</td><td>sector rotation review pending manual pulse</td><td>red-team: pass</td></tr><tr><td>(demo) COOLX</td><td>Data Centers</td><td>Portfolio Fit review ready</td><td>Sizing Guardrails to confirm</td><td>sector rotation review pending manual pulse</td><td>red-team: pass</td></tr><tr><td>(demo) SMALLX</td><td>Semiconductors</td><td>Portfolio Fit review ready</td><td>Sizing Guardrails to confirm</td><td>sector rotation review pending manual pulse</td><td>red-team: pass</td></tr><tr><td>(demo) OPTX</td><td>Optics &amp; Networking</td><td>Portfolio Fit review ready</td><td>Sizing Guardrails to confirm</td><td>sector rotation review pending manual pulse</td><td>red-team: pass</td></tr><tr><td>IREN</td><td>AI Infrastructure</td><td>Sizing Guardrails required</td><td>Review Sizing Guardrails</td><td>sector rotation review pending manual pulse</td><td>red-team: concern; capital-structure risk</td></tr><tr><td>(demo) MEGAX</td><td>Semiconductors</td><td>Portfolio Fit to review</td><td>Sizing Guardrails to confirm</td><td>sector rotation review pending manual pulse</td><td>red-team: pass</td></tr><tr><td>(demo) BLDX</td><td>Data Centers</td><td>Portfolio Fit to review</td><td>Sizing Guardrails to confirm</td><td>sector rotation review pending manual pulse</td><td>red-team: pass</td></tr><tr><td>(demo) ORBX</td><td>Space &amp; Defense</td><td>Portfolio Fit to review</td><td>Sizing Guardrails to confirm</td><td>sector rotation review pending manual pulse</td><td>red-team: pass</td></tr><tr><td>(demo) GRIDX</td><td>Power &amp; Grid</td><td>Portfolio Fit to review</td><td>Sizing Guardrails to confirm</td><td>sector rotation review pending manual pulse</td><td>red-team: pass</td></tr><tr><td>(demo) PKGX</td><td>Semiconductors</td><td>Portfolio Fit to review</td><td>Sizing Guardrails to confirm</td><td>sector rotation review pending manual pulse</td><td>red-team: pass</td></tr><tr><td>(demo) HOSTX</td><td>AI Infrastructure</td><td>Portfolio Fit to review</td><td>Sizing Guardrails to confirm</td><td>sector rotation review pending manual pulse</td><td>red-team: pass</td></tr><tr><td>(demo) FUELX</td><td>Nuclear &amp; Energy</td><td>Portfolio Fit to review</td><td>Sizing Guardrails to confirm</td><td>sector rotation review pending manual pulse</td><td>red-team: pass; evidence-limited</td></tr><tr><td>(demo) EDGEX</td><td>Physical AI</td><td>Portfolio Fit to review</td><td>Sizing Guardrails to confirm</td><td>sector rotation review pending manual pulse</td><td>red-team: pass; evidence-limited</td></tr><tr><td>(demo) ACTX</td><td>Robotics</td><td>Watchlist fit pending evidence</td><td>Review Sizing Guardrails</td><td>sector rotation review pending manual pulse</td><td>red-team: pass; evidence-limited</td></tr><tr><td>(demo) LOADX</td><td>Power &amp; Grid</td><td>Watchlist fit pending evidence</td><td>Review Sizing Guardrails</td><td>sector rotation review pending manual pulse</td><td>red-team: pass</td></tr><tr><td>(demo) NEOX</td><td>AI Infrastructure</td><td>Sizing Guardrails required</td><td>Review Sizing Guardrails</td><td>sector rotation review pending manual pulse</td><td>red-team: concern; capital-structure risk; evidence-limited</td></tr><tr><td>(demo) SMRX</td><td>Nuclear &amp; Energy</td><td>Sizing Guardrails required</td><td>Review Sizing Guardrails</td><td>sector rotation review pending manual pulse</td><td>red-team: concern; capital-structure risk; evidence-limited</td></tr></table></div>
+<footer>CosmosIQ Universe Canvas — read-only projection of existing pipeline statuses and hand-authored demo terrain. Live Data: Off. Scheduler: Off. Broker: Disabled. Execution: Manual Review Only.</footer>
+</div>
+<script>
 /* Universe UI -- navigation-ONLY behaviour: level zoom (show/hide), breadcrumb
    push/pop, back/up, bottom Intelligence Pane swap (copies a pre-rendered .intel-template
    by id into #intel-body), hash/query deep-link focus, AND continuous view zoom+pan
@@ -1236,4 +1227,6 @@ NAV_JS = """
     }
   });
 })();
-"""
+</script>
+</body>
+</html>

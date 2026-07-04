@@ -52,7 +52,10 @@ from universe_ui.terrain import CompanyNode
 _FIXTURE_DIR = os.path.join(_ROOT, "tests", "fixtures", "slice")
 _UNIVERSE_UI_DIR = os.path.join(_SRC, "universe_ui")
 _NOW = 1750000000.0
-_BASE_PAGES = ("universe.html", "dashboard.html", "data_quality.html", "cockpit.html")
+_BASE_PAGES = (
+    "universe.html", "dashboard.html", "capital_candidates.html", "cockpit.html",
+    "data_quality.html", "reality_mesh.html", "portfolio_intelligence.html",
+)
 
 # href="#..." anchors that are DELIBERATELY JS-wired interactive controls (they call
 # preventDefault + do real work in NAV_JS); they are safe, not dead. Verified below to be
@@ -302,7 +305,7 @@ class WatchlistLinkGraphTests(unittest.TestCase):
     def test_only_expected_pages_generated(self):
         html_pages = {os.path.basename(p) for k, p in self.paths.items()
                       if p.endswith(".html")}
-        # base four + (conditionally) cockpit_<ticker>.html; nothing else
+        # base product tabs + (conditionally) cockpit_<ticker>.html; nothing else
         for name in html_pages:
             self.assertTrue(name in _BASE_PAGES or name.startswith("cockpit_"),
                             "unexpected page generated: {0}".format(name))
@@ -310,7 +313,7 @@ class WatchlistLinkGraphTests(unittest.TestCase):
         for banned in ("galaxy.html", "value_chain.html", "star.html", "theme.html"):
             self.assertNotIn(banned, html_pages)
 
-    def test_top_nav_is_only_three_sections(self):
+    def test_top_nav_has_product_sections(self):
         nav = re.search(r"<nav[^>]*class=\"[^\"]*topnav[^\"]*\".*?</nav>",
                         self.uni.raw, re.S)
         if nav is None:  # nav class differs -- fall back to the header region
@@ -318,9 +321,11 @@ class WatchlistLinkGraphTests(unittest.TestCase):
         region = nav.group(0) if nav else self.uni.raw
         self.assertIn("universe.html", region)
         self.assertIn("dashboard.html", region)
+        self.assertIn("capital_candidates.html", region)
+        self.assertIn("cockpit.html", region)
         self.assertIn("data_quality.html", region)
-        # cockpit is opened FROM a planet, never a top-level tab
-        self.assertNotIn('href="cockpit.html"', region)
+        self.assertIn("reality_mesh.html", region)
+        self.assertIn("portfolio_intelligence.html", region)
 
 
 # =========================================================================== #

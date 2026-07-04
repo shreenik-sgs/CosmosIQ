@@ -20,10 +20,11 @@ from .render import render_all_pages
 from .sky_asset import deep_space_background_svg
 from .view_models import build_economic_universe_view
 
-# Three top-level sections + the cockpit (opened FROM a planet). Galaxy / value-chain
-# / bottleneck are zoom LEVELS inside universe.html, not separate pages.
+# Top-level product surfaces. Galaxy / value-chain / bottleneck stay zoom LEVELS
+# inside universe.html, not separate pages.
 PAGE_ORDER = (
-    "universe.html", "dashboard.html", "data_quality.html", "cockpit.html",
+    "universe.html", "dashboard.html", "capital_candidates.html", "cockpit.html",
+    "data_quality.html", "reality_mesh.html", "portfolio_intelligence.html",
 )
 
 

@@ -43,7 +43,10 @@ import universe_ui.__main__ as ui_main
 _FIXTURE_DIR = os.path.join(_ROOT, "tests", "fixtures", "slice")
 _UNIVERSE_UI_DIR = os.path.join(_SRC, "universe_ui")
 _NOW = 1750000000.0
-_PAGES = ("universe.html", "dashboard.html", "data_quality.html", "cockpit.html")
+_PAGES = (
+    "universe.html", "dashboard.html", "capital_candidates.html", "cockpit.html",
+    "data_quality.html", "reality_mesh.html", "portfolio_intelligence.html",
+)
 
 _DEMO_GALAXIES = (
     "Data Centers", "Semiconductors", "Power & Grid", "Optics & Networking",

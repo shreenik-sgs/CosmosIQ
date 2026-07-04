@@ -40,6 +40,9 @@ from .assets import COSMIC_CSS, NAV_JS
 from .demo_universe import slugify
 from .view_models import (
     BucketView,
+    BUCKET_BLOCKED_AVOID,
+    BUCKET_CATALYST_WATCH,
+    BUCKET_EARLY_WATCHLIST,
     CandidateCardView,
     CIODashboardView,
     DataQualityView,
@@ -51,6 +54,10 @@ from .view_models import (
     StarBottleneckView,
     assign_buckets,
     card_label_for,
+    BUCKET_HIGHEST_CONVICTION,
+    BUCKET_NEEDS_MORE_EVIDENCE,
+    BUCKET_RESEARCH_DEEPER,
+    BUCKET_TIMING_CONFIRMED,
 )
 
 STATUS_STRIP_TEXT = (
@@ -108,11 +115,14 @@ def _terrain_notice(view) -> str:
     return ("terrain incomplete — evidence-ingested single candidate; missing-data "
             "placeholders shown, nothing fabricated")
 
-# Only THREE top-level product sections. The cockpit opens FROM a planet.
 _NAV = (
     ("Universe Canvas", "universe.html"),
     ("CosmosIQ Capital", "dashboard.html"),
+    ("Capital Candidates", "capital_candidates.html"),
+    ("Company Cockpit", "cockpit.html"),
     ("Trust & Data Quality", "data_quality.html"),
+    ("Reality Mesh", "reality_mesh.html"),
+    ("Portfolio Intelligence", "portfolio_intelligence.html"),
 )
 
 _HEAT_GLOW = {"hot": 3, "warm": 2, "cool": 2, "dim": 1}
@@ -1320,7 +1330,7 @@ def render_universe(view: EconomicUniverseView, strip_text: Optional[str] = None
         '<a id="zoom-fit" class="zoom-ctrl" href="#">Fit all</a>'
         '<a id="zoom-locate" class="zoom-ctrl" href="#">Locate</a>'
         '<a id="zoom-reset" class="zoom-ctrl" href="#">Reset</a>'
-        '<span class="hint">scroll = zoom · drag = swivel · click = descend</span>'
+        '<span class="hint">scroll = zoom · drag = pan · click = descend</span>'
         "</div></div>"
         + viewport + "</section>")
     # HERO = the full-viewport telescope universe (first screen); the intelligence
@@ -1380,6 +1390,19 @@ def _cockpit_wrapper(strip_text: Optional[str] = None,
         'vc:ai-infrastructure--ai-compute-hosting-value-chain/st:ai-infrastructure--star-0/pl:iren"'
         ' style="color:#7c8cff;text-decoration:none;margin-right:.9rem;font:600 13px sans-serif">'
         '← Back to IREN planet in the Universe</a>']
+    context_links = (
+        ("Mega Theme", "universe.html#focus=universe/g:ai-infrastructure"),
+        ("Theme", "universe.html#focus=universe/g:ai-infrastructure/t:ai-infrastructure"),
+        ("Value Chain", "universe.html#focus=universe/g:ai-infrastructure/t:ai-infrastructure/"
+         "vc:ai-infrastructure--ai-compute-hosting-value-chain"),
+        ("Bottleneck", "universe.html#focus=universe/g:ai-infrastructure/t:ai-infrastructure/"
+         "vc:ai-infrastructure--ai-compute-hosting-value-chain/st:ai-infrastructure--star-0"),
+    )
+    for label, href in context_links:
+        links.append(
+            '<a href="{0}" style="color:#7c8cff;text-decoration:none;'
+            'margin-right:.9rem;font:600 13px sans-serif">{1}</a>'.format(
+                _esc(href), _esc(label)))
     for label, fname in _NAV:
         links.append(
             '<a href="{0}" style="color:#7c8cff;text-decoration:none;'
@@ -1496,6 +1519,165 @@ def _bucket(b: BucketView) -> str:
     ).format(name=_esc(b.name), count=len(b.cards), desc=_esc(b.description), cards=cards)
 
 
+def _candidate_cards(dash: CIODashboardView) -> Tuple[CandidateCardView, ...]:
+    """Unique candidate cards from all dashboard buckets.
+
+    Cross-cut buckets intentionally repeat cards in the dashboard. The Capital
+    Candidates table shows one row per company, preserving the dashboard's
+    deterministic first occurrence.
+    """
+    seen = set()
+    cards = []
+    for bucket in dash.buckets:
+        for card in bucket.cards:
+            if card.candidate_id in seen:
+                continue
+            seen.add(card.candidate_id)
+            cards.append(card)
+    return tuple(cards)
+
+
+def _candidate_state(c: CandidateCardView) -> str:
+    primary = c.primary_bucket
+    red = (c.red_team_label or "").lower()
+    rec = (c.recommendation_label or "").lower()
+    inv = (c.investability_label or "").lower()
+    if primary == BUCKET_BLOCKED_AVOID or rec == "blocked_for_user" or inv == "not_investable":
+        return "Rejected / Not Investable"
+    if "Red-Team" in c.cross_cut_buckets or red in ("concern", "fail") or c.capital_structure_risk:
+        return "Red-Team Risk"
+    if primary == BUCKET_HIGHEST_CONVICTION:
+        return "High Conviction Candidate"
+    if primary in (BUCKET_TIMING_CONFIRMED, BUCKET_RESEARCH_DEEPER):
+        return "Active Diligence"
+    if primary == BUCKET_NEEDS_MORE_EVIDENCE:
+        return "Needs More Evidence"
+    if primary == BUCKET_CATALYST_WATCH:
+        return "Emerging"
+    return "Watchlist"
+
+
+def _candidate_next_action(c: CandidateCardView) -> str:
+    state = _candidate_state(c)
+    if c.cockpit_link:
+        return "Open Company Cockpit"
+    if state == "Needs More Evidence":
+        return "Review Data Gaps"
+    if state == "Red-Team Risk":
+        return "Review Red-Team Risks"
+    if c.catalyst_label:
+        return "Review Forward Scenario"
+    return "Open Thesis"
+
+
+def _forward_scenario(c: CandidateCardView) -> str:
+    if c.catalyst_label:
+        return "Catalyst case: {0}".format(c.catalyst_label)
+    if "confirmed" in (c.timing_label or "").lower() and "not confirmed" not in (
+            c.timing_label or "").lower():
+        return "Timing-confirmed thesis review"
+    if (c.data_quality or "").lower() in ("low", "sparse"):
+        return "Evidence-building scenario"
+    return "Base thesis review"
+
+
+def _portfolio_fit(c: CandidateCardView) -> str:
+    if c.capital_structure_risk:
+        return "Sizing Guardrails required"
+    if c.primary_bucket == BUCKET_NEEDS_MORE_EVIDENCE:
+        return "Watchlist fit pending evidence"
+    if c.primary_bucket in (BUCKET_HIGHEST_CONVICTION, BUCKET_TIMING_CONFIRMED):
+        return "Portfolio Fit review ready"
+    return "Portfolio Fit to review"
+
+
+def _candidate_risks(c: CandidateCardView) -> str:
+    risks = []
+    if c.red_team_label:
+        risks.append("red-team: {0}".format(c.red_team_label))
+    if c.capital_structure_risk:
+        risks.append("capital-structure risk")
+    if (c.data_quality or "").lower() in ("low", "sparse"):
+        risks.append("evidence-limited")
+    return "; ".join(risks) if risks else "none flagged"
+
+
+def _candidate_data_gaps(c: CandidateCardView) -> str:
+    gaps = list(c.enrichment_gaps or ())
+    if c.magnitude_missing:
+        gaps.append("market-cap magnitude missing")
+    if (c.data_quality or "").lower() in ("low", "sparse"):
+        gaps.append("evidence quality limited")
+    return "; ".join(gaps) if gaps else "none flagged"
+
+
+def render_capital_candidates(dash: CIODashboardView,
+                              strip_text: Optional[str] = None) -> str:
+    cards = _candidate_cards(dash)
+    intro = (
+        "<h1>Capital Candidates</h1>"
+        '<p class="lead">Companies surfaced for Investment Thesis review. This surface '
+        "shows review-priority, evidence quality, Forward Scenario, Portfolio Fit, "
+        "Sizing Guardrails and Manual Execution Preview readiness without trading "
+        "commands or hidden numeric outputs.</p>"
+    )
+    if not cards:
+        empty = (
+            '<div class="glass-panel empty-state">'
+            "<h2>No Capital Candidates are available for this run.</h2>"
+            "<p>Run a pulse, add watchlist tickers, or enable the required source adapters. "
+            "CosmosIQ only surfaces candidates when there is enough evidence to support "
+            "an investment thesis review.</p></div>"
+        )
+        return _page("Capital Candidates", "capital_candidates.html", intro + empty,
+                     strip_text=strip_text)
+    rows = ""
+    for c in cards:
+        cockpit = ('<a href="{0}">Open Company Cockpit</a>'.format(_esc(c.cockpit_link))
+                   if c.cockpit_link else '<span class="note">cockpit pending evidence</span>')
+        thesis = '<a href="{0}">Open Thesis</a>'.format(_esc(c.locate_link))
+        next_action = _candidate_next_action(c)
+        action = cockpit if next_action == "Open Company Cockpit" else thesis
+        rows += (
+            "<tr>"
+            "<td><b>{ticker}</b><br>{company}<br>{cockpit}</td>"
+            "<td>{galaxy}</td><td>{theme}</td><td>{chain}</td>"
+            "<td>{exposure}</td><td>{state}</td><td>{quality}</td>"
+            "<td>{signal}</td><td>{scenario}</td><td>{fit}</td>"
+            "<td>{risks}</td><td>{gaps}</td><td>{next}<br>{action}</td>"
+            "</tr>"
+        ).format(
+            ticker=_esc(c.ticker), company=_esc(c.company), cockpit=cockpit,
+            galaxy=_esc(c.galaxy_name), theme=_esc(c.galaxy_name),
+            chain=_esc(c.value_chain_role), exposure=_esc(c.proximity_to_bottleneck),
+            state=_esc(_candidate_state(c)), quality=_quality_badge(c.data_quality),
+            signal=_esc(c.timing_label or c.card_label),
+            scenario=_esc(_forward_scenario(c)), fit=_esc(_portfolio_fit(c)),
+            risks=_esc(_candidate_risks(c)), gaps=_esc(_candidate_data_gaps(c)),
+            next=_esc(next_action), action=action)
+    table = (
+        '<div class="glass-panel candidate-table-wrap">'
+        '<table class="chain candidate-table"><tr>'
+        "<th>Ticker / Company</th><th>Mega Theme</th><th>Theme</th>"
+        "<th>Value Chain</th><th>Bottleneck Exposure</th><th>Candidate State</th>"
+        "<th>Evidence Quality</th><th>Signal State</th><th>Forward Scenario</th>"
+        "<th>Portfolio Fit</th><th>Risks / Red-Team Flags</th><th>Data Gaps</th>"
+        "<th>Next Action</th></tr>{0}</table></div>"
+    ).format(rows)
+    guardrails = (
+        '<div class="cols">'
+        '<div class="brief-card"><div class="brief-label micro">Investment Thesis</div>'
+        "<p>Each row opens the relevant thesis context or Company Cockpit where enough "
+        "source-backed evidence exists.</p></div>"
+        '<div class="brief-card"><div class="brief-label micro">Manual Execution Preview</div>'
+        "<p>Execution remains manual-review only. Sizing Guardrails and Portfolio Fit are "
+        "review fields, not trading instructions.</p></div></div>"
+    )
+    body = intro + table + guardrails
+    return _page("Capital Candidates", "capital_candidates.html", body,
+                 strip_text=strip_text)
+
+
 def render_dashboard(dash: CIODashboardView, strip_text: Optional[str] = None) -> str:
     banner = '<div class="banner">{0}</div>'.format(_esc(dash.banner))
     intro = (
@@ -1512,8 +1694,23 @@ def render_dashboard(dash: CIODashboardView, strip_text: Optional[str] = None) -
         "candidate; evidence_count for demo terrain) — it is not a new composite figure. "
         "Live Data: Off.</p>"
     )
+    home = (
+        '<div class="glass-panel"><h2>Investment Intelligence Home</h2>'
+        '<div class="cols">'
+        '<div><h3>Active themes</h3><p>{themes} candidate-bearing theme groups are visible '
+        "in the Universe Canvas.</p></div>"
+        '<div><h3>Capital Candidates</h3><p>{cands} companies are surfaced for thesis '
+        'review. <a href="capital_candidates.html">Open Capital Candidates →</a></p></div>'
+        '<div><h3>Market regime</h3><p>Manual pulse required; live regime feed is off.</p></div>'
+        '<div><h3>Sector rotation</h3><p>Review through Portfolio Intelligence when '
+        "portfolio context is available.</p></div>"
+        '<div><h3>Data quality</h3><p><a href="data_quality.html">Review source authority '
+        "and evidence gaps →</a></p></div>"
+        '<div><h3>Latest pulse</h3><p>Manual refresh only; scheduler is off.</p></div>'
+        "</div></div>"
+    ).format(themes=_esc(len(dash.buckets)), cands=_esc(dash.total_candidates))
     buckets = "".join(_bucket(b) for b in dash.buckets)
-    body = intro + banner + note + buckets
+    body = intro + banner + home + note + buckets
     return _page("CosmosIQ Capital", "dashboard.html", body, strip_text=strip_text)
 
 
@@ -1885,9 +2082,35 @@ def _enrichment_coverage_panel(dq: DataQualityView) -> str:
     return summary_html + "".join(ticker_blocks) + actions_html
 
 
+def _candidate_evidence_panel(dash: CIODashboardView) -> str:
+    cards = _candidate_cards(dash)
+    if not cards:
+        return (
+            '<h2>Capital Candidate Evidence</h2><div class="glass-panel">'
+            "<p class=\"note\">No Capital Candidates are available for this run.</p></div>"
+        )
+    rows = "".join(
+        "<tr><td>{ticker}</td><td>{company}</td><td>{theme}</td><td>{quality}</td>"
+        '<td class="num">{ev}</td><td>{auth}</td><td>{gaps}</td></tr>'.format(
+            ticker=_esc(c.ticker), company=_esc(c.company), theme=_esc(c.galaxy_name),
+            quality=_quality_badge(c.data_quality), ev=_esc(c.evidence_count),
+            auth=" ".join(_badge(b, "") for b in c.source_authority_badges),
+            gaps=_esc(_candidate_data_gaps(c)))
+        for c in cards)
+    return (
+        '<h2>Capital Candidate Evidence</h2><div class="glass-panel">'
+        '<p class="note">Evidence quality behind each Capital Candidate; source authority, '
+        "gaps, and provenance remain visible before any Investment Thesis review.</p>"
+        '<table class="chain"><tr><th>candidate</th><th>company</th><th>mega theme</th>'
+        "<th>evidence quality</th><th>evidence records</th><th>source authority</th>"
+        "<th>data gaps</th></tr>{0}</table></div>"
+    ).format(rows)
+
+
 def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
                         notice: str = "", pulse_panel_html: str = "",
-                        run_observability_html: str = "") -> str:
+                        run_observability_html: str = "",
+                        dashboard: Optional[CIODashboardView] = None) -> str:
     is_ev = "evidence" in (dq.run_mode or "").lower()
     terrain_badge = (_badge("evidence-ingested terrain", "evidence") if is_ev
                      else _badge("DEMO terrain", "demo"))
@@ -1950,6 +2173,7 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
         # replay metadata). Same additive/opt-in seam as the pulse panel: empty default ->
         # byte-identical page; evidence + observability only, never a trade action.
         + run_observability_html
+        + (_candidate_evidence_panel(dashboard) if dashboard is not None else "")
         + '<h2>Source hierarchy pipeline</h2>'
         + '<div class="glass-panel">' + _dq_pipeline(dq)
         + '<p class="note">Authority hierarchy: SEC canonical (EDGAR) &gt; FMP convenience &gt; '
@@ -1979,6 +2203,97 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
                  strip_text=strip_text)
 
 
+def render_reality_mesh(view: EconomicUniverseView,
+                        strip_text: Optional[str] = None,
+                        run_observability_html: str = "") -> str:
+    cards = _candidate_cards(view.dashboard)
+    agent_rows = (
+        ("Universe Terrain Builder", "implemented", "fixture/source-backed terrain",
+         "Mega Theme, Theme, Value Chain, Bottleneck and Planet objects"),
+        ("Evidence Ingestion", "implemented", "source-backed where adapters are enabled",
+         "source authority, conflicts, provenance and data gaps"),
+        ("Diligence Enrichment", "implemented/optional", "source-backed when supplied",
+         "company profile, TAM, value-chain, leadership and enrichment gaps"),
+        ("Reality Signal Pulse", "deferred unless pulse input is supplied",
+         "manual pulse evidence", "market regime, sector rotation and weak social signals"),
+        ("Portfolio Intelligence", "deferred unless portfolio context is supplied",
+         "portfolio context", "Portfolio Fit, concentration and Sizing Guardrails"),
+        ("Manual Execution Preview", "policy-gated", "manual review only",
+         "preview state; broker remains disabled"),
+    )
+    agents = "".join(
+        "<tr><td>{name}</td><td>{status}</td><td>{source}</td><td>{work}</td></tr>".format(
+            name=_esc(name), status=_badge(status, "q-high" if "implemented" in status else "gap"),
+            source=_esc(source), work=_esc(work))
+        for name, status, source, work in agent_rows)
+    contrib = ""
+    if cards:
+        for c in cards:
+            contrib += (
+                "<tr><td>{ticker}</td><td>{company}</td><td>{agents}</td>"
+                "<td>{quality}</td><td>{state}</td></tr>"
+            ).format(
+                ticker=_esc(c.ticker), company=_esc(c.company),
+                agents=_esc("Universe Terrain Builder; Evidence Ingestion; Diligence Enrichment when available"),
+                quality=_quality_badge(c.data_quality), state=_esc(_candidate_state(c)))
+    else:
+        contrib = (
+            '<tr><td colspan="5">No Capital Candidates are available for this run.</td></tr>'
+        )
+    body = (
+        "<h1>Reality Mesh</h1>"
+        '<p class="lead">Agentic system monitor for implemented, fixture, source-backed '
+        "and deferred surfaces. This view shows source health, run history, agent health, "
+        "replay status and security/policy gates without execution controls.</p>"
+        '<h2>Agent Registry</h2><div class="glass-panel"><table class="chain">'
+        "<tr><th>agent</th><th>status</th><th>source health</th><th>contribution</th></tr>"
+        "{agents}</table></div>"
+        '<h2>Candidate Contributions</h2><div class="glass-panel"><table class="chain">'
+        "<tr><th>ticker</th><th>company</th><th>contributing agents</th>"
+        "<th>evidence quality</th><th>candidate state</th></tr>{contrib}</table></div>"
+        '<h2>Run History &amp; Gates</h2><div class="glass-panel"><table class="kv">'
+        "<tr><th>Run mode</th><td>{mode}</td></tr>"
+        "<tr><th>Scheduler</th><td>Off</td></tr>"
+        "<tr><th>Broker</th><td>Disabled</td></tr>"
+        "<tr><th>Replay status</th><td>static deterministic build</td></tr>"
+        "<tr><th>Security / policy gates</th><td>Manual review required</td></tr>"
+        "</table></div>{observability}"
+    ).format(agents=agents, contrib=contrib, mode=_esc(view.mode),
+             observability=run_observability_html)
+    return _page("Reality Mesh", "reality_mesh.html", body, strip_text=strip_text)
+
+
+def render_portfolio_intelligence(dash: CIODashboardView,
+                                  strip_text: Optional[str] = None) -> str:
+    cards = _candidate_cards(dash)
+    rows = ""
+    for c in cards:
+        rows += (
+            "<tr><td>{ticker}</td><td>{theme}</td><td>{fit}</td>"
+            "<td>{guardrails}</td><td>{rotation}</td><td>{risk}</td></tr>"
+        ).format(
+            ticker=_esc(c.ticker), theme=_esc(c.galaxy_name),
+            fit=_esc(_portfolio_fit(c)),
+            guardrails=_esc("Review Sizing Guardrails" if c.capital_structure_risk
+                            or c.primary_bucket == BUCKET_NEEDS_MORE_EVIDENCE
+                            else "Sizing Guardrails to confirm"),
+            rotation=_esc("sector rotation review pending manual pulse"),
+            risk=_esc(_candidate_risks(c)))
+    if not rows:
+        rows = '<tr><td colspan="6">No portfolio context or Capital Candidates are available for this run.</td></tr>'
+    body = (
+        "<h1>Portfolio Intelligence</h1>"
+        '<p class="lead">Exposure, concentration, correlation, risk budget, Portfolio Fit, '
+        "Sizing Guardrails and rotation analysis. Demo mode shows review scaffolding only; "
+        "portfolio context must be supplied before exposure math is shown.</p>"
+        '<div class="glass-panel"><table class="chain"><tr><th>candidate</th>'
+        "<th>mega theme</th><th>Portfolio Fit</th><th>Sizing Guardrails</th>"
+        "<th>rotation analysis</th><th>risk notes</th></tr>{0}</table></div>"
+    ).format(rows)
+    return _page("Portfolio Intelligence", "portfolio_intelligence.html", body,
+                 strip_text=strip_text)
+
+
 # --------------------------------------------------------------------------- #
 # Convenience: render every page from one view                               #
 # --------------------------------------------------------------------------- #
@@ -1999,10 +2314,18 @@ def render_all_pages(view: EconomicUniverseView, iren_slice,
     return (
         ("universe.html", render_universe(view, strip_text=strip_text, notice=notice)),
         ("dashboard.html", render_dashboard(view.dashboard, strip_text=strip_text)),
+        ("capital_candidates.html", render_capital_candidates(
+            view.dashboard, strip_text=strip_text)),
+        ("cockpit.html", render_cockpit(
+            iren_slice, strip_text=strip_text, enrichment_note=enrichment_note)),
         ("data_quality.html", render_data_quality(
             view.data_quality, strip_text=strip_text, notice=notice,
             pulse_panel_html=pulse_panel_html,
+            run_observability_html=run_observability_html,
+            dashboard=view.dashboard)),
+        ("reality_mesh.html", render_reality_mesh(
+            view, strip_text=strip_text,
             run_observability_html=run_observability_html)),
-        ("cockpit.html", render_cockpit(
-            iren_slice, strip_text=strip_text, enrichment_note=enrichment_note)),
+        ("portfolio_intelligence.html", render_portfolio_intelligence(
+            view.dashboard, strip_text=strip_text)),
     )

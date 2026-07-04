@@ -38,6 +38,7 @@ if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
 from universe_ui.app import build_universe_app, PAGE_ORDER
+from universe_ui.render import render_capital_candidates
 from universe_ui.iren_slice import load_iren_slice
 from universe_ui.view_models import (
     build_economic_universe_view,
@@ -48,15 +49,19 @@ from universe_ui.view_models import (
     _planet_view,
     BUCKET_HIGHEST_CONVICTION,
     BUCKET_TIMING_CONFIRMED,
+    CIODashboardView,
     MIN_PX,
     MAX_PX,
     DEFAULT_PX,
 )
 from universe_ui.demo_universe import DemoPlanet, build_demo_universe
 
-# Three top-level product sections + the cockpit (opened FROM a planet). Galaxy /
-# value-chain / bottleneck are zoom LEVELS inside universe.html, not separate pages.
-_PAGES = ("universe.html", "dashboard.html", "data_quality.html", "cockpit.html")
+# Top-level product sections. Galaxy / value-chain / bottleneck are zoom LEVELS
+# inside universe.html, not separate pages.
+_PAGES = (
+    "universe.html", "dashboard.html", "capital_candidates.html", "cockpit.html",
+    "data_quality.html", "reality_mesh.html", "portfolio_intelligence.html",
+)
 
 # Pages that must NOT exist as separate primary pages any more.
 _REMOVED_PAGES = ("galaxy.html", "solar_system.html", "star.html")
@@ -103,7 +108,7 @@ class UniverseUIBuildTests(unittest.TestCase):
             self.assertNotIn(name, self.paths)
             self.assertFalse(os.path.isfile(os.path.join(self._tmp, name)),
                              "{0} should not be generated".format(name))
-        # The top nav must list only Universe / Dashboard / Data-Quality.
+        # The top nav lists the production product surfaces.
         for page, h in self.html.items():
             if page == "cockpit.html":
                 continue  # cockpit has its own back-strip, checked separately
@@ -111,9 +116,8 @@ class UniverseUIBuildTests(unittest.TestCase):
             for name in _REMOVED_PAGES:
                 self.assertNotIn('href="{0}"'.format(name), navbar,
                                  "{0} nav lists {1}".format(page, name))
-            self.assertIn('href="universe.html"', navbar)
-            self.assertIn('href="dashboard.html"', navbar)
-            self.assertIn('href="data_quality.html"', navbar)
+            for fname in _PAGES:
+                self.assertIn('href="{0}"'.format(fname), navbar)
 
     # --- persistent status strip on EVERY page ----------------------------
     def test_every_page_has_status_strip(self):
@@ -220,9 +224,72 @@ class UniverseUIBuildTests(unittest.TestCase):
         self.assertIn("<!-- BEGIN-SECTION:", c)
         self.assertIn('id="panel-', c)
         self.assertIn("Company Cockpit", c)
+        for label in ("Mega Theme", "Theme", "Value Chain", "Bottleneck"):
+            self.assertIn(label, c)
         # wrapped with the status strip (still the accepted doc underneath)
         for token in _STRIP_TOKENS:
             self.assertIn(token, c)
+
+    def test_production_tabs_are_visible(self):
+        for page, h in self.html.items():
+            if page == "cockpit.html":
+                continue
+            for label in ("Universe Canvas", "CosmosIQ Capital", "Capital Candidates",
+                          "Company Cockpit", "Trust &amp; Data Quality", "Reality Mesh",
+                          "Portfolio Intelligence"):
+                self.assertIn(label, h, "{0} missing tab {1}".format(page, label))
+
+    def test_capital_candidates_surface(self):
+        cc = self.html["capital_candidates.html"]
+        self.assertIn("<h1>Capital Candidates</h1>", cc)
+        for col in ("Ticker / Company", "Mega Theme", "Theme", "Value Chain",
+                    "Bottleneck Exposure", "Candidate State", "Evidence Quality",
+                    "Signal State", "Forward Scenario", "Portfolio Fit",
+                    "Risks / Red-Team Flags", "Data Gaps", "Next Action"):
+            self.assertIn(col, cc)
+        for term in ("Investment Thesis", "Forward Scenario", "Portfolio Fit",
+                     "Sizing Guardrails", "Manual Execution Preview"):
+            self.assertIn(term, cc)
+        allowed = {"Emerging", "Active Diligence", "Watchlist",
+                   "High Conviction Candidate", "Needs More Evidence",
+                   "Red-Team Risk", "Deteriorating", "Rejected / Not Investable"}
+        rendered_states = set(re.findall(
+            r"<td>(Emerging|Active Diligence|Watchlist|High Conviction Candidate|"
+            r"Needs More Evidence|Red-Team Risk|Deteriorating|Rejected / Not Investable)</td>",
+            cc))
+        self.assertTrue(rendered_states)
+        self.assertTrue(rendered_states.issubset(allowed))
+
+    def test_capital_candidates_has_no_trade_controls_or_hidden_fields(self):
+        low = self.html["capital_candidates.html"].lower()
+        for bad in ("<button", "<form", "onclick", "type=\"submit\"",
+                    "strong buy", "hold recommendation", "submit order",
+                    "place order", "trade now", "auto trade", "auto rebalance",
+                    "broker submit", "alpha score", "ranked picks"):
+            self.assertNotIn(bad, low)
+        self.assertIsNone(re.search(r"\b(buy|sell|submit|order|score|rank|ranking)\b", low))
+
+    def test_candidate_rows_link_to_company_cockpit(self):
+        cc = self.html["capital_candidates.html"]
+        self.assertIn('href="cockpit.html"', cc)
+        self.assertIn("Open Company Cockpit", cc)
+        self.assertIn('href="capital_candidates.html"', self.html["dashboard.html"])
+
+    def test_capital_candidates_empty_state_renders(self):
+        empty = CIODashboardView(
+            banner="empty", buckets=(), total_candidates=0, real_candidate_count=0)
+        html = render_capital_candidates(empty)
+        self.assertIn("No Capital Candidates are available for this run.", html)
+        self.assertIn("Run a pulse, add watchlist tickers, or enable the required source adapters.", html)
+
+    def test_trust_and_reality_mesh_show_candidate_evidence_and_agents(self):
+        dq = self.html["data_quality.html"]
+        mesh = self.html["reality_mesh.html"]
+        self.assertIn("Capital Candidate Evidence", dq)
+        self.assertIn("IREN", dq)
+        self.assertIn("Agent Registry", mesh)
+        self.assertIn("Candidate Contributions", mesh)
+        self.assertIn("Evidence Ingestion", mesh)
 
     # --- NO action affordance anywhere ------------------------------------
     def test_no_action_or_execution_affordance(self):
@@ -968,13 +1035,41 @@ class TelescopeSkyTests(unittest.TestCase):
 
     def test_object_click_updates_both_preview_and_below_fold_pane(self):
         # the same click updates the floating preview AND #intel-body (via setIntel)
-        m = re.search(r"updatePreview\(this\);.*?setIntel\(myIntel\);", self.js, re.S)
-        self.assertIsNotNone(m, "object click must update preview + below-fold pane")
+        m = re.search(r"updatePreview\(this\);.*?zoomToObject\(this,2\.25\);.*?setIntel\(myIntel\);",
+                      self.js, re.S)
+        self.assertIsNotNone(m, "object click must zoom selected body + update below-fold pane")
 
-    def test_background_parallax(self):
-        # the deep-field background parallaxes a fraction of the pan/zoom (depth)
+    def test_background_and_objects_pan_together_in_flat_field(self):
+        # the deep-field background and plotted objects share the same flat pan/zoom,
+        # so galaxies do not drift away from the universe when the user moves it.
         self.assertIn(".sky-bg", self.css)
-        self.assertIn("skybg.style.transform", self.js)
+        self.assertIn("skybg.style.transform='translate('+view.tx", self.js)
+        self.assertIn("flat universe: sky moves with the object field", self.js)
+        self.assertNotIn("skybg.style.transform='none'", self.js)
+        self.assertNotIn("projectGlobeObjects", self.js)
+        self.assertNotIn("view.lon", self.js)
+        self.assertNotIn("view.lat", self.js)
+        self.assertNotIn("globeRadius", self.js)
+        self.assertNotIn("viewport.style.setProperty('--globe-radius'", self.js)
+        self.assertNotIn("setProperty('--globe-diameter'", self.js)
+        self.assertNotIn("rearFade=clamp(0.38", self.js)
+        self.assertIn("view.tx+=dx", self.js)
+        self.assertIn("view.ty+=dy", self.js)
+        self.assertNotIn("pointerEvents=back?'none'", self.js)
+        self.assertNotIn(".viewport::before", self.css)
+        self.assertNotIn("--globe-diameter", self.css)
+        self.assertNotIn("--globe-shade", self.css)
+        self.assertNotIn("--globe-radius", self.css)
+        self.assertNotIn("clip-path:circle", self.css)
+        self.assertIn(".universe-hero .vignette{box-shadow:inset", self.css)
+        self.assertNotIn("rgba(43,116,210,.2)", self.css)
+        self.assertNotRegex(self.css, r"\.sky-bg\{[^}]*background:")
+        self.assertIn(".scene-layer{position:absolute;inset:0;z-index:8", self.css)
+        self.assertNotIn(".viewport .scene-transform{width:100%!important", self.css)
+        self.assertIn(".level-universe .scene-transform{width:172%;height:138%;left:-36%;top:-18%}", self.css)
+        self.assertIn("linear-gradient(180deg,#050713,#010208 80%)", self.css)
+        self.assertNotIn(".viewport{background:#000}", self.css)
+        self.assertNotIn(".sky-bg{display:none}", self.css)
 
 
 class TelescopeVisualAssetTests(unittest.TestCase):
@@ -1050,7 +1145,8 @@ class TelescopeVisualAssetTests(unittest.TestCase):
         for token in ("CosmosIQ", "Reality Mesh", "You are here", "cosmos-twinkle",
                       "focus-pulse", "prefers-reduced-motion"):
             self.assertIn(token, self.css)
-        for token in ("pulseObject", "keydown", "fitToAll", "locateSelected"):
+        for token in ("pulseObject", "keydown", "fitToAll", "locateSelected", "zoomToObject",
+                      "ArrowLeft", "ArrowRight"):
             self.assertIn(token, self.js)
         for row in ("object type", "signal state", "evidence quality",
                     "source authority", "data gaps", "risk flags"):

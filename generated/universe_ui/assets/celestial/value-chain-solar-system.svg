@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <defs>
+    <radialGradient id="sun" cx="42%" cy="38%" r="58%">
+      <stop offset="0" stop-color="#fff7ca"/>
+      <stop offset=".18" stop-color="#ffd55c"/>
+      <stop offset=".48" stop-color="#ff8b22"/>
+      <stop offset=".82" stop-color="#ff5d13" stop-opacity=".54"/>
+      <stop offset="1" stop-color="#ff4b00" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="planetBlue" cx="34%" cy="30%" r="70%">
+      <stop offset="0" stop-color="#dcefff"/><stop offset=".45" stop-color="#5d8eb0"/>
+      <stop offset="1" stop-color="#16253d"/>
+    </radialGradient>
+    <radialGradient id="planetWarm" cx="35%" cy="28%" r="70%">
+      <stop offset="0" stop-color="#ffe0b2"/><stop offset=".48" stop-color="#a75c34"/>
+      <stop offset="1" stop-color="#2b1514"/>
+    </radialGradient>
+    <radialGradient id="jupiter" cx="35%" cy="30%" r="72%">
+      <stop offset="0" stop-color="#f7d7a4"/><stop offset=".42" stop-color="#9c664a"/>
+      <stop offset="1" stop-color="#2b1715"/>
+    </radialGradient>
+    <filter id="sunGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="dust" x="-20%" y="-40%" width="140%" height="180%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+  <rect width="320" height="180" fill="transparent"/>
+  <path d="M0 70 C76 20 135 76 205 90 C254 100 286 62 320 48"
+    fill="none" stroke="#b596ad" stroke-width="22" stroke-opacity=".18" filter="url(#dust)"/>
+  <path d="M0 92 C86 52 150 105 220 112 C263 116 294 85 320 72"
+    fill="none" stroke="#d0a36d" stroke-width="12" stroke-opacity=".16" filter="url(#dust)"/>
+  <g fill="#fff" opacity=".72">
+    <circle cx="18" cy="18" r=".9"/><circle cx="56" cy="34" r="1.1"/><circle cx="88" cy="18" r=".8"/>
+    <circle cx="136" cy="28" r="1"/><circle cx="214" cy="22" r=".8"/><circle cx="285" cy="30" r="1.2"/>
+    <circle cx="42" cy="116" r=".8"/><circle cx="110" cy="140" r="1"/><circle cx="240" cy="136" r=".9"/>
+  </g>
+  <circle cx="150" cy="86" r="43" fill="url(#sun)" filter="url(#sunGlow)"/>
+  <circle cx="150" cy="86" r="34" fill="none" stroke="#fff2aa" stroke-width="3" stroke-opacity=".45"/>
+  <circle cx="86" cy="38" r="12" fill="url(#planetBlue)" opacity=".88"/>
+  <circle cx="72" cy="18" r="10" fill="#3b4159" opacity=".62"/>
+  <circle cx="104" cy="108" r="8" fill="url(#planetWarm)"/>
+  <circle cx="205" cy="112" r="10" fill="url(#planetWarm)"/>
+  <circle cx="232" cy="75" r="16" fill="url(#planetBlue)"/>
+  <circle cx="285" cy="40" r="24" fill="url(#jupiter)"/>
+  <path d="M263 37 C278 30 298 32 310 45" fill="none" stroke="#f0c384" stroke-width="3" stroke-opacity=".38"/>
+  <ellipse cx="48" cy="153" rx="58" ry="18" fill="none" stroke="#b89980" stroke-width="8" stroke-opacity=".34" transform="rotate(9 48 153)"/>
+  <circle cx="48" cy="151" r="34" fill="url(#planetWarm)" opacity=".72"/>
+</svg>

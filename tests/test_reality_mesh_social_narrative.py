@@ -456,7 +456,7 @@ class GuardrailTests(unittest.TestCase):
                 self.assertEqual(
                     fa.read(), fb.read(), "demo not byte-identical: {0}".format(name))
         with open(p1["universe.html"], encoding="utf-8") as fh:
-            self.assertNotIn("reality_mesh", fh.read())
+            self.assertIn("reality_mesh.html", fh.read())
 
 
 if __name__ == "__main__":
