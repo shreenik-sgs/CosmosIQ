@@ -41,22 +41,32 @@ runtime yet) · `deferred` (not yet registered; reason + phase given). **Routing
 
 | agent_id | Sub | Impl status | Data mode | Routing | Fusion | T&DQ | Canvas | Cadence rec. | Deferred reason → phase |
 |---|---|---|---|---|---|---|---|---|---|
-| tattva.market_regime | 5 | **fixture-backed** (012D) | fixture | ✓ | ✓ | ✓ | via signals | 5–15 min mkt-hrs | real market-data adapter → **014 (#1)** |
-| tattva.sector_rotation | 4 | **fixture-backed** (012E) | fixture | ✓ | ✓ | ✓ | via signals | 5–15 min mkt-hrs | sector-ETF adapter → **014 (#2)** |
-| tattva.theme_rotation | 5 | **fixture-backed** (012E) | fixture | ✓ | ✓ | ✓ | via pulses | 5–15 min mkt-hrs | theme-basket adapter → **014 (#3)** |
-| tattva.news_filings | 7 | **fixture-backed** (012G) | fixture | ✓ | ✓ | ✓ | via signals | 1–5 min | SEC/FMP live adapter (transports exist) → **014 (#4/#5)** |
-| tattva.narrative | 7 | **fixture-backed, weak-signal only** (012H) | fixture | ✓ | ✓ (WEAK-marked) | via pulses | 1–5 min active themes | live X strictly weak-signal, LAST → **014 (#9)** |
-| tattva.technical_regime | 6 | descriptor-only | — | ready | ready | — | — | 1–15 min | price-history adapter → **014 (#8)** |
-| tattva.macro_regime | 7 | descriptor-only | — | ready | ready | — | — | hourly/daily | rates/curve/credit sources → **014 (#11)** |
-| tattva.policy_geopolitical | 7 | descriptor-only | — | ready | ready | — | — | daily/event | policy/news sources → **014 (#12)** |
-| tattva.options_flow | 5 | descriptor-only | — | ready | ready | — | — | 5–15 min if source | options source unresolved (hardest to source safely) → **014 (#10)** |
-| tattva.financial_inflection | 6 | descriptor-only³ | — | ready | ready | ✓ via enrichment | ✓ via terrain | event/quarterly | SEC/FMP fundamentals live via 011 enrichment; agent form → **014 (#5)** |
-| tattva.customer_evidence | 4 | descriptor-only | — | ready | ready | — | — | event/daily | IR/transcript sources (local-file-first) → **014 (#13)** |
-| tattva.supplier_evidence | 4 | descriptor-only | — | ready | ready | — | — | event/daily | IR/transcript sources → **014 (#14)** |
-| tattva.bottleneck_evidence | 6 | descriptor-only | — | ready | ready | — | ✓ (Star nodes) | daily/weekly | lead-time/capacity sources → **014 (#15)** |
-| tattva.leadership_evidence | 5 | descriptor-only | — | ready | ready | — | — | event | transcript/insider sources → **014 (#16)** |
+| tattva.market_regime | 5 | **implemented + local-file-backed** (012D/014A) | fixture default · local-file opt-in | ✓ | ✓ | ✓ | via signals | 5–15 min mkt-hrs | live feed → adapter stage 6, **015-era** |
+| tattva.sector_rotation | 4 | **implemented + local-file-backed** (012E/014A) | fixture · local-file | ✓ | ✓ | ✓ | via signals | 5–15 min mkt-hrs | live sector-ETF feed → stage 6, **015-era** |
+| tattva.theme_rotation | 5 | **implemented + local-file-backed** (012E/014A) | fixture · local-file | ✓ | ✓ | ✓ | via pulses | 5–15 min mkt-hrs | live theme-basket feed → stage 6, **015-era** |
+| tattva.news_filings | 7 | **implemented + injected-transport adapter** (012G/014B) | fixture · mocked SEC/FMP transports | ✓ | ✓ | ✓ | via signals | 1–5 min | production network path = adapter stage 6, **015-era** (transports + creds handling exist) |
+| tattva.narrative | 7 | **implemented + local-export adapter, weak-signal only** (012H/014E) | fixture · operator export files | ✓ | ✓ (WEAK-marked) | via pulses | 1–5 min active themes | live X remains DEFERRED (weak-signal-only even then) → **post-015 + approval** |
+| tattva.technical_regime | 6 | **implemented + local-file-backed** (014D) | local price-history files | ✓ | ✓ | ✓ | via signals | 1–15 min | live price feed → stage 6, **015-era** |
+| tattva.macro_regime | 7 | **implemented + local-file-backed** (014F) | local macro readings | ✓ | ✓ | ✓ | via signals | hourly/daily | live rates/credit feed → stage 6, **015-era** |
+| tattva.policy_geopolitical | 7 | **DEFERRED** (descriptor-only) | — | ready | ready | — | — | daily/event | no policy/news source contract yet; needs a curated source before any adapter → **post-014** |
+| tattva.options_flow | 5 | **DEFERRED** (descriptor-only) | — | ready | ready | — | — | 5–15 min if source | no safely-sourceable options feed exists; hardest to source; deferred until a source contract exists → **post-014** |
+| tattva.financial_inflection | 6 | descriptor-only³ (evidence flows) | 011 enrichment + 014B events | ready | ready | ✓ via enrichment | ✓ via terrain | event/quarterly | sensor wrapper deferred (evidence already production-backed; 014B events land with an honest gap) → **post-014** |
+| tattva.customer_evidence | 4 | **implemented** (014F, via company docs) | 014C local IR/transcripts | ✓ | ✓ | ✓ | via signals | event/daily | further sources (surveys/channel checks) → later |
+| tattva.supplier_evidence | 4 | **implemented** (014F, via company docs) | 014C local IR/transcripts | ✓ | ✓ | ✓ | via signals | event/daily | supplier-of-supplier mapping → later |
+| tattva.bottleneck_evidence | 6 | **implemented** (014F, via company docs) | 014C local IR/transcripts | ✓ | ✓ | ✓ | ✓ (Star nodes) | daily/weekly | independent lead-time/capacity sources → later (company-stated carries a not-verified gap) |
+| tattva.leadership_evidence | 5 | **implemented** (014F, via company docs) | 014C local IR/transcripts | ✓ | ✓ | ✓ | via signals | event | insider-transaction source (SEC Form 4 via 014B) → later |
 
-³ The *evidence* is production-backed via 011 diligence-enrichment (real SEC/FMP on demand); the sensor-agent wrapper is deferred.
+³ The *evidence* is production-backed via 011 diligence-enrichment (real SEC/FMP on demand) + 014B fundamental-snapshot events; the sensor-agent wrapper is the only deferred piece (its absence is an honest gap on every pulse).
+
+### Phase 014 closeout (source adapters)
+Adapters landed (all local-file / injected-transport; the production **network** path is deliberately
+the last onboarding stage, unlocked in the 015 era): `LocalMarketDataAdapter` (014A, #1–3) ·
+`SecFmpEvidenceAdapter` (014B, #4–5, mocked transports; creds presence-only) ·
+`CompanyDocumentsAdapter` (014C, #6–7, company_claim-never-verified by construction) ·
+`LocalPriceHistoryAdapter` (014D, #8, watchlist-scoped) · `SocialExportsAdapter` (014E, #9,
+rumor-always, no live X) · `LocalMacroDataAdapter` (014F, #11). **12 of 14 Reality-Intelligence
+sensors implemented** (was 5); explicitly deferred with reasons: options_flow (#10, no safe source),
+policy_geopolitical (#12, no source contract), financial_inflection wrapper (evidence already flows).
 
 ## 4. Synthesizers (Signal Fusion → Opportunity Discovery → Investment Diligence → Portfolio Intelligence → Execution Preview → Learning & Feedback)
 
