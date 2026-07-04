@@ -214,8 +214,8 @@ def _as_of_line(store_dir: str) -> str:
 
 
 def _nav(store_dir: str, active: str) -> str:
-    items = (("CosmosIQ", "/"), ("Runs", "/runs"), ("Alerts", "/alerts"),
-             ("Settings", "/settings"))
+    items = (("CosmosIQ", "/"), ("Runs", "/runs"), ("Themes", "/themes"),
+             ("Alerts", "/alerts"), ("Settings", "/settings"))
     html = ""
     for label, href in items:
         here = " here" if href == active else ""

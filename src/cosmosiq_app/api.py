@@ -612,6 +612,20 @@ def _dispatch_page(segments: List[str], raw: List[str],
         return _html(200, _pages.render_alert_inbox(store_dir))
     if segments == ["settings"]:
         return _html(200, _pages.render_settings_page(store_dir))
+    # 016C cockpits -- read/inspect surfaces over the persisted stores + the accepted engines
+    # (lazy import, same additive-slice discipline as the pages layer).
+    if segments == ["themes"]:
+        from . import cockpits as _cockpits
+        return _html(200, _cockpits.render_theme_list(store_dir))
+    if len(segments) == 2 and segments[0] == "themes":
+        from . import cockpits as _cockpits
+        return _html(200, _cockpits.render_theme_cockpit(store_dir, raw[1]))
+    if len(segments) == 2 and segments[0] == "companies":
+        from . import cockpits as _cockpits
+        return _html(200, _cockpits.render_company_cockpit(store_dir, raw[1]))
+    if len(segments) == 2 and segments[0] == "candidates":
+        from . import cockpits as _cockpits
+        return _html(200, _cockpits.render_candidate_cockpit(store_dir, raw[1]))
     if len(segments) == 2 and segments[0] == "canvas":
         name = raw[1]
         if name in _pages.CANVAS_PAGES:
