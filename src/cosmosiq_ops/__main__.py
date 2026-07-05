@@ -5,6 +5,9 @@ NON-ZERO on failure so a shell / CI pipeline can gate on it:
 
     python3 -m cosmosiq_ops ci-gate [--repo-root DIR] [--quick]
     python3 -m cosmosiq_ops prod-check   --work-dir DIR [--repo-root DIR] [--now INSTANT] [--quick]
+    python3 -m cosmosiq_ops shadow-validate --work-dir DIR [--ticks N] [--start INSTANT]
+                                            [--interval-minutes M] [--operator NAME]
+                                            [--report-out PATH]
     python3 -m cosmosiq_ops smoke        --work-dir DIR [--now INSTANT]
     python3 -m cosmosiq_ops perf         --work-dir DIR [--now INSTANT] [--scale N]
     python3 -m cosmosiq_ops backup       --store-dir DIR --backup-dir DIR [--now INSTANT]
@@ -59,6 +62,72 @@ def _cmd_prod_check(args: argparse.Namespace) -> int:
     print(format_prod_check_report(report))
     # Non-zero unless production is allowed -- the safe default (an honest OFFLINE run refuses).
     return 0 if report.production_mode_allowed else 1
+
+
+_SHADOW_START = "2026-06-29T14:30:00Z"
+# The default validation universe (IREN / AAOI over the physical-ai theme).
+_SHADOW_WATCHLIST = ("IREN", "AAOI")
+_SHADOW_THEMES = ("physical_ai",)
+
+
+def _cmd_shadow_validate(args: argparse.Namespace) -> int:
+    from reality_mesh.orchestrator import Subscription
+    from reality_mesh.scheduler import DEFAULT_CADENCE_POLICIES
+    from cosmosiq_ops.shadow_validation import (
+        render_validation_report,
+        run_shadow_window,
+    )
+
+    print("HONEST BANNER: this is a CONTROLLED shadow-validation window -- {0} scheduled ticks "
+          "over an INJECTED-time span (each tick advances the injected 'now' by {1} minutes). It "
+          "is NOT a wall-clock 24-72h calendar run. NO live SEC fetch is made: SEC_USER_AGENT is "
+          "not configured, so the SEC EDGAR live adapter runs only in its honest "
+          "credentials_missing state (a visible source gap). This pass NEVER promotes to "
+          "production and NEVER flips the 020F gate.".format(args.ticks, args.interval_minutes))
+
+    store_dir = os.path.join(args.work_dir, "store")
+    os.makedirs(store_dir, exist_ok=True)
+    subscription = Subscription(
+        subscription_id="shadow-validation-universe",
+        watchlist=_SHADOW_WATCHLIST, themes=_SHADOW_THEMES,
+        policy_ids=tuple(p.policy_id for p in DEFAULT_CADENCE_POLICIES))
+    result = run_shadow_window(
+        store_dir, subscriptions=(subscription,), ticks=int(args.ticks),
+        start=args.start, interval_minutes=int(args.interval_minutes))
+    report = render_validation_report(
+        result, operator=args.operator, generated_at=args.start)
+
+    if args.report_out:
+        parent = os.path.dirname(os.path.abspath(args.report_out))
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        with open(args.report_out, "w", encoding="utf-8") as fh:
+            fh.write(report + "\n")
+
+    print("CosmosIQ shadow-validation window (Phase 020G) -- COMPLETE")
+    print("  duration: {0}".format(result.duration_label))
+    print("  ticks scheduled/succeeded/failed: {0}/{1}/{2}".format(
+        result.ticks_scheduled, result.ticks_succeeded, result.ticks_failed))
+    print("  distinct pulses persisted: {0}".format(len(result.persisted_run_ids)))
+    print("  SEC EDGAR live source health: {0} (configured={1})".format(
+        result.sec_source_health.get("source_health", "credentials_missing"),
+        str(result.sec_edgar_configured).lower()))
+    print("  agent health: {0}".format(result.agent_health))
+    print("  DQ gate ran every pulse: {0}; failing DQ records: {1}".format(
+        str(result.dq_gate_ran_every_pulse).lower(), len(result.dq_failures)))
+    print("  candidate attempts: {0}; forged-eligible: {1}; blocked verdicts: {2}".format(
+        result.candidate_attempts, len(result.forged_eligible),
+        ", ".join(result.blocked_candidate_reasons) or "none"))
+    print("  shadow alerts: {0}; external delivery: {1}; production escalation: {2}".format(
+        len(result.shadow_alerts), str(result.external_delivery_occurred).lower(),
+        str(result.production_escalation_occurred).lower()))
+    print("  replay divergences (must be 0): {0}".format(result.replay_divergences))
+    print("  promotion recommendation: {0}".format(result.promotion_recommendation))
+    if args.report_out:
+        print("  report written: {0}".format(args.report_out))
+    print("  live_source_health verified: {0} (stays manual -- no live SEC fetch)".format(
+        str(result.live_source_health_verified).lower()))
+    return 0
 
 
 def _cmd_smoke(args: argparse.Namespace) -> int:
@@ -140,6 +209,23 @@ def _build_parser() -> argparse.ArgumentParser:
     prod.add_argument("--quick", action="store_true",
                       help="skip the CI-gate full-suite subprocess run; keep every sweep")
     prod.set_defaults(func=_cmd_prod_check)
+
+    shadow = sub.add_parser(
+        "shadow-validate",
+        help="run a CONTROLLED SHADOW_24X7 validation window (injected-time; not a wall-clock "
+             "multi-day run) + fill the 020D report")
+    shadow.add_argument("--work-dir", required=True, help="fresh scratch work dir")
+    shadow.add_argument("--ticks", type=int, default=24,
+                        help="number of scheduled ticks in the window (default 24)")
+    shadow.add_argument("--start", default=_SHADOW_START,
+                        help="injected first-tick instant (deterministic)")
+    shadow.add_argument("--interval-minutes", type=int, default=60,
+                        help="injected minutes between ticks (default 60)")
+    shadow.add_argument("--operator", default="operator",
+                        help="operator name recorded in the report")
+    shadow.add_argument("--report-out", default=None,
+                        help="path to write the filled 020D shadow-validation report")
+    shadow.set_defaults(func=_cmd_shadow_validate)
 
     smoke = sub.add_parser("smoke", help="run the full operator chain offline")
     smoke.add_argument("--work-dir", required=True, help="fresh scratch work dir")
