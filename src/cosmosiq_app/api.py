@@ -57,11 +57,15 @@ from reality_mesh import (
     acknowledged_alerts,
     alerts_with_status,
     append_schedule_state,
+    blocked_candidates,
     build_default_registry,
     build_default_schedule,
+    eligible_candidates,
     load_schedule_state,
     pause,
     persist_and_summarize,
+    publish_candidates_for_run,
+    published_candidates,
     resume,
     run_pulse,
     schedule_to_dict,
@@ -471,6 +475,105 @@ def _handle_settings_put(store_dir: str, body: Any, now: str) -> Dict[str, Any]:
                 "journaled_record_id": record_id, "append_only": True})
 
 
+def _candidate_public_dict(cand: Any) -> Dict[str, Any]:
+    """One published candidate as a plain dict (labels + refs + the exact basis; no score)."""
+    return {
+        "candidate_id": cand.candidate_id,
+        "ticker": cand.ticker,
+        "run_id": cand.run_id,
+        "mode": cand.mode,
+        "generated_at": cand.generated_at,
+        "candidate_state": cand.candidate_state,
+        "eligible": cand.is_eligible,
+        "reality_signal_refs": list(cand.reality_signal_refs),
+        "opportunity_hypothesis_ref": cand.opportunity_hypothesis_ref,
+        "investment_diligence_ref": cand.investment_diligence_ref,
+        "forward_scenario_state": cand.forward_scenario_state,
+        "trust_data_quality_state": cand.trust_data_quality_state,
+        "source_provenance": list(cand.source_provenance),
+        "missing_lineage": list(cand.missing_lineage()),
+        "basis": cand.basis,
+    }
+
+
+def _handle_candidates_publish(store_dir: str, body: Any, now: str) -> Dict[str, Any]:
+    """POST /api/candidates/publish -- the explicit publish step (NEVER auto-run in a pulse).
+
+    Runs :func:`publish_candidates_for_run` over the run's scope, persisting each candidate
+    append-only (eligible only with full provenance; blocked WITH its exact reason), and returns
+    the published set + eligible / blocked counts + states. Diligence refs come from the body's
+    ``diligence_by_ticker`` (operator input) and/or the store's recorded diligence input files.
+    """
+    if not isinstance(body, dict):
+        return _error(400, "request body must be a JSON object with 'run_id' (and optionally "
+                           "'tickers' / 'now' / 'mode' / 'diligence_by_ticker')")
+    run_id = str(body.get("run_id", "") or "").strip()
+    if not run_id:
+        return _error(400, "publishing candidates requires a 'run_id' (the current run whose "
+                           "scope is published)")
+    effective_now = str(body.get("now", "") or "") or now
+    if not effective_now.strip():
+        return _error(400, "publishing requires an injected 'now' instant (body 'now' or the "
+                           "shell boundary) -- the dispatcher never reads the wall clock")
+    tickers_raw = body.get("tickers")
+    tickers = tuple(str(t) for t in tickers_raw) if isinstance(tickers_raw, list) else None
+    mode = str(body.get("mode", "") or "pulse") or "pulse"
+    body_diligence = dict(body.get("diligence_by_ticker") or {})
+
+    run = _get_run(store_dir, run_id)
+    scope = tickers or (tuple(run.watchlist) if run is not None else ())
+    from . import cockpits as _cockpits
+    diligence = _cockpits.diligence_refs_from_store(store_dir, scope)
+    diligence.update({str(k).strip().upper(): v for k, v in body_diligence.items()})
+
+    try:
+        published = publish_candidates_for_run(
+            store_dir, run_id, tickers=tickers, now=effective_now, mode=mode,
+            diligence_by_ticker=diligence)
+    except (ValueError, FileNotFoundError) as exc:
+        return _error(400, str(exc))
+
+    eligible = [c for c in published if c.is_eligible]
+    blocked = [c for c in published if c.candidate_state.startswith("ineligible_")]
+    return _ok({
+        "run_id": run_id,
+        "now": effective_now,
+        "mode": mode,
+        "append_only": True,
+        "auto_published_in_pulse": False,
+        "published": len(published),
+        "eligible_count": len(eligible),
+        "blocked_count": len(blocked),
+        "eligible": [c.ticker for c in eligible],
+        "blocked": [{"ticker": c.ticker, "state": c.candidate_state, "reason": c.basis}
+                    for c in blocked],
+        "candidates": [_candidate_public_dict(c) for c in published],
+        "note": "publication is APPEND-ONLY and idempotent by content-derived id; blocked "
+                "candidates are persisted with their exact reason (nothing is hidden)",
+    })
+
+
+def _handle_candidates_list(store_dir: str, query: Dict[str, Any]) -> Dict[str, Any]:
+    """GET /api/candidates?run_id=&status= -- the published candidates (read-only)."""
+    run_id = str(query.get("run_id", "") or "").strip() or None
+    status = str(query.get("status", "all") or "all").lower()
+    if status == "eligible":
+        cands = eligible_candidates(store_dir, run_id)
+    elif status in ("blocked", "ineligible"):
+        cands = blocked_candidates(store_dir, run_id)
+    elif status == "all":
+        cands = published_candidates(store_dir, run_id)
+    else:
+        return _error(400, "unknown candidates status filter {0!r} (allowed: eligible, "
+                           "blocked, all)".format(status))
+    return _ok({
+        "candidates": [_candidate_public_dict(c) for c in cands],
+        "count": len(cands),
+        "status_filter": status,
+        "run_id": run_id or "",
+    })
+
+
 def _handle_coverage() -> Dict[str, Any]:
     implemented_ids = frozenset(
         factory().descriptor.agent_id for factory in _IMPLEMENTED_AGENT_FACTORIES)
@@ -576,6 +679,12 @@ def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[
         return _error(405, "method {0} not allowed for {1} (allowed: GET, PUT)".format(
             method, path))
 
+    if tail == ["candidates"]:
+        return _require(method, "GET", path) or _handle_candidates_list(store_dir, query)
+    if tail == ["candidates", "publish"]:
+        return _require(method, "POST", path) or _handle_candidates_publish(
+            store_dir, body, now)
+
     if tail == ["coverage"]:
         return _require(method, "GET", path) or _handle_coverage()
 
@@ -623,6 +732,9 @@ def _dispatch_page(segments: List[str], raw: List[str],
     if len(segments) == 2 and segments[0] == "companies":
         from . import cockpits as _cockpits
         return _html(200, _cockpits.render_company_cockpit(store_dir, raw[1]))
+    if segments == ["candidates"]:
+        from . import cockpits as _cockpits
+        return _html(200, _cockpits.render_candidate_list(store_dir))
     if len(segments) == 2 and segments[0] == "candidates":
         from . import cockpits as _cockpits
         return _html(200, _cockpits.render_candidate_cockpit(store_dir, raw[1]))

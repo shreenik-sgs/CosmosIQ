@@ -245,8 +245,13 @@ from .capital_candidate import (
     INELIGIBLE_STATES,
     TRUST_DATA_QUALITY_STATES,
     CapitalCandidate,
+    CapitalCandidateStore,
     assess_candidate_eligibility,
+    blocked_candidates,
     candidate_id_for,
+    eligible_candidates,
+    publish_candidates_for_run,
+    published_candidates,
 )
 from .adapters import (
     ADAPTER_CREDENTIALS_STATUSES,
@@ -680,8 +685,13 @@ __all__ = [
     "TRUST_DATA_QUALITY_STATES",
     "CAPITAL_CANDIDATE_MODELS",
     "CapitalCandidate",
+    "CapitalCandidateStore",
     "assess_candidate_eligibility",
+    "blocked_candidates",
     "candidate_id_for",
+    "eligible_candidates",
+    "publish_candidates_for_run",
+    "published_candidates",
     # source-adapter runtime + local market-data adapter (014A)
     "ADAPTER_RESULT_STATUSES",
     "ADAPTER_CREDENTIALS_STATUSES",

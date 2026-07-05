@@ -30,8 +30,10 @@ ticker), stdlib-only, Python 3.9, OFFLINE. No network / scheduler / broker on im
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
+from .gates import DataQualityGateRunner
+from .stores import AppendOnlyStore, DataQualityStore, RunStore, SignalStore
 from .validation import assert_no_trade_fields
 
 
@@ -81,6 +83,7 @@ class CapitalCandidate:
     candidate_id: str = ""                  # REQUIRED, deterministic (run + ticker derived)
     ticker: str = ""                        # REQUIRED
     run_id: str = ""                        # REQUIRED -- the current run that produced it
+    mode: str = "pulse"                     # REQUIRED for eligible -- the producing run's mode
     generated_at: str = ""                  # injected timestamp (no wall-clock)
     reality_signal_refs: Tuple[str, ...] = field(default_factory=tuple)   # fused signals
     opportunity_hypothesis_ref: str = ""    # the Sphurana packet id
@@ -88,6 +91,7 @@ class CapitalCandidate:
     forward_scenario_state: str = ""        # closed: FORWARD_SCENARIO_STATES ("" = unset)
     trust_data_quality_state: str = ""      # closed: TRUST_DATA_QUALITY_STATES ("" = unset)
     candidate_state: str = "draft"          # closed: CANDIDATE_STATES
+    source_provenance: Tuple[str, ...] = field(default_factory=tuple)     # source refs / summary
     basis: str = ""                         # plain-English lineage citing the refs
 
     def __post_init__(self) -> None:
@@ -126,7 +130,12 @@ class CapitalCandidate:
 
     # -- lineage introspection ------------------------------------------------ #
     def missing_lineage(self) -> Tuple[str, ...]:
-        """The required lineage pieces that are absent (empty tuple iff fully complete)."""
+        """The required lineage pieces that are absent (empty tuple iff fully complete).
+
+        Eligibility requires -- on top of the 019B ref set + a healthy producing run -- a
+        non-empty ``run_id`` and a non-empty ``mode`` (the active run that produced it): a
+        published-eligible candidate always carries WHICH run + mode generated it.
+        """
         missing = []
         if not self.reality_signal_refs:
             missing.append("reality_signal_refs")
@@ -136,6 +145,10 @@ class CapitalCandidate:
             missing.append("investment_diligence_ref")
         if self.trust_data_quality_state != "healthy":
             missing.append("trust_data_quality_state==healthy")
+        if not str(self.run_id or "").strip():
+            missing.append("run_id")
+        if not str(self.mode or "").strip():
+            missing.append("mode")
         return tuple(missing)
 
     @property
@@ -155,6 +168,24 @@ def candidate_id_for(run_id: str, ticker: str) -> str:
     return "cc:{0}:{1}".format(str(run_id or "").strip(), str(ticker or "").strip().upper())
 
 
+def _provenance_summary(run_id: str, mode: str, signals: Tuple[str, ...], hyp: str,
+                        dil: str, forward_state: str, dq: str) -> Tuple[str, ...]:
+    """A deterministic, order-stable source-provenance summary (refs + labels, never a value).
+
+    Assembled from the current run's identity + the lineage refs actually present, so a
+    published candidate always carries WHERE its evidence came from -- never a fabricated ref.
+    """
+    parts = ["run:{0}".format(run_id), "mode:{0}".format(mode)]
+    parts += ["signal:{0}".format(s) for s in signals]
+    if hyp:
+        parts.append("hypothesis:{0}".format(hyp))
+    if dil:
+        parts.append("diligence:{0}".format(dil))
+    parts.append("forward:{0}".format(forward_state or "absent"))
+    parts.append("dq:{0}".format(dq or "unstated"))
+    return tuple(parts)
+
+
 def assess_candidate_eligibility(
     *,
     ticker: str,
@@ -164,6 +195,8 @@ def assess_candidate_eligibility(
     investment_diligence_ref: str = "",
     forward_scenario_state: str = "",
     trust_data_quality_state: str = "",
+    mode: str = "pulse",
+    source_provenance: Tuple[str, ...] = (),
     now: str,
 ) -> CapitalCandidate:
     """Build a :class:`CapitalCandidate` whose ``candidate_state`` reflects what is PRESENT.
@@ -184,6 +217,9 @@ def assess_candidate_eligibility(
     hyp = str(opportunity_hypothesis_ref or "").strip()
     dil = str(investment_diligence_ref or "").strip()
     dq = str(trust_data_quality_state or "").strip()
+    run = str(run_id or "").strip()
+    run_mode = str(mode or "").strip()
+    fwd = str(forward_scenario_state or "").strip()
 
     if not signals or not hyp:
         state = "ineligible_missing_provenance"
@@ -212,18 +248,181 @@ def assess_candidate_eligibility(
                "diligence (thesis {3}) AND a healthy producing run -- full evidence lineage "
                "present".format(run_id, len(signals), hyp, dil))
 
+    provenance = tuple(str(p) for p in (source_provenance or ()) if str(p or "").strip()) \
+        or _provenance_summary(run, run_mode, signals, hyp, dil, fwd, dq)
+
     return CapitalCandidate(
         candidate_id=candidate_id_for(run_id, ticker),
         ticker=str(ticker or "").strip().upper(),
-        run_id=str(run_id or "").strip(),
+        run_id=run,
+        mode=run_mode,
         generated_at=str(now),
         reality_signal_refs=signals,
         opportunity_hypothesis_ref=hyp,
         investment_diligence_ref=dil,
-        forward_scenario_state=str(forward_scenario_state or "").strip(),
+        forward_scenario_state=fwd,
         trust_data_quality_state=dq,
         candidate_state=state,
+        source_provenance=provenance,
         basis=why)
+
+
+# --------------------------------------------------------------------------- #
+# APPEND-ONLY publication store (IMPLEMENTATION-020A)                            #
+# --------------------------------------------------------------------------- #
+class CapitalCandidateStore(AppendOnlyStore):
+    """The append-only publication log of :class:`CapitalCandidate` records.
+
+    Composes the 013B :class:`~reality_mesh.stores.AppendOnlyStore`, inheriting every hard
+    guarantee: no update / delete, the replay envelope, the credential-key + trade/score-key
+    refusal, and deterministic ``sort_keys`` JSONL. PUBLICATION IS APPEND-ONLY: a published
+    candidate is a NEW store line; a BLOCKED candidate is persisted too (with its exact reason
+    -- nothing is hidden); re-publishing an unchanged candidate is IDEMPOTENT by its
+    content-derived id -- an identical record is never written twice, and the prior line is
+    byte-unchanged forever.
+    """
+
+    filename = "capital_candidate_store.jsonl"
+    record_cls = CapitalCandidate
+    id_field = "candidate_id"
+    timestamp_field = "generated_at"
+    ticker_fields = ("ticker",)
+
+    def publish(self, candidate: CapitalCandidate) -> str:
+        """Append ONE candidate append-only; idempotent when byte-identical already present.
+
+        Returns the candidate's stable, content-derived id. If an EQUAL record (every field,
+        incl. its state, basis, provenance and generated_at) is already persisted, nothing is
+        written and the prior line stays byte-unchanged -- re-publish is a no-op.
+        """
+        if candidate in self.read_all():
+            return candidate.candidate_id
+        return self.append(candidate)
+
+
+def _latest_by_id(candidates: Tuple[CapitalCandidate, ...]) -> Tuple[CapitalCandidate, ...]:
+    """Distinct candidates keyed on their content-derived id, LATEST (superseding) line wins."""
+    by_id: Dict[str, CapitalCandidate] = {}
+    order = []
+    for cand in candidates:
+        if cand.candidate_id not in by_id:
+            order.append(cand.candidate_id)
+        by_id[cand.candidate_id] = cand
+    return tuple(by_id[cid] for cid in order)
+
+
+def published_candidates(store_dir: str, run_id: Optional[str] = None
+                         ) -> Tuple[CapitalCandidate, ...]:
+    """Every published candidate (latest line per id), optionally scoped to one ``run_id``."""
+    store = CapitalCandidateStore(store_dir)
+    records = store.query(run_id=run_id) if run_id else store.read_all()
+    return _latest_by_id(tuple(records))
+
+
+def eligible_candidates(store_dir: str, run_id: Optional[str] = None
+                        ) -> Tuple[CapitalCandidate, ...]:
+    """The published candidates whose current state is ``eligible``."""
+    return tuple(c for c in published_candidates(store_dir, run_id) if c.is_eligible)
+
+
+def blocked_candidates(store_dir: str, run_id: Optional[str] = None
+                       ) -> Tuple[CapitalCandidate, ...]:
+    """The published candidates whose current state is one of the ``ineligible_*`` verdicts."""
+    return tuple(c for c in published_candidates(store_dir, run_id)
+                 if c.candidate_state in INELIGIBLE_STATES)
+
+
+def _run_trust_dq_state(store_dir: str, run: Any) -> str:
+    """The producing run's Trust / Data-Quality state, mapped onto TRUST_DATA_QUALITY_STATES.
+
+    Read from the run's persisted gate-overall DQ record (falling back to the run's own
+    ``data_quality_status``): ``healthy`` / ``degraded`` / ``failed`` pass through; a
+    ``blocked_by_policy`` run is treated as ``failed`` (its candidate can never be eligible);
+    anything else is an honestly-unstated ("") DQ.
+    """
+    overall = ""
+    for record in DataQualityStore(store_dir).query(run_id=run.run_id):
+        if record.category == "gate_overall":
+            overall = record.status
+    raw = overall or str(getattr(run, "data_quality_status", "") or "")
+    if raw in TRUST_DATA_QUALITY_STATES:
+        return raw
+    if raw == "blocked_by_policy":
+        return "failed"
+    return ""
+
+
+def publish_candidates_for_run(
+    store_dir: str,
+    run_id: str,
+    *,
+    tickers: Optional[Tuple[str, ...]] = None,
+    now: str,
+    mode: str = "pulse",
+    diligence_by_ticker: Optional[Dict[str, Any]] = None,
+) -> Tuple[CapitalCandidate, ...]:
+    """Publish (assess -> construct -> persist -> gate -> state) every ticker in a run's scope.
+
+    THE OFFICIAL PUBLISH PATH. For each ticker in scope (``tickers`` when given, else the run's
+    persisted watchlist):
+
+    1. gather that ticker's fused ``RealitySignal`` refs from the run (:class:`SignalStore`),
+       the operator-supplied ``OpportunityHypothesis`` + ``InvestmentDiligence`` refs (+ a
+       forward-scenario status) from ``diligence_by_ticker``, and the run's Trust / Data-Quality
+       state from its persisted DQ records;
+    2. :func:`assess_candidate_eligibility` -> the honest ``candidate_state`` (it NEVER fabricates
+       a ref to reach eligible: a missing forward scenario is a rendered GAP -- ``absent`` -- not
+       a block, so a candidate with the other refs stays eligible);
+    3. PERSIST the record append-only (content-derived id, idempotent) -- an eligible candidate
+       lands ONLY with full provenance; a candidate missing any required ref lands as
+       ``ineligible_*`` WITH the exact reason (nothing is hidden);
+    4. run :meth:`DataQualityGateRunner.run` over the published set (reusing the 019B gate) as a
+       verification pass -- a forged-eligible candidate would roll the run to ``blocked_by_policy``.
+
+    ``diligence_by_ticker`` maps a ticker (upper- or as-typed) to a dict carrying any of
+    ``opportunity_hypothesis_ref`` / ``investment_diligence_ref`` / ``forward_scenario_state``.
+    Deterministic (injected ``now`` + content-derived ids); offline. Returns the published set.
+    """
+    if not str(run_id or "").strip():
+        raise ValueError("publish_candidates_for_run requires a non-empty run_id")
+    runs = RunStore(store_dir).query(run_id=run_id)
+    if not runs:
+        raise ValueError(
+            "no persisted run with run_id {0!r} -- a candidate needs a CURRENT run that "
+            "produced it".format(run_id))
+    run = runs[-1]
+    scope = tuple(tickers) if tickers else tuple(getattr(run, "watchlist", ()) or ())
+    dq_state = _run_trust_dq_state(store_dir, run)
+    diligence = dict(diligence_by_ticker or {})
+    signal_store = SignalStore(store_dir)
+    store = CapitalCandidateStore(store_dir)
+
+    published: list = []
+    for ticker in scope:
+        symbol = str(ticker or "").strip().upper()
+        if not symbol:
+            continue
+        signal_ids = tuple(sorted(
+            s.signal_id for s in signal_store.query(run_id=run.run_id, ticker=symbol)))
+        dil_spec = dict(diligence.get(symbol) or diligence.get(str(ticker)) or {})
+        hyp_ref = str(dil_spec.get("opportunity_hypothesis_ref", "") or "")
+        dil_ref = str(dil_spec.get("investment_diligence_ref", "") or "")
+        forward_state = str(dil_spec.get("forward_scenario_state", "") or "absent")
+        candidate = assess_candidate_eligibility(
+            ticker=symbol, run_id=run.run_id,
+            reality_signal_refs=signal_ids,
+            opportunity_hypothesis_ref=hyp_ref,
+            investment_diligence_ref=dil_ref,
+            forward_scenario_state=forward_state,
+            trust_data_quality_state=dq_state,
+            mode=mode, now=now)
+        store.publish(candidate)
+        published.append(candidate)
+
+    # Verification pass: reuse the 019B gate. A properly-eligible set passes; a forged one would
+    # roll to blocked_by_policy (the construction invariant already makes that unreachable here).
+    DataQualityGateRunner().run(candidates=tuple(published))
+    return tuple(published)
 
 
 # --------------------------------------------------------------------------- #

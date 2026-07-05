@@ -51,13 +51,16 @@ from reality_mesh import (
     ThemePulseStore,
     alerts_with_status,
     assess_candidate_eligibility,
+    blocked_candidates,
     build_concentration,
     build_correlation_labels,
     build_exposure,
     build_forward_scenario_packet,
     build_rotation_alignment,
     compare_candidate,
+    eligible_candidates,
     load_holdings,
+    published_candidates,
     ticker_theme_map,
     to_nivesha_forward_sidecar,
 )
@@ -78,16 +81,27 @@ from .api import _runs_newest_first
 from .pages import _badge, _english_agent, _esc, _page
 
 __all__ = [
+    "CANDIDATES_EMPTY_STATE",
     "DILIGENCE_INPUT_DIRNAME",
     "PREVIEW_DIRNAME",
     "PROFILE_FILENAME",
+    "diligence_refs_from_store",
     "persisted_theme_ids",
     "render_candidate_cockpit",
+    "render_candidate_list",
     "render_company_cockpit",
     "render_portfolio_page",
     "render_theme_cockpit",
     "render_theme_list",
 ]
+
+# The VERBATIM empty state for /candidates when NO eligible candidate is published (asserted
+# byte-for-byte by the suite -- the two-newline paragraph break is part of the contract).
+CANDIDATES_EMPTY_STATE = (
+    "No Capital Candidates are available for this run.\n\n"
+    "Run a pulse, add watchlist tickers, or enable the required source adapters. CosmosIQ "
+    "only surfaces candidates when there is enough evidence to support an investment thesis "
+    "review.")
 
 # Operator-provided input locations under the store (plain local JSON; labels and local
 # refs only -- the app never fetches anything to fill them).
@@ -510,6 +524,8 @@ def render_company_cockpit(store_dir: str, ticker: str) -> str:
         + ("".join("<li>{0}</li>".format(_esc(gap)) for gap in sorted(set(all_gaps)))
            or "<li>no data gaps recorded for this ticker</li>") + "</ul></div>")
 
+    candidate_html = _published_candidate_state_section(store_dir, ticker)
+
     intro = ('<p class="note">Company cockpit for <span class="mono">{t}</span>: every '
              "persisted event, finding and signal that names this ticker, run by run. "
              "Claim statuses are labels &mdash; a company claim, reported claim or rumor "
@@ -517,7 +533,163 @@ def render_company_cockpit(store_dir: str, ticker: str) -> str:
              '<a href="/candidates/{t}">capital-candidate view</a>.</p>').format(
                  t=_esc(ticker))
     return _page(store_dir, "Company {0}".format(ticker), "",
-                 intro + sections + gaps_html)
+                 intro + candidate_html + sections + gaps_html)
+
+
+# --------------------------------------------------------------------------- #
+# /candidates -- the CAPITAL CANDIDATES LIST (020A)                             #
+# --------------------------------------------------------------------------- #
+def _forward_badge(state: str) -> str:
+    """The forward-scenario sidecar state as a badge -- ``absent`` renders an explicit GAP."""
+    text = str(state or "absent")
+    if text == "present":
+        return _badge("forward scenario present", "ok")
+    if text == "insufficient":
+        return _badge("forward scenario insufficient -- GAP", "warn")
+    return _badge("forward scenario absent -- GAP (rendered, not a block)", "warn")
+
+
+def _candidate_state_badge(state: str) -> str:
+    return _badge(_CANDIDATE_STATE_TEXT.get(str(state), str(state)),
+                  _CANDIDATE_STATE_KINDS.get(str(state), "warn"))
+
+
+def render_candidate_list(store_dir: str) -> str:
+    """The published Capital Candidates list: eligible cards + blocked rows (exact reasons).
+
+    Reads ONLY the append-only :class:`~reality_mesh.CapitalCandidateStore` -- it never
+    publishes here (publication is the explicit ``POST /api/candidates/publish`` step). Eligible
+    candidates link to their cockpit; blocked candidates render their state + the EXACT
+    ineligibility reason (nothing is hidden). When no candidate is ELIGIBLE, the verbatim empty
+    state renders. Labels and references only; no sizing / score / order anywhere.
+    """
+    eligible = eligible_candidates(store_dir)
+    blocked = blocked_candidates(store_dir)
+    intro = ('<p class="note">Published capital candidates from the append-only candidate '
+             "store &mdash; a typed eligibility + lineage record per ticker, never a "
+             "recommendation, a ranking or a trade. A candidate is ELIGIBLE only with "
+             "current-run provenance AND a diligence reference AND a healthy producing run; a "
+             "BLOCKED candidate is shown with its exact reason. Publishing is a separate "
+             "explicit step (POST /api/candidates/publish) &mdash; this page only reads.</p>")
+
+    if eligible:
+        cards = ""
+        for cand in eligible:
+            cards += (
+                '<div class="panel"><table class="kv">'
+                '<tr><th>Ticker</th><td><a href="/candidates/{t}">{t}</a> &middot; '
+                "{state}</td></tr>"
+                "<tr><th>Producing run</th><td><span class=\"mono\">{run}</span> &middot; "
+                "mode {mode} &middot; data quality {dq}</td></tr>"
+                "<tr><th>Fused reality signals</th><td>{signals}</td></tr>"
+                "<tr><th>Opportunity-hypothesis ref</th><td><span class=\"mono\">{hyp}</span>"
+                "</td></tr>"
+                "<tr><th>Diligence ref</th><td><span class=\"mono\">{dil}</span></td></tr>"
+                "<tr><th>Forward scenario</th><td>{fwd}</td></tr>"
+                "<tr><th>Basis</th><td>{basis}</td></tr>"
+                "</table></div>").format(
+                    t=_esc(cand.ticker), state=_candidate_state_badge(cand.candidate_state),
+                    run=_esc(cand.run_id), mode=_esc(cand.mode or "&mdash;"),
+                    dq=_badge(cand.trust_data_quality_state or "unstated",
+                              "ok" if cand.trust_data_quality_state == "healthy" else "warn"),
+                    signals=_esc(", ".join(cand.reality_signal_refs) or "none"),
+                    hyp=_esc(cand.opportunity_hypothesis_ref or "&mdash;"),
+                    dil=_esc(cand.investment_diligence_ref or "&mdash;"),
+                    fwd=_forward_badge(cand.forward_scenario_state),
+                    basis=_esc(cand.basis))
+        eligible_html = "<h2>Eligible candidates</h2>" + cards
+    else:
+        eligible_html = ('<h2>Eligible candidates</h2><div class="panel"><p class="note">'
+                         + CANDIDATES_EMPTY_STATE + "</p></div>")
+
+    if blocked:
+        brows = "".join(
+            "<tr><th><a href=\"/candidates/{t}\">{t}</a></th><td>{state}</td>"
+            "<td><span class=\"mono\">{run}</span></td><td>{reason}</td></tr>".format(
+                t=_esc(cand.ticker), state=_candidate_state_badge(cand.candidate_state),
+                run=_esc(cand.run_id), reason=_esc(cand.basis))
+            for cand in blocked)
+        blocked_html = (
+            '<h2>Blocked candidates</h2><div class="panel">'
+            '<p class="note">Persisted, never hidden: each blocked candidate carries the '
+            "EXACT reason it is not eligible.</p>"
+            '<table class="kv"><tr><th>Ticker</th><td>State</td><td>Run</td>'
+            "<td>Exact reason</td></tr>" + brows + "</table></div>")
+    else:
+        blocked_html = ('<h2>Blocked candidates</h2><div class="panel"><p class="note">No '
+                        "blocked candidates published in this store.</p></div>")
+
+    return _page(store_dir, "Capital Candidates", "/candidates",
+                 intro + eligible_html + blocked_html)
+
+
+def diligence_refs_from_store(store_dir: str, tickers: Tuple[str, ...]) -> Dict[str, Any]:
+    """Derive per-ticker diligence refs from the operator's recorded diligence input files.
+
+    For each ticker with a sufficient ``<store>/diligence_inputs/<TICKER>.json``, run the
+    already-accepted diligence engines ON DEMAND (same path the candidate cockpit uses) and
+    return ``{TICKER: {opportunity_hypothesis_ref, investment_diligence_ref,
+    forward_scenario_state}}``. A ticker with no / insufficient / unparseable inputs is simply
+    omitted (honest absence -- never a fabricated ref). Deterministic + offline.
+    """
+    out: Dict[str, Any] = {}
+    for ticker in tickers:
+        symbol = str(ticker or "").strip().upper()
+        if not symbol:
+            continue
+        spec_path = os.path.join(store_dir, DILIGENCE_INPUT_DIRNAME, symbol + ".json")
+        try:
+            spec = _load_json(spec_path)
+        except ValueError:
+            continue
+        ok, _why = _sufficient(spec)
+        if not ok:
+            continue
+        try:
+            nowf, hypothesis, bundle, base = _build_hypothesis_and_base(spec, symbol)
+            thesis, _mapping = run_nivesha_thesis_on_enrichment(
+                hypothesis, bundle, base_inputs=base, actor=_ACTOR, now=nowf)
+        except (ValueError, TypeError, KeyError):
+            continue
+        forward = "present" if dict(spec.get("forward_inputs") or {}) else "absent"
+        out[symbol] = {
+            "opportunity_hypothesis_ref": str(getattr(thesis, "opportunity_id", "") or ""),
+            "investment_diligence_ref": str(getattr(thesis, "thesis_id", "") or ""),
+            "forward_scenario_state": forward,
+        }
+    return out
+
+
+def _published_candidate_state_section(store_dir: str, ticker: str) -> str:
+    """The PUBLISHED capital-candidate state for one ticker on the company cockpit (READ-ONLY).
+
+    Shows the eligible/blocked state + the exact reason of the latest published candidate for
+    this ticker, or an honest 'none published' note. Reads the append-only store only.
+    """
+    heading = "<h2>Published capital candidate</h2>"
+    symbol = str(ticker).strip().upper()
+    matches = [c for c in published_candidates(store_dir) if c.ticker == symbol]
+    if not matches:
+        return (heading + '<div class="panel"><p class="note">No capital candidate published '
+                "for this ticker. Publish is a separate explicit step (POST "
+                "/api/candidates/publish); nothing is fabricated here.</p></div>")
+    cand = matches[-1]
+    return (
+        heading + '<div class="panel"><table class="kv">'
+        "<tr><th>Eligibility</th><td>{state}</td></tr>"
+        "<tr><th>Producing run</th><td><span class=\"mono\">{run}</span> &middot; mode "
+        "{mode} &middot; data quality {dq}</td></tr>"
+        "<tr><th>Forward scenario</th><td>{fwd}</td></tr>"
+        "<tr><th>Exact basis / reason</th><td>{basis}</td></tr>"
+        "</table><p class=\"note\">The published, append-only eligibility record for this "
+        "ticker &mdash; a label + lineage, never a recommendation. See the full "
+        '<a href="/candidates/{t}">capital-candidate view</a>.</p></div>').format(
+            state=_candidate_state_badge(cand.candidate_state), run=_esc(cand.run_id),
+            mode=_esc(cand.mode or "&mdash;"),
+            dq=_badge(cand.trust_data_quality_state or "unstated",
+                      "ok" if cand.trust_data_quality_state == "healthy" else "warn"),
+            fwd=_forward_badge(cand.forward_scenario_state), basis=_esc(cand.basis),
+            t=_esc(symbol))
 
 
 # --------------------------------------------------------------------------- #
