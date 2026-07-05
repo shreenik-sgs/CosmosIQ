@@ -40,6 +40,24 @@ def _public_asset(content: str) -> str:
     return "\n".join(line.rstrip() for line in text.splitlines() if line.strip()) + "\n"
 
 
+def _split_css_assets(content: str) -> tuple[str, str, str]:
+    """Return ``(full, shell, canvas)`` public CSS assets.
+
+    ``universe.css`` stays a full compatibility bundle. The production pages load the
+    split assets: product shell / shared surfaces first, immersive canvas second.
+    """
+    marker = "/* ==================================================================== */\n/* IMMERSIVE DEEP-SPACE SCENE"
+    if marker in content:
+        shell_raw, canvas_tail = content.split(marker, 1)
+        canvas_raw = marker + canvas_tail
+    else:
+        shell_raw, canvas_raw = content, ""
+    full = _public_asset(content)
+    shell = _public_asset(shell_raw)
+    canvas = _public_asset(canvas_raw) if canvas_raw.strip() else ""
+    return full, shell, canvas
+
+
 def build_universe_app(output_dir: str, mode: str = "demo",
                        iren_slice: Optional[object] = None,
                        fixture_dir: Optional[str] = None,
@@ -235,11 +253,11 @@ def _write_pages(output_dir, assets_dir, pages) -> Dict[str, str]:
     svg_path = os.path.join(assets_dir, "deep_space_background.svg")
     celestial_dir = os.path.join(assets_dir, "celestial")
     os.makedirs(celestial_dir, exist_ok=True)
-    public_css = _public_asset(COSMIC_CSS)
+    public_css, public_shell_css, public_canvas_css = _split_css_assets(COSMIC_CSS)
     public_js = _public_asset(NAV_JS)
     _write(css_path, public_css)
-    _write(cosmosiq_css_path, public_css)
-    _write(canvas_css_path, "")
+    _write(cosmosiq_css_path, public_shell_css)
+    _write(canvas_css_path, public_canvas_css)
     _write(js_path, public_js)
     _write(canvas_js_path, public_js)
     _write(svg_path, deep_space_background_svg())  # local deep-space asset (no network)

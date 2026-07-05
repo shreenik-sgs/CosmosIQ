@@ -104,6 +104,15 @@ class UniverseUIBuildTests(unittest.TestCase):
         self.assertTrue(os.path.isfile(self.paths["assets/cosmosiq.css"]))
         self.assertTrue(os.path.isfile(self.paths["assets/universe_canvas.css"]))
         self.assertTrue(os.path.isfile(self.paths["assets/universe_canvas.js"]))
+        with open(self.paths["assets/cosmosiq.css"], encoding="utf-8") as fh:
+            shell_css = fh.read()
+        with open(self.paths["assets/universe_canvas.css"], encoding="utf-8") as fh:
+            canvas_css = fh.read()
+        self.assertIn(".command-bar", shell_css)
+        self.assertIn(".status-strip", shell_css)
+        self.assertIn(".viewport", canvas_css)
+        self.assertIn(".cosmic-object", canvas_css)
+        self.assertNotIn(".cosmic-object", shell_css)
 
     # --- galaxy / value-chain / star are NOT separate primary pages -------
     def test_entity_pages_are_not_top_level(self):

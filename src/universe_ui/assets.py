@@ -929,6 +929,74 @@ body.sky .navlink{
 .exec-header,.brief-card,.glass-panel,.stat-card{
   box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 18px 52px rgba(0,0,0,.22);
 }
+
+/* ==================================================================== */
+/* COSMOSIQ-PRODUCT-SHELL: stronger surfaces beyond the canvas           */
+/* ==================================================================== */
+body:not(.sky) .command-bar{
+  position:sticky;top:34px;z-index:40;
+  background:linear-gradient(180deg,rgba(6,8,20,.92),rgba(6,8,20,.72));
+  border-bottom:1px solid rgba(170,190,255,.1);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+}
+body:not(.sky) .wrap{padding-top:1.05rem}
+body:not(.sky) h1{
+  font-size:34px;line-height:1.08;margin-top:.6rem;
+  background:linear-gradient(90deg,#fff,#c9d8ff 55%,#7eeaff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+body:not(.sky) .lead{
+  color:#b8c4f2;font-size:14px;line-height:1.65;
+  background:linear-gradient(180deg,rgba(15,22,48,.58),rgba(11,15,34,.36));
+  border:1px solid rgba(150,170,255,.13);border-radius:var(--r);
+  padding:.9rem 1rem;margin:.55rem 0 1rem;
+}
+.glass-panel{
+  background:
+    linear-gradient(180deg,rgba(18,25,54,.72),rgba(9,13,30,.64)),
+    radial-gradient(600px 220px at 16% 0%,rgba(79,224,255,.1),transparent 68%);
+}
+.glass-panel h2{border-bottom-color:rgba(150,170,255,.16)}
+.grid-cards .card,.bucket .card{
+  background:
+    linear-gradient(180deg,rgba(17,24,52,.72),rgba(9,13,30,.66)),
+    radial-gradient(340px 160px at 18% 0%,rgba(79,224,255,.08),transparent 72%);
+}
+.candidate-table-wrap{overflow:auto;padding:.75rem}
+.candidate-table{
+  min-width:1320px;margin:0;border-collapse:separate;border-spacing:0;
+  border:0;background:rgba(5,8,20,.26);border-radius:var(--r);overflow:hidden;
+}
+.candidate-table th{
+  position:sticky;top:0;z-index:1;
+  background:linear-gradient(180deg,#141c42,#101636);
+  color:#eaf0ff;font-size:11px;letter-spacing:.8px;text-transform:uppercase;
+}
+.candidate-table td,.candidate-table th{border-color:rgba(150,170,255,.14)}
+.candidate-table td{vertical-align:top;background:rgba(8,12,28,.36)}
+.candidate-table tr:nth-child(odd) td{background:rgba(13,18,42,.42)}
+.candidate-table b{color:#fff}
+.candidate-table a{font-weight:800;color:#8deeff}
+.empty-state{
+  min-height:260px;display:flex;flex-direction:column;justify-content:center;
+  border-style:dashed;text-align:left;
+}
+.stat-card,.pipe-stage,.layer-row{
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset;
+}
+.dq-pipeline{padding:.2rem 0 .5rem}
+.pipe-stage{background:linear-gradient(180deg,rgba(18,25,54,.68),rgba(10,14,32,.58))}
+.matrix tr:hover td,.candidate-table tr:hover td{
+  background:rgba(79,224,255,.07);
+}
+.layer-map{position:relative;overflow:hidden}
+.layer-map::after{
+  content:"";position:absolute;right:-120px;top:-140px;width:260px;height:260px;
+  border-radius:50%;background:radial-gradient(circle,rgba(79,224,255,.12),transparent 68%);
+  pointer-events:none;
+}
+.layer-row{grid-template-columns:28px minmax(150px,190px) 1fr}
+.card .title,.brief-title,.pipe-name,.layer-name{letter-spacing:0}
 @media(prefers-reduced-motion:reduce){
   .star-near,.body-galaxy .body,.body-planet.glow-3 .body,.bottleneck-central .body::after,
   .cosmic-object.focus-pulse .body{
