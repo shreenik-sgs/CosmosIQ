@@ -192,6 +192,28 @@ def _cmd_e2e_trace(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_activate(args: argparse.Namespace) -> int:
+    from cosmosiq_ops.activate import (
+        DEFAULT_SIGNOFF_REL,
+        format_activation_report,
+        run_activation,
+    )
+    repo_root = args.repo_root or _default_repo_root()
+    signoff = args.signoff or os.path.join(repo_root, DEFAULT_SIGNOFF_REL)
+    outcome = run_activation(args.work_dir, now=args.now, signoff_path=signoff,
+                             repo_root=repo_root, quick=bool(args.quick))
+    print(format_activation_report(outcome))
+    # Non-zero unless production was actually activated -- the safe default (today: REFUSED).
+    return 0 if outcome.activated else 1
+
+
+def _cmd_rollback(args: argparse.Namespace) -> int:
+    from cosmosiq_ops.activate import format_rollback_report, run_rollback
+    outcome = run_rollback(args.work_dir, to=args.to, now=args.now, trigger=args.trigger)
+    print(format_rollback_report(outcome))
+    return 0 if outcome.allowed else 1
+
+
 def _cmd_smoke(args: argparse.Namespace) -> int:
     report = run_production_smoke(args.work_dir, now=args.now)
     print(format_smoke_report(report))
@@ -298,6 +320,35 @@ def _build_parser() -> argparse.ArgumentParser:
     e2e.add_argument("--report-out", default=None,
                      help="path to write the filled 020H end-to-end trace report")
     e2e.set_defaults(func=_cmd_e2e_trace)
+
+    activate = sub.add_parser(
+        "activate",
+        help="the Phase-021C production activation FLOW: read a filled operator sign-off, run "
+             "prod-check, and flip to PRODUCTION_24X7 ONLY IF the evidence is complete (refuses "
+             "by default)")
+    activate.add_argument("--work-dir", required=True, help="the operator store work dir")
+    activate.add_argument("--repo-root", default=None,
+                          help="repo root to sweep (default: this checkout)")
+    activate.add_argument(
+        "--signoff", default=None,
+        help="path to the filled operator sign-off (default: reports/OPERATOR_SIGNOFF_020J.md)")
+    activate.add_argument("--now", default=DEFAULT_NOW, help="injected instant (deterministic)")
+    activate.add_argument("--quick", action="store_true",
+                          help="skip the CI-gate full-suite subprocess run; keep every sweep")
+    activate.set_defaults(func=_cmd_activate)
+
+    rollback = sub.add_parser(
+        "rollback",
+        help="step the sanctioned mode DOWN the ladder "
+             "(PRODUCTION_24X7 -> SHADOW_24X7 -> MANUAL -> OFF); refuses an upgrade")
+    rollback.add_argument("--work-dir", required=True, help="the operator store work dir")
+    rollback.add_argument("--to", required=True,
+                          choices=["SHADOW_24X7", "MANUAL", "OFF", "shadow_24x7", "manual", "off"],
+                          help="the safer mode to roll back to")
+    rollback.add_argument("--trigger", default=None,
+                          help="the named rollback trigger (default: operator_manual)")
+    rollback.add_argument("--now", default=DEFAULT_NOW, help="injected instant (deterministic)")
+    rollback.set_defaults(func=_cmd_rollback)
 
     smoke = sub.add_parser("smoke", help="run the full operator chain offline")
     smoke.add_argument("--work-dir", required=True, help="fresh scratch work dir")

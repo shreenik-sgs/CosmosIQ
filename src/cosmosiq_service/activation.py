@@ -31,6 +31,7 @@ subprocess, no secret. Importing this module starts nothing.
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass, field
 from typing import Dict, Mapping, Optional, Tuple
 
@@ -47,6 +48,9 @@ __all__ = [
     "build_activation_checklist",
     "OperatorApproval",
     "is_valid_approval",
+    "read_operator_signoff",
+    "SIGNOFF_PRODUCTION_MODE",
+    "SIGNOFF_SHADOW_MODE",
     "CheckResult",
     "ActivationReport",
     "evaluate_activation",
@@ -293,6 +297,105 @@ def is_valid_approval(approval: Optional[OperatorApproval], *,
     except ValueError:
         return False
     return approved_target is ServiceMode.parse(target)
+
+
+# --------------------------------------------------------------------------- #
+# 2b. read_operator_signoff -- the STRICT reader for a filled OPERATOR_SIGNOFF   #
+#     file (IMPLEMENTATION-021C)                                                 #
+# --------------------------------------------------------------------------- #
+# The two approved-mode tokens the signoff may carry. Only PRODUCTION yields an
+# OperatorApproval; SHADOW (or anything else) NEVER yields a production approval.
+SIGNOFF_PRODUCTION_MODE = "PRODUCTION_24X7_APPROVED"
+SIGNOFF_SHADOW_MODE = "CONTINUE_SHADOW_24X7"
+
+# An RFC3339-ish instant (date + time + Z or numeric offset). Deliberately strict: a missing or
+# malformed timestamp must make the whole signoff invalid.
+_RFC3339_RE = re.compile(
+    r"^\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}:\d{2}(\.\d+)?([Zz]|[+-]\d{2}:?\d{2})$")
+# A markdown task checkbox line: ``- [ ]`` (unchecked) or ``- [x]`` (checked).
+_CHECKBOX_RE = re.compile(r"(?m)^\s*[-*]\s*\[( |x|X)\]")
+
+
+def _looks_placeholder(value: str) -> bool:
+    """True iff ``value`` is an empty or angle-bracket placeholder cell (never a real entry)."""
+    text = str(value or "").strip()
+    if not text:
+        return True
+    return "<" in text and ">" in text
+
+
+def read_operator_signoff(path: str) -> Optional[OperatorApproval]:
+    """STRICTLY parse a FILLED operator signoff file into an :class:`OperatorApproval`, or None.
+
+    Returns a production :class:`OperatorApproval` ONLY when the file is a genuine, completely
+    filled ``PRODUCTION_24X7_APPROVED`` sign-off: the approved-mode cell is
+    ``PRODUCTION_24X7_APPROVED`` (and NOT also ``CONTINUE_SHADOW_24X7`` -- the un-filled template
+    lists both, so the template itself is rejected), a non-placeholder operator name is present,
+    an RFC3339 timestamp is present, and ALL FOUR acknowledgement checkboxes are ``[x]``.
+
+    Returns ``None`` for a missing file, a ``CONTINUE_SHADOW_24X7`` sign-off, an unchecked
+    acknowledgement, a missing / placeholder name or timestamp, or any malformed file. It NEVER
+    raises on a bad file -- a parse problem is a refusal (``None``), never an exception, so a
+    corrupt sign-off can never accidentally enable production.
+
+    This is the *sign-off file* reader; it does not by itself enable production. Even a valid
+    approval only satisfies the operator-approval gate -- the live-source-health and operator
+    shadow-validation checklist items remain BLOCKING and cannot be cleared from code.
+    """
+    try:
+        with open(str(path), encoding="utf-8") as handle:
+            text = handle.read()
+    except (FileNotFoundError, IsADirectoryError, OSError, ValueError, UnicodeError):
+        return None
+    try:
+        return _parse_signoff_text(text)
+    except Exception:                    # never raise on a bad file -- a parse fault is a refusal
+        return None
+
+
+def _parse_signoff_text(text: str) -> Optional[OperatorApproval]:
+    name = ""
+    timestamp = ""
+    mode_cell = ""
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("|") or stripped.count("|") < 2:
+            continue
+        cells = [c.strip() for c in stripped.strip("|").split("|")]
+        if len(cells) < 2:
+            continue
+        key = cells[0].lower()
+        value = cells[1]
+        if "operator name" in key:
+            name = value
+        elif "timestamp" in key:
+            timestamp = value
+        elif "approved mode" in key:
+            mode_cell = value
+
+    # Approved mode: extract UPPER tokens (backticks / markdown are ignored). A production
+    # approval requires the production token AND the ABSENCE of the shadow token (the un-filled
+    # template carries BOTH, and must be rejected; a real approval carries exactly one).
+    tokens = set(re.findall(r"[A-Z0-9_]+", mode_cell.upper()))
+    if SIGNOFF_PRODUCTION_MODE not in tokens or SIGNOFF_SHADOW_MODE in tokens:
+        return None
+
+    # Acknowledgements: the four task checkboxes must ALL be checked.
+    boxes = _CHECKBOX_RE.findall(text)
+    if len(boxes) != 4 or any(box.strip().lower() != "x" for box in boxes):
+        return None
+
+    # Operator identity + RFC3339 timestamp must both be real, non-placeholder entries.
+    if _looks_placeholder(name):
+        return None
+    if not _RFC3339_RE.match(str(timestamp).strip()):
+        return None
+
+    return OperatorApproval(
+        approved_by=name.strip(), approved_at=str(timestamp).strip(),
+        target_mode=ServiceMode.PRODUCTION_24X7.value,
+        statement="operator production sign-off (OPERATOR_SIGNOFF_020J.md, "
+                  + SIGNOFF_PRODUCTION_MODE + ")")
 
 
 # --------------------------------------------------------------------------- #
