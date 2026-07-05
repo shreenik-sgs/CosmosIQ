@@ -54,14 +54,19 @@ a:hover{text-decoration:underline}
 
 /* ---- persistent status strip (never collapsible) ---- */
 .status-strip{
-  position:sticky;top:0;z-index:50;
-  background:rgba(8,11,26,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:.42rem;
+  background:rgba(8,11,26,.84);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   border-bottom:1px solid var(--glass-line);
-  color:var(--muted);font-size:12px;font-weight:600;
-  padding:.5rem 1.25rem;letter-spacing:.4px;
+  color:var(--muted);font-size:12px;font-weight:700;
+  padding:.42rem 1.25rem;letter-spacing:.2px;
 }
-.status-strip .sep{color:#465086;margin:0 .35rem}
-.status-strip b{color:#cdd6ff}
+.status-brand-mini{color:#fff;font-weight:900;letter-spacing:.45px;margin-right:.35rem}
+.status-chip{display:inline-flex;align-items:center;min-height:22px;padding:.1rem .55rem;
+  border:1px solid rgba(150,170,255,.16);border-radius:999px;
+  background:rgba(20,27,56,.72);color:#cbd5ff;white-space:nowrap}
+.status-chip.mode{border-color:rgba(255,207,138,.28);color:#ffcf8a;background:rgba(45,30,13,.62)}
+.status-chip.off,.status-chip.disabled{color:#aeb9e8}
+.status-chip.manual{border-color:rgba(57,224,160,.25);color:#8dffc9;background:rgba(14,42,30,.5)}
 
 /* ---- top command bar / nav ---- */
 .command-bar{
@@ -687,14 +692,11 @@ body.sky{
     linear-gradient(180deg,#050611,#02030a 70%,#050611);
 }
 body.sky .status-strip{
-  display:flex;align-items:center;gap:.45rem;min-height:34px;
+  min-height:34px;
   background:linear-gradient(180deg,rgba(7,10,24,.9),rgba(7,10,24,.68));
   border-bottom:1px solid rgba(170,190,255,.16);
   box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 14px 36px rgba(0,0,0,.28);
   color:#b9c5f3;
-}
-body.sky .status-strip::before{
-  content:"CosmosIQ";color:#fff;font-weight:900;letter-spacing:.5px;margin-right:.35rem;
 }
 body.sky .status-strip::after{
   content:"Reality Mesh";margin-left:auto;color:#7f8bc0;font-size:10px;

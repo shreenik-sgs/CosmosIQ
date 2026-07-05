@@ -101,6 +101,9 @@ class UniverseUIBuildTests(unittest.TestCase):
         self.assertEqual(tuple(PAGE_ORDER), _PAGES)
         self.assertTrue(os.path.isfile(self.paths["assets/universe.css"]))
         self.assertTrue(os.path.isfile(self.paths["assets/universe.js"]))
+        self.assertTrue(os.path.isfile(self.paths["assets/cosmosiq.css"]))
+        self.assertTrue(os.path.isfile(self.paths["assets/universe_canvas.css"]))
+        self.assertTrue(os.path.isfile(self.paths["assets/universe_canvas.js"]))
 
     # --- galaxy / value-chain / star are NOT separate primary pages -------
     def test_entity_pages_are_not_top_level(self):
@@ -305,14 +308,30 @@ class UniverseUIBuildTests(unittest.TestCase):
         self.assertNotIn("http://", low.replace("http://www.w3.org", ""))
 
     def test_scripts_are_navigation_only(self):
-        # Every <script> block must not contain a network/live/order call.
+        # Navigation JS is externalized so generated HTML does not carry a large inline blob.
+        self.assertIn('src="assets/universe_canvas.js"', self.all_html)
         scripts = re.findall(r"<script>(.*?)</script>", self.all_html, re.DOTALL)
-        self.assertTrue(scripts, "expected navigation JS present")
+        self.assertEqual(scripts, [])
+        with open(self.paths["assets/universe_canvas.js"], encoding="utf-8") as fh:
+            scripts = [fh.read()]
         for s in scripts:
             low = s.lower()
             for banned in ("fetch(", "xmlhttprequest", "websocket", "eventsource",
                            "importscripts", ".submit(", "sendbeacon", "new image("):
                 self.assertNotIn(banned, low, "script contains banned call: {0}".format(banned))
+
+    def test_public_generated_output_has_clean_asset_boundaries(self):
+        self.assertIn('href="assets/cosmosiq.css"', self.html["universe.html"])
+        self.assertIn('href="assets/universe_canvas.css"', self.html["universe.html"])
+        self.assertIn('src="assets/universe_canvas.js"', self.html["universe.html"])
+        public = self.all_html
+        for asset in ("assets/cosmosiq.css", "assets/universe_canvas.css",
+                      "assets/universe_canvas.js", "assets/universe.css",
+                      "assets/universe.js"):
+            with open(self.paths[asset], encoding="utf-8") as fh:
+                public += "\n" + fh.read()
+        for old in ("EIOS layer map", "010A", "010B", "010C", "Sudarshan"):
+            self.assertNotIn(old, public)
 
     # --- multiple galaxies, NOT IREN-first, IREN is one planet ------------
     def test_multiple_galaxies_not_iren_first(self):
@@ -1044,7 +1063,6 @@ class TelescopeSkyTests(unittest.TestCase):
         # so galaxies do not drift away from the universe when the user moves it.
         self.assertIn(".sky-bg", self.css)
         self.assertIn("skybg.style.transform='translate('+view.tx", self.js)
-        self.assertIn("flat universe: sky moves with the object field", self.js)
         self.assertNotIn("skybg.style.transform='none'", self.js)
         self.assertNotIn("projectGlobeObjects", self.js)
         self.assertNotIn("view.lon", self.js)
@@ -1142,7 +1160,9 @@ class TelescopeVisualAssetTests(unittest.TestCase):
             self.assertIn(cls, self.u)
 
     def test_premium_universe_canvas_interaction_hooks(self):
-        for token in ("CosmosIQ", "Reality Mesh", "You are here", "cosmos-twinkle",
+        for token in ("CosmosIQ", "Reality Mesh"):
+            self.assertIn(token, self.u)
+        for token in ("You are here", "cosmos-twinkle",
                       "focus-pulse", "prefers-reduced-motion"):
             self.assertIn(token, self.css)
         for token in ("pulseObject", "keydown", "fitToAll", "locateSelected", "zoomToObject",

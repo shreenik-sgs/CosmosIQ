@@ -11,6 +11,7 @@ order affordance -- and generated HTML is a build ARTIFACT (do not commit it).
 from __future__ import annotations
 
 import os
+import re
 from typing import Dict, Optional
 
 from .assets import COSMIC_CSS, NAV_JS
@@ -31,6 +32,12 @@ PAGE_ORDER = (
 def _write(path: str, content: str) -> None:
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(content)
+
+
+def _public_asset(content: str) -> str:
+    """Public generated assets should read like product assets, not history logs."""
+    text = re.sub(r"/\*.*?\*/", "", content, flags=re.S)
+    return "\n".join(line.rstrip() for line in text.splitlines() if line.strip()) + "\n"
 
 
 def build_universe_app(output_dir: str, mode: str = "demo",
@@ -218,14 +225,23 @@ def _write_pages(output_dir, assets_dir, pages) -> Dict[str, str]:
         _write(path, html)
         paths[filename] = path
 
-    # Local assets (also inlined in every page -- these are the standalone copies).
+    # Local assets. ``universe.css`` / ``universe.js`` are compatibility aliases for
+    # existing tooling; the product shell loads the clearer CosmosIQ asset names.
     css_path = os.path.join(assets_dir, "universe.css")
     js_path = os.path.join(assets_dir, "universe.js")
+    cosmosiq_css_path = os.path.join(assets_dir, "cosmosiq.css")
+    canvas_css_path = os.path.join(assets_dir, "universe_canvas.css")
+    canvas_js_path = os.path.join(assets_dir, "universe_canvas.js")
     svg_path = os.path.join(assets_dir, "deep_space_background.svg")
     celestial_dir = os.path.join(assets_dir, "celestial")
     os.makedirs(celestial_dir, exist_ok=True)
-    _write(css_path, COSMIC_CSS)
-    _write(js_path, NAV_JS)
+    public_css = _public_asset(COSMIC_CSS)
+    public_js = _public_asset(NAV_JS)
+    _write(css_path, public_css)
+    _write(cosmosiq_css_path, public_css)
+    _write(canvas_css_path, "")
+    _write(js_path, public_js)
+    _write(canvas_js_path, public_js)
     _write(svg_path, deep_space_background_svg())  # local deep-space asset (no network)
     for name, svg in CELESTIAL_ASSETS.items():
         cpath = os.path.join(celestial_dir, name)
@@ -233,5 +249,8 @@ def _write_pages(output_dir, assets_dir, pages) -> Dict[str, str]:
         paths["assets/celestial/{0}".format(name)] = cpath
     paths["assets/universe.css"] = css_path
     paths["assets/universe.js"] = js_path
+    paths["assets/cosmosiq.css"] = cosmosiq_css_path
+    paths["assets/universe_canvas.css"] = canvas_css_path
+    paths["assets/universe_canvas.js"] = canvas_js_path
     paths["assets/deep_space_background.svg"] = svg_path
     return paths

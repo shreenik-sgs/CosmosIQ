@@ -170,8 +170,36 @@ def _gap_box(title: str, items: Iterable[Any]) -> str:
 
 
 def _status_strip(strip_text: Optional[str] = None) -> str:
-    return '<div class="status-strip">{0}</div>'.format(
-        _esc(strip_text if strip_text is not None else STATUS_STRIP_TEXT))
+    raw = strip_text if strip_text is not None else STATUS_STRIP_TEXT
+    chips = []
+    for part in str(raw).split("·"):
+        item = part.strip()
+        if not item:
+            continue
+        if item.startswith("Mode: "):
+            label = item.split(":", 1)[1].strip()
+            cls = "mode"
+        elif item.startswith("Live Data:"):
+            label = item.replace(":", "", 1).replace("Live Data ", "Live Data ")
+            cls = "off"
+        elif item.startswith("Scheduler:"):
+            label = item.replace(":", "", 1)
+            cls = "off"
+        elif item.startswith("Broker:"):
+            label = item.replace(":", "", 1)
+            cls = "disabled"
+        elif item.startswith("Execution:"):
+            label = item.split(":", 1)[1].strip()
+            cls = "manual"
+        else:
+            label = item.replace(":", "")
+            cls = "info"
+        chips.append('<span class="status-chip {0}">{1}</span>'.format(
+            _esc(cls), _esc(label)))
+    return (
+        '<div class="status-strip" aria-label="{0}">'
+        '<span class="status-brand-mini">CosmosIQ</span>{1}</div>'
+    ).format(_esc(raw), "".join(chips))
 
 
 def _command_bar(current_file: str) -> str:
@@ -207,7 +235,8 @@ def _page(title: str, current_file: str, body: str, full_screen: bool = False,
         '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
         "<title>{0}</title>".format(_esc(title)),
-        "<style>{0}</style>".format(COSMIC_CSS),
+        '<link rel="stylesheet" href="assets/cosmosiq.css">',
+        '<link rel="stylesheet" href="assets/universe_canvas.css">',
         "</head>",
     ]
     if full_screen:
@@ -228,7 +257,7 @@ def _page(title: str, current_file: str, body: str, full_screen: bool = False,
             "</div>",
         ]
     tail = [
-        "<script>{0}</script>".format(NAV_JS),
+        '<script src="assets/universe_canvas.js"></script>',
         "</body>",
         "</html>",
         "",
