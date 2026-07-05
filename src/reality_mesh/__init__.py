@@ -361,6 +361,10 @@ from .alerts import (
     ALERT_CATEGORIES,
     ALERT_SEVERITIES,
     CATEGORY_SEVERITY,
+    FORBIDDEN_ALERT_PHRASES,
+    RECOMMENDED_REVIEW_ACTIONS,
+    SHADOW_MARKER,
+    SHADOW_MODE_VALUE,
     Alert,
     AlertAcknowledgment,
     AlertAcknowledgmentStore,
@@ -372,8 +376,11 @@ from .alerts import (
     alerts_with_status,
     diff_persisted_runs,
     generate_alerts_for_run,
+    generate_shadow_alerts_for_run,
     previous_persisted_run_id,
     record_failed_pulse_alert,
+    run_dq_state,
+    to_shadow,
     unacknowledged_alerts,
 )
 from .nivesha_forward import (
@@ -827,6 +834,14 @@ __all__ = [
     "record_failed_pulse_alert",
     "unacknowledged_alerts",
     "build_alert_inbox_panel",
+    # shadow (non-production) alerts -- marked, review-tagged, severity-capped (020D)
+    "SHADOW_MARKER",
+    "SHADOW_MODE_VALUE",
+    "RECOMMENDED_REVIEW_ACTIONS",
+    "FORBIDDEN_ALERT_PHRASES",
+    "run_dq_state",
+    "to_shadow",
+    "generate_shadow_alerts_for_run",
     # outcome learning -- append-only outcome records + label/count roll-ups (017A)
     "LEARNING_RECORDS",
     "LEARNING_STORE_CLASSES",

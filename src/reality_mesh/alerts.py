@@ -46,6 +46,10 @@ __all__ = [
     "ALERT_CATEGORIES",
     "ALERT_SEVERITIES",
     "CATEGORY_SEVERITY",
+    "SHADOW_MARKER",
+    "SHADOW_MODE_VALUE",
+    "RECOMMENDED_REVIEW_ACTIONS",
+    "FORBIDDEN_ALERT_PHRASES",
     "Alert",
     "AlertAcknowledgment",
     "AlertStore",
@@ -60,6 +64,9 @@ __all__ = [
     "alerts_with_status",
     "unacknowledged_alerts",
     "acknowledged_alerts",
+    "run_dq_state",
+    "to_shadow",
+    "generate_shadow_alerts_for_run",
 ]
 
 # The CLOSED alert-category vocabulary (a new category requires a spec change, never a
@@ -108,6 +115,62 @@ _CROWDING_FIRED = frozenset({"major", "extreme"})
 # Data-quality statuses that count as failing (gate verdict or run diagnostic).
 _FAILING_DQ_STATUSES = frozenset({"fail", "failed"})
 
+# --------------------------------------------------------------------------- #
+# Shadow (IMPLEMENTATION-020D) -- non-production, review-only observation marks  #
+# --------------------------------------------------------------------------- #
+# The verbatim marker prepended to every shadow-mode alert's reason. It states, in plain
+# English, that the alert is a non-production observation that escalates to NOTHING.
+SHADOW_MARKER = ("[SHADOW MODE -- non-production observation; no escalation, review only]")
+
+# The service mode value a shadow alert carries in its ``mode`` field.
+SHADOW_MODE_VALUE = "SHADOW_24X7"
+
+# The CLOSED review-vocabulary a shadow alert's ``recommended_review_action`` may name. Each
+# value asks a HUMAN to REVIEW something -- none of them acts, places, or changes anything.
+RECOMMENDED_REVIEW_ACTIONS: FrozenSet[str] = frozenset({
+    "Review Required",
+    "Review Candidate",
+    "Review Thesis",
+    "Review Data Gap",
+    "Review Red-Team Risk",
+    "Review Portfolio Fit",
+    "Open Manual Execution Preview",
+})
+
+# The CLOSED set of action-language phrases that an alert may NEVER carry: an observation
+# alert names a state change, it never tells anyone to act. Any Alert whose reason or
+# recommended review action CONTAINS one of these (case-insensitive) is refused at
+# construction, and a regex sweep re-checks every generated shadow alert.
+FORBIDDEN_ALERT_PHRASES: FrozenSet[str] = frozenset({
+    "buy now",
+    "sell now",
+    "strong buy",
+    "submit order",
+    "place order",
+    "auto trade",
+    "auto rebalance",
+    "broker submit",
+    "guaranteed upside",
+})
+
+# category -> the review action a shadow alert derived from it recommends (all in-vocabulary).
+_CATEGORY_REVIEW_ACTION: Mapping[str, str] = {
+    "market_regime_changed": "Review Required",
+    "sector_rotation_detected": "Review Required",
+    "theme_pulse_changed": "Review Thesis",
+    "filing_dilution_risk": "Review Red-Team Risk",
+    "social_narrative_spike": "Review Required",
+    "crowding_warning": "Review Portfolio Fit",
+    "source_data_quality_failure": "Review Data Gap",
+    "thesis_deteriorated": "Review Thesis",
+    "new_opportunity_hypothesis": "Review Candidate",
+    "major_risk_emerged": "Review Red-Team Risk",
+}
+
+# Weak-evidence categories whose input is social / uncorroborated: a shadow alert built from
+# one can never reach the top attention label (it is capped -- 015C weak-social discipline).
+_WEAK_SOCIAL_CATEGORIES = frozenset({"social_narrative_spike"})
+
 
 # --------------------------------------------------------------------------- #
 # 1. Alert + AlertAcknowledgment -- frozen observation records                  #
@@ -132,6 +195,10 @@ class Alert:
     evidence_refs: Tuple[str, ...] = field(default_factory=tuple)
     created_at: str = ""                    # injected timestamp (no wall clock)
     acknowledged: bool = False              # read-model flag; persisted alerts stay False
+    mode: str = ""                          # "" (015C default) or SHADOW_MODE_VALUE (020D)
+    recommended_review_action: str = ""     # closed: RECOMMENDED_REVIEW_ACTIONS ("" allowed)
+    dq_state: str = ""                       # the producing run's data-quality state label
+    candidate_ref: str = ""                  # a capital-candidate reference when applicable
 
     def __post_init__(self) -> None:
         for name in ("alert_id", "run_id", "created_at"):
@@ -154,6 +221,20 @@ class Alert:
                 "evidence -- an alert without a reason is refused")
         if not isinstance(self.acknowledged, bool):
             raise ValueError("Alert.acknowledged must be a bool")
+        # 020D: the closed review vocabulary ("" allowed) + the forbidden action-language guard.
+        if self.recommended_review_action and \
+                self.recommended_review_action not in RECOMMENDED_REVIEW_ACTIONS:
+            raise ValueError(
+                "Alert.recommended_review_action {0!r} invalid (closed vocabulary: {1}; "
+                "empty allowed)".format(
+                    self.recommended_review_action, sorted(RECOMMENDED_REVIEW_ACTIONS)))
+        reason_low = str(self.human_readable_reason).lower()
+        action_low = str(self.recommended_review_action).lower()
+        for phrase in FORBIDDEN_ALERT_PHRASES:
+            if phrase in reason_low or phrase in action_low:
+                raise ValueError(
+                    "Alert refuses forbidden action phrase {0!r} -- an observation alert names "
+                    "a state change, it never instructs anyone to act".format(phrase))
         for name in ("subject_tickers", "subject_themes", "subject_refs", "evidence_refs"):
             object.__setattr__(self, name, tuple(getattr(self, name)))
 
@@ -553,3 +634,100 @@ def record_failed_pulse_alert(store_dir: str, run_id: str, *, policy_id: str,
         evidence=("dq.{0}.orchestration".format(run_id),))
     store.append(alert, timestamp=now)
     return alert
+
+
+# --------------------------------------------------------------------------- #
+# 4. Shadow alerts (IMPLEMENTATION-020D) -- the same observations, marked as     #
+#    non-production, review-only, and severity-capped for weak / DQ-failed input #
+# --------------------------------------------------------------------------- #
+def run_dq_state(store_dir: str, run_id: str) -> str:
+    """The data-quality STATE label of one persisted run (a label, never a score).
+
+    Prefers the run's ``gate_overall`` verdict; falls back to ``failed`` when any DQ record for
+    the run is failing, else ``unknown``. A shadow alert carries this so it can never quietly
+    outrank the run's own data quality.
+    """
+    overall = ""
+    failing = False
+    for record in DataQualityStore(store_dir).query(run_id=run_id):
+        if record.category == "gate_overall":
+            overall = record.status
+        if record.status in _FAILING_DQ_STATUSES:
+            failing = True
+    if overall:
+        return overall
+    if failing:
+        return "failed"
+    return "unknown"
+
+
+def to_shadow(alert: Alert, *, now: str, dq_state: str = "",
+              candidate_ref: str = "") -> Alert:
+    """One 015C observation alert re-cast as a SHADOW alert: marked, review-tagged, capped.
+
+    The returned alert is a NEW record (a distinct ``shadow.`` id) carrying the shadow marker in
+    its reason, ``mode=SHADOW_MODE_VALUE``, a closed ``recommended_review_action`` for its
+    category, the producing run's ``dq_state``, and a ``candidate_ref`` when applicable. A
+    weak-social OR data-quality-failed input can NEVER stay at the top attention label: a
+    ``critical`` from such input is capped to ``warning`` (the 015C weak-social discipline).
+    """
+    severity = alert.severity
+    weak = alert.category in _WEAK_SOCIAL_CATEGORIES
+    dq_failed = str(dq_state).lower() in _FAILING_DQ_STATUSES
+    if severity == "critical" and (weak or dq_failed):
+        severity = "warning"
+    action = _CATEGORY_REVIEW_ACTION.get(alert.category, "Review Required")
+    reason = "{0} {1}".format(SHADOW_MARKER, alert.human_readable_reason)
+    return Alert(
+        alert_id="shadow.{0}".format(alert.alert_id),
+        run_id=alert.run_id, category=alert.category, severity=severity,
+        human_readable_reason=reason,
+        subject_tickers=alert.subject_tickers, subject_themes=alert.subject_themes,
+        subject_refs=alert.subject_refs, evidence_refs=alert.evidence_refs,
+        created_at=str(now) or alert.created_at,
+        mode=SHADOW_MODE_VALUE, recommended_review_action=action,
+        dq_state=str(dq_state), candidate_ref=str(candidate_ref))
+
+
+def generate_shadow_alerts_for_run(store_dir: str, run_id: str, *,
+                                   now: str) -> AlertGenerationResult:
+    """Observe ``run_id`` against the previous persisted run and append SHADOW alerts.
+
+    Same diff engine as 015C -- but every alert is re-cast through :func:`to_shadow`: marked
+    non-production, tagged with a review action, carrying the run's ``dq_state`` and (when the
+    subject names a ticker) a ``candidate_ref``. Persisted append-only into the SAME
+    :class:`AlertStore` under distinct ``shadow.`` ids; a re-observation of the same run never
+    writes a duplicate. First persisted run -> a baseline note and zero shadow alerts.
+    """
+    if not str(run_id).strip():
+        raise ValueError("generate_shadow_alerts_for_run requires a non-empty run_id")
+    if not str(now).strip():
+        raise ValueError("generate_shadow_alerts_for_run requires an injected 'now' instant")
+    store = AlertStore(store_dir)
+    existing_ids = {a.alert_id for a in store.read_all()}
+    previous_id = previous_persisted_run_id(store_dir, run_id)
+    if not previous_id:
+        return AlertGenerationResult(
+            run_id=run_id, previous_run_id="", baseline=True, alerts=(),
+            notes=("baseline: run {0} is the first persisted run -- nothing to compare yet; "
+                   "shadow alerts begin with the next run".format(run_id),))
+    dq_state = run_dq_state(store_dir, run_id)
+    observed: List[Alert] = []
+    for base in diff_persisted_runs(store_dir, previous_id, run_id, now=now):
+        candidate_ref = base.subject_tickers[0] if base.subject_tickers else ""
+        shadow = to_shadow(base, now=now, dq_state=dq_state, candidate_ref=candidate_ref)
+        if shadow.alert_id in existing_ids:
+            continue                        # append-only: a re-observation never duplicates
+        store.append(shadow, timestamp=now)
+        existing_ids.add(shadow.alert_id)
+        observed.append(shadow)
+    if observed:
+        notes = ("{0} shadow observation(s) between run {1} and run {2} (dq_state={3}) -- "
+                 "appended to the inbox, marked SHADOW, no escalation".format(
+                     len(observed), previous_id, run_id, dq_state),)
+    else:
+        notes = ("no state change between run {0} and run {1} -- no shadow alert (quiet is the "
+                 "honest answer)".format(previous_id, run_id),)
+    return AlertGenerationResult(
+        run_id=run_id, previous_run_id=previous_id, baseline=False,
+        alerts=tuple(observed), notes=notes)

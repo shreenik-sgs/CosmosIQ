@@ -211,7 +211,9 @@ class AlertRecordTests(unittest.TestCase):
         self.assertEqual(names, {
             "alert_id", "run_id", "category", "severity", "human_readable_reason",
             "subject_tickers", "subject_themes", "subject_refs", "evidence_refs",
-            "created_at", "acknowledged"})
+            "created_at", "acknowledged",
+            # 020D additive shadow fields (labels / refs -- never an action):
+            "mode", "recommended_review_action", "dq_state", "candidate_ref"})
 
     def test_frozen_and_tuple_coerced(self):
         alert = _alert(subject_tickers=["IREN"], subject_themes=["physical-ai"])
@@ -941,7 +943,15 @@ class AlertModuleGuardTests(unittest.TestCase):
                 self.assertIsInstance(node.value, ast.Constant)
 
     def test_no_execution_or_trading_word_anywhere(self):
+        # 020D: the FORBIDDEN_ALERT_PHRASES + RECOMMENDED_REVIEW_ACTIONS constants are the ONLY
+        # place action language may appear -- they exist precisely to REJECT such language in
+        # alerts. Strip those deliberate data guards, then the rest of alerts.py must be clean.
+        from reality_mesh.alerts import (FORBIDDEN_ALERT_PHRASES,
+                                         RECOMMENDED_REVIEW_ACTIONS)
         low = self.source.lower()
+        for phrase in sorted(FORBIDDEN_ALERT_PHRASES | RECOMMENDED_REVIEW_ACTIONS,
+                             key=len, reverse=True):
+            low = low.replace(phrase.lower(), " ")
         for word in _EXECUTION_WORDS:
             self.assertIsNone(re.search(r"\b{0}\b".format(word), low),
                               "execution-adjacent word {0!r} in alerts.py".format(word))

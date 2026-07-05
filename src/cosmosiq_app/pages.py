@@ -28,6 +28,7 @@ Deterministic, stdlib-only, Python 3.9, OFFLINE.
 
 from __future__ import annotations
 
+import json
 import os
 from typing import Any, Dict, Iterable, List, Tuple
 
@@ -58,7 +59,9 @@ from .app_assets import APP_CSS
 __all__ = [
     "CANVAS_DIRNAME",
     "CANVAS_PAGES",
+    "SERVICE_HEALTH_FILENAME",
     "canvas_artifacts",
+    "service_mode_indicator",
     "render_alert_inbox",
     "render_app_home",
     "render_not_found",
@@ -67,6 +70,17 @@ __all__ = [
     "render_run_history",
     "render_settings_page",
 ]
+
+# The 020C/020D service writes its sanitized health snapshot here; the product pages read the
+# service MODE from it (if present) to render an honest mode indicator, else the safe OFF
+# posture. Reading is best-effort and never fails a page render.
+SERVICE_HEALTH_FILENAME = "service_health.json"
+
+# The verbatim shadow-mode indicator (020D). Asserted by the suite; the {live} slot is the
+# configured source status. In shadow the line NEVER says "Production 24x7".
+_SHADOW_MODE_INDICATOR = (
+    "Mode: SHADOW_24X7 · Live Data: {live} · Scheduler: On · "
+    "Broker: Disabled · Execution: Manual Review Only · Alerts: Shadow Mode")
 
 # The generated Universe Canvas artifacts the nav links to WHEN PRESENT (a note when absent
 # -- never a dead link). The operator generates them with the pulse CLI into this directory
@@ -233,14 +247,67 @@ def _nav(store_dir: str, active: str) -> str:
     return html
 
 
+def _service_health(store_dir: str) -> Dict[str, Any]:
+    """The service's persisted health snapshot as a plain dict ({} if none / unreadable)."""
+    path = os.path.join(store_dir, SERVICE_HEALTH_FILENAME)
+    try:
+        with open(path, encoding="utf-8") as handle:
+            data = json.load(handle)
+        return dict(data) if isinstance(data, dict) else {}
+    except (FileNotFoundError, ValueError, OSError):
+        return {}
+
+
+def _configured_source_status(health: Dict[str, Any]) -> str:
+    """A LABEL for the configured live-source status, derived from the health summary.
+
+    ``Source gap`` when the run recorded a failed source (a visible source gap -- never a
+    fixture fall-back), ``On`` when coverage was recorded, else ``Off``. A label, never a score.
+    """
+    summary = dict(health.get("source_health_summary", {}) or {})
+    try:
+        failed = int(summary.get("failed_source_records", 0) or 0)
+        coverage = int(summary.get("coverage_records", 0) or 0)
+    except (TypeError, ValueError):
+        failed, coverage = 0, 0
+    if failed > 0:
+        return "Source gap"
+    return "On" if coverage > 0 else "Off"
+
+
+def service_mode_indicator(store_dir: str) -> str:
+    """The honest service-mode indicator for the product pages ('' when no service ran yet).
+
+    Reads the service mode from ``<store>/service_health.json`` if present, else OFF. In SHADOW
+    the verbatim shadow line renders (Broker Disabled, Execution Manual Review Only, Alerts
+    Shadow Mode) and NEVER says "Production 24x7". When no health snapshot exists (the default,
+    service-never-started posture) this returns '' so the page is byte-identical to 015C.
+    """
+    health = _service_health(store_dir)
+    if not health:
+        return ""                           # no service ran -> no indicator (safe OFF posture)
+    mode = str(health.get("service_mode", "off") or "off").lower()
+    if mode == "shadow_24x7":
+        return _SHADOW_MODE_INDICATOR.format(live=_configured_source_status(health))
+    scheduler = "Attended" if mode == "manual" else "Off"
+    inbox = "Inbox" if mode == "manual" else "Off"
+    return ("Mode: {mode} · Live Data: {live} · Scheduler: {sched} · Broker: Disabled · "
+            "Execution: Manual Review Only · Alerts: {inbox}").format(
+                mode=mode.upper(), live=_configured_source_status(health),
+                sched=scheduler, inbox=inbox)
+
+
 def _page(store_dir: str, title: str, active: str, body: str) -> str:
     """One complete self-contained page: inline CSS, honest strip, nav, body, footer."""
+    indicator = service_mode_indicator(store_dir)
+    mode_html = ('<span class="sep">&middot;</span><span class="mode-indicator">{0}</span>'
+                 .format(indicator) if indicator else "")
     return (
         "<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
         "<title>{title} &middot; {app}</title><style>{css}</style></head><body>"
         '<div class="strip">{as_of}<span class="sep">&middot;</span>local operator app'
-        '<span class="sep">&middot;</span>no market action can be taken here</div>'
+        '<span class="sep">&middot;</span>no market action can be taken here{mode}</div>'
         '<div class="bar"><span class="brand">{app}<small>economic intelligence &middot; '
         "local operator app</small></span>{nav}</div>"
         '<div class="wrap"><h1>{title}</h1>{body}'
@@ -249,7 +316,8 @@ def _page(store_dir: str, title: str, active: str, body: str) -> str:
         "Evidence and observability, nothing else.</p>"
         "</div></body></html>").format(
             title=_esc(title), app=_esc(APP_NAME), css=APP_CSS,
-            as_of=_as_of_line(store_dir), nav=_nav(store_dir, active), body=body)
+            as_of=_as_of_line(store_dir), nav=_nav(store_dir, active), body=body,
+            mode=mode_html)
 
 
 # --------------------------------------------------------------------------- #
@@ -527,6 +595,12 @@ def render_alert_inbox(store_dir: str) -> str:
                        "</p></div>")
         return _page(store_dir, "Alert inbox", "/alerts", body)
 
+    any_shadow = any(str(getattr(a, "mode", "")) == "SHADOW_24X7" for a in alerts)
+    shadow_note = (
+        '<p class="note">Shadow Mode alerts are marked below and are NON-PRODUCTION: they land '
+        "in this in-app inbox only, they never escalate as a production notification, and each "
+        "carries a plain-English recommended REVIEW action &mdash; nothing here places or "
+        "changes anything.</p>" if any_shadow else "")
     rows = ""
     for alert in alerts:
         subjects = ", ".join(tuple(alert.subject_tickers) + tuple(alert.subject_themes)) \
@@ -540,19 +614,29 @@ def render_alert_inbox(store_dir: str) -> str:
                 "<button>Acknowledge</button>"
                 '<span class="op-note">OPERATOR action &mdash; appends an acknowledgment '
                 "record; not a market action.</span></form>").format(aid=_esc(alert.alert_id))
+        is_shadow = str(getattr(alert, "mode", "")) == "SHADOW_24X7"
+        mode_cell = (_badge("Shadow Mode", "warn") if is_shadow
+                     else _badge("production inbox", "ok") if getattr(alert, "mode", "")
+                     else "&mdash;")
+        review = str(getattr(alert, "recommended_review_action", "") or "")
+        review_cell = _badge(review, "warn") if review else "&mdash;"
+        dq_state = str(getattr(alert, "dq_state", "") or "")
+        review_cell += (" &middot; DQ {0}".format(_esc(dq_state)) if dq_state else "")
         rows += (
-            "<tr><th>{sev}</th><td>{cat}</td><td>{reason}</td><td>{run}</td>"
-            "<td>{subjects}</td><td>{created}</td><td>{action}</td></tr>").format(
+            "<tr><th>{sev}</th><td>{mode}</td><td>{cat}</td><td>{reason}</td><td>{review}</td>"
+            "<td>{run}</td><td>{subjects}</td><td>{created}</td><td>{action}</td></tr>").format(
                 sev=_badge(alert.severity, _SEVERITY_KINDS.get(alert.severity, "warn")),
+                mode=mode_cell,
                 cat=_esc(str(alert.category).replace("_", " ")),
-                reason=_esc(alert.human_readable_reason),
+                reason=_esc(alert.human_readable_reason), review=review_cell,
                 run=_esc(alert.run_id), subjects=_esc(subjects),
                 created=_esc(alert.created_at), action=action)
     table = (
-        '<div class="panel"><table class="kv"><tr><th>Severity</th><td>Category</td>'
-        "<td>Reason (plain English)</td><td>Run</td><td>Subjects</td><td>Created</td>"
-        "<td>Status</td></tr>" + rows + "</table></div>")
-    return _page(store_dir, "Alert inbox", "/alerts", note + table)
+        '<div class="panel"><table class="kv"><tr><th>Severity</th><td>Mode</td>'
+        "<td>Category</td><td>Reason (plain English)</td><td>Recommended review</td>"
+        "<td>Run</td><td>Subjects</td><td>Created</td><td>Status</td></tr>"
+        + rows + "</table></div>")
+    return _page(store_dir, "Alert inbox", "/alerts", note + shadow_note + table)
 
 
 # --------------------------------------------------------------------------- #

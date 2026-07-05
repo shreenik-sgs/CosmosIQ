@@ -22,10 +22,12 @@ The discipline that keeps this safe + testable: **there is NO loop here.** No ``
 which is never imported by the tests. Importing this module starts nothing.
 
 Activation gating (safe defaults): continuous ``PRODUCTION_24X7`` operation is REFUSED here and
-requires the Phase-020F activation gate; continuous ``SHADOW_24X7`` operation requires the
-Phase-020D gate. This slice provides the machinery + safe defaults, not the shadow / production
-continuous run. A single :func:`run_once` tick (the machinery) is permitted in any non-``OFF``
-mode; the *continuous loop* is what the gates guard (see :mod:`cosmosiq_service.__main__`).
+requires the Phase-020F activation gate. Continuous ``SHADOW_24X7`` operation is ACTIVATED by
+IMPLEMENTATION-020D: a shadow tick runs the full 013 chain and generates SHADOW (non-production)
+alerts into the in-app inbox -- NO external delivery, NO production escalation. ``SHADOW_24X7`` is
+NOT the default (the service starts ``OFF``) and is enabled only when an operator sets it
+explicitly. A single :func:`run_once` tick is permitted in any non-``OFF`` mode; the continuous
+PRODUCTION loop is what the remaining gate guards (see :mod:`cosmosiq_service.__main__`).
 
 Stdlib-only, Python 3.9, OFFLINE. No network on import; no secret is ever written to the log or
 the health file (every string is passed through :func:`sanitize`).
@@ -62,6 +64,7 @@ from reality_mesh.scheduler import (
 from reality_mesh.orchestrator import append_schedule_state
 from reality_mesh.scheduler import ALL_POLICIES
 from reality_mesh.stores import DataQualityStore
+from reality_mesh.alerts import generate_shadow_alerts_for_run
 
 __all__ = [
     "ServiceMode",
@@ -123,8 +126,12 @@ DEFAULT_MODE = ServiceMode.OFF
 
 # Continuous operation in these modes is gated to a later phase (the machinery is here, the
 # activation is not). A single run_once tick is always allowed (in any non-OFF mode).
+#
+# IMPLEMENTATION-020D LIFTS the SHADOW_24X7 continuous gate: continuous SHADOW operation is now
+# activated -- a shadow tick runs the full 013 chain and generates SHADOW (non-production)
+# alerts into the in-app inbox, with NO external delivery and NO production escalation.
+# Continuous PRODUCTION_24X7 stays REFUSED here and requires the Phase-020F activation gate.
 _CONTINUOUS_ACTIVATION_GATE: Dict[ServiceMode, str] = {
-    ServiceMode.SHADOW_24X7: "Phase-020D",
     ServiceMode.PRODUCTION_24X7: "Phase-020F",
 }
 
@@ -674,11 +681,26 @@ def _record_success(config: ServiceConfig, base: ServiceHealth, result, *, now: 
         next_scheduled_tick_at=_next_boundary(result.schedule, now),
         source_health_summary=source_summary, agent_health_summary=agent_summary,
         dq_status_summary=dq_summary)
-    return _commit(config, health, {
+    log: Dict[str, object] = {
         "ts": now, "level": "info", "event": "tick.success",
         "service_mode": config.mode.value, "run_id": run_id,
         "ran": len(result.ran), "dq_gate_ran": dq_summary.get("gate_ran", False),
-        "message": "scheduled tick persisted through the 013 chain (run {0})".format(run_id)})
+        "message": "scheduled tick persisted through the 013 chain (run {0})".format(run_id)}
+
+    # 020D SHADOW hook: a shadow tick ALSO generates SHADOW (non-production) alerts into the
+    # in-app inbox -- marked, review-tagged, DQ-carrying. It NEVER escalates and there is NO
+    # external delivery (that is Phase-020E); a shadow-alert failure never fails the tick.
+    if config.mode is ServiceMode.SHADOW_24X7:
+        log["external_delivery"] = False
+        log["production_escalation"] = False
+        try:
+            observed = generate_shadow_alerts_for_run(config.store_dir, run_id, now=now)
+            log["shadow_alerts"] = len(observed.alerts)
+            log["alerts_channel"] = "in_app_inbox_only"
+        except Exception as exc:            # surfaced, never hidden; the pulse still succeeded
+            log["shadow_alerts_error"] = sanitize(
+                " ".join("{0}: {1}".format(type(exc).__name__, exc).split())[:200])
+    return _commit(config, health, log)
 
 
 def _record_failure(config: ServiceConfig, base: ServiceHealth, *, now: str, run_id: str,

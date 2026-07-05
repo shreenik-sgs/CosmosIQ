@@ -8,9 +8,10 @@ thin shell around it: argparse, the wall-clock boundary, the supervised loop, an
 
 Commands:
 
-* ``start``    -- acquire the single-instance lock and run the supervised loop (MANUAL only;
-                  continuous SHADOW_24X7 is gated to Phase-020D and PRODUCTION_24X7 to Phase-020F,
-                  both REFUSED here). ``OFF`` runs nothing.
+* ``start``    -- acquire the single-instance lock and run the supervised loop (MANUAL, or
+                  continuous SHADOW_24X7 which Phase-020D activated -- shadow alerts land in the
+                  in-app inbox only, never escalated). Continuous PRODUCTION_24X7 stays gated to
+                  Phase-020F and is REFUSED here. ``OFF`` runs nothing.
 * ``stop``     -- release the single-instance lockfile (recover a crashed loop's lock).
 * ``status``   -- print the sanitized health snapshot.
 * ``pause``    -- journal ``paused_all`` (a paused service's ticks run nothing).
@@ -58,8 +59,9 @@ BANNER = (
     "    full 013 chain (stores / ledger / health / DQ gates / replay) -- it never bypasses them.\n"
     "  * no broker: read-only evidence plus explicit manual actions; no trading endpoint exists.\n"
     "  * execution is a MANUAL PREVIEW only (the 017 execution-manual slice) -- nothing is sent.\n"
-    "  * default mode is OFF; continuous PRODUCTION_24X7 operation requires the Phase-020F "
-    "activation gate (SHADOW_24X7 requires Phase-020D).")
+    "  * default mode is OFF; continuous SHADOW_24X7 is activated (Phase-020D, inbox-only alerts, "
+    "no escalation); continuous PRODUCTION_24X7 operation still requires the Phase-020F activation "
+    "gate and is refused until it passes.")
 
 
 def wall_clock_now() -> str:

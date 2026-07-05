@@ -141,9 +141,11 @@ class ModeTests(unittest.TestCase):
         self.assertTrue(requires_activation_gate(ServiceMode.PRODUCTION_24X7))
         self.assertEqual(continuous_activation_gate(ServiceMode.PRODUCTION_24X7), "Phase-020F")
 
-    def test_shadow_continuous_requires_the_020d_gate(self):
-        self.assertTrue(requires_activation_gate(ServiceMode.SHADOW_24X7))
-        self.assertEqual(continuous_activation_gate(ServiceMode.SHADOW_24X7), "Phase-020D")
+    def test_shadow_continuous_is_activated_by_020d(self):
+        # IMPLEMENTATION-020D LIFTS the shadow-continuous gate: SHADOW_24X7 no longer requires
+        # an activation gate (production continuous still does).
+        self.assertFalse(requires_activation_gate(ServiceMode.SHADOW_24X7))
+        self.assertEqual(continuous_activation_gate(ServiceMode.SHADOW_24X7), "")
 
     def test_off_and_manual_are_not_gated(self):
         self.assertFalse(requires_activation_gate(ServiceMode.OFF))
@@ -535,12 +537,14 @@ class CliShellTests(unittest.TestCase):
             self.assertIn("REFUSED", text)
             self.assertIn("Phase-020F", text)
 
-    def test_start_refuses_shadow_continuous(self):
-        with tempfile.TemporaryDirectory() as d:
-            rc, text = self._main(["start", "--store-dir", os.path.join(d, "s"),
-                                   "--mode", "shadow_24x7"])
-            self.assertEqual(rc, 2)
-            self.assertIn("Phase-020D", text)
+    def test_shadow_continuous_no_longer_gate_refused(self):
+        # 020D lifts the shadow-continuous refusal at the gate level: `start --mode shadow_24x7`
+        # would now enter the supervised loop, so it is not exercised here (it never returns).
+        # The lift is proven at the gate/core level without touching the loop.
+        self.assertFalse(requires_activation_gate(ServiceMode.SHADOW_24X7))
+        self.assertEqual(continuous_activation_gate(ServiceMode.SHADOW_24X7), "")
+        # production continuous stays refused.
+        self.assertTrue(requires_activation_gate(ServiceMode.PRODUCTION_24X7))
 
     def test_start_off_runs_nothing(self):
         with tempfile.TemporaryDirectory() as d:
