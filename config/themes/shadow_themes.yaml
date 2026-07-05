@@ -1,0 +1,20 @@
+# CosmosIQ — Shadow themes (Phase 020G)
+#
+# Monitored themes for the shadow launch. A theme is a lens for organising evidence, NOT a
+# recommendation. Each theme's ThemePulse is a STATE label (e.g. "Data insufficient",
+# "Broadening", "Crowded") derived from persisted signals — never a trade action or a ranking.
+#
+# `id` is the pipeline theme id (kebab-case); `name` is the display label. Themes with no
+# corroborating evidence in a given window honestly render "Data insufficient".
+
+themes:
+  - id: ai-infrastructure
+    name: AI Infrastructure
+  - id: power-and-grid
+    name: Power & Grid
+  - id: optical-networking
+    name: Optical Networking
+  - id: physical-ai
+    name: Physical AI
+  - id: space-and-defense
+    name: Space & Defense

@@ -1,0 +1,17 @@
+# CosmosIQ — Shadow watchlist (Phase 020G)
+#
+# IMPORTANT — these are MONITORED WATCHLIST INPUTS, not recommendations.
+#   * Monitored watchlist input
+#   * Not a recommendation
+#   * Not a Capital Candidate unless the pipeline publishes one (020A), with full provenance
+#     (current run_id + RealitySignal refs + OpportunityHypothesis ref + Investment Diligence
+#     ref + healthy Trust/Data-Quality state). A ticker appearing here confers NO standing.
+#
+# The set below is intentionally the tickers the local research fixtures already cover, so the
+# end-to-end trial (020H) can exercise the pipeline on real persisted evidence rather than
+# inventing coverage. Add/remove freely — presence here only means "watch," never "buy."
+
+watchlist:
+  - ticker: IREN        # monitored input — not a recommendation
+  - ticker: AAOI        # monitored input — not a recommendation
+  - ticker: INOD        # monitored input — not a recommendation

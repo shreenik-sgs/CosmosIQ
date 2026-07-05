@@ -1,0 +1,31 @@
+# CosmosIQ — Shadow Launch config (Phase 020G)
+#
+# Operator-facing launch declaration for a SHADOW_24X7 run of the CosmosIQ supervised
+# operator service. This file is DECLARATIVE — it records the intended launch posture.
+# The service/CLI is driven with explicit arguments that mirror these keys; nothing here
+# grants production. PRODUCTION_24X7 requires the 020F activation gate + explicit operator
+# sign-off and is NOT reachable from this file.
+#
+# Boundary: CosmosIQ may operate in MANUAL and SHADOW_24X7 only. It must not be represented
+# as production-live, current-data recommendation-capable, or production-alerting until the
+# operator shadow validation, live source health, and explicit operator sign-off are complete.
+
+mode: SHADOW_24X7
+
+live_sources:
+  # SEC EDGAR is the only live adapter (020B). It is ENABLED here, but a live fetch requires a
+  # real SEC_USER_AGENT (contact-identifying) in the environment. With none configured the
+  # adapter runs in its honest credentials_missing state -> a VISIBLE source gap, never a
+  # fixture/demo/stale fallback. No User-Agent is ever invented to reach SEC.
+  sec_edgar: enabled            # requires env SEC_USER_AGENT for a real fetch (presence-only)
+  fmp: disabled                 # Phase 021A — not before the SEC shadow run is observed
+
+scheduler: enabled              # cadence ticks via the 020C service (operator-started loop)
+broker: disabled                # no broker connection, ever, in this phase
+execution: manual_review_only   # execution is a read-only preview; no order is ever placed
+alerts: shadow_only             # shadow alerts land in the in-app inbox, marked Shadow Mode
+candidate_publication: enabled_operator_controlled   # 020A publish path, operator-invoked
+production_delivery: disabled   # no external alert delivery (gated to 020F/020J)
+
+watchlist_config: config/watchlists/shadow_watchlist.yaml
+themes_config: config/themes/shadow_themes.yaml
