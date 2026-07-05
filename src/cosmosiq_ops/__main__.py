@@ -130,6 +130,68 @@ def _cmd_shadow_validate(args: argparse.Namespace) -> int:
     return 0
 
 
+# The default end-to-end trial universe = the 020G shadow config set (watchlist + themes).
+_E2E_WATCHLIST = ("IREN", "AAOI", "INOD")
+_E2E_THEMES = ("ai-infrastructure", "power-and-grid", "optical-networking",
+               "physical-ai", "space-and-defense")
+_E2E_NOW = "2026-06-29T14:30:00Z"
+
+
+def _cmd_e2e_trace(args: argparse.Namespace) -> int:
+    from cosmosiq_ops.e2e_trace import render_e2e_trace_report, run_e2e_trial
+
+    print("HONEST BANNER: this runs the WHOLE CosmosIQ intelligence chain ONCE end to end over "
+          "LOCAL research fixtures and reports whatever HONESTLY occurs -- an eligible candidate "
+          "with full provenance, a blocked candidate with its exact reason, or no candidate. NO "
+          "live SEC fetch is made (SEC_USER_AGENT unconfigured -> visible source gap). Nothing is "
+          "forced; no candidate is fabricated; shadow-only, no external delivery.")
+
+    store_dir = os.path.join(args.work_dir, "store")
+    os.makedirs(store_dir, exist_ok=True)
+    result = run_e2e_trial(
+        store_dir, watchlist=_E2E_WATCHLIST, themes=_E2E_THEMES, now=args.now)
+    report = render_e2e_trace_report(result, generated_at=args.now)
+
+    if args.report_out:
+        parent = os.path.dirname(os.path.abspath(args.report_out))
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        with open(args.report_out, "w", encoding="utf-8") as fh:
+            fh.write(report + "\n")
+
+    print("CosmosIQ end-to-end evidence-to-candidate trial (Phase 020H) -- COMPLETE")
+    print("  run id (persisted): {0}".format(result.run_id))
+    print("  focus ticker (strongest evidence): {0}".format(result.focus_ticker or "none"))
+    print("  events/findings/signals/clusters: {0}/{1}/{2}/{3}".format(
+        result.events_persisted, result.findings_persisted, len(result.signals),
+        result.clusters_persisted))
+    print("  theme pulses: {0}".format(
+        ", ".join("{0}={1}".format(t.theme_id, t.state) for t in result.theme_pulses) or "none"))
+    print("  data-insufficient themes: {0}".format(
+        ", ".join(result.themes_data_insufficient) or "none"))
+    print("  SEC EDGAR live source health: {0} (configured={1})".format(
+        result.sec_source_health.get("source_health", "credentials_missing"),
+        str(result.sec_configured).lower()))
+    print("  Trust/Data-Quality gate_overall: {0}".format(result.dq_overall or "unstated"))
+    print("  candidate outcome (HONEST, not forced): {0}".format(result.candidate_outcome))
+    print("    {0}".format(result.candidate_outcome_reason))
+    print("  eligible/blocked/forged-eligible: {0}/{1}/{2}".format(
+        result.eligible_count, result.blocked_count, len(result.forged_eligible)))
+    print("  shadow alerts: {0} (baseline={1}); external delivery: {2}; escalation: {3}".format(
+        len(result.shadow_alerts), str(result.alerts_baseline).lower(),
+        str(result.external_delivery_occurred).lower(),
+        str(result.production_escalation_occurred).lower()))
+    print("  replay deterministic_match: {0}".format(
+        str(result.replay_deterministic_match).lower()))
+    print("  UI routes verified (all 200): {0}".format(
+        str(all(u.status == 200 for u in result.ui_routes)).lower()))
+    if args.report_out:
+        print("  report written: {0}".format(args.report_out))
+    print("  view it in the local operator app:")
+    print("    {0}".format(result.app_command))
+    return 0
+
+
 def _cmd_smoke(args: argparse.Namespace) -> int:
     report = run_production_smoke(args.work_dir, now=args.now)
     print(format_smoke_report(report))
@@ -226,6 +288,16 @@ def _build_parser() -> argparse.ArgumentParser:
     shadow.add_argument("--report-out", default=None,
                         help="path to write the filled 020D shadow-validation report")
     shadow.set_defaults(func=_cmd_shadow_validate)
+
+    e2e = sub.add_parser(
+        "e2e-trace",
+        help="run the WHOLE evidence-to-candidate chain once end to end + fill the 020H trace "
+             "report (honest outcome; no candidate forced)")
+    e2e.add_argument("--work-dir", required=True, help="fresh scratch work dir")
+    e2e.add_argument("--now", default=_E2E_NOW, help="injected instant (deterministic)")
+    e2e.add_argument("--report-out", default=None,
+                     help="path to write the filled 020H end-to-end trace report")
+    e2e.set_defaults(func=_cmd_e2e_trace)
 
     smoke = sub.add_parser("smoke", help="run the full operator chain offline")
     smoke.add_argument("--work-dir", required=True, help="fresh scratch work dir")
