@@ -238,6 +238,16 @@ from .gates import (
     PolicyGateResult,
     DataQualityGateRunner,
 )
+from .capital_candidate import (
+    CANDIDATE_STATES,
+    CAPITAL_CANDIDATE_MODELS,
+    FORWARD_SCENARIO_STATES,
+    INELIGIBLE_STATES,
+    TRUST_DATA_QUALITY_STATES,
+    CapitalCandidate,
+    assess_candidate_eligibility,
+    candidate_id_for,
+)
 from .adapters import (
     ADAPTER_CREDENTIALS_STATUSES,
     ADAPTER_FAILURE_MODES,
@@ -663,6 +673,15 @@ __all__ = [
     "SecurityGateResult",
     "PolicyGateResult",
     "DataQualityGateRunner",
+    # typed capital-candidate contract + unforgeable eligibility gate (019B)
+    "CANDIDATE_STATES",
+    "INELIGIBLE_STATES",
+    "FORWARD_SCENARIO_STATES",
+    "TRUST_DATA_QUALITY_STATES",
+    "CAPITAL_CANDIDATE_MODELS",
+    "CapitalCandidate",
+    "assess_candidate_eligibility",
+    "candidate_id_for",
     # source-adapter runtime + local market-data adapter (014A)
     "ADAPTER_RESULT_STATUSES",
     "ADAPTER_CREDENTIALS_STATUSES",

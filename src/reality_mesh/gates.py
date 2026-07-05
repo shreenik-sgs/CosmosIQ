@@ -96,6 +96,10 @@ POLICY_OR_SECURITY_CATEGORIES: frozenset = frozenset(
         "manual_analyst_authority",
         "security_secrets",
         "scheduler_broker_trading_guardrail",
+        # A capital candidate marked eligible without its full current-run provenance +
+        # diligence lineage is a POLICY refusal (a decision-shaped object may never exist
+        # without the evidence that earns it): its FAIL rolls the run to blocked_by_policy.
+        "capital_candidate",
     }
 )
 
@@ -829,6 +833,49 @@ class DataQualityGateRunner:
             category="replayability", status=status,
             findings=tuple(findings), subject_refs=tuple(refs))
 
+    # -- 12. capital candidate eligibility (019B) ---------------------------- #
+    def check_capital_candidate(
+        self, candidates: Iterable[Any] = ()
+    ) -> DataQualityGateResult:
+        """A candidate marked eligible must carry its FULL current-run lineage. Else HARD fail.
+
+        FAIL (hard, policy): a candidate whose ``candidate_state`` is ``eligible`` while it is
+        missing a required ref (non-empty ``reality_signal_refs``, ``opportunity_hypothesis_ref``,
+        ``investment_diligence_ref``) OR its producing run's ``trust_data_quality_state`` is not
+        ``healthy`` -- a candidate-without-diligence (or off a failed / degraded DQ run) is never
+        eligible. The frozen :class:`~reality_mesh.capital_candidate.CapitalCandidate` rejects this
+        at construction, so a forged-eligible candidate can only reach the gate as a dict / duck
+        object. PASS / skip when no candidates are supplied.
+        """
+        findings: List[str] = []
+        refs: List[str] = []
+        status = "pass"
+        for cand in candidates or ():
+            if str(_get(cand, "candidate_state", "") or "") != "eligible":
+                continue
+            ref = str(_get(cand, "candidate_id", "") or "") or _ref_of(cand)
+            missing: List[str] = []
+            if not tuple(_get(cand, "reality_signal_refs", ()) or ()):
+                missing.append("reality_signal_refs")
+            if not str(_get(cand, "opportunity_hypothesis_ref", "") or "").strip():
+                missing.append("opportunity_hypothesis_ref")
+            if not str(_get(cand, "investment_diligence_ref", "") or "").strip():
+                missing.append("investment_diligence_ref")
+            dq = str(_get(cand, "trust_data_quality_state", "") or "").strip()
+            if dq != "healthy":
+                missing.append("trust_data_quality_state==healthy (dq={0!r})".format(
+                    dq or "unstated"))
+            if missing:
+                status = "fail"
+                findings.append(
+                    "capital candidate {0} is marked 'eligible' but is missing required lineage "
+                    "({1}) -- a candidate is never eligible without current-run provenance + "
+                    "diligence from a healthy run".format(ref, ", ".join(missing)))
+                refs.append(ref)
+        return DataQualityGateResult(
+            category="capital_candidate", status=status,
+            findings=tuple(findings), subject_refs=tuple(sorted(set(refs))))
+
     # -- run all ------------------------------------------------------------- #
     def run(
         self,
@@ -846,12 +893,18 @@ class DataQualityGateRunner:
         demo_signature: str = "",
         replay_results: Iterable[Any] = (),
         expected_schema_version: str = SCHEMA_VERSION,
+        candidates: Iterable[Any] = (),
     ) -> Tuple[Tuple[DataQualityGateResult, ...], str]:
-        """Run all eleven gates; return ``(results, overall_status)``.
+        """Run all eleven gates (+ the capital-candidate gate when candidates are supplied);
+        return ``(results, overall_status)``.
 
         ``overall_status`` is the WORST result on the ``RUN_STATUSES`` ladder
         (``healthy`` < ``degraded`` < ``failed`` < ``blocked_by_policy``): a policy / security FAIL
         rolls to ``blocked_by_policy``; any other FAIL rolls to ``failed``.
+
+        The capital-candidate gate is APPENDED only when ``candidates`` is non-empty, so the
+        default run stays byte-identical (exactly the eleven core categories) -- a forged-eligible
+        candidate rolls the run to ``blocked_by_policy`` like the other policy gates.
         """
         all_records = tuple(signals) + tuple(findings) + tuple(events) + tuple(records)
         results = (
@@ -874,6 +927,9 @@ class DataQualityGateRunner:
                 all_records, expected_schema_version=expected_schema_version),
             self.check_replayability(replay_results),
         )
+        candidate_list = tuple(candidates)
+        if candidate_list:
+            results = results + (self.check_capital_candidate(candidate_list),)
         return results, _roll_up(results)
 
 

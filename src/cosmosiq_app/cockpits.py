@@ -50,6 +50,7 @@ from reality_mesh import (
     SignalStore,
     ThemePulseStore,
     alerts_with_status,
+    assess_candidate_eligibility,
     build_concentration,
     build_correlation_labels,
     build_exposure,
@@ -539,6 +540,7 @@ def render_candidate_cockpit(store_dir: str, ticker: str) -> str:
     thesis_html, mapping_html = _thesis_sections(spec, symbol)
     if isinstance(thesis_html, tuple):                # (html, thesis) when computed
         thesis_html, thesis = thesis_html
+    eligibility_html = _eligibility_section(store_dir, symbol, spec, thesis)
     forward_html = _forward_section(spec, symbol, thesis)
     fit_html = _fit_section(store_dir, spec, thesis)
     comparison_html = _holdings_comparison_section(store_dir, symbol, spec)
@@ -551,8 +553,8 @@ def render_candidate_cockpit(store_dir: str, ticker: str) -> str:
              "never fetched from anywhere. Labels and ranges only; the engines&#39; "
              "numeric internals are not shown.</p>").format(t=_esc(symbol))
     return _page(store_dir, "Candidate {0}".format(symbol), "",
-                 intro + inputs_html + thesis_html + mapping_html + forward_html
-                 + fit_html + comparison_html + preview_html)
+                 intro + inputs_html + thesis_html + eligibility_html + mapping_html
+                 + forward_html + fit_html + comparison_html + preview_html)
 
 
 def _inputs_panel(spec: Optional[Dict[str, Any]], symbol: str) -> str:
@@ -700,6 +702,106 @@ def _thesis_sections(spec: Optional[Dict[str, Any]], symbol: str):
         + '</table><ul class="gaps">'
         + (gap_items or "<li>no gaps recorded by the adapter</li>") + "</ul></div>")
     return (thesis_html, thesis), mapping_html
+
+
+# Candidate-eligibility state -> badge kind (colour == meaning; a LABEL, never a score).
+_CANDIDATE_STATE_KINDS = {
+    "eligible": "ok",
+    "draft": "warn",
+    "ineligible_missing_provenance": "bad",
+    "ineligible_missing_diligence": "bad",
+    "ineligible_dq_failed": "bad",
+    "ineligible_stale": "bad",
+}
+_CANDIDATE_STATE_TEXT = {
+    "eligible": "ELIGIBLE -- full evidence lineage present",
+    "draft": "draft -- lineage not yet assessed",
+    "ineligible_missing_provenance": "INELIGIBLE -- missing current-run provenance",
+    "ineligible_missing_diligence": "INELIGIBLE -- missing diligence reference",
+    "ineligible_dq_failed": "INELIGIBLE -- producing run failed data quality",
+    "ineligible_stale": "INELIGIBLE -- producing run not healthy (stale)",
+}
+# The producing run's data-quality status the candidate contract accepts (healthy/degraded/
+# failed). Anything else (e.g. a policy-blocked run, or an unstamped run) is treated as a
+# non-healthy, honestly-unstated DQ so a candidate off it can never read eligible.
+_TRUST_DQ_ACCEPTED = ("healthy", "degraded", "failed")
+
+
+def _eligibility_section(store_dir: str, symbol: str,
+                         spec: Optional[Dict[str, Any]], thesis: Any) -> str:
+    """The typed capital-candidate eligibility record for this ticker (READ-ONLY, honest).
+
+    Builds a :class:`~reality_mesh.CapitalCandidate` from the CURRENT (latest persisted) run's
+    provenance -- the fused signals for this ticker, the opportunity-hypothesis packet + the
+    diligence thesis computed above, and the producing run's data-quality state -- via
+    ``assess_candidate_eligibility``. A candidate is shown ELIGIBLE only when the full lineage is
+    present (exactly when the gate would pass); otherwise the exact, honest ineligibility reason
+    is rendered. Nothing is fabricated to reach eligible; no sizing / score / order appears.
+    """
+    heading = "<h2>Capital-candidate eligibility</h2>"
+    runs = _run_sequence(store_dir)                       # oldest -> newest
+    if not runs:
+        return (heading + '<div class="panel"><p class="note">No pulse run is persisted yet '
+                "&mdash; a capital candidate needs a CURRENT run that produced it. Nothing is "
+                "marked eligible without a run; run a pulse first.</p></div>")
+    current = runs[-1]                                    # the current (latest) run
+    signal_ids = tuple(sorted(
+        s.signal_id for s in SignalStore(store_dir).query(
+            run_id=current.run_id, ticker=symbol)))
+    hyp_ref = str(getattr(thesis, "opportunity_id", "") or "") if thesis is not None else ""
+    dil_ref = str(getattr(thesis, "thesis_id", "") or "") if thesis is not None else ""
+    dq_raw = str(getattr(current, "data_quality_status", "") or "")
+    dq = dq_raw if dq_raw in _TRUST_DQ_ACCEPTED else (
+        "failed" if dq_raw == "blocked_by_policy" else "")
+    forward = "present" if (isinstance(spec, dict)
+                            and dict(spec.get("forward_inputs") or {})) else "absent"
+
+    candidate = assess_candidate_eligibility(
+        ticker=symbol, run_id=current.run_id,
+        reality_signal_refs=signal_ids,
+        opportunity_hypothesis_ref=hyp_ref,
+        investment_diligence_ref=dil_ref,
+        forward_scenario_state=forward,
+        trust_data_quality_state=dq,
+        now=str(getattr(current, "started_at", "") or ""))
+
+    state = candidate.candidate_state
+    state_badge = _badge(_CANDIDATE_STATE_TEXT.get(state, state),
+                         _CANDIDATE_STATE_KINDS.get(state, "warn"))
+    missing = candidate.missing_lineage()
+    missing_html = ("<li>all required lineage present</li>" if not missing else
+                    "".join("<li>missing: {0}</li>".format(_esc(m)) for m in missing))
+    return (
+        heading + '<div class="panel">'
+        '<p class="note">A typed eligibility + lineage record, not a recommendation and not a '
+        "ranking. A candidate is ELIGIBLE only with current-run provenance (the fused signals + "
+        "the opportunity-hypothesis packet) AND a diligence reference AND a healthy producing "
+        "run &mdash; exactly the lineage the gate enforces. Labels and references only.</p>"
+        '<table class="kv">'
+        "<tr><th>Eligibility</th><td>{state}</td></tr>"
+        "<tr><th>Current run</th><td><span class=\"mono\">{run}</span> &middot; data quality "
+        "{dq}</td></tr>"
+        "<tr><th>Fused reality signals</th><td>{signals}</td></tr>"
+        "<tr><th>Opportunity-hypothesis reference</th><td>{hyp}</td></tr>"
+        "<tr><th>Diligence reference</th><td>{dil}</td></tr>"
+        "<tr><th>Forward-scenario sidecar</th><td>{fwd}</td></tr>"
+        "<tr><th>Basis</th><td>{basis}</td></tr>"
+        "</table>"
+        "<h3>Lineage completeness</h3><ul>{missing}</ul>"
+        '<p class="note">Eligibility is unforgeable: the typed contract refuses to construct an '
+        "eligible candidate without the full lineage, so this page can never show eligible off "
+        "an incomplete evidence chain.</p></div>").format(
+            state=state_badge,
+            run=_esc(current.run_id),
+            dq=_badge(dq or "unstated", "ok" if dq == "healthy" else "warn"),
+            signals=_esc(", ".join(signal_ids) or "none persisted for this ticker in this run"),
+            hyp=("<span class=\"mono\">{0}</span>".format(_esc(hyp_ref)) if hyp_ref
+                 else "&mdash; none (no diligence computed)"),
+            dil=("<span class=\"mono\">{0}</span>".format(_esc(dil_ref)) if dil_ref
+                 else "&mdash; none (no diligence computed)"),
+            fwd=_badge(forward, "ok" if forward == "present" else "warn"),
+            basis=_esc(candidate.basis),
+            missing=missing_html)
 
 
 def _forward_section(spec: Optional[Dict[str, Any]], symbol: str, thesis: Any) -> str:
