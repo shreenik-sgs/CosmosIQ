@@ -71,6 +71,7 @@ __all__ = [
     "DEFAULT_MODE",
     "continuous_activation_gate",
     "requires_activation_gate",
+    "can_enter_production_continuous",
     "ServiceConfig",
     "ServiceHealth",
     "LockError",
@@ -148,6 +149,31 @@ def continuous_activation_gate(mode: ServiceMode) -> str:
     return "" (OFF runs nothing; MANUAL is the attended supervised loop this slice permits).
     """
     return _CONTINUOUS_ACTIVATION_GATE.get(ServiceMode.parse(mode), "")
+
+
+def can_enter_production_continuous(config: "ServiceConfig", *, operator_approval=None, now: str,
+                                    checks=None) -> Tuple[bool, Tuple[str, ...]]:
+    """Consult the Phase-020F activation gate before entering continuous PRODUCTION_24X7.
+
+    The production ENTRY POINT calls this; continuous production is REFUSED (with the blocking
+    reasons) unless the 020F gate allows it -- i.e. unless every precondition is satisfied AND a
+    valid operator approval is recorded. SHADOW_24X7 is unaffected (it stays activated by 020D).
+
+    Returns ``(allowed, blocking_reasons)``. In an honest OFFLINE call (no ``checks`` supplied)
+    the gate's manual items keep ``allowed`` False -- production cannot be entered without the
+    real live-source-health fetch, the operator shadow-validation, and explicit approval.
+    Activation logic is imported lazily so this module has no import-time dependency on it.
+    """
+    from cosmosiq_service.activation import evaluate_activation  # lazy: avoids an import cycle
+    report = evaluate_activation(config.store_dir, now=now, operator_approval=operator_approval,
+                                 checks=checks)
+    if report.production_mode_allowed:
+        return True, ()
+    reasons = tuple("blocking failure: " + b for b in report.blocking_failures) + tuple(
+        "manual review required: " + m for m in report.manual_review_items)
+    if not report.operator_approval_valid:
+        reasons = reasons + ("no valid explicit operator approval recorded",)
+    return False, reasons
 
 
 # --------------------------------------------------------------------------- #

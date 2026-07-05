@@ -83,6 +83,14 @@ _SHADOW_MODE_INDICATOR = (
     "Mode: SHADOW_24X7 · Live Data: {live} · Scheduler: On · "
     "Broker: Disabled · Execution: Manual Review Only · Alerts: Shadow Mode")
 
+# The verbatim PRODUCTION indicator (020F), rendered ONLY when a PRODUCTION_24X7 health snapshot
+# is present (i.e. production was activated through the 020F gate). Even activated, it keeps the
+# permanent guarantees: Broker Disabled + Execution Manual Review Only, and NEVER a buy/sell/order
+# control. The {live} slot is the configured source status.
+_PRODUCTION_MODE_INDICATOR = (
+    "Mode: PRODUCTION_24X7 · Live Data: {live} · Scheduler: On · "
+    "Broker: Disabled · Execution: Manual Review Only · Alert Delivery: On")
+
 # The generated Universe Canvas artifacts the nav links to WHEN PRESENT (a note when absent
 # -- never a dead link). The operator generates them with the pulse CLI into this directory
 # under the store; names are fixed by the Universe UI page set (copied, never imported).
@@ -299,13 +307,20 @@ def service_mode_indicator(store_dir: str) -> str:
 
     Reads the service mode from ``<store>/service_health.json`` if present, else OFF. In SHADOW
     the verbatim shadow line renders (Broker Disabled, Execution Manual Review Only, Alerts
-    Shadow Mode) and NEVER says "Production 24x7". When no health snapshot exists (the default,
+    Shadow Mode) and NEVER says "Production 24x7". In PRODUCTION_24X7 (rendered ONLY when a
+    production health snapshot exists -- i.e. production was activated through the 020F gate) the
+    verbatim production line renders, still Broker Disabled + Execution Manual Review Only and
+    NEVER a buy/sell/order control. When no health snapshot exists (the default,
     service-never-started posture) this returns '' so the page is byte-identical to 015C.
     """
     health = _service_health(store_dir)
     if not health:
         return ""                           # no service ran -> no indicator (safe OFF posture)
     mode = str(health.get("service_mode", "off") or "off").lower()
+    if mode == "production_24x7":
+        # Rendered only when production was activated (a PRODUCTION health snapshot exists). Even
+        # then: Broker Disabled + Execution Manual Review Only -- no buy/sell/order control ever.
+        return _PRODUCTION_MODE_INDICATOR.format(live=_configured_source_status(health))
     if mode == "shadow_24x7":
         return _SHADOW_MODE_INDICATOR.format(live=_configured_source_status(health))
     scheduler = "Attended" if mode == "manual" else "Off"

@@ -4,6 +4,7 @@ One argparse dispatch over the operator toolkit. Every command prints its report
 NON-ZERO on failure so a shell / CI pipeline can gate on it:
 
     python3 -m cosmosiq_ops ci-gate [--repo-root DIR] [--quick]
+    python3 -m cosmosiq_ops prod-check   --work-dir DIR [--repo-root DIR] [--now INSTANT] [--quick]
     python3 -m cosmosiq_ops smoke        --work-dir DIR [--now INSTANT]
     python3 -m cosmosiq_ops perf         --work-dir DIR [--now INSTANT] [--scale N]
     python3 -m cosmosiq_ops backup       --store-dir DIR --backup-dir DIR [--now INSTANT]
@@ -31,6 +32,7 @@ from cosmosiq_ops.backup import (
 from cosmosiq_ops.ci_gate import format_ci_gate_report, run_ci_gate
 from cosmosiq_ops.env_config import environment_report, format_env_report
 from cosmosiq_ops.perf import format_perf_report, run_perf_probe
+from cosmosiq_ops.prod_check import format_prod_check_report, run_prod_check
 from cosmosiq_ops.smoke import format_smoke_report, run_production_smoke
 
 BANNER = ("CosmosIQ operator toolkit (Phase 019) -- OFFLINE, local files only; env NAMES + "
@@ -49,6 +51,14 @@ def _cmd_ci_gate(args: argparse.Namespace) -> int:
     report = run_ci_gate(args.repo_root or _default_repo_root(), quick=bool(args.quick))
     print(format_ci_gate_report(report))
     return 0 if report.passed else 1
+
+
+def _cmd_prod_check(args: argparse.Namespace) -> int:
+    report = run_prod_check(args.work_dir, args.repo_root or _default_repo_root(),
+                            now=args.now, quick=bool(args.quick))
+    print(format_prod_check_report(report))
+    # Non-zero unless production is allowed -- the safe default (an honest OFFLINE run refuses).
+    return 0 if report.production_mode_allowed else 1
 
 
 def _cmd_smoke(args: argparse.Namespace) -> int:
@@ -119,6 +129,17 @@ def _build_parser() -> argparse.ArgumentParser:
     gate.add_argument("--quick", action="store_true",
                       help="skip the full-suite subprocess run; keep every sweep")
     gate.set_defaults(func=_cmd_ci_gate)
+
+    prod = sub.add_parser(
+        "prod-check",
+        help="the Phase-020F production activation gate (OFFLINE; refuses production by default)")
+    prod.add_argument("--work-dir", required=True, help="fresh scratch work dir")
+    prod.add_argument("--repo-root", default=None,
+                      help="repo root to sweep (default: this checkout)")
+    prod.add_argument("--now", default=DEFAULT_NOW, help="injected instant (deterministic)")
+    prod.add_argument("--quick", action="store_true",
+                      help="skip the CI-gate full-suite subprocess run; keep every sweep")
+    prod.set_defaults(func=_cmd_prod_check)
 
     smoke = sub.add_parser("smoke", help="run the full operator chain offline")
     smoke.add_argument("--work-dir", required=True, help="fresh scratch work dir")
