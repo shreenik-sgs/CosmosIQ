@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- 020B SEC Form 4 insider SALE read as a financial-inflection insider signal. SEC filing FACT: canonical + verified_fact. No live data.",
+  "events": [
+    {
+      "event_id": "fi.form4.amba",
+      "timestamp": "2026-06-28T22:10:00Z",
+      "source_id": "sec.edgar",
+      "source_type": "sec_form_4",
+      "source_authority": "canonical",
+      "claim_status": "verified_fact",
+      "raw_payload_ref": "edgar://AMBA/4/0009998888-26-000003",
+      "discipline": "news_filings",
+      "event_type": "sec_form_4_insider_transaction",
+      "affected_companies": ["AMBA"],
+      "observed_fact": "Form 4 -- officer reported an open-market sale of common stock",
+      "numeric_values": [["sale_value_usd", 8200000, "usd"]],
+      "evidence_refs": ["ex.edgar.amba.form4"],
+      "source_refs": ["sec:edgar/AMBA/4/0009998888-26-000003"],
+      "confidence_label": "high",
+      "freshness_label": "recent",
+      "half_life": "weeks"
+    }
+  ]
+}

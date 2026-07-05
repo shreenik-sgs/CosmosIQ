@@ -39,24 +39,40 @@ runtime yet) · `deferred` (not yet registered; reason + phase given). **Routing
 
 ## 3. Reality Intelligence Layer (14 top-level; 78 subagents)
 
-| agent_id | Sub | Impl status | Data mode | Routing | Fusion | T&DQ | Canvas | Cadence rec. | Deferred reason → phase |
-|---|---|---|---|---|---|---|---|---|---|
-| tattva.market_regime | 5 | **implemented + local-file-backed** (012D/014A) | fixture default · local-file opt-in | ✓ | ✓ | ✓ | via signals | 5–15 min mkt-hrs | live feed → adapter stage 6, **015-era** |
-| tattva.sector_rotation | 4 | **implemented + local-file-backed** (012E/014A) | fixture · local-file | ✓ | ✓ | ✓ | via signals | 5–15 min mkt-hrs | live sector-ETF feed → stage 6, **015-era** |
-| tattva.theme_rotation | 5 | **implemented + local-file-backed** (012E/014A) | fixture · local-file | ✓ | ✓ | ✓ | via pulses | 5–15 min mkt-hrs | live theme-basket feed → stage 6, **015-era** |
-| tattva.news_filings | 7 | **implemented + injected-transport adapter** (012G/014B) | fixture · mocked SEC/FMP transports | ✓ | ✓ | ✓ | via signals | 1–5 min | production network path = adapter stage 6, **015-era** (transports + creds handling exist) |
-| tattva.narrative | 7 | **implemented + local-export adapter, weak-signal only** (012H/014E) | fixture · operator export files | ✓ | ✓ (WEAK-marked) | via pulses | 1–5 min active themes | live X remains DEFERRED (weak-signal-only even then) → **post-015 + approval** |
-| tattva.technical_regime | 6 | **implemented + local-file-backed** (014D) | local price-history files | ✓ | ✓ | ✓ | via signals | 1–15 min | live price feed → stage 6, **015-era** |
-| tattva.macro_regime | 7 | **implemented + local-file-backed** (014F) | local macro readings | ✓ | ✓ | ✓ | via signals | hourly/daily | live rates/credit feed → stage 6, **015-era** |
-| tattva.policy_geopolitical | 7 | **DEFERRED** (descriptor-only) | — | ready | ready | — | — | daily/event | no policy/news source contract yet; needs a curated source before any adapter → **post-014** |
-| tattva.options_flow | 5 | **DEFERRED** (descriptor-only) | — | ready | ready | — | — | 5–15 min if source | no safely-sourceable options feed exists; hardest to source; deferred until a source contract exists → **post-014** |
-| tattva.financial_inflection | 6 | descriptor-only³ (evidence flows) | 011 enrichment + 014B events | ready | ready | ✓ via enrichment | ✓ via terrain | event/quarterly | sensor wrapper deferred (evidence already production-backed; 014B events land with an honest gap) → **post-014** |
-| tattva.customer_evidence | 4 | **implemented** (014F, via company docs) | 014C local IR/transcripts | ✓ | ✓ | ✓ | via signals | event/daily | further sources (surveys/channel checks) → later |
-| tattva.supplier_evidence | 4 | **implemented** (014F, via company docs) | 014C local IR/transcripts | ✓ | ✓ | ✓ | via signals | event/daily | supplier-of-supplier mapping → later |
-| tattva.bottleneck_evidence | 6 | **implemented** (014F, via company docs) | 014C local IR/transcripts | ✓ | ✓ | ✓ | ✓ (Star nodes) | daily/weekly | independent lead-time/capacity sources → later (company-stated carries a not-verified gap) |
-| tattva.leadership_evidence | 5 | **implemented** (014F, via company docs) | 014C local IR/transcripts | ✓ | ✓ | ✓ | via signals | event | insider-transaction source (SEC Form 4 via 014B) → later |
+**021B refresh** — the Reality-Intelligence sensor rows below carry the 021B production-readiness
+columns: **Source mode** (source-backed / local-file / fixture / deferred) · **Freshness** (freshness
+label surfaced on every finding) · **DQ** (visible to the 013E DataQualityGateRunner) · **Cadence** ·
+**Alert eligibility** (max severity per the 020E policy — social/rumor → *watch only*; a
+company_claim/provider read → *notice/warning*; a canonical filing fact → up to *review_required*;
+**never critical without canonical + DQ approval**) · **Tests** · **Production verdict**.
 
-³ The *evidence* is production-backed via 011 diligence-enrichment (real SEC/FMP on demand) + 014B fundamental-snapshot events; the sensor-agent wrapper is the only deferred piece (its absence is an honest gap on every pulse).
+| agent_id | Sub | Impl status | Source mode | Freshness | Routing | Fusion | DQ | Cadence | Alert eligibility (020E) | Tests | Production verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| tattva.market_regime | 5 | **implemented + local-file** (012D/014A) | local-file · fixture default | ✓ per-finding | ✓ | ✓ | ✓ | 5–15 min mkt-hrs | up to **review_required** (macro-shift) | market_regime suite | **production-ready** (live feed → 015-era) |
+| tattva.sector_rotation | 4 | **implemented + local-file** (012E/014A) | local-file · fixture | ✓ | ✓ | ✓ | ✓ | 5–15 min mkt-hrs | **warning** (rotation watch) | rotation suite | **production-ready** (live ETF feed → 015-era) |
+| tattva.theme_rotation | 5 | **implemented + local-file** (012E/014A) | local-file · fixture | ✓ | ✓ | ✓ | ✓ | 5–15 min mkt-hrs | **warning** (theme-pulse change) | rotation suite | **production-ready** (live basket feed → 015-era) |
+| tattva.news_filings | 7 | **implemented + live SEC adapter** (012G/014B/**020B**) | **source-backed** (SEC EDGAR live, 020B) · fixture | ✓ | ✓ | ✓ | ✓ | 1–5 min | canonical filing → **review_required**; PR company_claim → notice | news_filings + sec_edgar_live suites | **production-ready** (SEC shadow-validated 020H/I) |
+| tattva.narrative | 7 | **implemented, weak-signal only** (012H/014E) | local-export · fixture | ✓ | ✓ | ✓ (WEAK) | 1–5 min | **watch only** — rumor never critical (015C cap) | social_narrative suite | **guarded** (live X stays DEFERRED, weak-only) |
+| tattva.technical_regime | 6 | **implemented + local-file** (014D) | local-file (price history) | ✓ | ✓ | ✓ | ✓ | 1–15 min | **warning** (timing watch) | technical_regime suite | **production-ready** (live price feed → 015-era) |
+| tattva.macro_regime | 7 | **implemented + local-file** (014F) | local-file (macro readings) | ✓ | ✓ | ✓ | ✓ | hourly/daily | up to **review_required** (macro-shock) | macro suite | **production-ready** (live rates/credit → 015-era) |
+| tattva.financial_inflection | 6 | **implemented** (**021B**) — was descriptor-only³ | **source-backed** (020B SEC filing EVENTS: S-3/424B dilution · 8-K 2.02 guidance · 8-K 4.02 restatement · Form 4 insider) **+ local-file** (fundamental snapshots) | ✓ per-finding | ✓ | ✓ | ✓ | event/quarterly | **filing fact (canonical) → review_required**; company_claim/provider snapshot → **notice/warning**; social/rumor → **excluded (watch-only gap)**; **never critical without canonical + DQ approval** | `test_reality_mesh_sensor_financial_inflection` (40 offline) | **production-ready** (canonical path SEC-shadow-validated 020H/I) |
+| tattva.customer_evidence | 4 | **implemented** (014F) | local-file (IR/transcripts) | ✓ | ✓ | ✓ | ✓ | event/daily | **notice** (company_claim) | company_evidence suite | **production-ready** |
+| tattva.supplier_evidence | 4 | **implemented** (014F) | local-file (IR/transcripts) | ✓ | ✓ | ✓ | ✓ | event/daily | **notice** (company_claim) | company_evidence suite | **production-ready** |
+| tattva.bottleneck_evidence | 6 | **implemented** (014F) | local-file (IR/transcripts) | ✓ | ✓ | ✓ | ✓ | daily/weekly | **warning** (company-stated, not-verified gap) | company_evidence suite | **production-ready** |
+| tattva.leadership_evidence | 5 | **implemented** (014F) | local-file (IR/transcripts) | ✓ | ✓ | ✓ | ✓ | event | **notice** (company_claim) | company_evidence suite | **production-ready** |
+| tattva.options_flow | 5 | **DEFERRED — no source** (descriptor-only) | **deferred** (no feed) | — | ready | ready | — | 5–15 min *if* source | n/a (deferred) | — | **DEFERRED**: no safely-sourceable options feed exists; hardest to source; do not fabricate a source → **post-021** |
+| tattva.policy_geopolitical | 7 | **DEFERRED — no source** (descriptor-only) | **deferred** (no contract) | — | ready | ready | — | daily/event | n/a (deferred) | — | **DEFERRED**: no curated policy/news source contract; needs a real, non-rumor source before any adapter → **post-021** |
+
+³ 021B FLIP: `tattva.financial_inflection` moved **descriptor-only → implemented**. Its source
+contract is REAL: it reads the 020B `SecEdgarLiveAdapter` filing EVENTS as canonical inflection
+facts (dilution / guidance / restatement / insider) and LOCAL fundamental-snapshot fixtures as
+company_claim (IR → primary) / provider_reported (→ convenience) reads — **never canonical unless
+SEC, never a verified_fact from a claim, and provider never outranks SEC**. An absent financial
+input is a VISIBLE gap (never a fabricated number); an X/social input is EXCLUDED (never a driver,
+never verified, never critical). The sensor is additive/opt-in (gated on its own events → the
+default + demo pulse stays byte-identical). `options_flow` and `policy_geopolitical` remain the
+**only two deferred** sensors — both honestly, for lack of a safe source contract (no invented
+source).
 
 ### Phase 014 closeout (source adapters)
 Adapters landed (all local-file / injected-transport; the production **network** path is deliberately
@@ -64,9 +80,18 @@ the last onboarding stage, unlocked in the 015 era): `LocalMarketDataAdapter` (0
 `SecFmpEvidenceAdapter` (014B, #4–5, mocked transports; creds presence-only) ·
 `CompanyDocumentsAdapter` (014C, #6–7, company_claim-never-verified by construction) ·
 `LocalPriceHistoryAdapter` (014D, #8, watchlist-scoped) · `SocialExportsAdapter` (014E, #9,
-rumor-always, no live X) · `LocalMacroDataAdapter` (014F, #11). **12 of 14 Reality-Intelligence
-sensors implemented** (was 5); explicitly deferred with reasons: options_flow (#10, no safe source),
-policy_geopolitical (#12, no source contract), financial_inflection wrapper (evidence already flows).
+rumor-always, no live X) · `LocalMacroDataAdapter` (014F, #11).
+
+### Phase 021B refresh (sensor coverage expansion — after SEC shadow validation 020H/I)
+`tattva.financial_inflection` flipped **descriptor-only → implemented** (021B) with a REAL source
+contract (020B SEC filing EVENTS = canonical facts; local fundamental snapshots = company_claim /
+provider_reported, never canonical). **Honest count: 13 of 14 Reality-Intelligence sensors
+implemented** (was 12); **1 deferred with no safe source**:
+- **options_flow** (#10) — DEFERRED: no safely-sourceable options feed exists (hardest to source).
+- **policy_geopolitical** (#12) — DEFERRED: no curated, non-rumor policy/news source contract.
+
+Both stay deferred *honestly* — no source is invented, no rumor is laundered into a feed. They
+move only when a real source contract exists (→ post-021).
 
 ## 4. Synthesizers (Signal Fusion → Opportunity Discovery → Investment Diligence → Portfolio Intelligence → Execution Preview → Learning & Feedback)
 

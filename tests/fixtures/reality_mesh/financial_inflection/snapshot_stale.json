@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a STALE provider snapshot. The inflection must be preserved but marked stale (never dropped) with a stale gap. No live data.",
+  "events": [
+    {
+      "event_id": "fi.snap.stale.oust",
+      "timestamp": "2026-01-05T00:00:00Z",
+      "source_id": "fmp",
+      "source_type": "paid_api",
+      "source_authority": "convenience",
+      "claim_status": "reported_claim",
+      "raw_payload_ref": "local://provider/fmp/OUST/ratios.json",
+      "discipline": "financial_inflection",
+      "event_type": "fundamental_snapshot",
+      "affected_companies": ["OUST"],
+      "observed_fact": "provider-reported ratios (stale)",
+      "numeric_values": [["revenue_growth_delta_pct", 7.5, "pp"]],
+      "evidence_refs": ["ex.fmp.oust.ratios"],
+      "source_refs": ["fmp:OUST/ratios"],
+      "confidence_label": "low",
+      "freshness_label": "stale",
+      "half_life": "quarters"
+    }
+  ]
+}

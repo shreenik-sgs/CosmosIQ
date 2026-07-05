@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- 020B SEC 8-K Item 2.02 results of operations (guidance CUT). SEC filing FACT: canonical + verified_fact. The guidance number is furnished in the filing. No live data.",
+  "events": [
+    {
+      "event_id": "fi.8k202.aaoi",
+      "timestamp": "2026-06-29T13:30:00Z",
+      "source_id": "sec.edgar",
+      "source_type": "sec_8-k",
+      "source_authority": "canonical",
+      "claim_status": "verified_fact",
+      "raw_payload_ref": "edgar://AAOI/8-K/0007654321-26-000011",
+      "discipline": "news_filings",
+      "event_type": "sec_8-k_results_of_operations",
+      "affected_companies": ["AAOI"],
+      "observed_fact": "8-K Item 2.02 results of operations -- company lowered full-year revenue guidance (cut)",
+      "numeric_values": [["guidance_change_pct", -12, "percent"]],
+      "evidence_refs": ["ex.edgar.aaoi.8k202"],
+      "source_refs": ["sec:edgar/AAOI/8-K/0007654321-26-000011"],
+      "confidence_label": "high",
+      "freshness_label": "fresh",
+      "half_life": "quarters"
+    }
+  ]
+}

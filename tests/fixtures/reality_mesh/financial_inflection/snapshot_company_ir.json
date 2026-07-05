@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- LOCAL fundamental snapshot from company IR. source_authority=primary + claim_status=company_claim (company statement, NOT verified, NEVER canonical). Revenue-growth acceleration + margin contraction deltas. No live data.",
+  "events": [
+    {
+      "event_id": "fi.snap.ir.iren",
+      "timestamp": "2026-06-27T00:00:00Z",
+      "source_id": "company.ir",
+      "source_type": "company_ir",
+      "source_authority": "primary",
+      "claim_status": "company_claim",
+      "raw_payload_ref": "local://fundamentals/IREN/2026Q2.json",
+      "discipline": "financial_inflection",
+      "event_type": "fundamental_snapshot",
+      "affected_companies": ["IREN"],
+      "observed_fact": "company-reported quarterly fundamentals (IR press release)",
+      "numeric_values": [["revenue_growth_delta_pct", 9.0, "pp"], ["operating_margin_delta_pct", -2.5, "pp"]],
+      "evidence_refs": ["ex.ir.iren.2026q2"],
+      "source_refs": ["ir:IREN/2026Q2"],
+      "confidence_label": "moderate",
+      "freshness_label": "recent",
+      "half_life": "quarters"
+    }
+  ]
+}

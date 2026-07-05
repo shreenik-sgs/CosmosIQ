@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- LOCAL fundamental snapshot from a data PROVIDER (FMP-style). source_authority=convenience + claim_status=reported_claim (provider_reported -- NEVER outranks a canonical SEC filing, NEVER a verified fact). Leverage rise + FCF deterioration deltas. No live data.",
+  "events": [
+    {
+      "event_id": "fi.snap.prov.iren",
+      "timestamp": "2026-06-26T00:00:00Z",
+      "source_id": "fmp",
+      "source_type": "paid_api",
+      "source_authority": "convenience",
+      "claim_status": "reported_claim",
+      "raw_payload_ref": "local://provider/fmp/IREN/ratios.json",
+      "discipline": "financial_inflection",
+      "event_type": "fundamental_snapshot",
+      "affected_companies": ["IREN"],
+      "observed_fact": "provider-reported quarterly ratios (FMP-style convenience feed)",
+      "numeric_values": [["net_leverage_delta_turns", 0.9, "turns"], ["fcf_delta_pct", -22, "percent"]],
+      "evidence_refs": ["ex.fmp.iren.ratios"],
+      "source_refs": ["fmp:IREN/ratios"],
+      "confidence_label": "moderate",
+      "freshness_label": "recent",
+      "half_life": "quarters"
+    }
+  ]
+}

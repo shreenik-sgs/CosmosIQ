@@ -78,6 +78,16 @@ from .company_evidence import (
     COMPANY_STATED_CAPACITY_GAP,
     has_bottleneck_evidence_events,
 )
+from .financial_inflection import (
+    FinancialInflectionAgent,
+    FINANCIAL_INFLECTION_FINDING_TYPES,
+    FINANCIAL_INFLECTION_SUBAGENTS,
+    FILING_FACT_INFLECTIONS,
+    SNAPSHOT_INFLECTIONS,
+    FINANCIAL_INFLECTION_FILING_EVENT_TYPES,
+    SNAPSHOT_METRIC_KEYS,
+    has_financial_inflection_events,
+)
 
 __all__ = [
     "MarketRegimeAgent",
@@ -128,4 +138,12 @@ __all__ = [
     "COMPANY_DOCUMENT_TEXT_EVENT_TYPES",
     "COMPANY_STATED_CAPACITY_GAP",
     "has_bottleneck_evidence_events",
+    "FinancialInflectionAgent",
+    "FINANCIAL_INFLECTION_FINDING_TYPES",
+    "FINANCIAL_INFLECTION_SUBAGENTS",
+    "FILING_FACT_INFLECTIONS",
+    "SNAPSHOT_INFLECTIONS",
+    "FINANCIAL_INFLECTION_FILING_EVENT_TYPES",
+    "SNAPSHOT_METRIC_KEYS",
+    "has_financial_inflection_events",
 ]

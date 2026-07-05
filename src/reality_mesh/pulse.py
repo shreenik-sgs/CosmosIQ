@@ -48,6 +48,7 @@ from .router import BuddhiRouter
 from .sensors import (
     BottleneckEvidenceAgent,
     CustomerEvidenceAgent,
+    FinancialInflectionAgent,
     LeadershipEvidenceAgent,
     MacroRegimeAgent,
     MarketRegimeAgent,
@@ -59,6 +60,7 @@ from .sensors import (
     ThemeRotationAgent,
     events_from_fixture,
     has_bottleneck_evidence_events,
+    has_financial_inflection_events,
 )
 from .sphurana import ThemePulseSynthesizer
 
@@ -92,6 +94,12 @@ _CONDITIONAL_SENSOR_AGENT_FACTORIES = (
     (SupplierEvidenceAgent, "supplier_evidence"),
     (BottleneckEvidenceAgent, has_bottleneck_evidence_events),
     (LeadershipEvidenceAgent, "leadership_evidence"),
+    # 021B: the Financial Inflection sensor reads its own fundamental-snapshot events AND the
+    # 020B SEC filing events (dilution / guidance / restatement / insider) that ride in the
+    # news_filings discipline, so it gates on a callable (like Bottleneck). The bundled default
+    # fixtures carry neither (their only 8-K is a material-agreement contract), so the default
+    # pulse output stays byte-identical.
+    (FinancialInflectionAgent, has_financial_inflection_events),
 )
 
 
@@ -317,6 +325,16 @@ def run_pulse(
         ran_disciplines = {run.discipline for run in agent_runs}
         satisfied = {gap for disc, gap in DESCRIPTOR_ONLY_CONSUMER_GAPS.items()
                      if disc in ran_disciplines}
+        # 021B: the 014B evidence adapter still records its honest financial_inflection
+        # "descriptor-only consumer" gap (the adapter is frozen). Now that the 021B Financial
+        # Inflection sensor RAN and interpreted those fundamental_snapshot events into findings,
+        # that gap is no longer true -- drop it rather than carry a false statement. When the
+        # sensor did not run, the gap stays visible.
+        if "financial_inflection" in ran_disciplines:
+            from .adapters.evidence_sources import (  # lazy: adapter path is opt-in only
+                FINANCIAL_INFLECTION_CONSUMER_GAP,
+            )
+            satisfied = set(satisfied) | {FINANCIAL_INFLECTION_CONSUMER_GAP}
         if satisfied:
             adapter_gaps = [g for g in adapter_gaps if g not in satisfied]
         # Merge the adapters' explicit source gaps (missing/malformed/stale files) into the

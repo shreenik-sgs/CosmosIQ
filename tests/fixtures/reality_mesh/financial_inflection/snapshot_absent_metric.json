@@ -1,0 +1,24 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a fundamental snapshot that DECLARES intent but carries NO readable inflection metric. Must produce a VISIBLE financial_read_incomplete gap, never a fabricated number. No live data.",
+  "events": [
+    {
+      "event_id": "fi.snap.absent.ambq",
+      "timestamp": "2026-06-25T00:00:00Z",
+      "source_id": "company.ir",
+      "source_type": "company_ir",
+      "source_authority": "primary",
+      "claim_status": "company_claim",
+      "raw_payload_ref": "local://fundamentals/AMBQ/2026Q2.json",
+      "discipline": "financial_inflection",
+      "event_type": "fundamental_snapshot",
+      "affected_companies": ["AMBQ"],
+      "observed_fact": "quarterly fundamentals expected but the delta metrics were not supplied",
+      "numeric_values": [],
+      "evidence_refs": ["ex.ir.ambq.2026q2"],
+      "source_refs": ["ir:AMBQ/2026Q2"],
+      "confidence_label": "low",
+      "freshness_label": "aging",
+      "half_life": "quarters"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a social/rumor 'snapshot' (X post). It must be EXCLUDED from financial_inflection: never a verified_fact, never a production-action driver -- only a visible non-verified gap. No live data.",
+  "events": [
+    {
+      "event_id": "fi.snap.social.iren",
+      "timestamp": "2026-06-29T18:00:00Z",
+      "source_id": "x.com/anon",
+      "source_type": "x_social",
+      "raw_payload_ref": "local://social_export/x/iren_thread.json",
+      "discipline": "financial_inflection",
+      "event_type": "fundamental_snapshot",
+      "affected_companies": ["IREN"],
+      "observed_fact": "anonymous X post claims revenue is about to triple",
+      "numeric_values": [["revenue_growth_delta_pct", 60, "pp"]],
+      "evidence_refs": ["ex.x.iren.thread"],
+      "source_refs": ["x:iren_thread"],
+      "confidence_label": "very_low",
+      "freshness_label": "fresh"
+    }
+  ]
+}

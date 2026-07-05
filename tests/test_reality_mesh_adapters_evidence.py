@@ -483,12 +483,18 @@ class EvidencePulseEndToEndTests(unittest.TestCase):
             src.startswith("finding.news_filings.")
             for s in self.r.signals for src in s.source_findings))
 
-    def test_financial_inflection_stays_descriptor_only_with_dq_gap(self):
-        # no sensor exists for financial_inflection in this slice: NO finding fabricated,
-        # and the pulse's Data-Quality roll-up carries the explicit consumer gap.
-        self.assertFalse(any(f.discipline == "financial_inflection"
-                             for f in self.r.findings))
-        self.assertIn(FINANCIAL_INFLECTION_CONSUMER_GAP, self.r.data_gaps)
+    def test_financial_inflection_now_implemented_consumes_snapshots_gap_satisfied(self):
+        # 021B FLIP: the Financial Inflection sensor is now IMPLEMENTED, so the 014B
+        # fundamental_snapshot events (and the SEC dilution filing) are INTERPRETED into
+        # financial_inflection findings -- not fabricated, and the now-false "descriptor-only
+        # consumer" gap is dropped (never carried as a stale statement).
+        fin = [f for f in self.r.findings if f.discipline == "financial_inflection"]
+        self.assertTrue(fin, "financial_inflection sensor should now produce findings")
+        self.assertNotIn(FINANCIAL_INFLECTION_CONSUMER_GAP, self.r.data_gaps)
+        # honesty preserved: the provider-sourced fundamental snapshot (FMP, convenience) is
+        # interpreted into a NON-canonical read -- a provider read never outranks SEC.
+        snapshot_reads = [f for f in fin if "convenience" == f.source_authority_summary]
+        self.assertTrue(snapshot_reads, "the FMP snapshot should read at convenience authority")
 
     def test_fundamental_snapshot_events_flow_as_evidence(self):
         result = self.r.adapter_results[0]
