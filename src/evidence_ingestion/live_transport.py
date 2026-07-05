@@ -31,6 +31,8 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 # data.sec.gov ticker -> CIK map (public, no key). Fetched lazily, once, per builder.
 _SEC_TICKER_MAP_URL = "https://www.sec.gov/files/company_tickers.json"
+# data.sec.gov per-company submissions (recent filings) document (public, no key).
+_SEC_SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
 # Public Yahoo query endpoints (fallback / research-only OHLCV + quote; no key).
 _YF_QUOTE_URL = "https://query1.finance.yahoo.com/v7/finance/quote?symbols={symbol}"
 _YF_CHART_URL = (
@@ -76,6 +78,36 @@ def sec_http_transport(user_agent: str) -> Callable[[str, Dict[str, str]], str]:
         return _http_get(url, headers=headers)
 
     return _transport
+
+
+def sec_live_transport(
+    user_agent: str, *, timeout: float = 20.0
+) -> Dict[str, Callable[..., Any]]:
+    """Build the SEC-only per-endpoint fetch bundle for the live filings adapter (020B).
+
+    Returns a dict of two ``callable``s that the ``SecEdgarLiveAdapter`` injects:
+
+    * ``"company_tickers"`` -> ``fetch() -> decoded ticker->CIK map`` (the public
+      ``company_tickers.json``; no key);
+    * ``"submissions"`` -> ``fetch(cik) -> decoded submissions document`` (the public
+      ``data.sec.gov/submissions/CIK<cik>.json``; no key).
+
+    ``user_agent`` (a contact identity, NOT a secret) is REQUIRED; a falsy value raises
+    ``ValueError`` before any network is possible. ``urllib`` is imported lazily inside
+    :func:`_http_get`, so importing this module remains network-free.
+    """
+    if not user_agent:
+        raise ValueError(_MISSING_UA_MSG)
+    headers = {"User-Agent": user_agent}
+
+    def _company_tickers() -> Any:
+        return json.loads(_http_get(_SEC_TICKER_MAP_URL, headers=headers, timeout=timeout))
+
+    def _submissions(cik: str) -> Any:
+        url = _SEC_SUBMISSIONS_URL.format(cik=str(cik).zfill(10))
+        return json.loads(_http_get(url, headers=headers, timeout=timeout))
+
+    return {"company_tickers": _company_tickers, "submissions": _submissions}
 
 
 def fmp_http_transport(api_key: str) -> Callable[[str, Dict[str, Any]], str]:

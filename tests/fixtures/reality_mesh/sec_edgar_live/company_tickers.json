@@ -1,0 +1,5 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a trimmed data.sec.gov company_tickers.json map (ticker -> CIK). No live data; injected through the mock transport in tests.",
+  "0": {"cik_str": 1878848, "ticker": "IREN", "title": "IREN Limited"},
+  "1": {"cik_str": 123456, "ticker": "AAOI", "title": "Applied Optoelectronics, Inc."}
+}

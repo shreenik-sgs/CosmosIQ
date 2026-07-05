@@ -1,0 +1,23 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a second real-shaped data.sec.gov submissions document. Carries a dilutive 424B5 takedown and an 8-K Item 5.02 management change. No live data.",
+  "cik": "0000123456",
+  "name": "Applied Optoelectronics, Inc.",
+  "tickers": ["AAOI"],
+  "exchanges": ["NASDAQ"],
+  "filings": {
+    "recent": {
+      "accessionNumber": [
+        "0000123456-26-000012",
+        "0000123456-26-000011"
+      ],
+      "form": ["424B5", "8-K"],
+      "filingDate": ["2026-07-02", "2026-06-28"],
+      "primaryDocument": ["aaoi424b.htm", "aaoi8k.htm"],
+      "primaryDocDescription": [
+        "424B5 PROSPECTUS SUPPLEMENT",
+        "FORM 8-K"
+      ],
+      "items": ["", "5.02"]
+    }
+  }
+}

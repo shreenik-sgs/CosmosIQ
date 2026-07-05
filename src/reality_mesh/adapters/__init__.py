@@ -60,6 +60,17 @@ from .evidence_sources import (
     SEC_TRANSPORT_KEYS,
     SecFmpEvidenceAdapter,
 )
+from .sec_edgar_live import (
+    SEC_EDGAR_LIVE_ADAPTER_ID,
+    SEC_EDGAR_LIVE_DESCRIPTOR,
+    SEC_EDGAR_LIVE_DISCIPLINES,
+    SEC_EDGAR_LIVE_EVENT_TYPES,
+    SEC_EDGAR_LIVE_FULL_BODY_FOLLOWUP_GAP,
+    SEC_EDGAR_LIVE_MINIMUM_FORMS,
+    SEC_EDGAR_LIVE_RISK_EVENT_TYPES,
+    SEC_EDGAR_LIVE_TRANSPORT_KEYS,
+    SecEdgarLiveAdapter,
+)
 from .local_macro_data import (
     LOCAL_MACRO_DATA_ADAPTER_ID,
     LOCAL_MACRO_DATA_DESCRIPTOR,
@@ -138,6 +149,16 @@ __all__ = [
     "FMP_TRANSPORT_KEYS",
     "FINANCIAL_INFLECTION_CONSUMER_GAP",
     "SecFmpEvidenceAdapter",
+    # SEC EDGAR live filings adapter -- first production LIVE source (020B)
+    "SEC_EDGAR_LIVE_ADAPTER_ID",
+    "SEC_EDGAR_LIVE_DESCRIPTOR",
+    "SEC_EDGAR_LIVE_DISCIPLINES",
+    "SEC_EDGAR_LIVE_TRANSPORT_KEYS",
+    "SEC_EDGAR_LIVE_EVENT_TYPES",
+    "SEC_EDGAR_LIVE_RISK_EVENT_TYPES",
+    "SEC_EDGAR_LIVE_MINIMUM_FORMS",
+    "SEC_EDGAR_LIVE_FULL_BODY_FOLLOWUP_GAP",
+    "SecEdgarLiveAdapter",
     # company IR documents adapter (014C)
     "COMPANY_DOCUMENTS_ADAPTER_ID",
     "COMPANY_DOCUMENTS_DESCRIPTOR",

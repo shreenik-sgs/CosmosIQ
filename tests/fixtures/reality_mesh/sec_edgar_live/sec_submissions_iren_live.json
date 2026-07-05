@@ -1,0 +1,53 @@
+{
+  "_comment": "FIXTURE/MOCK ONLY -- a real-shaped data.sec.gov submissions document (trimmed). Carries a dilutive S-3 (ATM shelf), an 8-K Item 1.01 material definitive agreement, an 8-K Item 2.02 results/guidance, a Form 4 insider transaction, a 10-K, a DEF 14A, an SC 13D, and a 13F (deliberately NOT a news_filings catalyst -> not emitted). No live data.",
+  "cik": "0001878848",
+  "name": "IREN Limited",
+  "tickers": ["IREN"],
+  "exchanges": ["NASDAQ"],
+  "filings": {
+    "recent": {
+      "accessionNumber": [
+        "0001878848-26-000050",
+        "0001878848-26-000048",
+        "0001878848-26-000047",
+        "0001878848-26-000046",
+        "0001878848-26-000030",
+        "0001878848-26-000025",
+        "0001878848-26-000020",
+        "0001878848-26-000010"
+      ],
+      "form": ["S-3", "8-K", "8-K", "4", "10-K", "DEF 14A", "SC 13D", "13F-HR"],
+      "filingDate": [
+        "2026-06-30",
+        "2026-07-01",
+        "2026-06-25",
+        "2026-06-20",
+        "2026-03-01",
+        "2026-04-15",
+        "2026-05-10",
+        "2026-02-14"
+      ],
+      "primaryDocument": [
+        "irens3.htm",
+        "iren8k1.htm",
+        "iren8k2.htm",
+        "iren4.xml",
+        "iren10k.htm",
+        "irendef14a.htm",
+        "iren13d.htm",
+        "iren13f.htm"
+      ],
+      "primaryDocDescription": [
+        "FORM S-3 SHELF REGISTRATION - PROSPECTUS SUPPLEMENT FOR AT-THE-MARKET OFFERING",
+        "FORM 8-K",
+        "FORM 8-K",
+        "FORM 4",
+        "FORM 10-K",
+        "DEF 14A PROXY STATEMENT",
+        "SCHEDULE 13D",
+        "FORM 13F-HR"
+      ],
+      "items": ["", "1.01", "2.02", "", "", "", "", ""]
+    }
+  }
+}
