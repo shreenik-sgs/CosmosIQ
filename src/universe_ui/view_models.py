@@ -1,15 +1,15 @@
 """Read-only projections for the Economic Universe UI (IMPLEMENTATION-010A).
 
 Pure PROJECTION view models. They COPY and GROUP existing fields and statuses --
-demo-terrain fields from :mod:`universe_ui.demo_universe`, and (for the one real
-IREN planet) already-computed statuses from the evidence-alpha slice. They compute
+demo-terrain fields from :mod:`universe_ui.demo_universe`, and explicit evidence /
+real-run candidate statuses when those runs are requested. They compute
 NOTHING beyond grouping and formatting:
 
 * **No new score.** There is no composite, master, ranking, or alpha number here.
   Candidate buckets are chosen from EXISTING pipeline statuses only
   (investability_assessment / timing_confirmation / red-team verdict /
   recommendation_status). Within-bucket ordering reuses an EXISTING field
-  (``thesis_confidence`` for the real candidate; ``evidence_count`` for demo ones) --
+  (``thesis_confidence`` for active-run candidates; ``evidence_count`` for demo ones) --
   it defines no new metric and displays no composite figure.
 * **Ticker/security mapping comes AFTER value-chain context**, never as the entry
   point -- carried with an explicit "derived after value-chain / winner mapping"
@@ -488,10 +488,10 @@ def card_label_for(primary_bucket: str, investability_label: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Real IREN status extraction (copied from the slice; nothing recomputed)      #
+# Real fixture / run status extraction (copied from the slice; nothing recomputed) #
 # --------------------------------------------------------------------------- #
 def _iren_real_status(iren_slice) -> dict:
-    """Copy IREN's already-computed statuses out of the evidence-alpha slice."""
+    """Copy an explicit real/evidence slice's already-computed statuses."""
     thesis = iren_slice.investment_thesis
     pa = iren_slice.personalized_action
     ing = iren_slice.ingestion_result
@@ -750,11 +750,32 @@ def _order_cards(cards) -> Tuple[CandidateCardView, ...]:
     return tuple(sorted(cards, key=lambda c: (-round(c.ordering_value, 6), c.ticker)))
 
 
+def _eligible_capital_candidate(p: PlanetCandidateView) -> bool:
+    """Candidate Eligibility Gate for production candidate surfaces.
+
+    A company may appear as a Capital Candidate only when it is real/current-run style
+    output with provenance and Investment Diligence/cockpit context. Synthetic demo
+    planets remain clickable in Universe Canvas, but do not become candidate rows.
+    """
+    if not p.is_real:
+        return False
+    if not p.provenance_available:
+        return False
+    if not p.candidate_id or not p.data_origin:
+        return False
+    if not p.source_authority_badges:
+        return False
+    if not p.data_quality:
+        return False
+    return True
+
+
 def build_cio_dashboard_view(themes: Tuple[GalaxyThemeView, ...]) -> CIODashboardView:
     all_cards = []
     for theme in themes:
         for p in theme.planets:
-            all_cards.append(_card_from_planet(p))
+            if _eligible_capital_candidate(p):
+                all_cards.append(_card_from_planet(p))
 
     buckets = []
     for name in BUCKET_ORDER:
@@ -764,7 +785,8 @@ def build_cio_dashboard_view(themes: Tuple[GalaxyThemeView, ...]) -> CIODashboar
                                   cards=_order_cards(in_bucket)))
     real_count = sum(1 for c in all_cards if c.is_real)
     return CIODashboardView(
-        banner="CosmosIQ Capital demo cockpit — Live Data: Off.",
+        banner=("CosmosIQ Capital — no active-run Capital Candidates in default demo."
+                if not all_cards else "CosmosIQ Capital — active-run candidates surfaced."),
         buckets=tuple(buckets), total_candidates=len(all_cards),
         real_candidate_count=real_count,
     )
@@ -800,6 +822,10 @@ def build_data_quality_view(iren_slice, terrain=None, source_status=None,
         overridden_src = tuple(watchlist_summary.overridden_facts)
         conflict_src = tuple(watchlist_summary.conflict_warnings)
         deferred_n = int(watchlist_summary.deferred_records_count)
+    elif not _is_evidence_terrain_mode(getattr(terrain, "mode", "")):
+        overridden_src = ()
+        conflict_src = ()
+        deferred_n = 0
     else:
         overridden_src = tuple(iren_slice.provenance_chain.get("overridden_facts", ()))
         conflict_src = tuple(iren_slice.conflict_warnings)
@@ -817,7 +843,7 @@ def build_data_quality_view(iren_slice, terrain=None, source_status=None,
     status_pairs = tuple(
         (k, str(ss[k])) for k in ("sec", "fmp", "yfinance") if k in ss)
     run_ts = str(ss.get("run_timestamp", ""))
-    subject = getattr(iren_slice, "subject", "") or ""
+    subject = getattr(iren_slice, "subject", "") or "" if is_evidence else ""
 
     wl_fields = _watchlist_dq_fields(watchlist_summary)
     diag_fields = _diagnostic_dq_fields(
@@ -858,8 +884,8 @@ def build_data_quality_view(iren_slice, terrain=None, source_status=None,
         fixture_status = ("evidence-ingested from local fixtures; terrain sparse "
                           "(single candidate)")
     else:
-        run_mode = "fixture/demo (deterministic replay of local IREN fixtures)"
-        fixture_status = "fixtures loaded; demo terrain hand-authored"
+        run_mode = "fixture/demo (synthetic demo terrain; no active-run candidates)"
+        fixture_status = "synthetic demo terrain loaded; no real ticker provenance"
 
     return DataQualityView(
         run_mode=run_mode,
@@ -1077,7 +1103,7 @@ def build_economic_universe_view(iren_slice, terrain=None, source_status=None,
             enrichment_by_subject=enrichment_by_subject)
     from .demo_terrain import build_demo_terrain
     universe = build_demo_universe()
-    terrain = terrain or build_demo_terrain(iren_slice, universe)
+    terrain = terrain or build_demo_terrain(None, universe)
 
     gnode_by_id = {g.id: g for g in terrain.galaxies}
     themes = tuple(_theme_view(g, iren_slice, gnode=gnode_by_id.get(g.slug))
@@ -1102,7 +1128,7 @@ def build_economic_universe_view(iren_slice, terrain=None, source_status=None,
         mode="fixture/demo", live_enabled=False, scheduler_enabled=False,
         broker_automation_enabled=False,
         clusters=clusters, themes=themes, edges=edges, dashboard=dashboard,
-        data_quality=data_quality, real_subject=iren_slice.subject, terrain=terrain,
+        data_quality=data_quality, real_subject="", terrain=terrain,
     )
 
 

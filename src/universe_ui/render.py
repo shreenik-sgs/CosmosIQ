@@ -11,8 +11,8 @@ into four self-contained static pages with a cosmic command-center theme:
 * ``dashboard.html`` — the CIO candidate buckets (each card has "Locate in Universe"
   + "Open Cockpit").
 * ``data_quality.html`` — provenance / source authority / gaps.
-* ``cockpit.html`` — the ACCEPTED ``render_cockpit_html`` output for the one real
-  planet (IREN), opened FROM a planet (not a top-level tab).
+* ``cockpit.html`` — the ACCEPTED ``render_cockpit_html`` output for an explicit
+  current-run / fixture company, opened FROM a planet (not a top-level tab).
 
 Guarantees for every page:
 
@@ -734,7 +734,9 @@ def _intel_theme(t: GalaxyThemeView) -> str:
     c = t.cluster
     timeline = tuple(list(t.positive_catalysts)
                      + ["(negative) " + n for n in t.negative_catalysts])
-    planets = _list(("{0} ({1}) — {2}".format(p.company, p.ticker, p.investability_label)
+    planets = _list(("{0} — {1}".format(
+                         ("{0} ({1})".format(p.company, p.ticker) if p.is_real else p.company),
+                         p.investability_label)
                      for p in t.planets))
     exec_h = _exec_header([
         "{0} Theme Milky Way — value chains within the Mega Theme Galaxy.".format(c.theme_name),
@@ -793,7 +795,7 @@ def _intel_value_chain(ss: SolarSystemValueChainView) -> str:
         for role, tk in ss.node_ticker_map) or "<tr><td colspan='2'>(none mapped)</td></tr>"
     mapping = (
         '<table class="chain"><tr><th>value-chain node (winner context)</th>'
-        "<th>candidate tickers</th></tr>{rows}</table>"
+        "<th>candidate companies</th></tr>{rows}</table>"
         '<p class="qualifier">{qual}</p>'
     ).format(rows=mapping_rows, qual=_esc(ss.security_mapping_qualifier))
     exec_h = _exec_header([
@@ -891,10 +893,12 @@ def _intel_planet(p: PlanetCandidateView) -> str:
     if p.capital_structure_risk:
         badges += _badge("capital-structure / dilution risk", "hazard")
     cockpit = (
-        '<a class="cockpit-cta" href="{0}">Open Cockpit — full evidence-alpha slice →</a>'.format(
+        '<a class="cockpit-cta" href="{0}">Open Company Cockpit →</a>'.format(
             _esc(p.cockpit_link))
         if p.cockpit_link
-        else '<span class="note">Open Cockpit available for real candidates only (demo stock planet)</span>')
+        else ('<span class="note">Open Cockpit available for real candidates only when '
+              'a Company Cockpit artifact exists.</span>' if p.is_real else
+              '<span class="note">Company Cockpit appears only for active-run Capital Candidates.</span>'))
     snapshot = (
         '<table class="kv">'
         + "<tr><th>Mega Theme / Galaxy</th><td>{0}</td></tr>".format(_esc(p.galaxy_name))
@@ -916,16 +920,19 @@ def _intel_planet(p: PlanetCandidateView) -> str:
         "→ ticket preview{0}.</p>".format(
             " (real, content-addressed)" if p.is_real else " (demo terrain)"))
     _rs = _planet_reasons(p); _rk = _planet_risks(p)
+    display_name = "{0} ({1})".format(p.company, p.ticker) if p.is_real else p.company
     exec_h = _exec_header([
-        "{0} ({1}) — {2}.".format(p.company, p.ticker, p.value_chain_role),
+        "{0} — {1}.".format(display_name, p.value_chain_role),
         "Investability {0}; {1}.".format(p.investability_label, p.timing_label),
         (_rs[0] if _rs else "—"),
         (_rk[0] if _rk else "—"),
-        "Open the cockpit for the full evidence-alpha slice.",
+        ("Open Company Cockpit for current-run diligence."
+         if p.cockpit_link else "Run a pulse or source adapter to generate candidate diligence."),
     ])
+    title = display_name
     return (
         exec_h
-        + _brief_header("Stock / Planet", "{0} ({1})".format(p.company, p.ticker), badges)
+        + _brief_header("Stock / Planet", title, badges)
         + '<div class="cockpit-cta-wrap">{0}</div>'.format(cockpit)
         + _brief_card("Executive summary",
                       "<p>{company} sits at the {role}, {prox}. Thesis status: "
@@ -1126,8 +1133,9 @@ def _planet_preview(p: PlanetCandidateView) -> str:
     reasons = _planet_reasons(p)
     risks = _planet_risks(p)
     origin = "REAL slice" if p.is_real else "DEMO"
+    display_name = "{0} <b>({1})</b>".format(_esc(p.company), _esc(p.ticker)) if p.is_real else _esc(p.company)
     return (
-        '<div class="pv-name">{company} <b>({ticker})</b></div>'
+        '<div class="pv-name">{display_name}</div>'
         '<div class="pv-row"><span>mega theme / galaxy</span><b>{galaxy}</b></div>'
         '<div class="pv-row"><span>value-chain role</span><b>{role}</b></div>'
         '<div class="pv-row"><span>candidate bucket</span><b>{bucket}</b></div>'
@@ -1137,9 +1145,9 @@ def _planet_preview(p: PlanetCandidateView) -> str:
         '<div class="pv-row"><span>top reason</span><b>{reason}</b></div>'
         '<div class="pv-row"><span>top risk</span><b>{risk}</b></div>'
         '<div class="pv-row"><span>market cap</span><b>{cap}</b></div>'
-        '<div class="pv-foot">{origin} · View briefing / Open cockpit</div>'
+        '<div class="pv-foot">{origin} · View briefing</div>'
     ).format(
-        company=_esc(p.company), ticker=_esc(p.ticker), galaxy=_esc(p.galaxy_name),
+        display_name=display_name, galaxy=_esc(p.galaxy_name),
         role=_esc(p.value_chain_role), bucket=_esc(_planet_bucket(p)),
         evidence=_esc(p.data_quality),
         source=_esc(", ".join(p.source_authority_badges) if p.source_authority_badges else _origin_suffix(p.data_origin)),
@@ -1164,7 +1172,8 @@ def _planet_object(p: PlanetCandidateView, pos: Tuple[float, float]) -> str:
     variant = "blackhole" if severe else ("comet" if has_catalyst else "")
     return _cosmic_object(
         kind="planet", path=p.universe_path, target_path=p.universe_path, target_level=5,
-        title="{0} ({1})".format(p.company, p.ticker), sub=p.value_chain_role,
+        title=("{0} ({1})".format(p.company, p.ticker) if p.is_real else p.company),
+        sub=p.value_chain_role,
         size_px=p.visual_size_px, glow=p.glow_level, dashed=p.magnitude_missing,
         redshadow=severe, halo=has_catalyst,
         ev_class=_ev_class(p.data_quality),
@@ -1325,9 +1334,10 @@ def render_universe(view: EconomicUniverseView, strip_text: Optional[str] = None
         moon_objs = _orbit_svg(mpos) + "".join(
             _moon_object(n, mpos[i]) for i, n in enumerate(moon_src))
         for p in t.planets:
+            panel_title = "{0} ({1})".format(p.company, p.ticker) if p.is_real else p.company
             panels.append(_level_panel(
                 level=5, path=p.universe_path, parent=star0_path, crumb=p.company,
-                kind="Stock / Planet", title="{0} ({1})".format(p.company, p.ticker),
+                kind="Stock / Planet", title=panel_title,
                 objects_html=moon_objs, intel_id=_intel_id_planet(p), active=False))
 
     # Floating preview card INSIDE the universe hero. HIDDEN by default (starts
@@ -1378,7 +1388,7 @@ def render_universe(view: EconomicUniverseView, strip_text: Optional[str] = None
 
 
 # --------------------------------------------------------------------------- #
-# Cockpit (IREN) — the ACCEPTED renderer, wrapped; opened FROM a planet       #
+# Cockpit — the ACCEPTED renderer, wrapped; opened FROM a planet              #
 # --------------------------------------------------------------------------- #
 def _cockpit_enrichment_note(coverage, subject: str) -> str:
     """A READ-ONLY diligence-enrichment status note for the cockpit PAGE wrapper.
@@ -1409,29 +1419,16 @@ def _cockpit_enrichment_note(coverage, subject: str) -> str:
 
 
 def _cockpit_wrapper(strip_text: Optional[str] = None,
-                     enrichment_note: str = "") -> str:
+                     enrichment_note: str = "",
+                     subject: str = "") -> str:
     strip = (
         '<div style="position:sticky;top:0;z-index:50;background:#0a0f24;color:#c7d0f5;'
         'padding:.5rem 1rem;font:600 13px sans-serif;border-bottom:1px solid #26315f">'
         '{0}</div>'.format(_esc(strip_text if strip_text is not None else STATUS_STRIP_TEXT)))
+    subj = (subject or "selected company").strip()
     links = [
-        '<a href="universe.html#focus=universe/g:ai-infrastructure/t:ai-infrastructure/'
-        'vc:ai-infrastructure--ai-compute-hosting-value-chain/st:ai-infrastructure--star-0/pl:iren"'
-        ' style="color:#7c8cff;text-decoration:none;margin-right:.9rem;font:600 13px sans-serif">'
-        '← Back to IREN planet in the Universe</a>']
-    context_links = (
-        ("Mega Theme", "universe.html#focus=universe/g:ai-infrastructure"),
-        ("Theme", "universe.html#focus=universe/g:ai-infrastructure/t:ai-infrastructure"),
-        ("Value Chain", "universe.html#focus=universe/g:ai-infrastructure/t:ai-infrastructure/"
-         "vc:ai-infrastructure--ai-compute-hosting-value-chain"),
-        ("Bottleneck", "universe.html#focus=universe/g:ai-infrastructure/t:ai-infrastructure/"
-         "vc:ai-infrastructure--ai-compute-hosting-value-chain/st:ai-infrastructure--star-0"),
-    )
-    for label, href in context_links:
-        links.append(
-            '<a href="{0}" style="color:#7c8cff;text-decoration:none;'
-            'margin-right:.9rem;font:600 13px sans-serif">{1}</a>'.format(
-                _esc(href), _esc(label)))
+        '<a href="universe.html" style="color:#7c8cff;text-decoration:none;'
+        'margin-right:.9rem;font:600 13px sans-serif">← Back to Universe Canvas</a>']
     for label, fname in _NAV:
         links.append(
             '<a href="{0}" style="color:#7c8cff;text-decoration:none;'
@@ -1443,10 +1440,10 @@ def _cockpit_wrapper(strip_text: Optional[str] = None,
     note = (
         '<div style="background:#1a1030;color:#e3d9ff;padding:.6rem 1rem;'
         'font:600 13px sans-serif;border-bottom:1px solid #5a3fb0">'
-        'IREN planet — REAL evidence-alpha slice, opened FROM the planet as a deeper view. '
-        'Rendered by the ACCEPTED cockpit renderer (render_cockpit_html). Ticker/security '
-        'mapping is derived after value-chain / winner mapping inside the cockpit. '
-        'Manual review required.</div>')
+        '{0} Company Cockpit — explicit evidence/current-run view opened from a Planet or '
+        'Capital Candidate. Rendered by the accepted cockpit renderer. Security mapping is '
+        'derived after value-chain / winner mapping inside the cockpit. Manual review '
+        'required.</div>'.format(_esc(subj)))
     return strip + nav + note + (enrichment_note or "")
 
 
@@ -1458,14 +1455,15 @@ def render_cockpit(iren_slice, strip_text: Optional[str] = None,
         # Render an honest placeholder page instead of fabricating a cockpit.
         body = (
             '<div class="glass-panel"><h1>Company Cockpit</h1>'
-            '<p class="lead">No decision cockpit for this run — the evidence chain '
-            "stopped before an investment thesis (insufficient inputs). This is a data "
-            "gap, not a recommendation. Manual review required; no execution is recorded.</p>"
+            '<p class="lead">No company selected.</p>'
+            "<p>Select a Planet / Company from the Universe Canvas or open a Capital "
+            "Candidate generated by the latest run.</p>"
             "</div>" + (enrichment_note or ""))
         return _page("Company Cockpit", "cockpit.html", body, strip_text=strip_text)
     doc = render_cockpit_html(cockpit_view)
+    subject = getattr(iren_slice, "subject", "") or ""
     return doc.replace(
-        "<body>", "<body>\n" + _cockpit_wrapper(strip_text, enrichment_note), 1)
+        "<body>", "<body>\n" + _cockpit_wrapper(strip_text, enrichment_note, subject), 1)
 
 
 # --------------------------------------------------------------------------- #
@@ -1719,8 +1717,8 @@ def render_dashboard(dash: CIODashboardView, strip_text: Optional[str] = None) -
     )
     note = (
         '<p class="note">Buckets are read-only groupings of existing statuses. '
-        "Within-bucket ordering reuses an existing field (thesis_confidence for the real "
-        "candidate; evidence_count for demo terrain) — it is not a new composite figure. "
+        "Within-bucket ordering reuses an existing field (thesis_confidence for active-run "
+        "candidates; evidence_count for demo terrain) — it is not a new composite figure. "
         "Live Data: Off.</p>"
     )
     home = (
@@ -1805,7 +1803,7 @@ def _dq_pipeline(dq: DataQualityView) -> str:
 
 def _authority_matrix(dq: DataQualityView) -> str:
     """Authority MATRIX: source · authority · coverage · conflicts · overridden · gaps
-    · red-team flags (aggregate demo view of the real IREN slice)."""
+    · red-team flags."""
     nconf = len(dq.conflict_warnings)
     nover = len(dq.overridden_facts)
     ngap = len(dq.data_gaps)
@@ -2180,14 +2178,16 @@ def render_data_quality(dq: DataQualityView, strip_text: Optional[str] = None,
         "<tr><th>Manual review required</th><td>{0}</td></tr>".format(
             "yes" if dq.manual_review_required else "no"),
     ])
+    subject_badge = (_badge("REAL subject: {0}".format(dq.real_subject), "real")
+                     if dq.real_subject else _badge("No active-run company", "gap"))
     body = (
         notice_html
         + '<div class="dq-head"><div><h1>Trust &amp; Data Quality</h1>'
         '<p class="lead">Evidence sources, authority, coverage, conflicts, overridden '
-        "facts, data gaps and the provenance chain for the one real candidate (IREN). A "
-        "control panel over existing pipeline state — Live Data: Off, Scheduler: Off, Broker: Disabled.</p>"
-        "</div><div>" + _badge("REAL subject: {0}".format(dq.real_subject), "real")
-        + " " + terrain_badge + "</div></div>"
+        "facts, data gaps and the provenance chain for active-run candidates. "
+        "Default demo mode contains no real ticker candidate. Live Data: Off, "
+        "Scheduler: Off, Broker: Disabled.</p>"
+        "</div><div>" + subject_badge + " " + terrain_badge + "</div></div>"
         # A. real-source status + (watchlist) overall run + per-ticker table + gaps
         + source_status_html
         + watchlist_html
@@ -2337,7 +2337,9 @@ def render_all_pages(view: EconomicUniverseView, iren_slice,
     strip_text = _strip_for_mode(getattr(view, "mode", "")) + getattr(
         view, "run_summary_line", "")
     notice = _terrain_notice(view)
-    enrichment_note = _cockpit_enrichment_note(
+    is_default_demo = getattr(view, "mode", "") == "fixture/demo"
+    cockpit_slice = None if is_default_demo else iren_slice
+    enrichment_note = "" if is_default_demo else _cockpit_enrichment_note(
         getattr(view.data_quality, "enrichment_coverage", None),
         getattr(iren_slice, "subject", "") or getattr(view, "real_subject", ""))
     return (
@@ -2346,7 +2348,7 @@ def render_all_pages(view: EconomicUniverseView, iren_slice,
         ("capital_candidates.html", render_capital_candidates(
             view.dashboard, strip_text=strip_text)),
         ("cockpit.html", render_cockpit(
-            iren_slice, strip_text=strip_text, enrichment_note=enrichment_note)),
+            cockpit_slice, strip_text=strip_text, enrichment_note=enrichment_note)),
         ("data_quality.html", render_data_quality(
             view.data_quality, strip_text=strip_text, notice=notice,
             pulse_panel_html=pulse_panel_html,

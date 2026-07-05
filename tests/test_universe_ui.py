@@ -205,40 +205,36 @@ class UniverseUIBuildTests(unittest.TestCase):
     # --- ticker/security mapping only AFTER value-chain/winner -------------
     def test_ticker_mapping_carries_after_value_chain_qualifier(self):
         # The qualifier appears at the value-chain zoom level inside the one universe
-        # page and on the candidate cards -- never as the entry point.
+        # page -- never as the entry point.
         u = self.html["universe.html"].lower()
         self.assertIn("derived after value-chain", u)
-        self.assertIn("derived after value-chain", self.html["dashboard.html"].lower())
         self.assertIn("never the entry point", u)
 
     # --- data gaps / conflicts / authority badges render ------------------
     def test_data_gaps_and_conflicts_and_authority_badges(self):
         dq = self.html["data_quality.html"]
-        # conflict warnings from the real slice
-        self.assertIn("conflict on IREN", dq)
-        # data gaps from the real slice
-        self.assertIn("coverage_gap", dq)
+        self.assertIn("Default demo mode contains no real ticker candidate", dq)
+        self.assertIn("No active-run company", dq)
+        self.assertIn("no conflicts", dq)
+        self.assertIn("demo terrain only: no active run candidate provenance", dq)
         # source-authority hierarchy + counts
-        self.assertIn("SEC canonical", dq)
-        self.assertIn("FMP convenience", dq)
+        self.assertIn("SEC EDGAR", dq)
+        self.assertIn("FMP", dq)
         self.assertIn("yfinance fallback", dq)
         # gaps + missing-data visible at the zoom levels inside the one universe page
         u = self.html["universe.html"]
         self.assertIn("Data gaps", u)
         self.assertIn("Missing", u)
-        # source-authority badges on the IREN dashboard card AND in the universe pane
-        self.assertIn("SEC canonical", self.html["dashboard.html"])
-        self.assertIn("SEC canonical", u)
+        self.assertIn("demo terrain — no live sources", u)
 
     # --- cockpit page via the ACCEPTED renderer ---------------------------
-    def test_cockpit_page_uses_accepted_renderer_markers(self):
+    def test_cockpit_page_defaults_to_neutral_empty_state(self):
         c = self.html["cockpit.html"]
-        self.assertIn("<!-- BEGIN-SECTION:", c)
-        self.assertIn('id="panel-', c)
         self.assertIn("Company Cockpit", c)
-        for label in ("Mega Theme", "Theme", "Value Chain", "Bottleneck"):
-            self.assertIn(label, c)
-        # wrapped with the status strip (still the accepted doc underneath)
+        self.assertIn("No company selected.", c)
+        self.assertIn("Select a Planet / Company", c)
+        self.assertNotIn("IREN", c)
+        self.assertNotIn("<!-- BEGIN-SECTION:", c)
         for token in _STRIP_TOKENS:
             self.assertIn(token, c)
 
@@ -254,23 +250,11 @@ class UniverseUIBuildTests(unittest.TestCase):
     def test_capital_candidates_surface(self):
         cc = self.html["capital_candidates.html"]
         self.assertIn("<h1>Capital Candidates</h1>", cc)
-        for col in ("Ticker / Company", "Mega Theme", "Theme", "Value Chain",
-                    "Bottleneck Exposure", "Candidate State", "Evidence Quality",
-                    "Signal State", "Forward Scenario", "Portfolio Fit",
-                    "Risks / Red-Team Flags", "Data Gaps", "Next Action"):
-            self.assertIn(col, cc)
+        self.assertIn("No Capital Candidates are available for this run.", cc)
         for term in ("Investment Thesis", "Forward Scenario", "Portfolio Fit",
                      "Sizing Guardrails", "Manual Execution Preview"):
             self.assertIn(term, cc)
-        allowed = {"Emerging", "Active Diligence", "Watchlist",
-                   "High Conviction Candidate", "Needs More Evidence",
-                   "Red-Team Risk", "Deteriorating", "Rejected / Not Investable"}
-        rendered_states = set(re.findall(
-            r"<td>(Emerging|Active Diligence|Watchlist|High Conviction Candidate|"
-            r"Needs More Evidence|Red-Team Risk|Deteriorating|Rejected / Not Investable)</td>",
-            cc))
-        self.assertTrue(rendered_states)
-        self.assertTrue(rendered_states.issubset(allowed))
+        self.assertNotIn("<tr><td>", cc)
 
     def test_capital_candidates_has_no_trade_controls_or_hidden_fields(self):
         low = self.html["capital_candidates.html"].lower()
@@ -284,7 +268,7 @@ class UniverseUIBuildTests(unittest.TestCase):
     def test_candidate_rows_link_to_company_cockpit(self):
         cc = self.html["capital_candidates.html"]
         self.assertIn('href="cockpit.html"', cc)
-        self.assertIn("Open Company Cockpit", cc)
+        self.assertIn("No Capital Candidates are available for this run.", cc)
         self.assertIn('href="capital_candidates.html"', self.html["dashboard.html"])
 
     def test_capital_candidates_empty_state_renders(self):
@@ -298,7 +282,7 @@ class UniverseUIBuildTests(unittest.TestCase):
         dq = self.html["data_quality.html"]
         mesh = self.html["reality_mesh.html"]
         self.assertIn("Capital Candidate Evidence", dq)
-        self.assertIn("IREN", dq)
+        self.assertIn("No Capital Candidates are available for this run.", dq)
         self.assertIn("Agent Registry", mesh)
         self.assertIn("Candidate Contributions", mesh)
         self.assertIn("Evidence Ingestion", mesh)
@@ -342,24 +326,37 @@ class UniverseUIBuildTests(unittest.TestCase):
         for old in ("EIOS layer map", "010A", "010B", "010C", "Sudarshan"):
             self.assertNotIn(old, public)
 
-    # --- multiple galaxies, NOT IREN-first, IREN is one planet ------------
-    def test_multiple_galaxies_not_iren_first(self):
+    # --- multiple galaxies, no real ticker in default demo ----------------
+    def test_multiple_galaxies_no_real_default_candidate(self):
         self.assertGreaterEqual(len(self.view.clusters), 5)
         self.assertNotEqual(self.view.clusters[0].theme_name, "AI Infrastructure")
-        # IREN is exactly one real planet across the whole terrain.
         real = [p for t in self.view.themes for p in t.planets if p.is_real]
-        self.assertEqual(len(real), 1)
-        self.assertEqual(real[0].ticker, "IREN")
-        self.assertEqual(real[0].galaxy_name, "AI Infrastructure")
+        self.assertEqual(real, [])
+        self.assertEqual(self.view.dashboard.total_candidates, 0)
 
-    def test_iren_statuses_come_from_real_slice(self):
-        real = [p for t in self.view.themes for p in t.planets if p.is_real][0]
-        thesis = self.slice.investment_thesis
-        self.assertEqual(real.investability_label, thesis.investability_assessment)
-        self.assertTrue(real.provenance_available)
-        # IREN's real red-team 'concern' verdict places it in the cross-cut alerts.
-        card = _card_from_planet(real)
-        self.assertIn("Red-Team Alerts", card.cross_cut_buckets)
+    def test_default_product_ui_has_no_fixture_ticker_leakage(self):
+        public = self.all_html
+        for bad in ("IREN", "Iris Energy", "IREN Limited", "AAOI", "AMBA", "OUST",
+                    "NVDA", "GRIDX", "LOADX", "FUELX", "SMRX", "COOLX", "BLDX",
+                    "OPTX", "PKGX", "HBMX", "MEGAX", "SMALLX", "NEOX", "HOSTX",
+                    "EDGEX", "ACTX", "ORBX"):
+            self.assertNotIn(bad, public)
+        self.assertIn("Synthetic Neocloud Operator", public)
+        self.assertIn("Demo Neocloud Operator", public)
+
+    def test_explicit_evidence_fixture_can_render_historical_iren_slice(self):
+        tmp = tempfile.mkdtemp(prefix="uui_evidence_")
+        paths = build_universe_app(tmp, mode="evidence_ingested_fixture")
+        with open(paths["universe.html"], encoding="utf-8") as fh:
+            universe = fh.read()
+        with open(paths["capital_candidates.html"], encoding="utf-8") as fh:
+            candidates = fh.read()
+        with open(paths["cockpit.html"], encoding="utf-8") as fh:
+            cockpit = fh.read()
+        self.assertIn("IREN", universe)
+        self.assertIn("IREN", candidates)
+        self.assertIn("<!-- BEGIN-SECTION:", cockpit)
+        self.assertIn("evidence_ingested_fixture", universe)
 
     # --- deterministic output ---------------------------------------------
     def test_two_builds_byte_identical(self):
@@ -473,19 +470,19 @@ class ZoomableUniverseTests(unittest.TestCase):
         # the buggy stale ids must be gone
         for stale in ("detail-body", "level-detail", "object-detail"):
             self.assertNotIn(stale, js)
-        # a hidden intel store exists; the IREN planet body points at its blob, and
-        # that blob holds IREN's company table -> clicking fills the bottom pane.
+        # a hidden intel store exists; a synthetic planet points at its blob, and
+        # that blob holds the company table -> clicking fills the bottom pane.
         self.assertIn('class="intel-store"', self.u)
-        m = re.search(r'data-kind="planet"[^>]*data-path="[^"]*pl:iren"[^>]*'
+        m = re.search(r'data-kind="planet"[^>]*data-path="[^"]*pl:synthetic-neocloud-operator"[^>]*'
                       r'data-intel="([^"]+)"', self.u)
-        self.assertIsNotNone(m, "IREN planet body has no data-intel hook")
+        self.assertIsNotNone(m, "synthetic planet body has no data-intel hook")
         blob_id = m.group(1)
         blob = re.search(
             r'<div class="intel-template" id="{0}">(.*?)</div>\s*'
             r'(?:<div class="intel-template"|</div>\s*</div>\s*</body)'.format(re.escape(blob_id)),
             self.u, re.DOTALL)
-        self.assertIsNotNone(blob, "no intel blob for IREN")
-        self.assertIn("IREN", blob.group(1))
+        self.assertIsNotNone(blob, "no intel blob for synthetic planet")
+        self.assertIn("Demo Neocloud Operator", blob.group(1))
         self.assertIn("<table", blob.group(1))    # the company detail table
 
     # --- continuous ZOOM + PAN on the canvas (Google-Earth feel) ----------
@@ -510,23 +507,19 @@ class ZoomableUniverseTests(unittest.TestCase):
 
     # --- bottom pane surfaces data gaps AND source-authority badges -------
     def test_bottom_pane_shows_gaps_and_authority(self):
-        self.assertIn("SEC canonical", self.u)         # source-authority coverage
+        self.assertIn("demo terrain — no live sources", self.u)
         self.assertIn("Data gaps", self.u)             # gaps never hidden
 
-    # --- dashboard Locate targets a planet path that exists in the canvas -
-    def test_dashboard_locate_targets_universe_path(self):
+    # --- default dashboard has no candidate locate links ------------------
+    def test_dashboard_has_no_default_candidate_locate_links(self):
         hrefs = re.findall(r'href="(universe\.html#focus=[^"]+)"', self.d)
-        iren = [h for h in hrefs if "pl:iren" in h]
-        self.assertTrue(iren, "no IREN Locate-in-Universe link on the dashboard")
-        path = iren[0].split("#focus=")[1]
-        # the focused path must exist as a level-panel in the one universe page
-        self.assertIn('data-path="{0}"'.format(path), self.u)
-        self.assertIn("Locate in Universe", self.d)
+        self.assertEqual(hrefs, [])
+        self.assertIn("0 companies are surfaced", self.d)
 
-    # --- the planet template exposes the accepted cockpit link ------------
-    def test_planet_template_exposes_cockpit_link(self):
-        self.assertIn("Open Cockpit", self.d)
-        self.assertIn('href="cockpit.html"', self.u)   # from the IREN planet template
+    # --- the planet template does not expose a default cockpit link --------
+    def test_planet_template_has_no_default_cockpit_link(self):
+        self.assertIn("Company Cockpit appears only for active-run Capital Candidates", self.u)
+        self.assertNotIn('data-cockpit="cockpit.html"', self.u)
 
     # --- the top canvas is an immersive CSS deep-space scene (no star-div flood) -
     def test_top_canvas_is_a_css_space_scene(self):
@@ -655,13 +648,12 @@ class ZoomableUniverseTests(unittest.TestCase):
 
     # 5. candidate planet hover summary carries the required existing fields
     def test_planet_hover_summary_fields(self):
-        i = self.u.find("<b>(IREN)</b>")
-        self.assertGreater(i, 0, "IREN preview chip not found")
-        seg = self.u[i:i + 800]
+        i = self.u.find("Demo Neocloud Operator")
+        self.assertGreater(i, 0, "synthetic planet preview chip not found")
+        seg = self.u[i:i + 1600]
         for field in ("mega theme / galaxy", "value-chain role", "candidate bucket",
                       "top reason", "top risk", "market cap"):
             self.assertIn(field, seg, "planet hover missing {0}".format(field))
-        self.assertIn("Timing-Confirmed", seg)             # its EXISTING status bucket
         self.assertIn("AI Infrastructure", seg)
 
     # 6. every briefing OPENS with the five-line executive header
@@ -771,13 +763,13 @@ class VisualSizeEncodingTests(unittest.TestCase):
     def setUpClass(cls):
         cls.slice = load_iren_slice()
         cls.view = build_economic_universe_view(cls.slice)
-        cls.cards = {c.ticker: c
-                     for b in cls.view.dashboard.buckets for c in b.cards}
+        cls.planets = {p.ticker: p for t in cls.view.themes for p in t.planets}
         cls.clusters = {c.theme_name: c for c in cls.view.clusters}
 
     def _bucket_of(self, ticker):
+        p = self.planets[ticker]
         return [b.name for b in self.view.dashboard.buckets
-                if any(c.ticker == ticker for c in b.cards)]
+                if any(c.ticker == p.ticker for c in b.cards)]
 
     # --- planet size derived from market_cap, monotonic & bounded ---------
     def test_planet_size_from_market_cap_monotonic(self):
@@ -788,9 +780,9 @@ class VisualSizeEncodingTests(unittest.TestCase):
         self.assertLess(mid, mega)
         self.assertGreaterEqual(small, MIN_PX)
         self.assertLessEqual(mega, MAX_PX)
-        # NVIDIA-scale planet is drawn larger than a small-cap planet.
-        self.assertGreater(self.cards["(demo) MEGAX"].visual_size_px,
-                           self.cards["(demo) SMALLX"].visual_size_px)
+        self.assertGreater(
+            self.planets["Synthetic Accelerator Vendor"].visual_size_px,
+            self.planets["Synthetic Scarce Component Supplier"].visual_size_px)
 
     # --- galaxy size derived from theme_tam -------------------------------
     def test_galaxy_size_from_theme_tam(self):
@@ -801,19 +793,19 @@ class VisualSizeEncodingTests(unittest.TestCase):
 
     # --- missing magnitude -> neutral size + data-gap marker + dashed -----
     def test_missing_magnitude_uses_default_and_gap_marker(self):
-        actx = self.cards["(demo) ACTX"]            # market_cap None
-        self.assertTrue(actx.magnitude_missing)
-        self.assertEqual(actx.visual_size_px, DEFAULT_PX)
+        actuator = self.planets["Synthetic Actuator Supplier"]  # market_cap None
+        self.assertTrue(actuator.magnitude_missing)
+        self.assertEqual(actuator.visual_size_px, DEFAULT_PX)
         phai = self.clusters["Physical AI"]          # theme_tam None
         self.assertTrue(phai.magnitude_missing)
         self.assertEqual(phai.visual_size_px, DEFAULT_PX)
         # the dashed outline + gap marker are rendered on the page
         tmp = tempfile.mkdtemp(prefix="uui_gap_")
         paths = _build(tmp)
-        with open(paths["dashboard.html"], encoding="utf-8") as fh:
-            dash = fh.read()
-        self.assertIn("magnitude missing", dash.lower())
-        self.assertIn("dashed", dash.lower())
+        with open(paths["universe.html"], encoding="utf-8") as fh:
+            uni = fh.read()
+        self.assertIn("magnitude missing", uni.lower())
+        self.assertIn("dashed", uni.lower())
 
     # --- size does NOT affect ranking / bucket / ordering -----------------
     def test_size_does_not_affect_bucket_or_ordering(self):
@@ -834,8 +826,8 @@ class VisualSizeEncodingTests(unittest.TestCase):
 
     # --- brightness/heat is separate from size ----------------------------
     def test_brightness_separate_from_size(self):
-        mega = self.cards["(demo) MEGAX"]    # large size, weak status
-        small = self.cards["(demo) SMALLX"]  # small size, strong status
+        mega = self.planets["Synthetic Accelerator Vendor"]    # large size, weak status
+        small = self.planets["Synthetic Scarce Component Supplier"]  # small size, strong status
         self.assertGreater(mega.visual_size_px, small.visual_size_px)   # size: mega bigger
         self.assertGreater(small.glow_level, mega.glow_level)           # glow: small brighter
         # glow is a pure function of status, independent of market_cap
@@ -847,10 +839,8 @@ class VisualSizeEncodingTests(unittest.TestCase):
 
     # --- a large existing company does NOT auto-become a top candidate ----
     def test_megacap_weak_status_not_top_candidate(self):
-        buckets = self._bucket_of("(demo) MEGAX")
-        self.assertNotIn(BUCKET_HIGHEST_CONVICTION, buckets)
-        self.assertNotIn(BUCKET_TIMING_CONFIRMED, buckets)
-        self.assertIn("Early Watchlist", buckets)
+        self.assertEqual(self.view.dashboard.total_candidates, 0)
+        self.assertEqual(self._bucket_of("Synthetic Accelerator Vendor"), [])
 
     # --- raw magnitude appears in the card details ------------------------
     def test_raw_magnitude_visible_in_details(self):
@@ -860,8 +850,8 @@ class VisualSizeEncodingTests(unittest.TestCase):
             dash = fh.read()
         with open(paths["universe.html"], encoding="utf-8") as fh:
             uni = fh.read()
-        self.assertIn("market cap (DEMO)", dash)      # raw label present
-        self.assertIn("$3.40T", dash)                 # MEGAX raw market cap
+        self.assertIn("market cap", uni)              # raw label present
+        self.assertIn("$3.40T", uni)                  # synthetic accelerator raw market cap
         self.assertIn("mega-theme TAM (DEMO)", uni)   # galaxy raw TAM label
 
 
@@ -1236,13 +1226,12 @@ class VisualReferenceAlignmentTests(unittest.TestCase):
             self.assertNotIn(retired, self.dq)
 
     def test_dashboard_executive_candidate_cards(self):
-        self.assertIn('class="card', self.dash)            # glass candidate cards
-        self.assertIn("Locate in Universe", self.dash)
-        self.assertIn("Open Cockpit", self.dash)
+        self.assertIn("no active-run Capital Candidates", self.dash)
+        self.assertIn("0 companies are surfaced", self.dash)
         self.assertIn("CosmosIQ Capital", self.dash)
         for bad in ("<button", "<form", " buy ", " sell "):
             self.assertNotIn(bad, self.dash.lower())
 
-    def test_floating_preview_has_cockpit_action_for_planet(self):
+    def test_floating_preview_hides_cockpit_without_active_candidate(self):
         self.assertIn('id="fp-cockpit"', self.u)           # Open-cockpit button
-        self.assertIn("data-cockpit=", self.u)             # a planet carries a cockpit link
+        self.assertNotIn('data-cockpit="cockpit.html"', self.u)

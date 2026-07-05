@@ -1,10 +1,9 @@
 """Build the demo Economic-Universe terrain AS a typed :class:`UniverseTerrain`.
 
-``build_demo_terrain(iren_slice)`` is a FAITHFUL re-expression of the existing frozen
-demo data (:func:`universe_ui.demo_universe.build_demo_universe`) plus the one real
-IREN evidence-alpha slice, projected into the typed metadata model of
-:mod:`universe_ui.terrain`. It is the SOURCE OF TRUTH the renderer and the Data-Quality
-control panel consume.
+``build_demo_terrain()`` is a faithful projection of the frozen synthetic demo data
+(:func:`universe_ui.demo_universe.build_demo_universe`) into the typed metadata model
+of :mod:`universe_ui.terrain`. It is the source of truth the renderer and the default
+Data-Quality control panel consume.
 
 Discipline (identical to the rest of this package):
 
@@ -13,8 +12,9 @@ Discipline (identical to the rest of this package):
   heat, :func:`assign_buckets` / :func:`card_label_for` for a company's candidate
   bucket, and a data-quality colour/opacity map. Size encodes economic magnitude only
   and stays decoupled from ranking.
-* **IREN is the one real anchor.** Its statuses / source-authority badges come from the
-  real slice via :func:`_iren_real_status`; all other planets are demo terrain.
+* **No real ticker in default demo.** Historical evidence-alpha slices stay in explicit
+  fixture / real-run paths. The default product UI uses synthetic, non-tradeable
+  company placeholders only.
 * **Node ids match the render / zoom-path scheme** (galaxy id = galaxy slug, value
   chain = ``{gslug}--{vc-slug}``, bottleneck = ``{gslug}--star-N``, planet =
   :func:`planet_universe_path`, dependency = the demo node id) so the projected view
@@ -346,9 +346,16 @@ def _galaxy_node(g: DemoGalaxy, iren_slice) -> GalaxyNode:
 
 
 # --------------------------------------------------------------------------- #
-# Data-quality bundle (sourced from the real IREN slice, carried by terrain)   #
+# Data-quality bundle for the default synthetic demo terrain                   #
 # --------------------------------------------------------------------------- #
 def _data_quality_bundle(iren_slice):
+    if iren_slice is None:
+        return (
+            {"canonical": 0, "convenience": 0, "fallback": 0, "signal": 0, "factual": 0},
+            ("demo terrain only: no active run candidate provenance",),
+            (),
+            (),
+        )
     ing = iren_slice.ingestion_result
     ia = iren_slice.intelligence_assessment
     authority = getattr(ing, "authority_summary", {}) or {}
@@ -389,7 +396,7 @@ def _relationship_edges(galaxies) -> Tuple[RelationshipEdge, ...]:
     return tuple(out)
 
 
-def build_demo_terrain(iren_slice, universe=None) -> UniverseTerrain:
+def build_demo_terrain(iren_slice=None, universe=None) -> UniverseTerrain:
     """Build the demo terrain AS a typed :class:`UniverseTerrain` (source of truth)."""
     universe = universe or build_demo_universe()
     galaxies = tuple(_galaxy_node(g, iren_slice) for g in universe.galaxies)

@@ -167,9 +167,10 @@ class DemoTerrainTests(unittest.TestCase):
         moons = [n for _i, n in t.all_nodes() if isinstance(n, DependencyNode)]
         self.assertTrue(themes and vcs and bns and planets and moons)
         self.assertTrue(t.relationship_edges)
-        # the one real anchor is IREN
+        # default demo has no real ticker anchor
         real = [c for c in planets if c.is_real]
-        self.assertEqual([c.ticker for c in real], ["IREN"])
+        self.assertEqual(real, [])
+        self.assertTrue(any(c.ticker == "Synthetic Neocloud Operator" for c in planets))
 
     def test_validate_passes_clean(self):
         self.assertEqual(self.terrain.validate(), ())
@@ -194,10 +195,10 @@ class DemoTerrainTests(unittest.TestCase):
         gids = {g.id for g in self.terrain.galaxies}
         self.assertIn("power-grid", gids)
         self.assertIn("ai-infrastructure", gids)
-        iren = _company_by_ticker(self.terrain, "IREN")
-        self.assertIsNotNone(iren)
-        self.assertTrue(iren.id.startswith("universe/g:ai-infrastructure"))
-        self.assertTrue(iren.id.endswith("pl:iren"))
+        synthetic = _company_by_ticker(self.terrain, "Synthetic Neocloud Operator")
+        self.assertIsNotNone(synthetic)
+        self.assertTrue(synthetic.id.startswith("universe/g:ai-infrastructure"))
+        self.assertTrue(synthetic.id.endswith("pl:synthetic-neocloud-operator"))
 
     def test_catalysts_and_risks_are_typed_nodes(self):
         cats = [n for _i, n in self.terrain.all_nodes() if isinstance(n, CatalystNode)]
@@ -246,9 +247,9 @@ class RendererFromTerrainTests(unittest.TestCase):
         for g in self.terrain.galaxies:
             self.assertIn('id="intel-g-{0}"'.format(g.id), u)
             self.assertIn("g:{0}".format(g.id), u)
-        # the IREN planet id (a terrain node id) is the data-path in the HTML
-        iren = _company_by_ticker(self.terrain, "IREN")
-        self.assertIn('data-path="{0}"'.format(iren.id), u)
+        # a synthetic planet id (a terrain node id) is the data-path in the HTML
+        synthetic = _company_by_ticker(self.terrain, "Synthetic Neocloud Operator")
+        self.assertIn('data-path="{0}"'.format(synthetic.id), u)
 
     def test_every_data_intel_resolves(self):
         u = self.html["universe.html"]
@@ -262,17 +263,21 @@ class RendererFromTerrainTests(unittest.TestCase):
         gnode = {g.id: g for g in self.terrain.galaxies}
         for c in self.view.clusters:
             self.assertEqual(c.visual_size_px, gnode[c.slug].visual_encoding.size_value)
-        iren_planet = [p for t in self.view.themes for p in t.planets if p.is_real][0]
-        iren_node = _company_by_ticker(self.terrain, "IREN")
-        self.assertEqual(iren_planet.visual_size_px, iren_node.visual_encoding.size_value)
-        self.assertEqual(iren_planet.glow_level, iren_node.visual_encoding.glow_level)
+        synthetic_planet = [p for t in self.view.themes for p in t.planets
+                            if p.ticker == "Synthetic Neocloud Operator"][0]
+        synthetic_node = _company_by_ticker(self.terrain, "Synthetic Neocloud Operator")
+        self.assertEqual(synthetic_planet.visual_size_px,
+                         synthetic_node.visual_encoding.size_value)
+        self.assertEqual(synthetic_planet.glow_level,
+                         synthetic_node.visual_encoding.glow_level)
 
     def test_source_badges_derive_from_terrain(self):
-        iren_node = _company_by_ticker(self.terrain, "IREN")
-        iren_planet = [p for t in self.view.themes for p in t.planets if p.is_real][0]
-        self.assertEqual(iren_planet.source_authority_badges, iren_node.source_refs)
+        synthetic_node = _company_by_ticker(self.terrain, "Synthetic Neocloud Operator")
+        synthetic_planet = [p for t in self.view.themes for p in t.planets
+                            if p.ticker == "Synthetic Neocloud Operator"][0]
+        self.assertEqual(synthetic_planet.source_authority_badges, synthetic_node.source_refs)
         # and those exact badges render on the page
-        for badge in iren_node.source_refs:
+        for badge in synthetic_node.source_refs:
             self.assertIn(badge, self.html["universe.html"])
 
     def test_data_gaps_and_data_quality_derive_from_terrain(self):
@@ -374,8 +379,8 @@ class TerrainGuardrailTests(unittest.TestCase):
 
     def test_size_decoupled_from_ranking_in_terrain(self):
         terrain = build_demo_terrain(load_iren_slice())
-        mega = _company_by_ticker(terrain, "(demo) MEGAX")   # big cap, weak status
-        small = _company_by_ticker(terrain, "(demo) SMALLX")  # small cap, strong status
+        mega = _company_by_ticker(terrain, "Synthetic Accelerator Vendor")
+        small = _company_by_ticker(terrain, "Synthetic Scarce Component Supplier")
         self.assertIsNotNone(mega)
         self.assertIsNotNone(small)
         # size follows magnitude ...
