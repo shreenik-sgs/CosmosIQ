@@ -41,6 +41,7 @@ from reality_mesh import (
     SignalStore,
     ThemePulseStore,
     alerts_with_status,
+    latest_delivery_status,
     schedule_to_dict,
 )
 from reality_mesh import labels as _labels
@@ -101,6 +102,24 @@ _BAD = frozenset({"failed", "fail", "blocked_by_policy", "rate_limited",
 
 # Alert severity label -> badge kind (a human-attention ladder, never a score).
 _SEVERITY_KINDS = {"info": "ok", "notice": "warn", "warning": "bad", "critical": "bad"}
+
+# Delivery status label -> badge kind + human phrasing (020E). A LABEL, never a score.
+_DELIVERY_KINDS = {
+    "delivered": "ok",
+    "not_delivered": "warn",
+    "suppressed_by_mode": "warn",
+    "suppressed_by_policy": "warn",
+    "failed_retryable": "bad",
+    "failed_permanent": "bad",
+}
+_DELIVERY_DISPLAY = {
+    "delivered": "delivered",
+    "not_delivered": "not delivered",
+    "suppressed_by_mode": "suppressed (mode)",
+    "suppressed_by_policy": "suppressed (policy)",
+    "failed_retryable": "failed (retryable)",
+    "failed_permanent": "failed (permanent)",
+}
 
 # Display names for gate categories whose raw id would put a sensitive-looking token into
 # the page (the page itself must stay free of credential-like and trade-like words).
@@ -622,19 +641,25 @@ def render_alert_inbox(store_dir: str) -> str:
         review_cell = _badge(review, "warn") if review else "&mdash;"
         dq_state = str(getattr(alert, "dq_state", "") or "")
         review_cell += (" &middot; DQ {0}".format(_esc(dq_state)) if dq_state else "")
+        delivery = str(latest_delivery_status(store_dir, alert.alert_id) or "")
+        delivery_cell = (
+            _badge(_DELIVERY_DISPLAY.get(delivery, delivery), _DELIVERY_KINDS.get(delivery, "warn"))
+            if delivery else "&mdash;")
         rows += (
             "<tr><th>{sev}</th><td>{mode}</td><td>{cat}</td><td>{reason}</td><td>{review}</td>"
-            "<td>{run}</td><td>{subjects}</td><td>{created}</td><td>{action}</td></tr>").format(
+            "<td>{delivery}</td><td>{run}</td><td>{subjects}</td><td>{created}</td>"
+            "<td>{action}</td></tr>").format(
                 sev=_badge(alert.severity, _SEVERITY_KINDS.get(alert.severity, "warn")),
                 mode=mode_cell,
                 cat=_esc(str(alert.category).replace("_", " ")),
                 reason=_esc(alert.human_readable_reason), review=review_cell,
+                delivery=delivery_cell,
                 run=_esc(alert.run_id), subjects=_esc(subjects),
                 created=_esc(alert.created_at), action=action)
     table = (
         '<div class="panel"><table class="kv"><tr><th>Severity</th><td>Mode</td>'
         "<td>Category</td><td>Reason (plain English)</td><td>Recommended review</td>"
-        "<td>Run</td><td>Subjects</td><td>Created</td><td>Status</td></tr>"
+        "<td>Delivery</td><td>Run</td><td>Subjects</td><td>Created</td><td>Status</td></tr>"
         + rows + "</table></div>")
     return _page(store_dir, "Alert inbox", "/alerts", note + shadow_note + table)
 
