@@ -271,6 +271,18 @@ from .discovery import (
     discovery_id_for,
     trigger_diligence_input,
 )
+from .recommendation import (
+    CAPITAL_RECOMMENDATION_MODELS,
+    FORBIDDEN_RECOMMENDATION_LABELS,
+    PUBLICATION_STATES,
+    RECOMMENDATION_DATA_QUALITY_STATES,
+    RECOMMENDATION_LABELS,
+    RECOMMENDATION_STATES,
+    RECOMMENDATION_STATE_LABELS,
+    CapitalRecommendation,
+    assess_recommendation,
+    recommendation_id_for,
+)
 from .theme_graph import (
     DEPENDENCY_TYPES,
     GRAPH_MODELS,
@@ -795,6 +807,17 @@ __all__ = [
     "discover_candidates",
     "discovery_id_for",
     "trigger_diligence_input",
+    # typed CapitalRecommendation contract -- the model ABOVE CapitalCandidate (022A)
+    "RECOMMENDATION_STATES",
+    "RECOMMENDATION_LABELS",
+    "FORBIDDEN_RECOMMENDATION_LABELS",
+    "RECOMMENDATION_STATE_LABELS",
+    "RECOMMENDATION_DATA_QUALITY_STATES",
+    "PUBLICATION_STATES",
+    "CAPITAL_RECOMMENDATION_MODELS",
+    "CapitalRecommendation",
+    "assess_recommendation",
+    "recommendation_id_for",
     # theme / value-chain / chokepoint knowledge graph -- the MAP (021D-GRAPH)
     "DEPENDENCY_TYPES",
     "GRAPH_MODELS",
