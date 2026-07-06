@@ -322,6 +322,22 @@ from .replay_calibration import (
     render_calibration_report,
     run_replay_calibration,
 )
+from .recommendation_activation import (
+    MODE_LADDER,
+    RECOMMENDATION_ACTIVATION_ITEMS,
+    RECOMMENDATION_MODES,
+    RecommendationActivationItem,
+    RecommendationActivationReport,
+    RecommendationMode,
+    RecommendationPromotionDecision,
+    RecommendationVerdict,
+    can_enter_production_recommendation,
+    default_recommendation_mode,
+    evaluate_recommendation_activation,
+    promote_recommendation_mode,
+    rollback_recommendation_mode,
+    run_recommendation_checks,
+)
 from .technical_timing import (
     FRESH_TIMING_LABELS,
     RISK_REWARD_LABELS,
@@ -922,6 +938,22 @@ __all__ = [
     "record_calibration",
     "render_calibration_report",
     "run_replay_calibration",
+    # recommendation activation gate -- production RECOMMENDATION mode can't enable unless all
+    # gates pass; mirrors 020F, one layer up (022H)
+    "RecommendationMode",
+    "RECOMMENDATION_MODES",
+    "RecommendationVerdict",
+    "RECOMMENDATION_ACTIVATION_ITEMS",
+    "RecommendationActivationItem",
+    "RecommendationActivationReport",
+    "RecommendationPromotionDecision",
+    "MODE_LADDER",
+    "run_recommendation_checks",
+    "evaluate_recommendation_activation",
+    "can_enter_production_recommendation",
+    "default_recommendation_mode",
+    "promote_recommendation_mode",
+    "rollback_recommendation_mode",
     # timing / technical setup gate -- TechnicalTimingSetup feeding gate 11 (022C)
     "TECHNICAL_SETUP_STATES",
     "TECHNICAL_SETUP_STATE_LABELS",
