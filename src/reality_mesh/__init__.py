@@ -309,6 +309,19 @@ from .recommendation_gates import (
     RecommendationGateOutcome,
     evaluate_recommendation,
 )
+from .replay_calibration import (
+    EXPECTATION_LABELS,
+    SCENARIO_KINDS,
+    ReplayCalibrationCase,
+    ReplayCalibrationResult,
+    ReplayCalibrationStore,
+    build_illustrative_cases,
+    calibration_results,
+    calibration_summary,
+    record_calibration,
+    render_calibration_report,
+    run_replay_calibration,
+)
 from .technical_timing import (
     FRESH_TIMING_LABELS,
     RISK_REWARD_LABELS,
@@ -897,6 +910,18 @@ __all__ = [
     "HardGate",
     "RecommendationGateOutcome",
     "evaluate_recommendation",
+    # historical replay calibration -- SAME 022B gates over illustrative replay cases (022G)
+    "SCENARIO_KINDS",
+    "EXPECTATION_LABELS",
+    "ReplayCalibrationCase",
+    "ReplayCalibrationResult",
+    "ReplayCalibrationStore",
+    "build_illustrative_cases",
+    "calibration_results",
+    "calibration_summary",
+    "record_calibration",
+    "render_calibration_report",
+    "run_replay_calibration",
     # timing / technical setup gate -- TechnicalTimingSetup feeding gate 11 (022C)
     "TECHNICAL_SETUP_STATES",
     "TECHNICAL_SETUP_STATE_LABELS",
