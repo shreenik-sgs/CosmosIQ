@@ -308,6 +308,17 @@ from .technical_timing import (
     technical_timing_acceptable,
     technical_timing_id_for,
 )
+from .portfolio_fit import (
+    DATA_AVAILABILITY_STATES,
+    PORTFOLIO_FIT_STATE_LABELS,
+    PORTFOLIO_FIT_STATES,
+    RISK_BANDS,
+    SIZING_GUARDRAIL_LABELS,
+    PortfolioFit,
+    assess_portfolio_fit,
+    portfolio_fit_acceptable,
+    portfolio_fit_id_for,
+)
 from .theme_graph import (
     DEPENDENCY_TYPES,
     GRAPH_MODELS,
@@ -866,6 +877,16 @@ __all__ = [
     "assess_technical_timing",
     "technical_timing_acceptable",
     "technical_timing_id_for",
+    # portfolio fit / sizing guardrail gate -- PortfolioFit feeding gate 12 (022D)
+    "PORTFOLIO_FIT_STATES",
+    "PORTFOLIO_FIT_STATE_LABELS",
+    "SIZING_GUARDRAIL_LABELS",
+    "RISK_BANDS",
+    "DATA_AVAILABILITY_STATES",
+    "PortfolioFit",
+    "assess_portfolio_fit",
+    "portfolio_fit_acceptable",
+    "portfolio_fit_id_for",
     # theme / value-chain / chokepoint knowledge graph -- the MAP (021D-GRAPH)
     "DEPENDENCY_TYPES",
     "GRAPH_MODELS",
