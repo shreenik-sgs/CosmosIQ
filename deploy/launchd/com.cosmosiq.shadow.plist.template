@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CosmosIQ supervised service — SHADOW_24X7 launchd template (IMPLEMENTATION-023C).
+
+  SAFE: this template runs the supervised operator service in SHADOW_24X7 ONLY (inbox-only
+  alerts, no external delivery, no broker). It NEVER runs production. Continuous
+  PRODUCTION_24X7 is the explicit `cosmosiq_ops activate` + operator sign-off path — it is
+  never launched by a launchd job.
+
+  Fill in every __PLACEHOLDER__ (they are NOT real paths / values), copy the result to
+  ~/Library/LaunchAgents/com.cosmosiq.shadow.plist, then:  launchctl load <that path>.
+  Secrets (if any) are injected via your login environment / a wrapper — never written here.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.cosmosiq.shadow</string>
+
+    <key>WorkingDirectory</key>
+    <string>__REPO_ROOT__</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONPATH</key>
+        <string>__REPO_ROOT__/src</string>
+        <!-- The 023A shadow-local profile: SHADOW_24X7 posture, never production. -->
+        <key>COSMOSIQ_PROFILE</key>
+        <string>shadow_local</string>
+    </dict>
+
+    <!-- SAFE: --mode shadow_24x7 only. There is deliberately no production_24x7 job. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>-m</string>
+        <string>cosmosiq_service</string>
+        <string>start</string>
+        <string>--mode</string>
+        <string>shadow_24x7</string>
+        <string>--store-dir</string>
+        <string>__STORE_DIR__</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>__LOG_DIR__/com.cosmosiq.shadow.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>__LOG_DIR__/com.cosmosiq.shadow.err.log</string>
+</dict>
+</plist>

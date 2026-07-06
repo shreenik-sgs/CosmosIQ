@@ -322,22 +322,35 @@ from .replay_calibration import (
     render_calibration_report,
     run_replay_calibration,
 )
-from .recommendation_activation import (
-    MODE_LADDER,
-    RECOMMENDATION_ACTIVATION_ITEMS,
-    RECOMMENDATION_MODES,
-    RecommendationActivationItem,
-    RecommendationActivationReport,
-    RecommendationMode,
-    RecommendationPromotionDecision,
-    RecommendationVerdict,
-    can_enter_production_recommendation,
-    default_recommendation_mode,
-    evaluate_recommendation_activation,
-    promote_recommendation_mode,
-    rollback_recommendation_mode,
-    run_recommendation_checks,
+# recommendation_activation (022H) is imported LAZILY via __getattr__ (PEP 562): it depends on the
+# cosmosiq_service SHELL (the 020F activation core), so eager-importing it here would create a
+# core->shell import cycle when `cosmosiq_service` is imported first (the `python3 -m cosmosiq_service`
+# entrypoint). Accessing e.g. reality_mesh.evaluate_recommendation_activation resolves it on demand,
+# by which point cosmosiq_service has finished initialising. See _LAZY_RECOMMENDATION_ACTIVATION below.
+_LAZY_RECOMMENDATION_ACTIVATION = (
+    "MODE_LADDER",
+    "RECOMMENDATION_ACTIVATION_ITEMS",
+    "RECOMMENDATION_MODES",
+    "RecommendationActivationItem",
+    "RecommendationActivationReport",
+    "RecommendationMode",
+    "RecommendationPromotionDecision",
+    "RecommendationVerdict",
+    "can_enter_production_recommendation",
+    "default_recommendation_mode",
+    "evaluate_recommendation_activation",
+    "promote_recommendation_mode",
+    "rollback_recommendation_mode",
+    "run_recommendation_checks",
 )
+
+
+def __getattr__(name):
+    """PEP 562 lazy re-export of the 022H recommendation-activation symbols (see note above)."""
+    if name in _LAZY_RECOMMENDATION_ACTIVATION:
+        from . import recommendation_activation as _ra
+        return getattr(_ra, name)
+    raise AttributeError("module {0!r} has no attribute {1!r}".format(__name__, name))
 from .technical_timing import (
     FRESH_TIMING_LABELS,
     RISK_REWARD_LABELS,

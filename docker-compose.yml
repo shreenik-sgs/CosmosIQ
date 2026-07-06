@@ -1,0 +1,42 @@
+# CosmosIQ — local-first Compose (IMPLEMENTATION-023C).
+#
+# SAFE BY DEFAULT. The single service starts the localhost-only operator app against a
+# PERSISTENT store volume, with COSMOSIQ_PROFILE=test_offline. It NEVER enables production:
+# PRODUCTION_24X7 / production_manual_review activation is the explicit `cosmosiq_ops
+# activate` + operator sign-off path — never a compose default.
+#
+# SECRETS come from a RUNTIME env-file (.env, gitignored) — never baked into the image.
+# Copy the committed template first:  cp .env.example .env  (then edit .env with your values).
+#
+# HONEST NOTE: `docker compose up` is the OPERATOR's step; the offline test suite does not
+# build or run this — it validates the packaging structure only.
+
+services:
+  cosmosiq:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cosmosiq:local
+    container_name: cosmosiq
+    # SAFE default command — the localhost operator app. NOT production, no scheduler daemon.
+    command: ["python3", "-m", "cosmosiq_app", "--store-dir", "/data/store", "--host", "127.0.0.1", "--port", "8016"]
+    environment:
+      # The 023A SAFE default profile — never the production profile.
+      COSMOSIQ_PROFILE: test_offline
+    # Runtime secret injection (presence-only, never baked into the image). The .env is
+    # gitignored; only .env.example is committed. Create it with `cp .env.example .env`.
+    env_file:
+      - .env
+    volumes:
+      - cosmosiq_store:/data/store        # persistent append-only store (survives restarts)
+      - ./config:/app/config:ro           # config mount (read-only)
+      - ./_cosmosiq_logs:/data/logs       # logs mount
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import sys; from cosmosiq_app.api import dispatch; r=dispatch({'method':'GET','path':'/api/health','query':{},'body':None}, store_dir='/data/store', now='1970-01-01T00:00:00Z'); sys.exit(0 if r.get('status')==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  cosmosiq_store:
