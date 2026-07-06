@@ -283,6 +283,18 @@ from .recommendation import (
     assess_recommendation,
     recommendation_id_for,
 )
+from .recommendation_journal import (
+    JOURNAL_STATUSES,
+    JOURNAL_STATUS_OUTCOME,
+    RecommendationJournalEntry,
+    RecommendationJournalStore,
+    feed_learning,
+    journal_id_for,
+    journal_recommendation,
+    journaled,
+    open_recommendations,
+    record_outcome,
+)
 from .recommendation_gates import (
     ACCEPTABLE_DATA_QUALITY_STATES,
     CORROBORATION_AUTHORITIES,
@@ -861,6 +873,17 @@ __all__ = [
     "CapitalRecommendation",
     "assess_recommendation",
     "recommendation_id_for",
+    # paper recommendation journal -- append-only, correction-not-mutation, feeds 017 (022F)
+    "JOURNAL_STATUSES",
+    "JOURNAL_STATUS_OUTCOME",
+    "RecommendationJournalEntry",
+    "RecommendationJournalStore",
+    "feed_learning",
+    "journal_id_for",
+    "journal_recommendation",
+    "journaled",
+    "open_recommendations",
+    "record_outcome",
     # recommendation eligibility gate engine -- 15 hard gates, actionable-only-if-all-pass (022B)
     "RECOMMENDATION_HARD_GATES",
     "HARD_GATE_IDS",
