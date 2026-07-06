@@ -111,3 +111,12 @@ from cosmosiq_ops.observability import (  # noqa: F401
     render_health_json,
     render_metrics,
 )
+from cosmosiq_ops.security_audit import (  # noqa: F401
+    AUDIT_PACKAGES,
+    INTELLIGENCE_PACKAGES,
+    SecurityAuditCategory,
+    SecurityAuditReport,
+    render_security_audit,
+    run_security_audit,
+    scan_text_for_secret_values,
+)

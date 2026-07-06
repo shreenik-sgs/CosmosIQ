@@ -221,6 +221,24 @@ def _cmd_rollback(args: argparse.Namespace) -> int:
     return 0 if outcome.allowed else 1
 
 
+def _cmd_security_audit(args: argparse.Namespace) -> int:
+    from cosmosiq_ops.security_audit import render_security_audit, run_security_audit
+    report = run_security_audit(args.repo_root or _default_repo_root(), now=args.now)
+    text = render_security_audit(report)
+    print(text)
+    if args.report_out:
+        parent = os.path.dirname(os.path.abspath(args.report_out))
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        with open(args.report_out, "w", encoding="utf-8") as fh:
+            fh.write(text if text.endswith("\n") else text + "\n")
+        print("  report written: {0}".format(args.report_out))
+    print("security_audit_passed={0} categories_failed={1}".format(
+        str(report.passed).lower(), ", ".join(report.categories_failed) or "none"))
+    # Non-zero on ANY failed category -- an honest deployment gate refuses on a real finding.
+    return 0 if report.passed else 1
+
+
 def _cmd_smoke(args: argparse.Namespace) -> int:
     report = run_production_smoke(args.work_dir, now=args.now)
     print(format_smoke_report(report))
@@ -409,6 +427,17 @@ def _build_parser() -> argparse.ArgumentParser:
                           help="the named rollback trigger (default: operator_manual)")
     rollback.add_argument("--now", default=DEFAULT_NOW, help="injected instant (deterministic)")
     rollback.set_defaults(func=_cmd_rollback)
+
+    audit = sub.add_parser(
+        "security-audit",
+        help="the Phase-023H security / compliance / audit pass: run every guardrail category "
+             "and refuse (non-zero) on any real finding")
+    audit.add_argument("--repo-root", default=None,
+                       help="repo root to sweep (default: this checkout)")
+    audit.add_argument("--now", default=DEFAULT_NOW, help="injected instant (deterministic)")
+    audit.add_argument("--report-out", default=None,
+                       help="path to write reports/SECURITY_AUDIT_023H.md")
+    audit.set_defaults(func=_cmd_security_audit)
 
     smoke = sub.add_parser("smoke", help="run the full operator chain offline")
     smoke.add_argument("--work-dir", required=True, help="fresh scratch work dir")
