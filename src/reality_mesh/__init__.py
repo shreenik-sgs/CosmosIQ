@@ -628,6 +628,23 @@ from .portfolio import (
     load_holdings,
     ticker_theme_map,
 )
+from .position_ledger import (
+    EXECUTION_FIELD_TOKENS,
+    FILL_SIDES,
+    LEDGER_MODELS,
+    SIDE_BOUGHT,
+    SIDE_SOLD,
+    Holding,
+    LedgerOutcomeLink,
+    PositionFill,
+    PositionLedgerStore,
+    assert_no_execution_fields,
+    compute_holdings,
+    fill_id_for,
+    holdings_for_portfolio_intelligence,
+    outcomes_for_learning,
+    record_fill,
+)
 from .reviews import (
     JOURNAL_VERDICTS,
     POSTMORTEM_LABELS,
@@ -1231,6 +1248,23 @@ __all__ = [
     "compare_candidate",
     "load_holdings",
     "ticker_theme_map",
+    # manual position ledger -- append-only bookkeeping of EXECUTED trades; feeds 018 +
+    # 017/022F; record-only, no broker / no order submission (UX-2)
+    "EXECUTION_FIELD_TOKENS",
+    "FILL_SIDES",
+    "SIDE_BOUGHT",
+    "SIDE_SOLD",
+    "LEDGER_MODELS",
+    "Holding",
+    "LedgerOutcomeLink",
+    "PositionFill",
+    "PositionLedgerStore",
+    "assert_no_execution_fields",
+    "compute_holdings",
+    "fill_id_for",
+    "holdings_for_portfolio_intelligence",
+    "outcomes_for_learning",
+    "record_fill",
     # learning reviews -- thesis journal + postmortem / red-team / timing /
     # expert-account / archetype / experience records (017B)
     "JOURNAL_VERDICTS",
