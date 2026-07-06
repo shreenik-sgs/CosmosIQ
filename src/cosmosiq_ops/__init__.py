@@ -37,6 +37,14 @@ from cosmosiq_ops.env_config import (  # noqa: F401
     format_env_report,
 )
 from cosmosiq_ops.perf import PerfReport, format_perf_report, run_perf_probe  # noqa: F401
+from cosmosiq_ops.env_profiles import (  # noqa: F401
+    DEFAULT_PROFILE_ID,
+    PROFILES,
+    EnvironmentProfile,
+    default_profile,
+    get_profile,
+    resolve_profile,
+)
 from cosmosiq_ops.smoke import (  # noqa: F401
     SmokeReport,
     format_smoke_report,
