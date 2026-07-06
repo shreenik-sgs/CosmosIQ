@@ -297,6 +297,17 @@ from .recommendation_gates import (
     RecommendationGateOutcome,
     evaluate_recommendation,
 )
+from .technical_timing import (
+    FRESH_TIMING_LABELS,
+    RISK_REWARD_LABELS,
+    SOURCE_MODES,
+    TECHNICAL_SETUP_STATES,
+    TECHNICAL_SETUP_STATE_LABELS,
+    TechnicalTimingSetup,
+    assess_technical_timing,
+    technical_timing_acceptable,
+    technical_timing_id_for,
+)
 from .theme_graph import (
     DEPENDENCY_TYPES,
     GRAPH_MODELS,
@@ -845,6 +856,16 @@ __all__ = [
     "HardGate",
     "RecommendationGateOutcome",
     "evaluate_recommendation",
+    # timing / technical setup gate -- TechnicalTimingSetup feeding gate 11 (022C)
+    "TECHNICAL_SETUP_STATES",
+    "TECHNICAL_SETUP_STATE_LABELS",
+    "RISK_REWARD_LABELS",
+    "SOURCE_MODES",
+    "FRESH_TIMING_LABELS",
+    "TechnicalTimingSetup",
+    "assess_technical_timing",
+    "technical_timing_acceptable",
+    "technical_timing_id_for",
     # theme / value-chain / chokepoint knowledge graph -- the MAP (021D-GRAPH)
     "DEPENDENCY_TYPES",
     "GRAPH_MODELS",
