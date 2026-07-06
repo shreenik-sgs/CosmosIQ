@@ -87,6 +87,20 @@ from cosmosiq_ops.persistence_hardening import (  # noqa: F401
     single_writer_lock,
     release_writer_lock,
 )
+from cosmosiq_ops.backup_ops import (  # noqa: F401
+    STATUS_DEGRADED as BACKUP_STATUS_DEGRADED,
+    STATUS_FAILED as BACKUP_STATUS_FAILED,
+    STATUS_OK as BACKUP_STATUS_OK,
+    BackupFileRecord,
+    BackupHealthReport,
+    BackupReport,
+    RestoreReport,
+    apply_retention_policy,
+    backup as backup_operator,
+    backup_health,
+    dry_run_restore,
+    restore as restore_operator,
+)
 from cosmosiq_ops.observability import (  # noqa: F401
     STATUS_DEGRADED,
     STATUS_FAILED,

@@ -13,6 +13,9 @@ NON-ZERO on failure so a shell / CI pipeline can gate on it:
     python3 -m cosmosiq_ops backup       --store-dir DIR --backup-dir DIR [--now INSTANT]
     python3 -m cosmosiq_ops verify       --backup-path DIR
     python3 -m cosmosiq_ops restore-check --backup-path DIR --target-dir DIR
+    python3 -m cosmosiq_ops restore      --backup-path DIR --target-dir DIR [--dry-run] [--now INSTANT]
+    python3 -m cosmosiq_ops retention    --backup-dir DIR [--keep-latest N] [--now INSTANT]
+    python3 -m cosmosiq_ops backup-health --backup-dir DIR
     python3 -m cosmosiq_ops env
 
 OFFLINE + honest: this is operator tooling. ``subprocess`` / wall-clock use is confined to
@@ -27,6 +30,7 @@ import os
 import sys
 from typing import List, Optional
 
+from cosmosiq_ops import backup_ops
 from cosmosiq_ops.backup import (
     restore_check,
     snapshot_store,
@@ -227,19 +231,72 @@ def _cmd_perf(args: argparse.Namespace) -> int:
 
 
 def _cmd_backup(args: argparse.Namespace) -> int:
-    snapshot = snapshot_store(args.store_dir, args.backup_dir, now=args.now)
-    verify = verify_snapshot(snapshot.snapshot_path)
-    print("CosmosIQ backup snapshot -- {0}".format("VERIFIED" if verify.ok else "CORRUPT"))
-    print("snapshot: {0}".format(snapshot.snapshot_path))
+    report = backup_ops.backup(args.store_dir, args.backup_dir, now=args.now)
+    print("CosmosIQ operator backup (seal + snapshot + verify) -- {0}".format(
+        report.status.upper()))
+    print("snapshot: {0}".format(report.snapshot_path))
+    print("manifest: {0}".format(report.manifest_path))
     print("captured: {0} files / {1} jsonl lines".format(
-        snapshot.total_files, snapshot.total_jsonl_lines))
-    for record in snapshot.files:
+        report.files_captured, report.jsonl_lines))
+    print("verify_ok={0} integrity_ok={1} schema_compatible={2}".format(
+        report.verify_ok, report.integrity_ok, report.schema_compatible))
+    for record in report.files:
         print("  {0}  sha256={1}  lines={2}".format(
             record.path, record.sha256[:12], record.line_count))
-    if not verify.ok:
-        for issue in verify.mismatched + verify.missing + verify.extra:
-            print("  ! " + issue)
-    return 0 if verify.ok else 1
+    for issue in report.findings:
+        print("  ! " + issue)
+    return 0 if report.ok else 1
+
+
+def _cmd_restore(args: argparse.Namespace) -> int:
+    if args.dry_run:
+        report = backup_ops.dry_run_restore(args.backup_path, args.target_dir, now=args.now)
+        print("CosmosIQ restore DRY RUN (nothing written) -- {0}".format(report.status.upper()))
+    else:
+        report = backup_ops.restore(args.backup_path, args.target_dir, now=args.now)
+        print("CosmosIQ restore -- {0}".format(report.status.upper()))
+    print("backup: {0}".format(report.backup_path))
+    print("target: {0} (state: {1})".format(report.target_dir, report.target_state))
+    print("allowed={0} verify_ok={1} schema_compatible={2}".format(
+        report.allowed, report.verify_ok, report.schema_compatible))
+    if not report.dry_run:
+        print("restored {0} files; integrity_ok={1} replay_ok={2}".format(
+            report.files_restored, report.integrity_ok, report.replay_ok))
+    else:
+        print("would restore {0} files (plan only -- target left untouched)".format(
+            len(report.plan)))
+    if report.refusal_reason:
+        print("  refusal: {0}".format(report.refusal_reason))
+    for issue in report.findings:
+        print("  ! " + issue)
+    return 0 if report.ok else 1
+
+
+def _cmd_retention(args: argparse.Namespace) -> int:
+    report = backup_ops.apply_retention_policy(
+        args.backup_dir, keep_latest=args.keep_latest, now=args.now)
+    print("CosmosIQ retention (archive whole snapshots; active store never touched)")
+    print("backup dir: {0} (keep_latest={1})".format(report.backup_dir, report.keep_latest))
+    print("archived {0}; retained {1}".format(len(report.archived), len(report.retained)))
+    for name in report.archived:
+        print("  archived: {0}".format(name))
+    for name in report.retained:
+        print("  retained: {0}".format(name))
+    return 0
+
+
+def _cmd_backup_health(args: argparse.Namespace) -> int:
+    report = backup_ops.backup_health(args.backup_dir)
+    print("CosmosIQ backup health -- {0}".format(report.status.upper()))
+    print("backup dir: {0}".format(report.backup_dir))
+    print("latest snapshot: {0} ({1} live snapshot(s))".format(
+        report.latest_snapshot or "none", report.snapshot_count))
+    print("last backup at: {0}".format(report.last_backup_at or "none"))
+    print("verify_ok={0} schema_supported={1}".format(
+        report.verify_ok, report.schema_supported))
+    for issue in report.findings:
+        print("  ! " + issue)
+    return 0 if report.status != backup_ops.STATUS_FAILED else 1
 
 
 def _cmd_verify(args: argparse.Namespace) -> int:
@@ -361,11 +418,39 @@ def _build_parser() -> argparse.ArgumentParser:
     perf.add_argument("--scale", type=int, default=50, help="synthetic runs to seed")
     perf.set_defaults(func=_cmd_perf)
 
-    backup = sub.add_parser("backup", help="snapshot a store + verify the roundtrip")
+    backup = sub.add_parser(
+        "backup", help="hardened operator backup: seal + snapshot + verify (writes a sha256 manifest)")
     backup.add_argument("--store-dir", required=True, help="the store to snapshot")
     backup.add_argument("--backup-dir", required=True, help="where the snapshot is written")
     backup.add_argument("--now", default=DEFAULT_NOW, help="injected instant (deterministic)")
     backup.set_defaults(func=_cmd_backup)
+
+    restore = sub.add_parser(
+        "restore",
+        help="restore a snapshot into an EMPTY target (verify -> schema-gate -> integrity + "
+             "replay); --dry-run reports the plan and writes NOTHING")
+    restore.add_argument("--backup-path", required=True, help="the snapshot directory to restore")
+    restore.add_argument("--target-dir", required=True,
+                         help="the restore target (must be empty / missing)")
+    restore.add_argument("--dry-run", action="store_true",
+                         help="report what a restore would do; write nothing")
+    restore.add_argument("--now", default=DEFAULT_NOW, help="injected instant (deterministic)")
+    restore.set_defaults(func=_cmd_restore)
+
+    retention = sub.add_parser(
+        "retention",
+        help="age out old snapshots by ARCHIVING whole directories; an active store is never touched")
+    retention.add_argument("--backup-dir", required=True, help="the backup dir holding snapshots")
+    retention.add_argument("--keep-latest", type=int, default=1,
+                           help="how many newest snapshots to keep live (default 1)")
+    retention.add_argument("--now", default=DEFAULT_NOW, help="injected instant (deterministic)")
+    retention.set_defaults(func=_cmd_retention)
+
+    backup_health = sub.add_parser(
+        "backup-health",
+        help="report the latest snapshot's health (present? verifies? schema supported?); no secret")
+    backup_health.add_argument("--backup-dir", required=True, help="the backup dir to inspect")
+    backup_health.set_defaults(func=_cmd_backup_health)
 
     verify = sub.add_parser("verify", help="verify a snapshot against its manifest")
     verify.add_argument("--backup-path", required=True, help="the snapshot directory")
