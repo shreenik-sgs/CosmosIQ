@@ -283,6 +283,20 @@ from .recommendation import (
     assess_recommendation,
     recommendation_id_for,
 )
+from .recommendation_gates import (
+    ACCEPTABLE_DATA_QUALITY_STATES,
+    CORROBORATION_AUTHORITIES,
+    FIXTURE_DEMO_MODES,
+    FRESH_SOURCE_LABELS,
+    GATE_FAILURE_MODES,
+    HARD_GATE_IDS,
+    RECOMMENDATION_HARD_GATES,
+    STRENGTHENING_THEME_STATES,
+    GateResult,
+    HardGate,
+    RecommendationGateOutcome,
+    evaluate_recommendation,
+)
 from .theme_graph import (
     DEPENDENCY_TYPES,
     GRAPH_MODELS,
@@ -818,6 +832,19 @@ __all__ = [
     "CapitalRecommendation",
     "assess_recommendation",
     "recommendation_id_for",
+    # recommendation eligibility gate engine -- 15 hard gates, actionable-only-if-all-pass (022B)
+    "RECOMMENDATION_HARD_GATES",
+    "HARD_GATE_IDS",
+    "CORROBORATION_AUTHORITIES",
+    "ACCEPTABLE_DATA_QUALITY_STATES",
+    "FRESH_SOURCE_LABELS",
+    "STRENGTHENING_THEME_STATES",
+    "FIXTURE_DEMO_MODES",
+    "GATE_FAILURE_MODES",
+    "GateResult",
+    "HardGate",
+    "RecommendationGateOutcome",
+    "evaluate_recommendation",
     # theme / value-chain / chokepoint knowledge graph -- the MAP (021D-GRAPH)
     "DEPENDENCY_TYPES",
     "GRAPH_MODELS",
