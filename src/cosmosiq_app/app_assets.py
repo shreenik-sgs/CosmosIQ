@@ -42,23 +42,54 @@ body{
 }
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
-.wrap{max-width:1100px;margin:0 auto;padding:0 1.25rem 4rem}
+/* Full-width, naturally scrolling cockpit: the document is a normal scrolling page
+   (no overflow lock on html/body) and the content area spans the whole viewport
+   width with sensible gutters -- never squeezed into a narrow centred column. */
+.wrap{width:100%;max-width:none;margin:0;padding:1.1rem 2rem 5rem}
 .strip{
   position:sticky;top:0;z-index:50;background:rgba(8,11,26,.85);
   border-bottom:1px solid var(--glass-line);color:var(--muted);
-  font-size:12px;font-weight:600;padding:.5rem 1.25rem;letter-spacing:.4px;
+  font-size:12px;font-weight:600;padding:.5rem 2rem;letter-spacing:.4px;
 }
 .strip .sep{color:#465086;margin:0 .35rem}
-.bar{display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;
-  padding:1rem 1.25rem .4rem;max-width:1100px;margin:0 auto}
+.bar{display:flex;align-items:center;flex-wrap:wrap;gap:.6rem;
+  padding:1rem 2rem .5rem;width:100%;max-width:none;margin:0}
 .brand{font-size:1.15rem;font-weight:800;letter-spacing:.5px;margin-right:1rem}
 .brand small{display:block;font-size:.68rem;font-weight:600;color:var(--muted);
   letter-spacing:1.5px}
-.navlink{padding:.4rem .85rem;border:1px solid var(--glass-line);border-radius:999px;
+/* the compact honest status chip (a quiet pill; the full honest mode line lives in its
+   title tooltip and its expandable details -- honesty preserved, just not shouting). */
+.chip-wrap{margin-left:auto}
+.chip{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;
+  padding:.32rem .8rem;border:1px solid var(--glass-line);border-radius:999px;
+  background:var(--glass);color:#cdd6ff;font-size:11.5px;font-weight:700;
+  white-space:nowrap}
+.chip::-webkit-details-marker{display:none}
+.chip .dot{width:.5rem;height:.5rem;border-radius:50%;background:var(--good);
+  box-shadow:0 0 8px rgba(57,224,160,.7)}
+.chip-details{color:var(--muted);font-size:11px;padding:.4rem .8rem;max-width:90ch;
+  line-height:1.45}
+/* the primary 8-tab nav + a quiet utility row of operator surfaces. */
+.tabs{display:flex;flex-wrap:wrap;gap:.4rem;width:100%;padding:.1rem 2rem .55rem}
+.subnav{display:flex;flex-wrap:wrap;gap:.9rem;align-items:center;width:100%;
+  padding:.15rem 2rem .7rem;border-bottom:1px solid var(--glass-line)}
+.navsub{color:var(--faint);font-size:11px;font-weight:600}
+.navsub:hover{color:var(--cyan);text-decoration:none}
+.navlink{padding:.4rem .95rem;border:1px solid var(--glass-line);border-radius:999px;
   background:var(--glass);color:var(--muted);font-size:12px;font-weight:600}
 .navlink:hover{color:var(--ink);border-color:var(--cyan);text-decoration:none}
 .navlink.here{color:#fff;border-color:var(--cyan);background:rgba(79,224,255,.12)}
 .navnote{color:var(--faint);font-size:11px;padding:.4rem .5rem}
+/* dashboard overview cards -- a spacious wide-desktop grid of quiet metric tiles. */
+.cards{display:flex;flex-wrap:wrap;gap:.9rem;margin:.7rem 0}
+.card{flex:1 1 210px;min-width:180px;background:var(--glass);
+  border:1px solid var(--glass-line);border-radius:14px;padding:.95rem 1.05rem;
+  box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.card .metric{font-size:1.9rem;font-weight:800;color:var(--ink);letter-spacing:-.5px;
+  line-height:1.1}
+.card .clabel{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.7px;margin-bottom:.2rem}
+.card .csub{color:var(--faint);font-size:11px;margin-top:.25rem}
 h1{font-size:26px;letter-spacing:-.5px;margin:.5rem 0 .25rem;font-weight:800}
 h2{font-size:18px;margin:1.4rem 0 .5rem;border-bottom:1px solid var(--line);
   padding-bottom:.3rem}

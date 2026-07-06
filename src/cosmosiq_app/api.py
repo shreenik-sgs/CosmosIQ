@@ -737,6 +737,24 @@ def _dispatch_page(segments: List[str], raw: List[str],
         return _html(200, _pages.render_alert_inbox(store_dir))
     if segments == ["settings"]:
         return _html(200, _pages.render_settings_page(store_dir))
+    # UX-1 cockpit shell -- the eight primary tabs as first-class GET pages. Old routes
+    # (/candidates, /companies/<t>, /themes, /runs, /alerts, /settings) keep working above /
+    # below; these are the renamed / added tabs. `Opportunities` is an alias of the candidate
+    # list; `Company Research` is the ticker landing.
+    if segments == ["opportunities"]:
+        from . import cockpits as _cockpits
+        return _html(200, _cockpits.render_candidate_list(store_dir))
+    if segments == ["research"]:
+        from . import cockpits as _cockpits
+        return _html(200, _cockpits.render_research_page(store_dir))
+    if segments == ["journal"]:
+        return _html(200, _pages.render_journal_page(store_dir))
+    if segments == ["evidence"]:
+        return _html(200, _pages.render_evidence_page(store_dir))
+    if segments == ["how-it-works"]:
+        return _html(200, _pages.render_how_it_works_page(store_dir))
+    if segments == ["map"]:
+        return _html(200, _pages.render_map_page(store_dir))
     # 016C cockpits -- read/inspect surfaces over the persisted stores + the accepted engines
     # (lazy import, same additive-slice discipline as the pages layer).
     if segments == ["themes"]:

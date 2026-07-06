@@ -88,9 +88,14 @@ class EmptyStoreTests(unittest.TestCase):
         self.assertIn("No Capital Candidates are available for this run.\n\n", html)
 
     def test_nav_gains_capital_candidates(self):
+        # UX-1: the candidates surface is now the "Opportunities" primary tab (the old
+        # /candidates route still resolves -- proven in test_cosmosiq_app_cockpit_shell).
         html = _req(self.store, "GET", "/runs")["body"]
-        self.assertIn('href="/candidates"', html)
-        self.assertIn("Capital Candidates", html)
+        self.assertIn('href="/opportunities"', html)
+        self.assertIn("Opportunities", html)
+        # the candidate list page itself still carries its "Capital Candidates" heading.
+        candidates = _req(self.store, "GET", "/candidates")["body"]
+        self.assertIn("Capital Candidates", candidates)
 
     def test_no_fixture_ticker_defaults_into_product_ui(self):
         for path in ("/", "/runs", "/candidates"):

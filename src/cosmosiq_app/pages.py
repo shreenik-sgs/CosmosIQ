@@ -41,8 +41,12 @@ from reality_mesh import (
     SignalStore,
     ThemePulseStore,
     alerts_with_status,
+    blocked_candidates,
+    eligible_candidates,
     latest_delivery_status,
+    load_holdings,
     schedule_to_dict,
+    unacknowledged_alerts,
 )
 from reality_mesh import labels as _labels
 
@@ -65,6 +69,10 @@ __all__ = [
     "service_mode_indicator",
     "render_alert_inbox",
     "render_app_home",
+    "render_evidence_page",
+    "render_how_it_works_page",
+    "render_journal_page",
+    "render_map_page",
     "render_not_found",
     "render_replay_view",
     "render_run_detail",
@@ -254,24 +262,62 @@ def _as_of_line(store_dir: str) -> str:
                 _esc(getattr(run, "run_id", ""))))
 
 
+# The eight primary cockpit tabs, in operator-reading order (plain-language names, no
+# jargon). Each is a first-class GET page; the current tab renders with `.here`.
+_PRIMARY_TABS: Tuple[Tuple[str, str], ...] = (
+    ("Dashboard", "/"),
+    ("Opportunities", "/opportunities"),
+    ("Company Research", "/research"),
+    ("Portfolio", "/portfolio"),
+    ("Journal & Learning", "/journal"),
+    ("Evidence & Trust", "/evidence"),
+    ("How It Works", "/how-it-works"),
+    ("Map", "/map"),
+)
+
+# A quiet secondary row of operator surfaces that stay reachable (append-only history,
+# the alert inbox, settings, the theme browser) without cluttering the primary tabs.
+_UTILITY_LINKS: Tuple[Tuple[str, str], ...] = (
+    ("Runs", "/runs"), ("Themes", "/themes"), ("Alerts", "/alerts"),
+    ("Settings", "/settings"),
+)
+
+# Which primary tab "owns" a given active route, so deep pages and the old routes still
+# light up a sensible tab (Runs/Alerts/Settings/Replay -> Evidence & Trust, the candidate
+# and company/theme surfaces -> Opportunities / Company Research, etc.).
+_ACTIVE_TAB: Dict[str, str] = {
+    "/": "/",
+    "/opportunities": "/opportunities", "/candidates": "/opportunities",
+    "/research": "/research", "/companies": "/research", "/themes": "/research",
+    "/portfolio": "/portfolio",
+    "/journal": "/journal",
+    "/evidence": "/evidence", "/runs": "/evidence", "/alerts": "/evidence",
+    "/settings": "/evidence", "/replay": "/evidence",
+    "/how-it-works": "/how-it-works",
+    "/map": "/map",
+}
+
+
 def _nav(store_dir: str, active: str) -> str:
-    items = (("CosmosIQ", "/"), ("Runs", "/runs"), ("Themes", "/themes"),
-             ("Capital Candidates", "/candidates"), ("Portfolio", "/portfolio"),
-             ("Alerts", "/alerts"), ("Settings", "/settings"))
-    html = ""
-    for label, href in items:
-        here = " here" if href == active else ""
-        html += '<a class="navlink{0}" href="{1}">{2}</a>'.format(here, href, label)
+    """The primary 8-tab nav (current tab marked `here`) plus the quiet utility row."""
+    tab = _ACTIVE_TAB.get(active, "")
+    tabs = ""
+    for label, href in _PRIMARY_TABS:
+        here = " here" if href == tab else ""
+        tabs += '<a class="navlink{0}" href="{1}">{2}</a>'.format(here, href, _esc(label))
+    util = ""
+    for label, href in _UTILITY_LINKS:
+        util += '<a class="navsub" href="{0}">{1}</a>'.format(href, _esc(label))
     present = canvas_artifacts(store_dir)
     if present:
         for name in present:
-            html += '<a class="navlink" href="/canvas/{0}">Canvas: {1}</a>'.format(
+            util += '<a class="navsub" href="/canvas/{0}">Canvas: {1}</a>'.format(
                 _esc(name), _esc(name[:-len(".html")].replace("_", " ")))
     else:
-        html += ('<span class="navnote">Universe Canvas: not generated in this store yet '
+        util += ('<span class="navnote">Universe Canvas: not generated in this store yet '
                  "&mdash; no link (generate with the pulse CLI into "
                  "&lt;store&gt;/{0}/)</span>".format(_esc(CANVAS_DIRNAME)))
-    return html
+    return ('<nav class="tabs">{0}</nav><div class="subnav">{1}</div>'.format(tabs, util))
 
 
 def _service_health(store_dir: str) -> Dict[str, Any]:
@@ -331,19 +377,52 @@ def service_mode_indicator(store_dir: str) -> str:
                 sched=scheduler, inbox=inbox)
 
 
-def _page(store_dir: str, title: str, active: str, body: str) -> str:
-    """One complete self-contained page: inline CSS, honest strip, nav, body, footer."""
+# The default honest chip line when NO service ran (the empty-store posture). It preserves
+# the two permanent guarantees in plain words -- Manual Review Only, and no market connection
+# -- WITHOUT the literal "broker" token (kept for the service-mode line, where it is honest and
+# expected) so the default UI stays clean for the trade-affordance sweep. It NEVER claims live
+# or production.
+_DEFAULT_CHIP_LINE = ("Manual Review Only &middot; no market connection &middot; offline "
+                      "(no service running) &middot; local operator app")
+
+
+def _mode_word(indicator: str) -> str:
+    """A compact mode token for the chip face, parsed from the verbatim mode line."""
+    if not indicator:
+        return "offline"
+    head = indicator.split("·", 1)[0]
+    return head.replace("Mode:", "").strip() or "offline"
+
+
+def _status_chip(store_dir: str) -> str:
+    """The quiet, honest status chip: a compact pill carrying the FULL honest mode line.
+
+    The visible face stays short (``Manual Review · <mode>``); the complete honest line
+    (Broker Disabled + Execution Manual Review Only when a service ran, else the offline
+    posture) is preserved verbatim in the chip's ``title`` tooltip AND an expandable details
+    line -- honesty preserved, just not shouting. On an empty store the chip is honest
+    (``Manual Review · offline``) and never claims live or production.
+    """
     indicator = service_mode_indicator(store_dir)
-    mode_html = ('<span class="sep">&middot;</span><span class="mode-indicator">{0}</span>'
-                 .format(indicator) if indicator else "")
+    full = indicator if indicator else _DEFAULT_CHIP_LINE
+    mode = _mode_word(indicator)
+    return (
+        '<details class="chip-wrap"><summary class="chip" title="{full}">'
+        '<span class="dot"></span>Manual Review &middot; {mode}</summary>'
+        '<div class="chip-details">{full}</div></details>').format(
+            full=full, mode=_esc(mode))
+
+
+def _page(store_dir: str, title: str, active: str, body: str) -> str:
+    """One complete self-contained page: inline CSS, honest strip, chip, nav, body, footer."""
     return (
         "<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
         "<title>{title} &middot; {app}</title><style>{css}</style></head><body>"
         '<div class="strip">{as_of}<span class="sep">&middot;</span>local operator app'
-        '<span class="sep">&middot;</span>no market action can be taken here{mode}</div>'
+        '<span class="sep">&middot;</span>no market action can be taken here</div>'
         '<div class="bar"><span class="brand">{app}<small>economic intelligence &middot; '
-        "local operator app</small></span>{nav}</div>"
+        "local operator app</small></span>{chip}</div>{nav}"
         '<div class="wrap"><h1>{title}</h1>{body}'
         '<p class="foot">{app} &mdash; labels and volume counts only; append-only history; '
         "pulses run only when an operator (or an operator-journaled cadence policy) asks. "
@@ -351,21 +430,88 @@ def _page(store_dir: str, title: str, active: str, body: str) -> str:
         "</div></body></html>").format(
             title=_esc(title), app=_esc(APP_NAME), css=APP_CSS,
             as_of=_as_of_line(store_dir), nav=_nav(store_dir, active), body=body,
-            mode=mode_html)
+            chip=_status_chip(store_dir))
 
 
 # --------------------------------------------------------------------------- #
 # / -- app home                                                                 #
 # --------------------------------------------------------------------------- #
+def _portfolio_snapshot_html(store_dir: str) -> str:
+    """A read-only portfolio snapshot for the Dashboard, or an honest 'no positions' line."""
+    loaded, _reason = load_holdings(store_dir)
+    if loaded is None or not getattr(loaded, "positions", ()):
+        return ('<h2>Portfolio snapshot</h2><div class="panel"><p class="note">No positions '
+                "recorded yet &mdash; the portfolio ledger stays honestly empty until you "
+                "record a holdings statement. Open the "
+                '<a href="/portfolio">Portfolio</a> tab for how to record one.</p></div>')
+    positions = tuple(loaded.positions)
+    tickers = ", ".join(p.ticker for p in positions[:8]) + (
+        " &hellip;" if len(positions) > 8 else "")
+    return (
+        '<h2>Portfolio snapshot</h2><div class="panel"><table class="kv">'
+        "<tr><th>Positions recorded</th><td>{count}</td></tr>"
+        "<tr><th>Tickers</th><td><span class=\"mono\">{tickers}</span></td></tr>"
+        "<tr><th>Statement as of</th><td>{asof}</td></tr>"
+        '</table><p class="note">Read-only, from the operator-recorded statement &mdash; never '
+        'fetched, never valued. Full intelligence on the <a href="/portfolio">Portfolio</a> '
+        "tab.</p></div>").format(
+            count=_esc(getattr(loaded, "position_count", len(positions))),
+            tickers=_esc(tickers), asof=_esc(getattr(loaded, "as_of", "") or "&mdash;"))
+
+
+def _recent_alerts_html(store_dir: str) -> str:
+    """The most recent shadow / inbox alerts on the Dashboard (read-only, honest empty)."""
+    alerts = list(alerts_with_status(store_dir))
+    if not alerts:
+        return ('<h2>Recent alerts</h2><div class="panel"><p class="note">No alerts in this '
+                "store yet &mdash; alerts appear after pulses detect a state change between "
+                'runs. Open the <a href="/alerts">Alerts</a> inbox for the full list.</p>'
+                "</div>")
+    recent = alerts[-5:][::-1]
+    rows = ""
+    for alert in recent:
+        is_shadow = str(getattr(alert, "mode", "")) == "SHADOW_24X7"
+        marker = _badge("Shadow Mode", "warn") if is_shadow else "&mdash;"
+        rows += "<tr><th>{sev}</th><td>{mode}</td><td>{reason}</td></tr>".format(
+            sev=_badge(alert.severity, _SEVERITY_KINDS.get(alert.severity, "warn")),
+            mode=marker, reason=_esc(alert.human_readable_reason))
+    return (
+        '<h2>Recent alerts</h2><div class="panel"><table class="kv">'
+        "<tr><th>Severity</th><td>Mode</td><td>Reason (plain English)</td></tr>"
+        + rows + '</table><p class="note">Alerts OBSERVE, they never act. Full inbox on the '
+        '<a href="/alerts">Alerts</a> surface.</p></div>')
+
+
 def render_app_home(store_dir: str) -> str:
     counts = _handle_health(store_dir)["body"]["counts"]
     settings, revision = current_settings(store_dir)
 
     intro = (
-        '<p class="note">{0} is a LOCAL operator app over append-only pulse stores: '
-        "run history, replay verification, the alert inbox, and operator settings. "
-        "Everything shown is a persisted label or a volume count &mdash; never a hidden "
-        "metric, never a market action.</p>".format(_esc(APP_NAME)))
+        '<p class="note">{0} is your LOCAL investor cockpit over append-only pulse stores. '
+        "Everything shown is a persisted label, a range, or a volume count &mdash; never a "
+        "hidden metric, never a market action. This Dashboard is a read-only overview; use "
+        "the tabs above to go deeper.</p>".format(_esc(APP_NAME)))
+
+    # --- overview cards: opportunities / blocked / open alerts / runs -------------
+    opportunities = len(eligible_candidates(store_dir))
+    blocked = len(blocked_candidates(store_dir))
+    open_alerts = len(unacknowledged_alerts(store_dir))
+    overview = (
+        '<h2>Overview</h2><div class="cards">'
+        '<div class="card"><div class="clabel">Opportunities</div>'
+        '<div class="metric">{opp}</div><div class="csub">eligible capital candidates '
+        '&middot; <a href="/opportunities">open</a></div></div>'
+        '<div class="card"><div class="clabel">Blocked candidates</div>'
+        '<div class="metric">{blk}</div><div class="csub">shown with their exact reason '
+        '&middot; <a href="/opportunities">open</a></div></div>'
+        '<div class="card"><div class="clabel">Open alerts</div>'
+        '<div class="metric">{alr}</div><div class="csub">unacknowledged in the inbox '
+        '&middot; <a href="/alerts">open</a></div></div>'
+        '<div class="card"><div class="clabel">Pulse runs</div>'
+        '<div class="metric">{run}</div><div class="csub">append-only history '
+        '&middot; <a href="/runs">open</a></div></div>'
+        "</div>").format(opp=_esc(opportunities), blk=_esc(blocked),
+                         alr=_esc(open_alerts), run=_esc(counts.get("runs", 0)))
 
     rows = "".join(
         "<tr><th>{0}</th><td>{1}</td></tr>".format(_esc(name.replace("_", " ")), _esc(value))
@@ -422,8 +568,12 @@ def render_app_home(store_dir: str) -> str:
                   "&lt;store&gt;/{0}/ and they will appear here and in the nav."
                   "</p></div>".format(_esc(CANVAS_DIRNAME)))
 
-    return _page(store_dir, "{0} home".format(APP_NAME), "/",
-                 intro + store_html + latest + pulse_form + canvas)
+    portfolio = _portfolio_snapshot_html(store_dir)
+    recent_alerts = _recent_alerts_html(store_dir)
+
+    return _page(store_dir, "Dashboard", "/",
+                 intro + overview + latest + portfolio + recent_alerts
+                 + store_html + pulse_form + canvas)
 
 
 # --------------------------------------------------------------------------- #
@@ -756,6 +906,153 @@ def render_settings_page(store_dir: str) -> str:
 
     return _page(store_dir, "Settings", "/settings",
                  current + settings_form + schedule_html)
+
+
+# --------------------------------------------------------------------------- #
+# /journal -- Journal & Learning (the operator's recorded decisions so far)      #
+# --------------------------------------------------------------------------- #
+def render_journal_page(store_dir: str) -> str:
+    """Journal & Learning: the operator's append-only decisions (acknowledged alerts) plus
+    the settings journal revision. Honest empty state when nothing is journaled yet -- no
+    fabricated history, no market action."""
+    intro = ('<p class="note">Your append-only decision journal &mdash; every acknowledgment '
+             "you record against an alert lands here as a dated line, and the settings journal "
+             "revision below counts how many times your watchlists / themes changed. This is "
+             "the learning trail: it grows only from your own recorded actions, never a "
+             "fabricated history, and nothing here places or changes a market position.</p>")
+    _settings, revision = current_settings(store_dir)
+    acked = [a for a in alerts_with_status(store_dir) if getattr(a, "acknowledged", False)]
+    if acked:
+        rows = "".join(
+            "<tr><th>{sev}</th><td>{cat}</td><td>{reason}</td><td>{run}</td></tr>".format(
+                sev=_badge(a.severity, _SEVERITY_KINDS.get(a.severity, "warn")),
+                cat=_esc(str(a.category).replace("_", " ")),
+                reason=_esc(a.human_readable_reason), run=_esc(a.run_id))
+            for a in acked[::-1])
+        journal = (
+            '<h2>Recorded decisions</h2><div class="panel"><table class="kv">'
+            "<tr><th>Severity</th><td>Category</td><td>Reason (plain English)</td>"
+            "<td>Run</td></tr>" + rows + '</table><p class="note">Each line is an alert you '
+            "acknowledged &mdash; the alert record itself stays byte-unchanged; the "
+            "acknowledgment was appended as a NEW record.</p></div>")
+    else:
+        journal = ('<h2>Recorded decisions</h2><div class="panel"><p class="note">No journaled '
+                   "decisions yet &mdash; this trail stays honestly empty until you acknowledge "
+                   'an alert in the <a href="/alerts">Alerts</a> inbox. Nothing is invented to '
+                   "fill it.</p></div>")
+    learning = (
+        '<h2>Learning &amp; settings history</h2><div class="panel"><table class="kv">'
+        "<tr><th>Settings journal revision</th><td>{rev} (append-style &mdash; every change is "
+        "a NEW snapshot line, never a mutation)</td></tr>"
+        '</table><p class="note">Richer learning surfaces (outcome review, calibration) build on '
+        "top of this same append-only trail in later slices; today it honestly shows what has "
+        "actually been recorded.</p></div>").format(rev=_esc(revision))
+    return _page(store_dir, "Journal & Learning", "/journal", intro + journal + learning)
+
+
+# --------------------------------------------------------------------------- #
+# /evidence -- Evidence & Trust (the data-quality surface)                      #
+# --------------------------------------------------------------------------- #
+def render_evidence_page(store_dir: str) -> str:
+    """Evidence & Trust: the data-quality / trust surface. Per-run gate verdicts, worst agent
+    health, data-gap counts, and a link to deterministic replay verification -- labels and
+    counts only, degraded / failed states never hidden."""
+    intro = ('<p class="note">Trust is earned by showing the work. Every pulse run below carries '
+             "its gate verdict, worst agent health, and data-gap count &mdash; all labels, never "
+             "a hidden metric. A run that failed a gate or ran degraded is shown as such, and "
+             "every run can be re-verified by deterministic replay.</p>")
+    runs = _runs_newest_first(store_dir)
+    if not runs:
+        body = intro + ('<div class="panel"><p class="note">No persisted runs yet &mdash; the '
+                        "trust surface stays empty until an operator runs a pulse from the "
+                        '<a href="/">Dashboard</a>. Nothing is fabricated.</p></div>')
+        return _page(store_dir, "Evidence & Trust", "/evidence", body)
+    rows = ""
+    for run in runs:
+        gaps = _run_gaps(store_dir, run.run_id)
+        rows += (
+            '<tr><th><a href="/runs/{rid}">{rid}</a></th><td>{start}</td><td>{gate}</td>'
+            "<td>{health}</td><td>{gaps} gap(s)</td>"
+            "<td><a href=\"/replay/{rid}\">verify replay</a></td></tr>").format(
+                rid=_esc(run.run_id), start=_esc(run.started_at),
+                gate=_status_badge(_gate_overall(store_dir, run.run_id)),
+                health=_status_badge(_run_health(store_dir, run.run_id)),
+                gaps=_esc(len(gaps)))
+    table = ('<h2>Data-quality by run</h2><div class="panel"><table class="kv">'
+             "<tr><th>Run</th><td>Started</td><td>Gate overall</td><td>Worst agent health</td>"
+             "<td>Data gaps</td><td>Replay</td></tr>" + rows + '</table>'
+             '<p class="note">Gate verdicts and health are closed labels (pass / warn / fail / '
+             "degraded); the gap count is a volume. Open a run for the full per-gate and "
+             "per-agent breakdown.</p></div>")
+    return _page(store_dir, "Evidence & Trust", "/evidence", intro + table)
+
+
+# --------------------------------------------------------------------------- #
+# /how-it-works -- the pipeline explained in plain language                      #
+# --------------------------------------------------------------------------- #
+def render_how_it_works_page(store_dir: str) -> str:
+    """A plain-language walk-through of the pipeline: evidence -> signals -> themes ->
+    candidates -> recommendations -> your action -> learning. Static, honest, no market
+    action, no hidden metric."""
+    steps = (
+        ("Evidence", "Filings, news, and operator-recorded observations come in as dated "
+                      "records. Each one keeps its source authority and a claim status &mdash; a "
+                      "company claim or a rumor is never promoted to a fact."),
+        ("Signals", "Sensor agents read the evidence and emit typed signals with direction, "
+                     "magnitude, and urgency labels &mdash; and an explicit WEAK mark on social "
+                     "or uncorroborated evidence."),
+        ("Themes", "Signals roll up into theme pulses with closed state labels (Warming, "
+                   "Crowded, Exhausting, and so on). Contradictions keep both sides visible; "
+                   "nothing is averaged away."),
+        ("Candidates", "When a theme and a company line up with enough evidence, a capital "
+                       "candidate is published &mdash; eligible only with full lineage; "
+                       "otherwise blocked, shown with its exact reason."),
+        ("Recommendations", "The accepted diligence engines run on your recorded inputs to "
+                            "produce a plain-language verdict and a suggested position RANGE "
+                            "(never an exact amount, never a hidden number)."),
+        ("Your action", "You decide. Everything here is Manual Review Only &mdash; the cockpit "
+                        "inspects and explains; it never connects to a market and never acts on "
+                        "your behalf."),
+        ("Learning", "Your acknowledgments and settings changes are journaled append-only, so "
+                     "the decision trail grows from what actually happened &mdash; the basis for "
+                     "later calibration."),
+    )
+    chain = " &rarr; ".join(name for name, _desc in steps)
+    intro = ('<p class="note">The whole pipeline in one line: <strong>{0}</strong>. Each stage '
+             "below explains, in plain English, what it does and what it deliberately does "
+             "NOT do.</p>").format(chain)
+    cards = "".join(
+        '<div class="panel"><h3>{n}. {name}</h3><p class="note">{desc}</p></div>'.format(
+            n=index + 1, name=_esc(name), desc=_esc(desc))
+        for index, (name, desc) in enumerate(steps))
+    return _page(store_dir, "How It Works", "/how-it-works", intro + cards)
+
+
+# --------------------------------------------------------------------------- #
+# /map -- the Universe Canvas surface (link / anchor to the star-field)          #
+# --------------------------------------------------------------------------- #
+def render_map_page(store_dir: str) -> str:
+    """Map: the entry to the generated Universe Canvas star-field. Links the present canvas
+    artifacts read-only, or an honest note (never a dead link) when none are generated."""
+    intro = ('<p class="note">The Map is the Universe Canvas &mdash; a generated star-field view '
+             "of the same persisted pulse data. It is served read-only from artifacts generated "
+             "into this store; nothing is fetched and nothing here can act on a position.</p>")
+    present = canvas_artifacts(store_dir)
+    if present:
+        links = "".join(
+            '<li><a href="/canvas/{0}">{1}</a></li>'.format(
+                _esc(name), _esc(name[:-len(".html")].replace("_", " ")))
+            for name in present)
+        body = intro + ('<h2>Universe Canvas</h2><div class="panel"><ul>' + links
+                        + '</ul><p class="note">Generated artifacts found under this store '
+                        "&mdash; served read-only.</p></div>")
+    else:
+        body = intro + ('<h2>Universe Canvas</h2><div class="panel"><p class="note">No generated '
+                        "Universe Canvas artifacts in this store yet, so nothing is linked (never "
+                        "a dead link). Generate them with the pulse CLI into "
+                        "&lt;store&gt;/{0}/ and the Map will link them here.</p></div>".format(
+                            _esc(CANVAS_DIRNAME)))
+    return _page(store_dir, "Map", "/map", body)
 
 
 # --------------------------------------------------------------------------- #

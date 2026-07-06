@@ -91,6 +91,7 @@ __all__ = [
     "render_candidate_list",
     "render_company_cockpit",
     "render_portfolio_page",
+    "render_research_page",
     "render_theme_cockpit",
     "render_theme_list",
 ]
@@ -434,6 +435,54 @@ def render_theme_cockpit(store_dir: str, theme_id: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
+# /research -- the COMPANY RESEARCH landing (every ticker with persisted records) #
+# --------------------------------------------------------------------------- #
+def render_research_page(store_dir: str) -> str:
+    """Company Research landing: every ticker that any pulse run names or requested, each
+    linking to its company cockpit. Watchlisted tickers with no persisted record are shown as
+    an honest coverage gap, never hidden. Read-only; labels and counts only."""
+    runs = _run_sequence(store_dir)
+    watch: Dict[str, int] = {}
+    covered: Dict[str, int] = {}
+    for run in runs:
+        for ticker in tuple(getattr(run, "watchlist", ()) or ()):
+            watch[ticker] = watch.get(ticker, 0) + 1
+        seen_here = set()
+        for store_cls in (EventStore, SignalStore, FindingStore):
+            for record in store_cls(store_dir).query(run_id=run.run_id):
+                seen_here.update(tuple(getattr(record, "affected_companies", ()) or ()))
+        for ticker in seen_here:
+            covered[ticker] = covered.get(ticker, 0) + 1
+    tickers = sorted(set(watch) | set(covered))
+    intro = ('<p class="note">Every company any pulse run names or requested, in one place. '
+             "Open a ticker for its full evidence cockpit &mdash; events, findings and signals "
+             "run by run, with claim statuses (a company claim or rumor is shown UNVERIFIED, "
+             "never as a fact). A watchlisted ticker with no persisted record is an honest "
+             "coverage gap, shown as such.</p>")
+    if not tickers:
+        body = intro + ('<div class="panel"><p class="note">No companies are covered yet '
+                        "&mdash; run a pulse with tickers on the watchlist from the "
+                        '<a href="/">Dashboard</a>. Nothing is fabricated to fill this '
+                        "list.</p></div>")
+        return _page(store_dir, "Company Research", "/research", body)
+    rows = ""
+    for ticker in tickers:
+        runs_with_records = covered.get(ticker, 0)
+        if runs_with_records:
+            coverage = _badge("{0} run(s) with records".format(runs_with_records), "ok")
+        else:
+            coverage = _badge("requested, no persisted record yet -- honest gap", "warn")
+        rows += (
+            '<tr><th><a href="/companies/{t}">{t}</a></th><td>{cov}</td>'
+            "<td>on {wl} watchlist run(s)</td>"
+            "<td><a href=\"/candidates/{t}\">capital-candidate view</a></td></tr>").format(
+                t=_esc(ticker), cov=coverage, wl=_esc(watch.get(ticker, 0)))
+    table = ('<div class="panel"><table class="kv"><tr><th>Ticker</th><td>Coverage</td>'
+             "<td>Requested</td><td>Candidate</td></tr>" + rows + "</table></div>")
+    return _page(store_dir, "Company Research", "/research", intro + table)
+
+
+# --------------------------------------------------------------------------- #
 # /companies/<ticker> -- the COMPANY COCKPIT                                    #
 # --------------------------------------------------------------------------- #
 def render_company_cockpit(store_dir: str, ticker: str) -> str:
@@ -567,9 +616,9 @@ def render_candidate_list(store_dir: str) -> str:
     blocked = blocked_candidates(store_dir)
     intro = ('<p class="note">Published capital candidates from the append-only candidate '
              "store &mdash; a typed eligibility + lineage record per ticker, never a "
-             "recommendation, a ranking or a trade. A candidate is ELIGIBLE only with "
-             "current-run provenance AND a diligence reference AND a healthy producing run; a "
-             "BLOCKED candidate is shown with its exact reason. Publishing is a separate "
+             "recommendation, a preference list, or a market action. A candidate is ELIGIBLE "
+             "only with current-run provenance AND a diligence reference AND a healthy producing "
+             "run; a BLOCKED candidate is shown with its exact reason. Publishing is a separate "
              "explicit step (POST /api/candidates/publish) &mdash; this page only reads.</p>")
 
     if eligible:
