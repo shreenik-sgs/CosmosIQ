@@ -258,6 +258,19 @@ def _handle_health(store_dir: str) -> Dict[str, Any]:
     })
 
 
+def _handle_observability(store_dir: str, now: str) -> Dict[str, Any]:
+    """GET /api/observability -- the single sanitized observability surface (READ-ONLY).
+
+    Aggregates every health signal (023E) into one sanitized health JSON with a rolled ``status``
+    (ok / degraded / failed). Pure + offline: no form, no button, no write -- labels + counts +
+    injected-time latencies only, never a secret / score / trade. ``now`` is the injected instant
+    the shell supplies at its boundary (deterministic; no wall clock here).
+    """
+    from cosmosiq_ops.observability import aggregate_observability
+    report = aggregate_observability(store_dir, now=now or "")
+    return _ok(report.to_dict())
+
+
 def _handle_runs_list(store_dir: str) -> Dict[str, Any]:
     runs = _runs_newest_first(store_dir)
     return _ok({"runs": [_run_summary_dict(r) for r in runs], "count": len(runs)})
@@ -641,6 +654,9 @@ def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[
 
     if tail == ["health"]:
         return _require(method, "GET", path) or _handle_health(store_dir)
+
+    if tail == ["observability"]:
+        return _require(method, "GET", path) or _handle_observability(store_dir, now)
 
     if tail == ["runs"]:
         return _require(method, "GET", path) or _handle_runs_list(store_dir)
