@@ -45,6 +45,22 @@ from cosmosiq_ops.env_profiles import (  # noqa: F401
     get_profile,
     resolve_profile,
 )
+from cosmosiq_ops.secrets_config import (  # noqa: F401
+    ALL_CONFIG_ENV_VARS,
+    CONFIG_SCHEMA,
+    ENV_UNTRACKED_RULE,
+    REQUIRED_ENV_VARS,
+    CapabilityConfig,
+    SecretCheck,
+    SecretsReport,
+    file_is_secret_free,
+    format_secrets_report,
+    is_secret_free,
+    required_env_vars_for_profile,
+    secret_scan_paths,
+    secret_value_findings,
+    validate_secrets,
+)
 from cosmosiq_ops.smoke import (  # noqa: F401
     SmokeReport,
     format_smoke_report,

@@ -17,3 +17,8 @@ venv/
 *~
 .idea/
 .vscode/
+
+# Secrets: a REAL .env is NEVER committed. Only .env.example (the template) is tracked.
+.env
+.env.*
+!.env.example
