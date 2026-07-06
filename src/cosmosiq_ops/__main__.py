@@ -64,6 +64,9 @@ def _cmd_prod_check(args: argparse.Namespace) -> int:
     report = run_prod_check(args.work_dir, args.repo_root or _default_repo_root(),
                             now=args.now, quick=bool(args.quick))
     print(format_prod_check_report(report))
+    print("production_mode_allowed={0} recommendation_mode_allowed={1}".format(
+        str(report.production_mode_allowed).lower(),
+        str(report.recommendation_mode_allowed).lower()))
     # Non-zero unless production is allowed -- the safe default (an honest OFFLINE run refuses).
     return 0 if report.production_mode_allowed else 1
 

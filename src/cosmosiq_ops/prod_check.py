@@ -58,6 +58,11 @@ from cosmosiq_service.service import (
     requires_activation_gate,
     run_once,
 )
+from reality_mesh.recommendation_activation import (
+    RecommendationActivationReport,
+    evaluate_recommendation_activation,
+    run_recommendation_checks,
+)
 
 # The real fixture tickers -- the DEFAULT product UI must show none of these (no demo leakage).
 FIXTURE_TICKERS: Tuple[str, ...] = ("IREN", "AAOI", "NVDA")
@@ -74,20 +79,35 @@ _HARD_FAIL_STATUSES = frozenset({"failed", "blocked_by_policy"})
 # --------------------------------------------------------------------------- #
 @dataclass(frozen=True)
 class ProdCheckReport:
-    """The whole prod-check run: the machine results + the folded activation report."""
+    """The whole prod-check run: the machine results + the folded activation reports.
+
+    Carries BOTH honest verdicts, each derived from its own accepted gate and never re-implemented:
+    ``production_mode_allowed`` from the 020F :func:`evaluate_activation` (``activation``) and
+    ``recommendation_mode_allowed`` from the 022H :func:`evaluate_recommendation_activation`
+    (``recommendation``). Both stay ``False`` in an honest OFFLINE run -- neither gate is weakened.
+    """
 
     work_dir: str
     repo_root: str
     checks: Tuple[CheckResult, ...] = field(default_factory=tuple)
-    activation: object = None    # cosmosiq_service.activation.ActivationReport
+    activation: object = None            # cosmosiq_service.activation.ActivationReport
+    recommendation: object = None        # reality_mesh...RecommendationActivationReport
 
     @property
     def production_mode_allowed(self) -> bool:
         return bool(self.activation and self.activation.production_mode_allowed)
 
     @property
+    def recommendation_mode_allowed(self) -> bool:
+        return bool(self.recommendation and self.recommendation.recommendation_mode_allowed)
+
+    @property
     def verdict(self) -> str:
         return self.activation.verdict if self.activation else ""
+
+    @property
+    def recommendation_verdict(self) -> str:
+        return self.recommendation.verdict if self.recommendation else ""
 
     @property
     def blocking_failures(self) -> Tuple[str, ...]:
@@ -100,6 +120,14 @@ class ProdCheckReport:
     @property
     def evidence_paths(self) -> Tuple[str, ...]:
         return self.activation.evidence_paths if self.activation else ()
+
+    @property
+    def recommendation_blocking_failures(self) -> Tuple[str, ...]:
+        return self.recommendation.blocking_failures if self.recommendation else ()
+
+    @property
+    def recommendation_manual_review_items(self) -> Tuple[str, ...]:
+        return self.recommendation.manual_review_items if self.recommendation else ()
 
 
 # --------------------------------------------------------------------------- #
@@ -390,6 +418,150 @@ def _no_auto_promotion() -> CheckResult:
                        tuple(findings) or ("no auto / unapproved promotion to PRODUCTION_24X7",))
 
 
+# --------------------------------------------------------------------------- #
+# 023G additive checks -- compose 022H / 023A / 023F (never re-implement them)   #
+# --------------------------------------------------------------------------- #
+def _recommendation_eligibility(
+        rec_store: str, now: str, *,
+        operator_approval: Optional[OperatorApproval] = None,
+        extra_recommendation_checks: Optional[Mapping[str, object]] = None
+        ) -> Tuple[CheckResult, "RecommendationActivationReport"]:
+    """Run the 022H recommendation-activation gate OFFLINE and fold in its honest verdict.
+
+    Composes :func:`run_recommendation_checks` (the REAL machine checks over the 022x layers) and
+    :func:`evaluate_recommendation_activation` -- it re-implements NOTHING. The returned
+    :class:`CheckResult` PASSES iff every machine-verifiable recommendation check passes (the honest
+    machine posture); it does NOT claim the recommendation MODE is allowed -- that stays ``False``
+    OFFLINE because ``live_source_health`` + ``operator_signoff`` remain manual + BLOCKING in the
+    returned report. ``extra_recommendation_checks`` lets a caller inject / clear the manual items
+    (used to prove the recommendation mode is reachable-only-with-complete-evidence).
+    """
+    try:
+        machine = run_recommendation_checks(rec_store, now=now)
+    except Exception as exc:      # any crash is a hard fail, surfaced not hidden
+        empty = evaluate_recommendation_activation(rec_store, now=now)
+        return (CheckResult("recommendation_eligibility", "fail",
+                            ("recommendation checks raised {0}: {1}".format(
+                                type(exc).__name__, str(exc)[:160]),)),
+                empty)
+    merged: Dict[str, object] = dict(machine)
+    if extra_recommendation_checks:
+        merged.update(dict(extra_recommendation_checks))
+    report = evaluate_recommendation_activation(
+        rec_store, now=now, operator_approval=operator_approval, checks=merged)
+    machine_failures = tuple(name for name, r in machine.items()
+                             if getattr(r, "status", "") == "fail")
+    status = "fail" if machine_failures else "pass"
+    detail = ("{0} machine recommendation check(s) pass; recommendation_mode_allowed={1}; "
+              "verdict={2}; blocking={3}; manual={4}".format(
+                  len(machine), report.recommendation_mode_allowed, report.verdict,
+                  ", ".join(report.blocking_failures) or "none",
+                  ", ".join(report.manual_review_items) or "none"))
+    if machine_failures:
+        detail = "machine recommendation checks FAILED: " + ", ".join(machine_failures)
+    return CheckResult("recommendation_eligibility", status, (detail,)), report
+
+
+def _deployment_config_valid() -> CheckResult:
+    """023A: the deployment profiles are safe-by-default, self-consistent, production explicit-only.
+
+    Composes :mod:`cosmosiq_ops.env_profiles` -- the default profile is safe
+    (``production_allowed=False``), ``resolve_profile(None)`` never returns production, the
+    ``production`` posture is reachable ONLY by its explicit name, and every profile satisfies the
+    declared invariants (a blocked network draws only from an offline source; a production-declared
+    profile carries the production service + recommendation modes and is never the default).
+    """
+    from cosmosiq_ops.env_profiles import (
+        DEFAULT_PROFILE_ID,
+        PROFILES,
+        RecommendationMode,
+        ServiceMode as _EnvServiceMode,
+        default_profile,
+        get_profile,
+        resolve_profile,
+    )
+    _OFFLINE_SOURCES = frozenset({"fixture_only", "local_file"})
+    findings: List[str] = []
+
+    dp = default_profile()
+    if dp.production_allowed:
+        findings.append("default profile {0!r} declares production_allowed=True".format(
+            dp.profile_id))
+    resolved = resolve_profile(None)
+    if resolved.production_allowed:
+        findings.append("resolve_profile(None) returned a production-allowed profile")
+    if resolved.profile_id != DEFAULT_PROFILE_ID:
+        findings.append("resolve_profile(None) did not return the safe default {0!r}".format(
+            DEFAULT_PROFILE_ID))
+
+    try:
+        prod = get_profile("production")
+    except Exception as exc:                                        # noqa: BLE001
+        prod = None
+        findings.append("production profile not reachable by name: {0}".format(str(exc)[:120]))
+    if prod is not None and not prod.production_allowed:
+        findings.append("the explicit production profile is not production_allowed")
+
+    for pid, prof in PROFILES.items():
+        if prof.network_behavior == "blocked" and prof.source_behavior not in _OFFLINE_SOURCES:
+            findings.append("profile {0!r}: blocked network with non-offline source {1!r}".format(
+                pid, prof.source_behavior))
+        if prof.production_allowed:
+            if prof.service_mode != _EnvServiceMode.PRODUCTION_24X7.value:
+                findings.append("profile {0!r}: production_allowed but service_mode {1!r}".format(
+                    pid, prof.service_mode))
+            if prof.recommendation_mode != RecommendationMode.PRODUCTION_MANUAL_REVIEW:
+                findings.append(
+                    "profile {0!r}: production_allowed but recommendation_mode {1!r}".format(
+                        pid, prof.recommendation_mode))
+            if pid == DEFAULT_PROFILE_ID:
+                findings.append("the default profile {0!r} declares production_allowed=True".format(
+                    pid))
+
+    status = "fail" if findings else "pass"
+    return CheckResult(
+        "deployment_config_valid", status,
+        tuple(findings) or ("default profile {0!r} safe (production_allowed=False); production "
+                            "reachable explicit-only; {1} profile(s) self-consistent".format(
+                                DEFAULT_PROFILE_ID, len(PROFILES)),))
+
+
+def _backup_restore_smoke(work_dir: str, now: str) -> CheckResult:
+    """023F: seed a scratch store, back it up, restore into an EMPTY target, re-prove it.
+
+    Composes :mod:`cosmosiq_ops.backup_ops` end to end: a hardened backup of a freshly seeded store
+    (sha256 manifest + verify), then a restore into an empty target that re-runs integrity + a
+    deterministic replay-after-restore. PASSES only when the backup verifies AND the restore is
+    allowed, verifies, is schema-compatible, and passes integrity + replay. Everything OFFLINE; the
+    scratch trees live under ``work_dir`` (the caller's fresh work dir).
+    """
+    from cosmosiq_ops import backup_ops
+    from reality_mesh import persist_and_summarize, run_pulse
+
+    smoke_root = os.path.join(str(work_dir), "backup_smoke")
+    src_store = os.path.join(smoke_root, "store")
+    backup_dir = os.path.join(smoke_root, "backups")
+    target = os.path.join(smoke_root, "restored")
+    os.makedirs(src_store, exist_ok=True)
+    try:
+        pulse = run_pulse(list(_PROD_WATCHLIST), list(_PROD_THEMES), now=now)
+        persist_and_summarize(pulse, store_dir=src_store, run_id="RUN-BACKUP-SMOKE", now=now)
+        backup = backup_ops.backup(src_store, backup_dir, now=now)
+        restore = backup_ops.restore(backup.snapshot_path, target, now=now)
+    except Exception as exc:      # any crash is a hard fail, surfaced not hidden
+        return CheckResult("backup_restore_smoke", "fail",
+                           ("backup/restore smoke raised {0}: {1}".format(
+                               type(exc).__name__, str(exc)[:160]),))
+    ok = (backup.verify_ok and backup.ok
+          and restore.allowed and restore.verify_ok and restore.schema_compatible
+          and restore.integrity_ok and restore.replay_ok and restore.ok)
+    detail = ("backup {0} (verify={1}); restore {2} (verify={3}, integrity={4}, "
+              "replay={5}) into empty target".format(
+                  backup.status, backup.verify_ok, restore.status, restore.verify_ok,
+                  restore.integrity_ok, restore.replay_ok))
+    return CheckResult("backup_restore_smoke", "pass" if ok else "fail", (detail,))
+
+
 def _rollback_docs(repo_root: str) -> CheckResult:
     """The 020F operator runbook + activation-checklist docs exist under the repo."""
     required = ("docs/OPERATOR_RUNBOOK_020F.md", "docs/ACTIVATION_CHECKLIST_020F.md")
@@ -406,15 +578,20 @@ def _rollback_docs(repo_root: str) -> CheckResult:
 # --------------------------------------------------------------------------- #
 def run_prod_check(work_dir: str, repo_root: str, *, now: str, quick: bool = False,
                    operator_approval: Optional[OperatorApproval] = None,
-                   extra_checks: Optional[Mapping[str, CheckResult]] = None) -> ProdCheckReport:
+                   extra_checks: Optional[Mapping[str, CheckResult]] = None,
+                   extra_recommendation_checks: Optional[Mapping[str, object]] = None
+                   ) -> ProdCheckReport:
     """Run every machine-verifiable activation check OFFLINE and fold them into the 020F checklist.
 
     ``now`` is injected everywhere (no wall clock in the runtime chain). ``quick`` skips the
     CI-gate's full-suite subprocess run but keeps every sweep. ``operator_approval`` is passed to
-    the activation evaluation; without it (and without the manual items) production stays refused.
-    ``extra_checks`` lets a caller inject / override machine results (used to prove an injected
-    violation blocks). Returns the frozen report; production is NOT allowed unless every gate --
-    including the human manual items -- is satisfied AND approved.
+    BOTH the 020F activation evaluation and the 022H recommendation-activation evaluation; without
+    it (and without the manual items) neither production nor the recommendation mode is allowed.
+    ``extra_checks`` lets a caller inject / override the 020F machine results (used to prove an
+    injected violation blocks); ``extra_recommendation_checks`` does the same for the 022H
+    recommendation gate (used to prove the recommendation mode is reachable-only-with-complete-
+    evidence). Returns the frozen report; NEITHER production NOR the recommendation mode is allowed
+    unless every gate -- including the human manual items -- is satisfied AND approved.
     """
     if not str(now).strip():
         raise ValueError("run_prod_check requires an injected 'now' instant")
@@ -459,6 +636,18 @@ def run_prod_check(work_dir: str, repo_root: str, *, now: str, quick: bool = Fal
     # 10. runbook/rollback docs. ---------------------------------------------------------------- #
     checks.append(_rollback_docs(repo_root))
 
+    # 11. 023G additive checks -- compose 022H / 023A / 023F; each an offline machine check. ----- #
+    #     They enrich the checklist but NEVER weaken the 020F gate: their ids are not 020F item
+    #     ids, so evaluate_activation (which iterates the fixed 020F specs) ignores them.
+    rec_store = os.path.join(str(work_dir), "rec_store")
+    os.makedirs(rec_store, exist_ok=True)
+    rec_check, recommendation = _recommendation_eligibility(
+        rec_store, now, operator_approval=operator_approval,
+        extra_recommendation_checks=extra_recommendation_checks)
+    checks.append(rec_check)
+    checks.append(_deployment_config_valid())
+    checks.append(_backup_restore_smoke(work_dir, now))
+
     # Map machine results to checklist item ids (ci_gate's score check id -> no_hidden_score).
     by_id: Dict[str, CheckResult] = {}
     for c in checks:
@@ -472,7 +661,7 @@ def run_prod_check(work_dir: str, repo_root: str, *, now: str, quick: bool = Fal
         store_dir, now=now, operator_approval=operator_approval, checks=by_id)
     return ProdCheckReport(
         work_dir=str(work_dir), repo_root=str(repo_root),
-        checks=tuple(checks), activation=activation)
+        checks=tuple(checks), activation=activation, recommendation=recommendation)
 
 
 def _demo_byte_identical() -> CheckResult:
@@ -490,7 +679,10 @@ def format_prod_check_report(report: ProdCheckReport) -> str:
         "repo: {0}".format(report.repo_root),
         "work dir: {0}".format(report.work_dir),
         "production_mode_allowed = {0}".format(str(allowed).lower()),
+        "recommendation_mode_allowed = {0}".format(
+            str(report.recommendation_mode_allowed).lower()),
         "verdict: {0}".format(report.verdict),
+        "recommendation_verdict: {0}".format(report.recommendation_verdict),
     ]
     act = report.activation
     if act is not None:
@@ -508,6 +700,10 @@ def format_prod_check_report(report: ProdCheckReport) -> str:
         ", ".join(report.blocking_failures) or "none"))
     lines.append("manual_review_items: {0}".format(
         ", ".join(report.manual_review_items) or "none"))
+    lines.append("recommendation_blocking_failures: {0}".format(
+        ", ".join(report.recommendation_blocking_failures) or "none"))
+    lines.append("recommendation_manual_review_items: {0}".format(
+        ", ".join(report.recommendation_manual_review_items) or "none"))
     lines.append("evidence_paths: {0}".format(", ".join(report.evidence_paths) or "none"))
     if not allowed:
         lines.append(
