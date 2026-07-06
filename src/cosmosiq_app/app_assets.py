@@ -127,5 +127,13 @@ ul.diffs li{color:#ff9db4;font-family:var(--mono);font-size:11.5px}
   color:#dff6ff;border-radius:999px;padding:.4rem 1rem;font-weight:700;font-size:12px;
   cursor:pointer;margin:.3rem 0}
 .op-note{display:block;color:var(--faint);font-size:11px;margin-top:.25rem;max-width:80ch}
+.op-form fieldset.op-side{border:1px solid var(--line);border-radius:8px;
+  margin:.35rem 0;padding:.3rem .6rem}
+.op-form fieldset.op-side legend{color:var(--muted);font-size:12px;padding:0 .3rem}
+.op-form label.radio{display:inline-block;margin:.1rem 1rem .1rem 0;color:var(--ink);
+  font-size:12.5px}
+.op-form label.radio input[type=radio]{margin-right:.35rem;vertical-align:middle}
+.form-error{background:#2a0d17;border:1px solid var(--bad);color:#ff9db4;
+  border-radius:10px;padding:.5rem .8rem;margin:.5rem 0;font-size:12.5px}
 .mono{font-family:var(--mono);font-size:11.5px}
 """

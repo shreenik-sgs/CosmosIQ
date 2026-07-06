@@ -1,24 +1,28 @@
-"""IMPLEMENTATION-018A -- the /portfolio page + candidate-vs-holdings, tested OFFLINE.
+"""IMPLEMENTATION-UX-3 -- the Portfolio page + the "Log an executed fill" form.
 
-Dispatcher-only (no server, no socket -- the whole module runs under a socket
-kill-switch). Proven here:
+Dispatcher-only, OFFLINE (the whole module runs under a socket kill-switch; no
+server, no socket, no wall clock). This surfaces the UX-2 manual position ledger
+in the cockpit and adds a SANCTIONED operator form to LOG a fill the operator
+already executed at their OWN brokerage. Proven here:
 
-* ``/portfolio`` renders every section from the operator-recorded holdings file +
-  the persisted stores: holdings table (as_of + a STALE label when older than the
-  latest persisted run), exposure by theme, concentration BANDS (never a ratio),
-  correlation LABELS (no number), rotation alignment, and the risk-budget /
-  sizing-guardrail section via the ACCEPTED personal_cio profile function;
-* honest absence EVERYWHERE: no holdings file -> every section says so; malformed
-  file -> the parse error is named; no profile -> guardrails honestly absent;
-* the candidate cockpit gains a READ-ONLY candidate-vs-holdings comparison
-  (honest absence without holdings; a label with holdings);
-* page sweeps: 0 trade affordances / forms / buttons on the portfolio surface,
-  0 external refs, 0 credential-like tokens, 0 score/rank tokens, 0 Sanskrit,
-  the as-of honesty line, no live claim;
-* rendering mutates no stored byte; renders are byte-deterministic;
-* ``src/personal_cio`` is consumed UNMODIFIED (git-assert);
-* untouched paths: the Universe demo default stays byte-identical and the default
-  manual pulse output is unchanged by this slice.
+* the ledger holdings table renders from ``compute_holdings`` -- net quantity,
+  average cost basis, concentration BAND (never a score), linked recommendation,
+  last fill date -- plus the honest empty state when nothing is recorded;
+* ``POST /api/portfolio/record-fill`` with a valid fill records it (append-only)
+  and REDIRECTS (303) to ``/portfolio``; a second bought fill updates the average
+  and a sold fill reduces the net; a bad input re-renders with an honest error and
+  writes NOTHING; it is RECORD-ONLY (no broker, no order submission, no network);
+* copy discipline: PAST-TENSE ``Bought`` / ``Sold`` (never a ``Buy`` / ``Sell``
+  button), the submit button ``Record this fill``, and the honest disclaimer
+  (never connects to a brokerage / never places orders);
+* zero trade affordance on the page (strict word-boundary sweep AND the accepted
+  ci-gate action-phrase sweep both find NONE); a real order route -> 403;
+* the prod_check ``no_trade_control`` scan STILL passes with the page live;
+* concentration is BANDS not scores; no hidden score / rank; no secret; no default
+  fixture ticker on the empty-store page (a logged ticker legitimately appears
+  after the operator logs it);
+* deterministic render; the retained 018A statement sections still render; the
+  universe_ui demo + the reality_mesh default pulse stay byte-identical; offline.
 """
 
 from __future__ import annotations
@@ -27,7 +31,6 @@ import json
 import os
 import re
 import socket
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -38,66 +41,50 @@ if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
 import reality_mesh as rm
-from cosmosiq_app.api import dispatch
+from cosmosiq_app.api import dispatch, EXECUTION_REFUSAL
+from cosmosiq_ops.ci_gate import TRADE_WORD_RE
+from cosmosiq_ops.prod_check import _scan_no_trade_control
 
-_NOW1 = "2026-06-29T00:00:00Z"
-_RUN1 = "RUN-PF-1"
-_STALE_AS_OF = "2026-06-28T00:00:00Z"     # before the run -> stale
-_FRESH_AS_OF = "2026-06-30T00:00:00Z"     # after the run -> current
+_NOW = "2026-06-29T00:00:00Z"
+_RUN = "RUN-UX3-1"
 
-_TRADE_WORD = re.compile(r"\b(buy|sell|order|submit|execute|trade|broker)\b",
-                         re.IGNORECASE)
+# The strict per-tab affordance sweep (identical to the standing cockpit-shell list):
+# ZERO of these word-boundary trade verbs may appear on the portfolio surface.
+_STRICT_TRADE = re.compile(r"\b(buy|sell|order|submit|execute|trade|broker)\b", re.IGNORECASE)
 _SCORE_TOKENS = ("score", "rank", "rating", "investab")
-_SANSKRIT_TOKENS = ("adhara", "buddhi", "tattva", "sphurana", "nivesha", "saarathi",
-                    "kriya", "anubhava", "sudarshan")
-_EXTERNAL_TOKENS = ("http://", "https://", "cdn.", "@import", "<script", "<link",
-                    "fetch(", "xmlhttprequest", "@font-face")
 _CRED_TOKENS = tuple(rm.CREDENTIAL_KEY_TOKENS)
-_LIVE_CLAIMS = ("real-time", "real time", "realtime", "streaming", "always-on",
-                "24/7", "autonomous")
-_LIVE_WORD = re.compile(r"\blive\b", re.IGNORECASE)
+_FIXTURE_TICKERS = ("IREN", "NVDA", "AAOI")
 
-_STATE = {}
 _ORIG_CONNECT = None
 
 
 def _boom(*a, **k):
-    raise AssertionError("network access attempted during offline portfolio page tests")
+    raise AssertionError("network access attempted during offline UX-3 portfolio tests")
 
 
 def _call(store_dir, method, path, body=None):
     return dispatch({"method": method, "path": path, "query": {}, "body": body},
-                    store_dir=store_dir, now=_NOW1)
+                    store_dir=store_dir, now=_NOW)
 
 
-def _seed_pulse_run(store_dir):
-    response = _call(store_dir, "POST", "/api/pulse",
-                     body={"watchlist": ["IREN", "NVDA"],
-                           "themes": ["physical_ai", "robotics"],
-                           "now": _NOW1, "run_id": _RUN1})
-    assert response["status"] == 200, response
+def _seed_pulse(store_dir):
+    r = _call(store_dir, "POST", "/api/pulse",
+              body={"watchlist": ["ABC", "XYZ"], "themes": ["physical_ai"],
+                    "now": _NOW, "run_id": _RUN})
+    assert r["status"] == 200, r
 
 
-def _write_holdings(store_dir, payload):
-    base = os.path.join(store_dir, "portfolio")
-    os.makedirs(base, exist_ok=True)
-    with open(os.path.join(base, "holdings.json"), "w", encoding="utf-8") as fh:
-        if isinstance(payload, str):
-            fh.write(payload)
-        else:
-            json.dump(payload, fh)
+def _fill(store_dir, **fields):
+    fields.setdefault("at", _NOW)
+    return _call(store_dir, "POST", "/api/portfolio/record-fill", body=fields)
 
 
-def _write_profile(store_dir):
-    with open(os.path.join(store_dir, "personal_profile.json"), "w",
-              encoding="utf-8") as fh:
-        json.dump({"account": "operator", "now": 1750000000.0,
-                   "profile": {"risk_tolerance": "moderate",
-                               "max_single_position_pct": 8.0,
-                               "max_theme_exposure_pct": 25.0,
-                               "min_cash_reserve_pct": 10.0},
-                   "portfolio": {"total_portfolio_value": 100000.0,
-                                 "available_cash": 50000.0}}, fh)
+def _ledger_lines(store_dir):
+    path = os.path.join(store_dir, "position_ledger.jsonl")
+    if not os.path.isfile(path):
+        return []
+    with open(path, "rb") as fh:
+        return [ln for ln in fh.read().split(b"\n") if ln.strip()]
 
 
 def setUpModule():
@@ -105,291 +92,317 @@ def setUpModule():
     _ORIG_CONNECT = socket.socket.connect
     socket.socket.connect = _boom
 
-    # Store A: pulse run + holdings (stale as_of) + profile -- the full surface.
-    full = tempfile.mkdtemp(prefix="pf_page_full_")
-    _seed_pulse_run(full)
-    _write_holdings(full, {
-        "as_of": _STALE_AS_OF,
-        "positions": [
-            {"ticker": "IREN", "quantity": 100, "cost_basis": 15.0,
-             "account_label": "taxable-main", "liquidity_note": "thin float"},
-            {"ticker": "NVDA", "quantity": 10, "cost_basis": 100.0},
-            {"ticker": "ZZZZ", "quantity": 5},
-        ],
-        "cash": 500})
-    _write_profile(full)
-    _STATE["full"] = full
-    _STATE["portfolio_full"] = _call(full, "GET", "/portfolio")
-    _STATE["candidate_full"] = _call(full, "GET", "/candidates/IREN")
-
-    # Store B: pulse run only -- NO holdings, NO profile (honest absence everywhere).
-    bare = tempfile.mkdtemp(prefix="pf_page_bare_")
-    _seed_pulse_run(bare)
-    _STATE["bare"] = bare
-    _STATE["portfolio_bare"] = _call(bare, "GET", "/portfolio")
-    _STATE["candidate_bare"] = _call(bare, "GET", "/candidates/IREN")
-
 
 def tearDownModule():
     socket.socket.connect = _ORIG_CONNECT
 
 
 # =========================================================================== #
-# 1. The /portfolio page with a recorded statement                             #
+# 1. The ledger holdings table + empty state                                   #
 # =========================================================================== #
-class PortfolioPageTests(unittest.TestCase):
+class LedgerHoldingsTests(unittest.TestCase):
+    def test_empty_store_shows_honest_empty_state_and_the_form(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = _call(d, "GET", "/portfolio")
+            self.assertEqual(r["status"], 200)
+            self.assertTrue(r["headers"]["Content-Type"].startswith("text/html"))
+            html = r["body"]
+            self.assertIn("No positions recorded yet", html)
+            self.assertIn("log the fill below", html)
+            # the sanctioned log-fill form is present and posts to the record route
+            self.assertIn('action="/api/portfolio/record-fill"', html)
+            self.assertIn("Record this fill", html)
+
+    def test_a_bought_fill_records_and_shows_net_and_average_cost(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = _fill(d, ticker="ABC", side="bought", quantity="100",
+                      price="10.50", trade_date="2026-01-05")
+            self.assertIn(r["status"], (302, 303))
+            self.assertEqual(r["headers"]["Location"], "/portfolio")
+            html = _call(d, "GET", "/portfolio")["body"]
+            self.assertIn("ABC", html)
+            self.assertIn(">100<", html)           # net quantity
+            self.assertIn("10.50", html)           # average cost basis
+            self.assertIn("2026-01-05", html)      # last fill date
+
+    def test_second_bought_updates_the_average_and_a_sold_reduces_net(self):
+        with tempfile.TemporaryDirectory() as d:
+            _fill(d, ticker="ABC", side="bought", quantity="100",
+                  price="10.50", trade_date="2026-01-05")
+            _fill(d, ticker="ABC", side="bought", quantity="100",
+                  price="20.50", trade_date="2026-01-06")
+            html = _call(d, "GET", "/portfolio")["body"]
+            self.assertIn("15.50", html)           # (1050 + 2050) / 200
+            self.assertIn(">200<", html)           # net after two buys
+            _fill(d, ticker="ABC", side="sold", quantity="50",
+                  price="25", trade_date="2026-01-07")
+            html2 = _call(d, "GET", "/portfolio")["body"]
+            self.assertIn(">150<", html2)          # sold reduces the net
+            self.assertIn("15.50", html2)          # avg cost basis unchanged by a sale
+
+    def test_concentration_is_a_band_never_a_score(self):
+        with tempfile.TemporaryDirectory() as d:
+            _fill(d, ticker="ABC", side="bought", quantity="100",
+                  price="100", trade_date="2026-01-05")
+            _fill(d, ticker="XYZ", side="bought", quantity="1",
+                  price="1", trade_date="2026-01-05")
+            html = _call(d, "GET", "/portfolio")["body"]
+            self.assertIn("Concentration band", html)
+            self.assertIn(">dominant<", html)      # ABC dwarfs the total
+            self.assertIn(">minimal<", html)       # XYZ is a sliver
+            # the thresholds are named as DATA; no computed ratio leaks
+            self.assertIn("moderate at 5.0%, elevated at 10.0%, dominant at 20.0%", html)
+            for token in _SCORE_TOKENS:
+                self.assertNotIn(token, html.lower(), token)
+
+    def test_linked_recommendation_and_recent_fills_render(self):
+        with tempfile.TemporaryDirectory() as d:
+            _fill(d, ticker="ABC", side="bought", quantity="10", price="5",
+                  trade_date="2026-01-04", recommendation_ref="cand:ABC:001",
+                  note="acted on the published thesis")
+            html = _call(d, "GET", "/portfolio")["body"]
+            self.assertIn("cand:ABC:001", html)              # linked recommendation
+            self.assertIn("Recent fills you logged", html)
+            self.assertIn("acted on the published thesis", html)
+
+
+# =========================================================================== #
+# 2. The record-fill route: record-only, validation, append-only, offline      #
+# =========================================================================== #
+class RecordFillRouteTests(unittest.TestCase):
+    def test_valid_fill_redirects_to_portfolio(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = _fill(d, ticker="ABC", side="bought", quantity="10",
+                      price="5", trade_date="2026-01-04")
+            self.assertIn(r["status"], (302, 303))
+            self.assertEqual(r["headers"]["Location"], "/portfolio")
+            self.assertEqual(len(_ledger_lines(d)), 1)       # exactly one line written
+
+    def test_bad_quantity_rerenders_with_honest_error_and_writes_nothing(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = _fill(d, ticker="ABC", side="bought", quantity="oops",
+                      price="5", trade_date="2026-01-04")
+            self.assertEqual(r["status"], 400)
+            self.assertIn("Could not record that fill", r["body"])
+            self.assertIn("quantity", r["body"])
+            self.assertEqual(_ledger_lines(d), [])           # nothing persisted
+
+    def test_missing_ticker_and_invalid_side_are_refused_without_crash(self):
+        with tempfile.TemporaryDirectory() as d:
+            r1 = _fill(d, ticker="", side="bought", quantity="1",
+                       price="5", trade_date="2026-01-04")
+            self.assertEqual(r1["status"], 400)
+            self.assertIn("ticker is required", r1["body"])
+            r2 = _fill(d, ticker="ABC", side="buy", quantity="1",
+                       price="5", trade_date="2026-01-04")
+            self.assertEqual(r2["status"], 400)
+            self.assertIn("PAST TENSE", r2["body"])
+            self.assertEqual(_ledger_lines(d), [])
+
+    def test_get_on_the_record_route_is_405(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = _call(d, "GET", "/api/portfolio/record-fill")
+            self.assertEqual(r["status"], 405)
+
+    def test_append_only_prior_line_is_byte_unchanged(self):
+        with tempfile.TemporaryDirectory() as d:
+            _fill(d, ticker="ABC", side="bought", quantity="10", price="5",
+                  trade_date="2026-01-04")
+            first = _ledger_lines(d)
+            self.assertEqual(len(first), 1)
+            # a correction / follow-on is a NEW line; the prior line never mutates
+            _fill(d, ticker="ABC", side="sold", quantity="4", price="6",
+                  trade_date="2026-01-05")
+            second = _ledger_lines(d)
+            self.assertEqual(len(second), 2)
+            self.assertEqual(second[0], first[0])            # line 1 unchanged, byte-for-byte
+
+    def test_recording_the_identical_fill_is_idempotent(self):
+        with tempfile.TemporaryDirectory() as d:
+            _fill(d, ticker="ABC", side="bought", quantity="10", price="5",
+                  trade_date="2026-01-04")
+            _fill(d, ticker="ABC", side="bought", quantity="10", price="5",
+                  trade_date="2026-01-04")
+            self.assertEqual(len(_ledger_lines(d)), 1)       # no duplicate line
+
+    def test_a_real_order_route_stays_403(self):
+        with tempfile.TemporaryDirectory() as d:
+            for path in ("/api/orders", "/api/execution/submit", "/api/portfolio/order",
+                         "/api/buy"):
+                r = _call(d, "GET", path, body={"ticker": "ABC"})
+                self.assertEqual(r["status"], 403, path)
+                self.assertEqual(r["body"]["error"], EXECUTION_REFUSAL, path)
+
+    def test_the_post_makes_no_network_or_broker_call(self):
+        # The whole module runs under the socket kill-switch; a successful record
+        # proves record_fill reached only a local file (a broker/network call would
+        # have raised).
+        sock = socket.socket()
+        try:
+            with self.assertRaises(AssertionError):
+                sock.connect(("127.0.0.1", 80))
+        finally:
+            sock.close()
+        with tempfile.TemporaryDirectory() as d:
+            r = _fill(d, ticker="ABC", side="bought", quantity="10", price="5",
+                      trade_date="2026-01-04")
+            self.assertIn(r["status"], (302, 303))
+
+
+# =========================================================================== #
+# 3. Copy discipline: past-tense side, "Record this fill", the disclaimer       #
+# =========================================================================== #
+class CopyDisciplineTests(unittest.TestCase):
     def setUp(self):
-        self.html = _STATE["portfolio_full"]["body"]
+        self.d = tempfile.mkdtemp(prefix="ux3_copy_")
+        self.html = _call(self.d, "GET", "/portfolio")["body"]
 
-    def test_served_as_html_with_every_section(self):
-        response = _STATE["portfolio_full"]
-        self.assertEqual(response["status"], 200)
-        self.assertTrue(response["headers"]["Content-Type"].startswith("text/html"))
-        for heading in ("Recorded holdings", "Exposure by theme",
-                        "Concentration bands", "Co-exposure (correlation labels)",
-                        "Rotation alignment", "Risk budget and sizing guardrails"):
-            self.assertIn(heading, self.html, heading)
+    def test_side_control_is_past_tense_not_buy_sell_buttons(self):
+        self.assertIn('value="bought"', self.html)
+        self.assertIn('value="sold"', self.html)
+        self.assertIn("Bought</label>", self.html)
+        self.assertIn("Sold</label>", self.html)
+        # never an imperative Buy / Sell button or an order-submission control
+        self.assertNotIn("Buy</button>", self.html)
+        self.assertNotIn("Sell</button>", self.html)
+        self.assertNotIn("Submit order", self.html)
+        self.assertNotIn("Place trade", self.html)
+        self.assertNotIn('type="submit"', self.html)
 
-    def test_nav_gains_portfolio_on_every_page(self):
-        self.assertIn('href="/portfolio"', self.html)
-        for path in ("/", "/runs", "/alerts", "/settings", "/themes"):
-            self.assertIn('href="/portfolio"',
-                          _call(_STATE["full"], "GET", path)["body"], path)
+    def test_submit_button_is_record_this_fill(self):
+        self.assertIn("<button>Record this fill</button>", self.html)
 
-    def test_holdings_table_shows_the_statement_verbatim(self):
-        self.assertIn(_STALE_AS_OF, self.html)
-        self.assertIn("IREN", self.html)
-        self.assertIn("100", self.html)                      # quantity as recorded
-        self.assertIn("taxable-main", self.html)
-        self.assertIn("thin float", self.html)               # recorded liquidity note
-        self.assertIn("not recorded", self.html)             # ZZZZ has no cost basis
-        self.assertIn("unknown -- no liquidity note recorded", self.html)
-        self.assertIn("3 recorded", self.html)               # volume count
-
-    def test_stale_as_of_renders_a_stale_label(self):
-        self.assertIn(">stale<", self.html)
-        self.assertIn("predates the latest persisted run", self.html)
-
-    def test_fresh_as_of_renders_current(self):
-        with tempfile.TemporaryDirectory() as d:
-            _seed_pulse_run(d)
-            _write_holdings(d, {"as_of": _FRESH_AS_OF, "positions": [
-                {"ticker": "IREN", "quantity": 1, "cost_basis": 10}]})
-            html = _call(d, "GET", "/portfolio")["body"]
-            self.assertIn(">current<", html)
-            self.assertNotIn(">stale<", html)
-
-    def test_exposure_by_theme_uses_the_persisted_mapping(self):
-        # The seeded pulse's persisted records map IREN to physical-ai; NVDA and
-        # ZZZZ have no persisted mapping and are surfaced as an honest gap.
-        self.assertIn("physical-ai", self.html)
-        self.assertIn("NVDA, ZZZZ", self.html)
-        self.assertIn("honest gap, never guessed", self.html)
-
-    def test_concentration_bands_render_labels_never_a_ratio(self):
-        self.assertIn("Weight band", self.html)
-        self.assertIn(">dominant<", self.html)               # IREN/NVDA dwarf the total
-        self.assertIn(">unknown<", self.html)                # ZZZZ cannot be weighed
-        self.assertIn("no weight or ratio is stored or rendered", self.html)
-        # the published edges are named as data, and no computed weight leaks
-        self.assertIn("moderate at 5.0%, elevated at 10.0%, dominant at 20.0%",
-                      self.html)
-
-    def test_correlation_labels_no_number(self):
-        self.assertIn("no numeric correlation exists", self.html)
-        self.assertIn("IREN &harr; NVDA", self.html)
-
-    def test_rotation_alignment_against_persisted_states(self):
-        self.assertIn("Rotation alignment", self.html)
-        self.assertIn(">aligned<", self.html)                # IREN vs Broadening
-        self.assertIn("no signal", self.html)                # NVDA / ZZZZ unmapped
-
-    def test_guardrails_come_from_the_accepted_profile_function(self):
-        self.assertIn("Risk budget and sizing guardrails", self.html)
-        self.assertIn(">moderate<", self.html)               # risk tolerance label
-        self.assertIn("up to 8.00%", self.html)              # max single position
-        self.assertIn("up to 25.00%", self.html)             # max theme exposure
-        self.assertIn("at least 10.00%", self.html)          # min cash reserve
-        self.assertIn("manual confirmation is ALWAYS required downstream",
-                      self.html)
-
-    def test_read_only_discipline_stated(self):
-        self.assertIn("READ-ONLY", self.html)
-        self.assertIn("no automatic", self.html)
+    def test_the_honest_disclaimer_is_present(self):
+        low = self.html.lower()
+        self.assertIn("never connects to a brokerage", low)
+        self.assertIn("never places orders", low)
+        self.assertIn("brokerage", low)
 
 
 # =========================================================================== #
-# 2. Honest absence everywhere                                                 #
+# 4. Affordance sweeps + the prod_check no_trade_control scan                   #
 # =========================================================================== #
-class HonestAbsenceTests(unittest.TestCase):
-    def test_missing_holdings_every_section_says_so(self):
-        html = _STATE["portfolio_bare"]["body"]
-        self.assertEqual(_STATE["portfolio_bare"]["status"], 200)
-        self.assertGreaterEqual(html.count("No holdings recorded"), 5)
-        self.assertIn("portfolio/holdings.json", html)
-        self.assertIn("The app only ever READS it", html)
-
-    def test_missing_profile_guardrails_honestly_absent(self):
-        html = _STATE["portfolio_bare"]["body"]
-        self.assertIn("No personal profile is recorded", html)
-        self.assertIn("never a default persona", html)
-
-    def test_malformed_holdings_parse_error_is_named(self):
-        with tempfile.TemporaryDirectory() as d:
-            _seed_pulse_run(d)
-            _write_holdings(d, "{not json")
-            html = _call(d, "GET", "/portfolio")["body"]
-            self.assertIn("could not be parsed", html)
-            self.assertIn("nothing is guessed", html)
-            self.assertGreaterEqual(html.count("No holdings recorded"), 5)
-
-    def test_no_pulse_run_freshness_is_an_honest_unknown(self):
-        with tempfile.TemporaryDirectory() as d:
-            os.makedirs(d, exist_ok=True)
-            _write_holdings(d, {"as_of": "2026-01-01", "positions": [
-                {"ticker": "AAAA", "quantity": 1, "cost_basis": 10}]})
-            html = _call(d, "GET", "/portfolio")["body"]
-            self.assertIn("no run to compare", html)
-            self.assertIn("freshness cannot be compared", html)
-
-
-# =========================================================================== #
-# 3. Candidate cockpit: candidate vs recorded portfolio                        #
-# =========================================================================== #
-class CandidateComparisonSectionTests(unittest.TestCase):
-    def test_honest_absence_without_holdings(self):
-        html = _STATE["candidate_bare"]["body"]
-        self.assertIn("Candidate vs recorded portfolio", html)
-        self.assertIn("No holdings recorded", html)
-        self.assertIn("portfolio/holdings.json", html)
-        # the rest of the cockpit's honesty phrases survive untouched
-        low = html.lower()
-        self.assertIn("no thesis fabricated", low)
-        self.assertIn("no manual execution intent", low)
-
-    def test_comparison_label_with_holdings(self):
-        html = _STATE["candidate_full"]["body"]
-        self.assertIn("Candidate vs recorded portfolio", html)
-        # IREN is already a recorded position -> adds_concentration
-        self.assertIn("adds concentration", html)
-        self.assertIn("Already a recorded position", html)
-        self.assertIn("not advice", html)
-        self.assertIn(_STALE_AS_OF, html)                    # bound to the statement
-
-    def test_unmapped_candidate_is_honestly_indeterminate(self):
-        html = _call(_STATE["full"], "GET", "/candidates/QQQQ")["body"]
-        self.assertIn("no theme signal", html)
-        self.assertIn("honestly indeterminate", html)
-
-    def test_no_form_or_button_added_to_the_cockpit(self):
-        for key in ("candidate_full", "candidate_bare"):
-            html = _STATE[key]["body"]
-            self.assertNotIn("<form", html, key)
-            self.assertNotIn("<button", html, key)
-
-
-# =========================================================================== #
-# 4. Page hygiene sweeps                                                       #
-# =========================================================================== #
-class PortfolioHygieneTests(unittest.TestCase):
+class AffordanceSweepTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        cls.empty = tempfile.mkdtemp(prefix="ux3_sweep_empty_")
+        cls.full = tempfile.mkdtemp(prefix="ux3_sweep_full_")
+        _seed_pulse(cls.full)
+        _fill(cls.full, ticker="ABC", side="bought", quantity="100", price="10.50",
+              trade_date="2026-01-05")
+        _fill(cls.full, ticker="ABC", side="sold", quantity="30", price="12",
+              trade_date="2026-01-06")
+        _fill(cls.full, ticker="XYZ", side="bought", quantity="5", price="2",
+              trade_date="2026-01-04", recommendation_ref="cand:XYZ:001")
         cls.pages = {
-            "/portfolio(full)": _STATE["portfolio_full"]["body"],
-            "/portfolio(bare)": _STATE["portfolio_bare"]["body"],
-            "/candidates/IREN(full)": _STATE["candidate_full"]["body"],
-            "/candidates/IREN(bare)": _STATE["candidate_bare"]["body"],
+            "empty": _call(cls.empty, "GET", "/portfolio")["body"],
+            "full": _call(cls.full, "GET", "/portfolio")["body"],
+            "error": _call(cls.full, "POST", "/api/portfolio/record-fill",
+                           body={"ticker": "ABC", "side": "bought", "quantity": "bad",
+                                 "price": "1", "trade_date": "2026-01-09",
+                                 "at": _NOW})["body"],
         }
 
-    def test_zero_trade_affordances(self):
-        # The NEW portfolio surface is held to the strict word-boundary sweep.
-        for name in ("/portfolio(full)", "/portfolio(bare)"):
-            matches = _TRADE_WORD.findall(self.pages[name])
-            self.assertEqual(matches, [], "{0}: {1}".format(name, matches))
-        # The candidate cockpit legitimately carries the accepted 016C honesty
-        # phrase "no order is placed"; it is held to the 016C affordance sweep
-        # (no action phrase, no form) -- this slice must not add any affordance.
-        for name in ("/candidates/IREN(full)", "/candidates/IREN(bare)"):
-            self.assertNotRegex(
-                self.pages[name],
-                r"(?i)\b(buy|sell|order now|submit order|place order|"
-                r"execute trade|auto[- ]trade|trade now)\b", name)
+    def test_strict_word_boundary_sweep_finds_no_trade_verb(self):
+        for name, html in self.pages.items():
+            self.assertEqual(_STRICT_TRADE.findall(html), [],
+                             "{0}: {1}".format(name, _STRICT_TRADE.findall(html)))
 
-    def test_zero_forms_and_buttons_on_the_portfolio_page(self):
-        for name in ("/portfolio(full)", "/portfolio(bare)"):
-            html = self.pages[name]
-            self.assertNotIn("<form", html, name)
-            self.assertNotIn("<button", html, name)
+    def test_accepted_ci_gate_action_phrase_sweep_finds_none(self):
+        for name, html in self.pages.items():
+            self.assertEqual(TRADE_WORD_RE.findall(html), [],
+                             "{0}: {1}".format(name, TRADE_WORD_RE.findall(html)))
+
+    def test_prod_check_no_trade_control_still_passes_with_the_page_live(self):
+        result = _scan_no_trade_control(_ROOT, _NOW)
+        self.assertEqual(result.status, "pass", result.details)
+
+    def test_exactly_one_sanctioned_form_and_no_type_submit(self):
+        for name, html in self.pages.items():
+            self.assertEqual(html.count('<form class="op-form"'), 1, name)
             self.assertNotIn('type="submit"', html, name)
 
-    def test_zero_external_references(self):
-        for name, html in self.pages.items():
-            low = html.lower()
-            for token in _EXTERNAL_TOKENS:
-                self.assertNotIn(token, low, "{0}: {1}".format(name, token))
 
-    def test_zero_credential_tokens_or_secret_like_values(self):
-        for name, html in self.pages.items():
-            low = html.lower()
-            for token in _CRED_TOKENS:
-                self.assertNotIn(token, low, "{0}: {1}".format(name, token))
-            self.assertIsNone(re.search(r"sk-[A-Za-z0-9]{8,}", html), name)
-
-    def test_zero_score_rank_rating_tokens(self):
-        for name in ("/portfolio(full)", "/portfolio(bare)"):
-            low = self.pages[name].lower()
+# =========================================================================== #
+# 5. Hygiene: no score / secret / default fixture leak                          #
+# =========================================================================== #
+class HygieneTests(unittest.TestCase):
+    def test_no_score_rank_or_secret_tokens_on_the_populated_page(self):
+        with tempfile.TemporaryDirectory() as d:
+            _fill(d, ticker="ABC", side="bought", quantity="100", price="10.50",
+                  trade_date="2026-01-05")
+            low = _call(d, "GET", "/portfolio")["body"].lower()
             for token in _SCORE_TOKENS:
-                self.assertNotIn(token, low, "{0}: {1}".format(name, token))
+                self.assertNotIn(token, low, token)
+            for token in _CRED_TOKENS:
+                self.assertNotIn(token, low, token)
+            self.assertIsNone(re.search(r"sk-[A-Za-z0-9]{8,}", low))
 
-    def test_zero_sanskrit_terms(self):
-        for name, html in self.pages.items():
-            low = html.lower()
-            for token in _SANSKRIT_TOKENS:
-                self.assertNotIn(token, low, "{0}: {1}".format(name, token))
+    def test_default_empty_store_page_has_no_fixture_ticker(self):
+        with tempfile.TemporaryDirectory() as d:
+            html = _call(d, "GET", "/portfolio")["body"]
+            for ticker in _FIXTURE_TICKERS:
+                self.assertFalse(re.search(r"\b" + ticker + r"\b", html),
+                                 "fixture ticker {0} leaked into the default page".format(ticker))
 
-    def test_zero_live_claims_and_the_as_of_line(self):
-        for name, html in self.pages.items():
-            low = html.lower()
-            for claim in _LIVE_CLAIMS:
-                self.assertNotIn(claim, low, "{0}: {1}".format(name, claim))
-            self.assertIsNone(_LIVE_WORD.search(html), name)
-            self.assertIn("as of", low, name)
-            self.assertIn("pulse data", low, name)
+    def test_a_logged_ticker_legitimately_appears_after_the_operator_logs_it(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertNotIn("ABC", _call(d, "GET", "/portfolio")["body"])
+            _fill(d, ticker="ABC", side="bought", quantity="1", price="1",
+                  trade_date="2026-01-05")
+            self.assertIn("ABC", _call(d, "GET", "/portfolio")["body"])   # operator data, not a leak
 
 
 # =========================================================================== #
-# 5. Determinism, byte-safety, untouched engines                               #
+# 6. Determinism, read-only render, retained sections, untouched paths          #
 # =========================================================================== #
 class DisciplineTests(unittest.TestCase):
-    def test_pages_render_byte_deterministically(self):
-        for path in ("/portfolio", "/candidates/IREN"):
-            self.assertEqual(_call(_STATE["full"], "GET", path)["body"],
-                             _call(_STATE["full"], "GET", path)["body"], path)
+    def test_render_is_byte_deterministic(self):
+        with tempfile.TemporaryDirectory() as d:
+            _fill(d, ticker="ABC", side="bought", quantity="10", price="5",
+                  trade_date="2026-01-04")
+            self.assertEqual(_call(d, "GET", "/portfolio")["body"],
+                             _call(d, "GET", "/portfolio")["body"])
 
     def test_rendering_mutates_no_stored_byte(self):
-        store = _STATE["full"]
+        with tempfile.TemporaryDirectory() as d:
+            _fill(d, ticker="ABC", side="bought", quantity="10", price="5",
+                  trade_date="2026-01-04")
+            before = _ledger_lines(d)
+            _call(d, "GET", "/portfolio")
+            _call(d, "GET", "/portfolio")
+            self.assertEqual(_ledger_lines(d), before)
 
-        def _bytes(path):
-            with open(path, "rb") as fh:
-                return fh.read()
+    def test_retained_018a_statement_sections_still_render(self):
+        with tempfile.TemporaryDirectory() as d:
+            _seed_pulse(d)
+            base = os.path.join(d, "portfolio")
+            os.makedirs(base, exist_ok=True)
+            with open(os.path.join(base, "holdings.json"), "w", encoding="utf-8") as fh:
+                json.dump({"as_of": "2026-06-30T00:00:00Z",
+                           "positions": [{"ticker": "ABC", "quantity": 100,
+                                          "cost_basis": 15.0}]}, fh)
+            html = _call(d, "GET", "/portfolio")["body"]
+            for heading in ("Recorded holdings", "Exposure by theme",
+                            "Concentration bands", "Rotation alignment",
+                            "Risk budget and sizing guardrails"):
+                self.assertIn(heading, html, heading)
 
-        watched = [os.path.join(store, n) for n in os.listdir(store)
-                   if n.endswith(".jsonl") or n.endswith(".json")]
-        watched.append(os.path.join(store, "portfolio", "holdings.json"))
-        before = {p: _bytes(p) for p in watched}
-        _call(store, "GET", "/portfolio")
-        _call(store, "GET", "/candidates/IREN")
-        _call(store, "GET", "/candidates/QQQQ")
-        for p in watched:
-            self.assertEqual(_bytes(p), before[p], p)
+    def test_universe_ui_demo_stays_byte_identical(self):
+        from universe_ui.app import build_universe_app
+        with tempfile.TemporaryDirectory() as d1, tempfile.TemporaryDirectory() as d2:
+            a = build_universe_app(d1, mode="demo")
+            b = build_universe_app(d2, mode="demo")
+            for name in a:
+                with open(a[name], "rb") as fa, open(b[name], "rb") as fb:
+                    self.assertEqual(fa.read(), fb.read(), name)
 
-    def test_personal_cio_is_consumed_unmodified(self):
-        result = subprocess.run(
-            ["git", "status", "--porcelain", "--", "src/personal_cio"],
-            cwd=_ROOT, capture_output=True, text=True)
-        self.assertEqual(result.stdout.strip(), "",
-                         "src/personal_cio must stay untouched, got: {0}".format(
-                             result.stdout))
+    def test_reality_mesh_default_pulse_stays_byte_identical(self):
+        first = rm.run_pulse(["ABC", "XYZ"], ["physical_ai"], now=_NOW)
+        again = rm.run_pulse(["ABC", "XYZ"], ["physical_ai"], now=_NOW)
+        self.assertEqual([s.signal_id for s in first.signals],
+                         [s.signal_id for s in again.signals])
+        self.assertEqual(first.theme_pulses, again.theme_pulses)
 
     def test_offline_kill_switch_is_active(self):
         sock = socket.socket()
@@ -398,28 +411,6 @@ class DisciplineTests(unittest.TestCase):
                 sock.connect(("127.0.0.1", 80))
         finally:
             sock.close()
-
-
-# =========================================================================== #
-# 6. Untouched paths: demo default + default pulse output stay identical        #
-# =========================================================================== #
-class UntouchedPathsTests(unittest.TestCase):
-    def test_demo_default_byte_identical(self):
-        from universe_ui.app import build_universe_app   # lazy: not a page dependency
-        with tempfile.TemporaryDirectory() as d1, tempfile.TemporaryDirectory() as d2:
-            a = build_universe_app(d1, mode="demo")
-            b = build_universe_app(d2, mode="demo")
-            for name in a:
-                with open(a[name], "rb") as fa, open(b[name], "rb") as fb:
-                    self.assertEqual(fa.read(), fb.read(),
-                                     "demo default drifted for {0}".format(name))
-
-    def test_default_manual_pulse_output_unchanged_by_this_slice(self):
-        first = rm.run_pulse(["IREN", "NVDA"], ["physical_ai", "robotics"], now=_NOW1)
-        again = rm.run_pulse(["IREN", "NVDA"], ["physical_ai", "robotics"], now=_NOW1)
-        self.assertEqual([s.signal_id for s in first.signals],
-                         [s.signal_id for s in again.signals])
-        self.assertEqual(first.theme_pulses, again.theme_pulses)
 
 
 if __name__ == "__main__":

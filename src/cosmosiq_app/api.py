@@ -181,6 +181,16 @@ def _html(status: int, text: str) -> Dict[str, Any]:
     return {"status": int(status), "headers": dict(_HTML_HEADERS), "body": str(text)}
 
 
+def _redirect(location: str, status: int = 303) -> Dict[str, Any]:
+    """A See-Other redirect (303) back to a GET page after a sanctioned form POST.
+
+    Empty body + a ``Location`` header -- the POST/redirect/GET pattern so a
+    re-submit does not re-post. Used ONLY by the record-fill operator form; it
+    points at an in-app GET page, never at anything external.
+    """
+    return {"status": int(status), "headers": {"Location": str(location)}, "body": ""}
+
+
 def _to_plain(obj: Any) -> Any:
     """A frozen dataclass (or nested structure) lowered to JSON-able dicts/lists."""
     if is_dataclass(obj) and not isinstance(obj, type):
@@ -612,6 +622,62 @@ def _handle_coverage() -> Dict[str, Any]:
     })
 
 
+def _fill_number(text: Any, field: str) -> float:
+    """Parse a recorded quantity/price from the form ('' or non-numeric -> ValueError)."""
+    raw = str(text if text is not None else "").strip()
+    if not raw:
+        raise ValueError("{0} is required".format(field))
+    try:
+        return float(raw)
+    except ValueError:
+        raise ValueError("{0} must be a number (your own recorded fact); got {1!r}".format(
+            field, raw))
+
+
+def _handle_portfolio_record_fill(store_dir: str, body: Any, now: str) -> Dict[str, Any]:
+    """POST /api/portfolio/record-fill -- LOG a fill the operator ALREADY executed.
+
+    RECORD-ONLY. This calls :func:`reality_mesh.record_fill` and NOTHING else: it
+    appends one line to the operator's append-only position ledger, then redirects
+    (303) back to ``/portfolio``. It makes NO network / broker call, submits NO
+    order, and has NO order-submission affordance -- it is a bookkeeping journal
+    entry, exactly like the manual-pulse operator form is a journal of a pulse.
+    ``side`` is the closed PAST-TENSE vocabulary (``bought`` / ``sold``); a bad
+    input re-renders the page with an honest error (never a crash, never a write).
+    """
+    from reality_mesh import FILL_SIDES, record_fill
+    from . import cockpits as _cockpits
+
+    if not isinstance(body, dict):
+        return _html(400, _cockpits.render_portfolio_page(
+            store_dir, form_error="the record-fill form must post its fields"))
+    ticker = str(body.get("ticker", "") or "").strip()
+    side = str(body.get("side", "") or "").strip().lower()
+    trade_date = str(body.get("trade_date", "") or "").strip()
+    recommendation_ref = str(body.get("recommendation_ref", "") or "").strip()
+    note = str(body.get("note", "") or "").strip()
+    effective_now = str(body.get("now", "") or body.get("at", "") or "") or now
+    try:
+        if not ticker:
+            raise ValueError("a ticker is required")
+        if side not in FILL_SIDES:
+            raise ValueError("side must be one of {0} (PAST TENSE -- what happened)".format(
+                list(FILL_SIDES)))
+        if not trade_date:
+            raise ValueError("a fill date is required")
+        if not effective_now.strip():
+            raise ValueError("an injected 'now' instant is required to journal the fill")
+        quantity = _fill_number(body.get("quantity"), "quantity")
+        price = _fill_number(body.get("price"), "fill price")
+        record_fill(store_dir, ticker=ticker, side=side, quantity=quantity, price=price,
+                    trade_date=trade_date, recommendation_ref=recommendation_ref,
+                    note=note, now=effective_now)
+    except ValueError as exc:
+        return _html(400, _cockpits.render_portfolio_page(
+            store_dir, form_error=str(exc), form_values=body))
+    return _redirect("/portfolio")
+
+
 # --------------------------------------------------------------------------- #
 # dispatch -- the pure router                                                   #
 # --------------------------------------------------------------------------- #
@@ -703,6 +769,14 @@ def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[
 
     if tail == ["coverage"]:
         return _require(method, "GET", path) or _handle_coverage()
+
+    # UX-3: the SANCTIONED record-fill operator form. Record-only -- it appends to
+    # the position ledger and redirects back to /portfolio; it is NOT a trading
+    # endpoint (no broker, no order submission). A real order route (e.g.
+    # /api/orders) is refused above by the trade-path guard with 403.
+    if tail == ["portfolio", "record-fill"]:
+        return _require(method, "POST", path) or _handle_portfolio_record_fill(
+            store_dir, body, now)
 
     return _error(404, "unknown route {0!r}".format(path))
 

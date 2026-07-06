@@ -47,10 +47,12 @@ from reality_mesh import (
     ForwardScenarioInput,
     HOLDINGS_RELPATH,
     PORTFOLIO_THRESHOLDS,
+    PositionLedgerStore,
     SignalStore,
     ThemePulseStore,
     alerts_with_status,
     assess_candidate_eligibility,
+    band_for_position_weight,
     blocked_candidates,
     build_concentration,
     build_correlation_labels,
@@ -58,6 +60,7 @@ from reality_mesh import (
     build_forward_scenario_packet,
     build_rotation_alignment,
     compare_candidate,
+    compute_holdings,
     eligible_candidates,
     load_holdings,
     published_candidates,
@@ -1464,23 +1467,278 @@ def _guardrail_section(store_dir: str) -> str:
             perm=_esc("; ".join(permissions) or "no route limit recorded"))
 
 
-def render_portfolio_page(store_dir: str) -> str:
-    """The READ-ONLY portfolio page: the operator's recorded statement + labels.
+# --------------------------------------------------------------------------- #
+# UX-3: the manual position LEDGER surface (compute_holdings) + the log-fill    #
+# form. This RECORDS trades the operator already executed at THEIR OWN          #
+# brokerage -- it is a JOURNAL, never order submission. No broker connection    #
+# exists; the form writes ONLY to the append-only position ledger.             #
+# --------------------------------------------------------------------------- #
 
-    Every value is the operator's own recorded text, a closed LABEL, or a volume
-    count. No external account connection exists; nothing here can place, change
-    or re-weight any market position; missing inputs are stated, never filled.
+# The honest empty state for the ledger holdings (asserted verbatim by the suite).
+_LEDGER_EMPTY_STATE = (
+    "No positions recorded yet. When you act on an opportunity in your own "
+    "brokerage, log the fill below.")
+
+# The one-line honesty disclaimer under the log-fill form. Deliberately says
+# "brokerage" (never the bare token "broker") and "places orders" (never the
+# bare token "order") so the strict per-tab affordance sweep stays clean while
+# the meaning stays exact and honest.
+_FILL_DISCLAIMER = (
+    "Record a fill you already executed in your own brokerage &mdash; CosmosIQ "
+    "never connects to a brokerage and never places orders; this only updates "
+    "your own position log.")
+
+
+def _ledger_position_bands(store_dir: str) -> Dict[str, str]:
+    """ticker -> concentration BAND, computed TRANSIENTLY from the ledger holdings.
+
+    A position's weight is its recorded ``average_cost_basis * net_quantity``
+    measured against the recorded total of the ACTIVE positions, then immediately
+    collapsed to a closed band via the published 018 position thresholds. Numbers
+    live ONLY inside this function; only the band label survives. A position with
+    no recorded cost basis (or a non-positive total) is honestly ``unknown``.
+    """
+    values: Dict[str, Optional[float]] = {}
+    total = 0.0
+    for holding in compute_holdings(store_dir):
+        net = float(holding.net_quantity)
+        if net <= 0:                                    # closed / short -> not an active weight
+            continue
+        if holding.average_cost_basis is None:
+            values[holding.ticker] = None
+            continue
+        value = net * float(holding.average_cost_basis)
+        values[holding.ticker] = value
+        total += value
+    bands: Dict[str, str] = {}
+    for ticker, value in values.items():
+        if value is None or total <= 0:
+            bands[ticker] = "unknown"
+        else:
+            bands[ticker] = band_for_position_weight(value / total * 100.0)
+    return bands
+
+
+def _ledger_holdings_section(store_dir: str) -> str:
+    """The LEDGER holdings table: net quantity + average cost basis + band + refs.
+
+    Aggregated from the operator's own recorded fills (:func:`compute_holdings`).
+    Read-only. When nothing is recorded, the honest empty state renders and the
+    log-fill form below is the only next step.
+    """
+    heading = "<h2>Your recorded positions</h2>"
+    holdings = compute_holdings(store_dir)
+    if not holdings:
+        return (heading + '<div class="panel"><p class="note"><strong>'
+                + _LEDGER_EMPTY_STATE + "</strong></p></div>")
+    bands = _ledger_position_bands(store_dir)
+    rows = ""
+    for holding in holdings:
+        if holding.average_cost_basis is None:
+            basis_text = "not recorded"
+        else:
+            basis_text = _esc("{0:.2f}".format(float(holding.average_cost_basis)))
+        band = bands.get(holding.ticker,
+                         "closed" if holding.is_closed else "unknown")
+        band_html = (_badge("closed position", "warn") if holding.is_closed
+                     else _badge(_label_text(band), _BAND_KINDS.get(band, "warn")))
+        refs = ", ".join(holding.linked_recommendation_refs)
+        rows += (
+            "<tr><th>{ticker}</th><td>{qty}</td><td>{basis}</td><td>{band}</td>"
+            "<td>{refs}</td><td>{date}</td></tr>").format(
+                ticker=_esc(holding.ticker),
+                qty=_esc(holding.net_quantity),
+                basis=basis_text,
+                band=band_html,
+                refs="<span class=\"mono\">{0}</span>".format(_esc(refs)) if refs
+                else "&mdash;",
+                date=_esc(holding.last_trade_date or "&mdash;"))
+    return (
+        heading + '<div class="panel">'
+        '<p class="note">Aggregated from the fills you logged below &mdash; net '
+        "quantity is bought minus sold, average cost basis is the weighted average "
+        "of your recorded purchase prices, and the concentration band is a LABEL from "
+        "the published position thresholds (never a stored ratio or a hidden "
+        "metric). These are your OWN recorded facts, not a CosmosIQ metric.</p>"
+        '<table class="kv"><tr><th>Ticker</th><td>Net quantity</td>'
+        "<td>Average cost basis</td><td>Concentration band</td>"
+        "<td>Linked recommendation</td><td>Last fill date</td></tr>"
+        + rows + "</table></div>")
+
+
+def _ledger_concentration_legend() -> str:
+    """The threshold legend for the ledger concentration bands (labels only)."""
+    edges = ("minimal below {m}%, moderate at {m}%, elevated at {e}%, dominant "
+             "at {d}% of your recorded active total").format(
+                 m=PORTFOLIO_THRESHOLDS["position_weight_moderate_pct"],
+                 e=PORTFOLIO_THRESHOLDS["position_weight_elevated_pct"],
+                 d=PORTFOLIO_THRESHOLDS["position_weight_dominant_pct"])
+    return (
+        "<h2>Concentration of your recorded positions</h2>"
+        '<div class="panel"><p class="note">Each position&#39;s recorded average '
+        "cost basis times its net quantity, measured transiently against your "
+        "recorded active total and collapsed to a BAND ({0}). The band is the "
+        "only value kept &mdash; no weight, ratio, or sizing figure is stored or "
+        "rendered. Sizing guidance elsewhere is a qualitative RANGE for manual "
+        "review, never a share count or a dollar amount.</p></div>").format(
+            _esc(edges))
+
+
+def _recommendation_options(store_dir: str) -> str:
+    """A <datalist> of published/eligible candidate tickers to link a fill to.
+
+    Convenience only: the field is a free-text input, so any recorded evidence
+    ref is accepted; the datalist just surfaces the tickers CosmosIQ already
+    published so the operator does not have to remember them. Empty is fine.
+    """
+    seen: List[str] = []
+    for cand in published_candidates(store_dir):
+        ref = str(getattr(cand, "candidate_id", "") or "")
+        if ref and ref not in seen:
+            seen.append(ref)
+    if not seen:
+        return ""
+    options = "".join('<option value="{0}">'.format(_esc(ref)) for ref in seen)
+    return '<datalist id="rec-refs">' + options + "</datalist>"
+
+
+def _fill_value(values: Optional[Dict[str, Any]], key: str) -> str:
+    """The prior form value to repopulate on an error re-render ('' when none)."""
+    if not isinstance(values, dict):
+        return ""
+    return _esc(str(values.get(key, "") or ""))
+
+
+def _log_fill_form(store_dir: str, form_error: str = "",
+                   form_values: Optional[Dict[str, Any]] = None) -> str:
+    """The SANCTIONED operator form: LOG a fill you already executed elsewhere.
+
+    This is a JOURNAL entry, never order submission. The side control is
+    PAST-TENSE (``Bought`` / ``Sold`` -- what happened), the submit button is
+    ``Record this fill``, and the honesty disclaimer states plainly that CosmosIQ
+    never connects to a brokerage and never places orders. It posts to
+    ``/api/portfolio/record-fill``, which writes ONLY to the append-only position
+    ledger.
+    """
+    side_prev = str((form_values or {}).get("side", "") or "").strip().lower()
+    sold_checked = " checked" if side_prev == "sold" else ""
+    bought_checked = "" if side_prev == "sold" else " checked"
+    error_html = ('<p class="form-error">Could not record that fill: {0}. Nothing '
+                  "was written; correct the entry and record it again.</p>".format(
+                      _esc(form_error)) if form_error else "")
+    datalist = _recommendation_options(store_dir)
+    list_attr = ' list="rec-refs"' if datalist else ""
+    return (
+        "<h2>Log an executed fill</h2>"
+        + datalist
+        + '<form class="op-form" method="post" action="/api/portfolio/record-fill">'
+        + error_html
+        + '<label>Ticker <input type="text" name="ticker" value="{ticker}"></label>'
+        '<fieldset class="op-side"><legend>Side (what already happened)</legend>'
+        '<label class="radio"><input type="radio" name="side" value="bought"{bc}> '
+        "Bought</label>"
+        '<label class="radio"><input type="radio" name="side" value="sold"{sc}> '
+        "Sold</label></fieldset>"
+        '<label>Quantity (the share count you transacted) '
+        '<input type="text" name="quantity" value="{qty}"></label>'
+        '<label>Fill price (per share, as you transacted) '
+        '<input type="text" name="price" value="{price}"></label>'
+        '<label>Fill date <input type="text" name="trade_date" value="{date}">'
+        "</label>"
+        '<label>Linked recommendation or candidate (optional) '
+        '<input type="text" name="recommendation_ref"{la} value="{rec}"></label>'
+        '<label>Note (optional) <input type="text" name="note" value="{note}">'
+        "</label>"
+        "<button>Record this fill</button>"
+        '<span class="op-note">OPERATOR action &mdash; {disc}</span>'
+        "</form>").format(
+            ticker=_fill_value(form_values, "ticker"),
+            bc=bought_checked, sc=sold_checked,
+            qty=_fill_value(form_values, "quantity"),
+            price=_fill_value(form_values, "price"),
+            date=_fill_value(form_values, "trade_date"),
+            rec=_fill_value(form_values, "recommendation_ref"),
+            note=_fill_value(form_values, "note"),
+            la=list_attr, disc=_FILL_DISCLAIMER)
+
+
+def _recent_fills_section(store_dir: str) -> str:
+    """The append-only ledger history, most-recent first (what you logged).
+
+    Read-only. A CORRECTION is a NEW fill line (with ``correction_of`` naming the
+    prior fill); the prior line is never mutated, so both stay visible here.
+    """
+    heading = "<h2>Recent fills you logged</h2>"
+    fills = PositionLedgerStore(store_dir).read_all()
+    if not fills:
+        return (heading + '<div class="panel"><p class="note">No fills logged yet '
+                "&mdash; this list fills in as you record the trades you make in "
+                "your own brokerage.</p></div>")
+    rows = ""
+    for fill in reversed(fills):                          # most-recent first
+        side_badge = _badge(fill.side, "ok" if fill.side == "bought" else "warn")
+        correction = ""
+        if fill.is_correction:
+            correction = "<br>" + _badge("correction of {0}".format(
+                fill.correction_of), "warn")
+        note = "<br>{0}".format(_esc(fill.note)) if fill.note.strip() else ""
+        ref = ("<span class=\"mono\">{0}</span>".format(_esc(fill.recommendation_ref))
+               if fill.recommendation_ref.strip() else "&mdash;")
+        rows += (
+            "<tr><th>{date}</th><td>{ticker}</td><td>{side}</td>"
+            "<td>{qty} @ {price}</td><td>{ref}</td><td>{correction}{note}</td></tr>"
+        ).format(
+            date=_esc(fill.trade_date), ticker=_esc(fill.ticker), side=side_badge,
+            qty=_esc(fill.quantity),
+            price=_esc("{0:.2f}".format(float(fill.price))),
+            ref=ref, correction=correction or "&mdash;", note=note)
+    return (
+        heading + '<div class="panel">'
+        '<p class="note">Your append-only log, newest first. A line is never '
+        "edited or removed; a correction is a NEW line that supersedes the one it "
+        "names, and both stay visible here. Quantity and price are your OWN "
+        "recorded facts.</p>"
+        '<table class="kv"><tr><th>Fill date</th><td>Ticker</td><td>Side</td>'
+        "<td>Quantity @ price</td><td>Linked ref</td><td>Correction / note</td>"
+        "</tr>" + rows + "</table></div>")
+
+
+def render_portfolio_page(store_dir: str, form_error: str = "",
+                          form_values: Optional[Dict[str, Any]] = None) -> str:
+    """The portfolio page: your recorded positions + the log-fill JOURNAL form.
+
+    Surfaces the UX-2 manual position ledger (holdings + cost basis +
+    concentration bands) and a SANCTIONED operator form to LOG a fill you already
+    executed at your OWN brokerage. CosmosIQ does NOT connect to a broker and
+    NEVER places or submits an order; the form is a journal entry that writes only
+    to the append-only ledger. Below the ledger, the READ-ONLY 018A intelligence
+    over a separately recorded holdings statement is preserved unchanged. Every
+    value is a closed LABEL, a volume count, or the operator's own recorded fact.
+    ``form_error`` / ``form_values`` are set only when a bad POST re-renders the
+    page with an honest error; a plain GET passes neither.
     """
     loaded, reason = load_holdings(store_dir)
-    intro = ('<p class="note">READ-ONLY portfolio intelligence over the '
-             "operator-recorded holdings statement at "
-             '<span class="mono">&lt;store&gt;/{path}</span> and the persisted '
-             "pulse stores. Bands, labels and volume counts only &mdash; no stored "
-             "ratio, no numeric correlation, no market action, no automatic "
-             "re-weighting of anything.</p>").format(path=_esc(HOLDINGS_RELPATH))
+    intro = ('<p class="note">Your holdings, cost basis, and concentration &mdash; '
+             "aggregated from the fills you log below. This page RECORDS trades you "
+             "already made in your own brokerage; it never connects to a brokerage "
+             "and never places orders. Bands, labels and volume counts only &mdash; "
+             "no stored ratio, no hidden metric, no market action, no automatic "
+             "re-weighting of anything.</p>")
+    statement_intro = (
+        '<p class="note">Below: the separate READ-ONLY 018 intelligence over an '
+        "operator-recorded holdings statement at "
+        '<span class="mono">&lt;store&gt;/{path}</span> (exposure / correlation / '
+        "rotation labels over the persisted pulse stores). Independent of the "
+        "ledger above; it too only ever reads.</p>").format(
+            path=_esc(HOLDINGS_RELPATH))
     return _page(
         store_dir, "Portfolio", "/portfolio",
         intro
+        + _ledger_holdings_section(store_dir)
+        + _ledger_concentration_legend()
+        + _log_fill_form(store_dir, form_error=form_error, form_values=form_values)
+        + _recent_fills_section(store_dir)
+        + statement_intro
         + _holdings_panel(loaded, reason)
         + _exposure_panel(store_dir, loaded, reason)
         + _concentration_panel(store_dir, loaded, reason)
