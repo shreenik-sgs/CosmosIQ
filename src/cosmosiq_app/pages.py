@@ -37,14 +37,23 @@ from reality_mesh import (
     DataQualityStore,
     EventStore,
     FindingStore,
+    JOURNAL_STATUSES,
+    LEARNING_THRESHOLDS,
+    LearningStore,
+    OUTCOME_LABELS,
+    OutcomeStore,
     ReplayRequest,
+    SignalReliabilityRecord,
     SignalStore,
     ThemePulseStore,
     alerts_with_status,
     blocked_candidates,
     eligible_candidates,
+    feed_learning,
+    journaled,
     latest_delivery_status,
     load_holdings,
+    outcomes_for_learning,
     schedule_to_dict,
     unacknowledged_alerts,
 )
@@ -911,43 +920,229 @@ def render_settings_page(store_dir: str) -> str:
 # --------------------------------------------------------------------------- #
 # /journal -- Journal & Learning (the operator's recorded decisions so far)      #
 # --------------------------------------------------------------------------- #
+# Journal status ladder (022F) -> badge kind (a LABEL, never a score). The full closed
+# vocabulary is rendered as a legend so the status ladder is always visible.
+_JOURNAL_STATUS_KINDS = {
+    "open": "warn",
+    "invalidation_hit": "bad",
+    "exit_watch_hit": "warn",
+    "thesis_confirmed": "ok",
+    "lapsed": "warn",
+    "superseded": "",
+}
+
+# 017 outcome label -> (plain-English display, badge kind). Labels + volume counts only.
+_OUTCOME_DISPLAY = {
+    "followed_through": "followed through",
+    "contradicted": "contradicted",
+    "faded": "faded",
+    "unresolved": "unresolved (no later observation yet)",
+}
+_OUTCOME_KINDS = {
+    "followed_through": "ok", "contradicted": "bad", "faded": "warn", "unresolved": "",
+}
+
+# 017 signal-reliability LABEL -> (plain-English gloss, badge kind). A calibration LABEL over
+# volume, never a hit-rate number. ``insufficient_history`` is the honest below-threshold state.
+_RELIABILITY_GLOSS = {
+    "improving": "strengthening",
+    "stable": "steady / mixed",
+    "deteriorating": "weakening",
+    "insufficient_history": "unproven (not enough history yet)",
+}
+_RELIABILITY_KINDS = {
+    "improving": "ok", "stable": "", "deteriorating": "bad", "insufficient_history": "warn",
+}
+
+
+def _journal_learning_counts(store_dir: str) -> Dict[str, int]:
+    """The 017 outcome tally as LABELS + VOLUME COUNTS: the persisted outcome store folded with
+    the recommendation journal's own outcome roll-up (``feed_learning``). Counts are volumes; no
+    ratio / score is ever constructed."""
+    counts = {label: 0 for label in sorted(OUTCOME_LABELS)}
+    for record in OutcomeStore(store_dir).read_all():
+        counts[record.outcome_label] = counts.get(record.outcome_label, 0) + 1
+    for label, volume in feed_learning(store_dir).items():
+        counts[label] = counts.get(label, 0) + int(volume)
+    return counts
+
+
+def _reliability_rollups(store_dir: str) -> Tuple[SignalReliabilityRecord, ...]:
+    """The persisted 017 per-signal-family reliability roll-ups (label + volume counts)."""
+    return tuple(r for r in LearningStore(store_dir).read_all()
+                 if isinstance(r, SignalReliabilityRecord))
+
+
 def render_journal_page(store_dir: str) -> str:
-    """Journal & Learning: the operator's append-only decisions (acknowledged alerts) plus
-    the settings journal revision. Honest empty state when nothing is journaled yet -- no
-    fabricated history, no market action."""
-    intro = ('<p class="note">Your append-only decision journal &mdash; every acknowledgment '
-             "you record against an alert lands here as a dated line, and the settings journal "
-             "revision below counts how many times your watchlists / themes changed. This is "
-             "the learning trail: it grows only from your own recorded actions, never a "
-             "fabricated history, and nothing here places or changes a market position.</p>")
-    _settings, revision = current_settings(store_dir)
-    acked = [a for a in alerts_with_status(store_dir) if getattr(a, "acknowledged", False)]
-    if acked:
-        rows = "".join(
-            "<tr><th>{sev}</th><td>{cat}</td><td>{reason}</td><td>{run}</td></tr>".format(
-                sev=_badge(a.severity, _SEVERITY_KINDS.get(a.severity, "warn")),
-                cat=_esc(str(a.category).replace("_", " ")),
-                reason=_esc(a.human_readable_reason), run=_esc(a.run_id))
-            for a in acked[::-1])
-        journal = (
-            '<h2>Recorded decisions</h2><div class="panel"><table class="kv">'
-            "<tr><th>Severity</th><td>Category</td><td>Reason (plain English)</td>"
-            "<td>Run</td></tr>" + rows + '</table><p class="note">Each line is an alert you '
-            "acknowledged &mdash; the alert record itself stays byte-unchanged; the "
-            "acknowledgment was appended as a NEW record.</p></div>")
+    """Journal & Learning: the 022F recommendation journal, the 017 learning loop (outcome
+    tally + signal-reliability, LABELS + VOLUME COUNTS only), and -- via the UX-2 ledger -- the
+    operator's actions vs. recommendations (acted / not-yet-acted). Read-only, deterministic,
+    honest empty states; no numeric score / rank / return / hit-rate anywhere, and nothing here
+    places or changes a market position."""
+    intro = ('<p class="note">The learning loop, made visible: every recommendation the layer '
+             "publishes is journaled here, the 017 feedback core rolls its outcomes up as "
+             "plain LABELS over VOLUME COUNTS (never a track-record number), and your own "
+             "recorded fills close the loop by showing which recommendations you acted on. "
+             "Everything is read-only and append-only &mdash; nothing here places or changes a "
+             "market position.</p>")
+    journal = _journal_recommendations_section(store_dir)
+    learning = _learning_feedback_section(store_dir)
+    actions = _actions_vs_recommendations_section(store_dir)
+    return _page(store_dir, "Journal & Learning", "/journal", intro + journal + learning + actions)
+
+
+def _journal_recommendations_section(store_dir: str) -> str:
+    """Section 1 -- the 022F journaled recommendations, newest first (labels + refs + status)."""
+    entries = journaled(store_dir)
+    if not entries:
+        return ('<h2>Recommendation journal</h2><div class="panel"><p class="note">No '
+                "recommendations journaled yet &mdash; they appear here once the recommendation "
+                "layer publishes and journals one. Nothing is invented to fill the space."
+                "</p></div>")
+    rows = ""
+    for entry in reversed(entries):               # newest first
+        outcomes = tuple(entry.subsequent_outcomes)
+        outcomes_cell = ("{0} accrued: {1}".format(len(outcomes),
+                                                   _esc("; ".join(outcomes)))
+                         if outcomes else "none accrued yet")
+        rows += (
+            '<tr><th><span class="mono">{tk}</span></th><td>{label}</td><td>{pub}</td>'
+            "<td>{thesis}</td><td>{inval}</td><td>{exit}</td><td>{dq}</td><td>{status}</td>"
+            "<td>{outcomes}</td></tr>").format(
+                tk=_esc(entry.ticker),
+                label=_badge(entry.recommendation_label or "unlabeled",
+                             "ok" if entry.recommendation_label else "warn"),
+                pub=_esc(entry.published_at or "&mdash;"),
+                thesis=_esc(entry.thesis_summary or "&mdash;"),
+                inval=_esc(entry.invalidation_condition or "&mdash;"),
+                exit=_esc(entry.exit_watch_condition or "&mdash;"),
+                dq=_badge(entry.data_quality_state or "unstated",
+                          "ok" if entry.data_quality_state == "healthy" else "warn"),
+                status=_badge(entry.status,
+                              _JOURNAL_STATUS_KINDS.get(entry.status, "warn")),
+                outcomes=outcomes_cell)
+    legend = " &middot; ".join(
+        _badge(status, _JOURNAL_STATUS_KINDS.get(status, "warn")) for status in JOURNAL_STATUSES)
+    return (
+        '<h2>Recommendation journal</h2><div class="panel">'
+        '<p class="note">Every published recommendation, journaled append-only, newest first. '
+        "Labels, refs and a closed status ladder only &mdash; never a numeric verdict or a "
+        "target price. Status ladder: {legend}.</p>"
+        '<table class="kv"><tr><th>Ticker</th><td>Recommendation label</td><td>Published</td>'
+        "<td>Thesis summary</td><td>Invalidation condition</td><td>Exit / watch condition</td>"
+        "<td>Data quality</td><td>Status</td><td>Subsequent outcomes</td></tr>"
+        + rows + "</table></div>").format(legend=legend)
+
+
+def _learning_feedback_section(store_dir: str) -> str:
+    """Section 2 -- the 017 learning loop as LABELS + VOLUME COUNTS (no numeric metric)."""
+    counts = _journal_learning_counts(store_dir)
+    rollups = _reliability_rollups(store_dir)
+    has_history = any(counts.values()) or bool(rollups)
+
+    if not has_history:
+        tally = ('<div class="panel"><p class="note">No learning history yet &mdash; the '
+                 "outcome tally fills in as journaled recommendations settle and the 017 "
+                 "feedback core records outcomes across pulse runs. Nothing is fabricated."
+                 "</p></div>")
     else:
-        journal = ('<h2>Recorded decisions</h2><div class="panel"><p class="note">No journaled '
-                   "decisions yet &mdash; this trail stays honestly empty until you acknowledge "
-                   'an alert in the <a href="/alerts">Alerts</a> inbox. Nothing is invented to '
-                   "fill it.</p></div>")
-    learning = (
-        '<h2>Learning &amp; settings history</h2><div class="panel"><table class="kv">'
-        "<tr><th>Settings journal revision</th><td>{rev} (append-style &mdash; every change is "
-        "a NEW snapshot line, never a mutation)</td></tr>"
-        '</table><p class="note">Richer learning surfaces (outcome review, calibration) build on '
-        "top of this same append-only trail in later slices; today it honestly shows what has "
-        "actually been recorded.</p></div>").format(rev=_esc(revision))
-    return _page(store_dir, "Journal & Learning", "/journal", intro + journal + learning)
+        crows = "".join(
+            "<tr><th>{label}</th><td>{count}</td></tr>".format(
+                label=_badge(_OUTCOME_DISPLAY.get(label, label),
+                             _OUTCOME_KINDS.get(label, "warn")),
+                count=_esc(counts[label]))
+            for label in sorted(OUTCOME_LABELS))
+        tally = ('<div class="panel"><p class="note">Outcome tally &mdash; VOLUME COUNTS per '
+                 "closed outcome label, across the 017 outcome store and the recommendation "
+                 "journal. These are VOLUME COUNTS, never a fabricated success figure.</p>"
+                 '<table class="kv"><tr><th>Outcome label</th><td>Volume count</td></tr>'
+                 + crows + "</table></div>")
+
+    if rollups:
+        rrows = "".join(
+            "<tr><th>{family}</th><td>{label}</td>"
+            "<td>followed through {ft} &middot; contradicted {ct} &middot; faded {fd} "
+            "&middot; unresolved {un}</td></tr>".format(
+                family=_esc(r.discipline or "unspecified"),
+                label=_badge(_RELIABILITY_GLOSS.get(r.reliability_label, r.reliability_label),
+                             _RELIABILITY_KINDS.get(r.reliability_label, "warn")),
+                ft=_esc(r.followed_through_count), ct=_esc(r.contradicted_count),
+                fd=_esc(r.faded_count), un=_esc(r.unresolved_count))
+            for r in rollups)
+        reliability = (
+            '<div class="panel"><p class="note">Signal reliability by family &mdash; a '
+            "calibration LABEL over the outcome volumes, never a fabricated success figure.</p>"
+            '<table class="kv"><tr><th>Signal family</th><td>Reliability label</td>'
+            "<td>Outcome volumes</td></tr>" + rrows + "</table></div>")
+    else:
+        reliability = ('<div class="panel"><p class="note">No signal-reliability roll-up yet '
+                       "&mdash; a family is calibrated only once the 017 core has recorded "
+                       "outcomes for it. Nothing is fabricated.</p></div>")
+
+    legend = ('<p class="note">These are CALIBRATION LABELS over VOLUME, never a track-record '
+              "number: reliability reads strengthening / steady / weakening, and honestly "
+              "reads unproven (insufficient_history) until at least {0} outcomes have resolved "
+              "&mdash; no label pretends confidence off a tiny sample.</p>").format(
+                  _esc(LEARNING_THRESHOLDS["min_resolved_outcomes"]))
+    return ("<h2>Learning &amp; feedback</h2>" + tally
+            + "<h3>Signal reliability</h3>" + reliability + legend)
+
+
+def _actions_vs_recommendations_section(store_dir: str) -> str:
+    """Section 3 -- the loop-closing view: which journaled recommendations the operator ACTED
+    on (a linked fill exists) vs. not yet acted on. Labels + refs only; no P&L, no return."""
+    links = outcomes_for_learning(store_dir)
+    entries = journaled(store_dir)
+    links_by_ref: Dict[str, List[Any]] = {}
+    for link in links:
+        links_by_ref.setdefault(link.recommendation_ref, []).append(link)
+
+    if not entries and not links:
+        return ('<h2>Your actions vs recommendations</h2><div class="panel"><p class="note">No '
+                "recorded fills linked to a recommendation yet &mdash; once you log a fill "
+                "against a recommendation on the "
+                '<a href="/portfolio">Portfolio</a> tab, the loop (recommendation &rarr; your '
+                "action &rarr; outcome) closes here. Nothing is fabricated.</p></div>")
+
+    rows = ""
+    covered_refs = set()
+    for entry in reversed(entries):
+        ref = entry.recommendation_id
+        matched = links_by_ref.get(ref, [])
+        covered_refs.add(ref)
+        if matched:
+            action = _badge("acted", "ok")
+            detail = "; ".join(
+                "{0} on {1}".format(_esc(link.side), _esc(link.trade_date)) for link in matched)
+        else:
+            action = _badge("not-yet-acted", "warn")
+            detail = "no linked fill recorded"
+        rows += (
+            '<tr><th><span class="mono">{tk}</span></th><td>{ref}</td><td>{action}</td>'
+            "<td>{detail}</td></tr>").format(
+                tk=_esc(entry.ticker), ref=_esc(ref), action=action, detail=detail)
+
+    # Any recommendation-linked fill whose ref was never journaled here -- still show the action,
+    # so a recorded action is never silently dropped.
+    for ref in sorted(set(links_by_ref) - covered_refs):
+        matched = links_by_ref[ref]
+        detail = "; ".join(
+            "{0} on {1} ({2})".format(_esc(link.side), _esc(link.trade_date), _esc(link.ticker))
+            for link in matched)
+        rows += (
+            '<tr><th><span class="mono">{tk}</span></th><td>{ref}</td><td>{action}</td>'
+            "<td>{detail}</td></tr>").format(
+                tk=_esc(matched[0].ticker), ref=_esc(ref),
+                action=_badge("acted", "ok"), detail=detail)
+
+    return (
+        '<h2>Your actions vs recommendations</h2><div class="panel">'
+        '<p class="note">The visible close of the loop: recommendation &rarr; your action '
+        "&rarr; outcome. Each journaled recommendation is labelled acted (a recorded fill links "
+        "to it) or not-yet-acted. Labels and dates only &mdash; no gain / loss figure, no "
+        "market action.</p>"
+        '<table class="kv"><tr><th>Ticker</th><td>Recommendation ref</td><td>Your action</td>'
+        "<td>Recorded action (past tense)</td></tr>" + rows + "</table></div>")
 
 
 # --------------------------------------------------------------------------- #
