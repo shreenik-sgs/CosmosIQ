@@ -136,4 +136,21 @@ ul.diffs li{color:#ff9db4;font-family:var(--mono);font-size:11.5px}
 .form-error{background:#2a0d17;border:1px solid var(--bad);color:#ff9db4;
   border-radius:10px;padding:.5rem .8rem;margin:.5rem 0;font-size:12.5px}
 .mono{font-family:var(--mono);font-size:11.5px}
+/* the Map view: the generated Universe Canvas framed READ-ONLY, filling the width. */
+.canvas-frame{width:100%;height:78vh;min-height:420px;border:1px solid var(--glass-line);
+  border-radius:14px;background:var(--bg2);display:block;margin:.6rem 0}
+.canvas-open{display:inline-block;background:rgba(79,224,255,.12);border:1px solid var(--cyan);
+  color:#dff6ff;border-radius:999px;padding:.4rem 1rem;font-weight:700;font-size:12px;
+  margin:.3rem 0}
+.canvas-open:hover{text-decoration:none;border-color:var(--ink)}
+/* the celestial legend + the plain-language pipeline steps -- a quiet responsive grid. */
+.legend{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0}
+.legend .cell{flex:1 1 190px;min-width:170px;background:rgba(10,14,30,.5);
+  border:1px solid var(--glass-line);border-radius:10px;padding:.55rem .75rem}
+.legend .cell b{color:var(--cyan);font-size:12.5px}
+.legend .cell span{display:block;color:var(--muted);font-size:11.5px;margin-top:.15rem}
+.cmd{font-family:var(--mono);font-size:12px;color:#dff6ff;background:var(--bg2);
+  border:1px solid var(--line);border-radius:8px;padding:.45rem .7rem;display:block;
+  margin:.5rem 0;white-space:pre-wrap;word-break:break-word}
+.steps{display:flex;flex-direction:column;gap:.55rem;margin:.6rem 0}
 """

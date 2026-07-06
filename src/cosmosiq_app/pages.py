@@ -73,8 +73,15 @@ from .app_assets import APP_CSS
 __all__ = [
     "CANVAS_DIRNAME",
     "CANVAS_PAGES",
+    "GENERATE_CANVAS_COMMAND",
+    "GENERATED_CANVAS_ENV",
+    "GENERATED_CANVAS_FILENAME",
     "SERVICE_HEALTH_FILENAME",
     "canvas_artifacts",
+    "generated_canvas_dir",
+    "generated_canvas_path",
+    "generated_canvas_present",
+    "read_generated_canvas",
     "service_mode_indicator",
     "render_alert_inbox",
     "render_app_home",
@@ -115,6 +122,44 @@ CANVAS_DIRNAME = "universe_canvas"
 CANVAS_PAGES: Tuple[str, ...] = (
     "universe.html", "dashboard.html", "data_quality.html", "cockpit.html",
 )
+
+# The immersive Universe Canvas the Map view frames READ-ONLY. It is a GENERATED artifact
+# (built by the Universe UI, never by this app) that lives in the repo's generated/ tree; the
+# Map serves its bytes verbatim at /map/canvas and never rewrites or duplicates it. The lookup
+# dir defaults to <repo>/generated/universe_ui and is overridable with COSMOSIQ_CANVAS_DIR so
+# the honest empty state (no canvas generated yet) is exercisable against a temp dir.
+GENERATED_CANVAS_ENV = "COSMOSIQ_CANVAS_DIR"
+GENERATED_CANVAS_FILENAME = "universe.html"
+# The exact operator command that builds the canvas -- shown verbatim in the empty state.
+GENERATE_CANVAS_COMMAND = "PYTHONPATH=src python3 -m universe_ui --out generated/universe_ui"
+
+
+def _default_generated_canvas_dir() -> str:
+    """<repo>/generated/universe_ui -- three dirs up from this file (src/cosmosiq_app/)."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    root = os.path.dirname(os.path.dirname(here))
+    return os.path.join(root, "generated", "universe_ui")
+
+
+def generated_canvas_dir() -> str:
+    """The dir the Map reads the generated canvas from (COSMOSIQ_CANVAS_DIR, else the repo's)."""
+    return os.environ.get(GENERATED_CANVAS_ENV) or _default_generated_canvas_dir()
+
+
+def generated_canvas_path() -> str:
+    """Absolute path to the generated ``universe.html`` the Map frames (may not exist)."""
+    return os.path.join(generated_canvas_dir(), GENERATED_CANVAS_FILENAME)
+
+
+def generated_canvas_present() -> bool:
+    """True iff a generated Universe Canvas exists to frame (never fabricated when absent)."""
+    return os.path.isfile(generated_canvas_path())
+
+
+def read_generated_canvas() -> str:
+    """The generated ``universe.html`` bytes, verbatim (the Map serves it AS-IS, read-only)."""
+    with open(generated_canvas_path(), encoding="utf-8") as handle:
+        return handle.read()
 
 # A scheduled PulseRun carries its policy attribution in generated_outputs as this prefix
 # (015B orchestrator convention -- read here for honest trigger attribution).
@@ -1148,20 +1193,134 @@ def _actions_vs_recommendations_section(store_dir: str) -> str:
 # --------------------------------------------------------------------------- #
 # /evidence -- Evidence & Trust (the data-quality surface)                      #
 # --------------------------------------------------------------------------- #
+# The source-authority ladder, rendered verbatim on the trust surface. Highest authority
+# first; the closing rung is the permanent rule that a manual note is NEVER canonical.
+_AUTHORITY_LADDER: Tuple[Tuple[str, str], ...] = (
+    ("SEC filing", "canonical", "the primary regulated source of record"),
+    ("FMP data provider", "provider", "a convenience provider; corroborated, not canonical"),
+    ("Social / narrative", "weak signal", "marked WEAK; never stands alone as evidence"),
+    ("Manual note", "never canonical", "an operator observation; can inform, never a fact"),
+)
+
+
+def _evidence_posture_html() -> str:
+    """The honest standing posture: shadow-only, not production, Manual Review Only."""
+    return (
+        '<h2>Posture</h2><div class="panel"><div class="legend">'
+        '<div class="cell"><b>Shadow-only</b><span>this is a local, shadow-mode intelligence '
+        "app, not a production market system</span></div>"
+        '<div class="cell"><b>Manual Review Only</b><span>every action is your own; the app '
+        "inspects and explains, it never acts</span></div>"
+        '<div class="cell"><b>No market connection</b><span>no brokerage connection and no '
+        "automated trading exist anywhere in this app</span></div>"
+        "</div></div>")
+
+
+def _authority_ladder_html() -> str:
+    """The source-authority ladder (SEC canonical &rarr; manual never canonical)."""
+    rows = "".join(
+        "<tr><th>{src}</th><td>{badge}</td><td>{gloss}</td></tr>".format(
+            src=_esc(src),
+            badge=_badge(rung, "ok" if rung == "canonical"
+                         else "bad" if rung == "never canonical" else "warn"),
+            gloss=_esc(gloss))
+        for src, rung, gloss in _AUTHORITY_LADDER)
+    return (
+        '<h2>Source-authority ladder</h2><div class="panel">'
+        '<p class="note">Not all evidence is equal. Every observation carries its source '
+        "authority; higher rungs override lower ones, and a manual note is never promoted to a "
+        "fact.</p>"
+        '<table class="kv"><tr><th>Source</th><td>Authority</td><td>What it means</td></tr>'
+        + rows + "</table></div>")
+
+
+def _source_health_html(store_dir: str) -> str:
+    """Source health from the service snapshot (coverage / source-gap counts), or an honest note."""
+    health = _service_health(store_dir)
+    summary = dict(health.get("source_health_summary", {}) or {}) if health else {}
+    if not health or not summary:
+        return ('<h2>Source health</h2><div class="panel"><p class="note">No service source-health '
+                "snapshot recorded in this store yet &mdash; source health appears once the "
+                "local service records coverage. Nothing is fabricated.</p></div>")
+    status = _configured_source_status(health)
+    return (
+        '<h2>Source health</h2><div class="panel"><table class="kv">'
+        "<tr><th>Configured source status</th><td>{status}</td></tr>"
+        "<tr><th>Coverage records</th><td>{cov}</td></tr>"
+        "<tr><th>Source-gap records</th><td>{fail}</td></tr>"
+        '</table><p class="note">A source gap is shown as a gap &mdash; never filled from a '
+        "fixture. Counts are volumes.</p></div>").format(
+            status=_status_badge(status),
+            cov=_esc(summary.get("coverage_records", 0)),
+            fail=_esc(summary.get("failed_source_records", 0)))
+
+
+def _latest_run_trust_html(store_dir: str, run: Any) -> str:
+    """The latest run's data-quality gate (overall + per-gate), agent health, and data gaps."""
+    run_id = run.run_id
+    overall = _gate_overall(store_dir, run_id)
+    grows = "".join(
+        "<tr><th>{cat}</th><td>{status}</td><td>{summary}</td></tr>".format(
+            cat=_gate_display(record.category), status=_status_badge(record.status),
+            summary=_esc(record.summary or "&mdash;"))
+        for record in DataQualityStore(store_dir).query(run_id=run_id)
+        if record.category != "gate_overall")
+    gates = (
+        '<h3>Data-quality gate &mdash; latest run <a href="/runs/{rid}">{rid}</a></h3>'
+        '<div class="panel"><p class="note">Gate verdicts are labels (pass / warn / fail / '
+        "degraded), never a metric. Overall: {overall}</p>"
+        '<table class="kv"><tr><th>Gate</th><td>Verdict</td><td>Summary</td></tr>'.format(
+            rid=_esc(run_id), overall=_status_badge(overall))
+        + (grows or "<tr><th>&mdash;</th><td colspan=\"2\">no gate records persisted for this "
+                    "run</td></tr>") + "</table></div>")
+
+    arows = "".join(
+        "<tr><th>{aid}</th><td>{status}</td><td>{health}</td><td>{gaps} gap(s)</td>"
+        "<td>{conf} conflict(s)</td></tr>".format(
+            aid=_esc(_english_agent(result.agent_id)),
+            status=_status_badge(result.status), health=_status_badge(result.health_status),
+            gaps=_esc(len(result.data_gaps)), conf=_esc(len(result.conflicts)))
+        for result in AgentRunLedger(store_dir).results_for_run(run_id))
+    agents = (
+        '<h3>Agent health &mdash; latest run</h3><div class="panel"><table class="kv">'
+        "<tr><th>Agent</th><td>Status</td><td>Health</td><td>Data gaps</td><td>Conflicts</td>"
+        "</tr>" + (arows or "<tr><th>&mdash;</th><td colspan=\"4\">no agent ledger rows "
+                            "persisted for this run</td></tr>") + "</table></div>")
+
+    gaps = _run_gaps(store_dir, run_id) + _coverage_notes(store_dir, run)
+    gaps_html = (
+        '<h3>Data gaps &amp; conflicts &mdash; latest run</h3><div class="panel">'
+        '<ul class="gaps">'
+        + ("".join("<li>{0}</li>".format(_esc(gap)) for gap in sorted(set(gaps)))
+           or "<li>no data gaps recorded in this run</li>") + "</ul></div>")
+    return ("<h2>Latest run &mdash; trust snapshot</h2>" + gates + agents + gaps_html)
+
+
 def render_evidence_page(store_dir: str) -> str:
-    """Evidence & Trust: the data-quality / trust surface. Per-run gate verdicts, worst agent
-    health, data-gap counts, and a link to deterministic replay verification -- labels and
-    counts only, degraded / failed states never hidden."""
-    intro = ('<p class="note">Trust is earned by showing the work. Every pulse run below carries '
-             "its gate verdict, worst agent health, and data-gap count &mdash; all labels, never "
-             "a hidden metric. A run that failed a gate or ran degraded is shown as such, and "
-             "every run can be re-verified by deterministic replay.</p>")
+    """Evidence & Trust: the trust / data-quality surface. The latest run's DQ gate + gaps,
+    source health, agent health, the source-authority ladder, a replay / determinism note, and
+    the honest shadow-only / Manual Review posture -- labels and counts only, degraded / failed
+    states never hidden. Honest empty state when no runs."""
+    intro = ('<p class="note">Trust is earned by showing the work. This surface carries the '
+             "latest run&#39;s data-quality gate and gaps, source health, agent health, the "
+             "source-authority ladder, and a determinism note &mdash; all labels and counts, "
+             "never a hidden metric. A run that failed a gate or ran degraded is shown as "
+             "such.</p>")
+    posture = _evidence_posture_html()
+    ladder = _authority_ladder_html()
+    source_health = _source_health_html(store_dir)
+
     runs = _runs_newest_first(store_dir)
     if not runs:
-        body = intro + ('<div class="panel"><p class="note">No persisted runs yet &mdash; the '
-                        "trust surface stays empty until an operator runs a pulse from the "
-                        '<a href="/">Dashboard</a>. Nothing is fabricated.</p></div>')
-        return _page(store_dir, "Evidence & Trust", "/evidence", body)
+        empty = ('<h2>Latest run &mdash; trust snapshot</h2><div class="panel"><p class="note">'
+                 "No persisted runs yet &mdash; the run-level trust snapshot stays empty until an "
+                 'operator runs a pulse from the <a href="/">Dashboard</a>. Nothing is '
+                 "fabricated.</p></div>")
+        return _page(store_dir, "Evidence & Trust", "/evidence",
+                     intro + posture + ladder + source_health + empty)
+
+    latest = _latest_run_trust_html(store_dir, runs[0])
+
     rows = ""
     for run in runs:
         gaps = _run_gaps(store_dir, run.run_id)
@@ -1179,74 +1338,169 @@ def render_evidence_page(store_dir: str) -> str:
              '<p class="note">Gate verdicts and health are closed labels (pass / warn / fail / '
              "degraded); the gap count is a volume. Open a run for the full per-gate and "
              "per-agent breakdown.</p></div>")
-    return _page(store_dir, "Evidence & Trust", "/evidence", intro + table)
+    replay_note = (
+        '<h2>Replay &amp; determinism</h2><div class="panel"><p class="note">Every run can be '
+        "re-verified by DETERMINISTIC replay: the persisted outputs are recomputed from the "
+        "persisted inputs and compared field by field. A divergent replay is a named FAILURE, "
+        "never hidden. Same inputs always reconstruct the same outputs.</p></div>")
+    return _page(store_dir, "Evidence & Trust", "/evidence",
+                 intro + posture + ladder + source_health + latest + table + replay_note)
 
 
 # --------------------------------------------------------------------------- #
 # /how-it-works -- the pipeline explained in plain language                      #
 # --------------------------------------------------------------------------- #
 def render_how_it_works_page(store_dir: str) -> str:
-    """A plain-language walk-through of the pipeline: evidence -> signals -> themes ->
-    candidates -> recommendations -> your action -> learning. Static, honest, no market
-    action, no hidden metric."""
+    """A plain-language walk-through of the WHOLE real loop: current evidence -> signals ->
+    theme pulses -> opportunities -> capital recommendation -> YOU act in your own brokerage ->
+    you LOG the fill (record-only) -> portfolio intelligence + learning measure the outcome.
+    Every stage links to its tab. Static, honest, Manual Review Only, no hidden number, and
+    nothing here places or changes a market position."""
+    # (title, plain-English what-it-does, "see" link label, href). An empty href == a stage
+    # that happens OUTSIDE the app (your own decision), so it deliberately carries no tab link.
     steps = (
-        ("Evidence", "Filings, news, and operator-recorded observations come in as dated "
-                      "records. Each one keeps its source authority and a claim status &mdash; a "
-                      "company claim or a rumor is never promoted to a fact."),
-        ("Signals", "Sensor agents read the evidence and emit typed signals with direction, "
-                     "magnitude, and urgency labels &mdash; and an explicit WEAK mark on social "
-                     "or uncorroborated evidence."),
-        ("Themes", "Signals roll up into theme pulses with closed state labels (Warming, "
-                   "Crowded, Exhausting, and so on). Contradictions keep both sides visible; "
-                   "nothing is averaged away."),
-        ("Candidates", "When a theme and a company line up with enough evidence, a capital "
-                       "candidate is published &mdash; eligible only with full lineage; "
-                       "otherwise blocked, shown with its exact reason."),
-        ("Recommendations", "The accepted diligence engines run on your recorded inputs to "
-                            "produce a plain-language verdict and a suggested position RANGE "
-                            "(never an exact amount, never a hidden number)."),
-        ("Your action", "You decide. Everything here is Manual Review Only &mdash; the cockpit "
-                        "inspects and explains; it never connects to a market and never acts on "
-                        "your behalf."),
-        ("Learning", "Your acknowledgments and settings changes are journaled append-only, so "
-                     "the decision trail grows from what actually happened &mdash; the basis for "
-                     "later calibration."),
+        ("Current evidence", "Filings and news come in as dated records &mdash; SEC filings are "
+                             "the canonical source, the FMP data provider fills convenience gaps, "
+                             "and each record keeps its source authority and a claim status. A "
+                             "company claim or a rumor is never promoted to a fact.",
+         "Evidence & Trust", "/evidence"),
+        ("Signals", "Sensor agents read the evidence into typed reality signals with direction, "
+                    "magnitude, and urgency labels &mdash; with an explicit WEAK mark on social "
+                    "or uncorroborated evidence, so a thin signal never masquerades as a strong "
+                    "one.", "Company Research", "/research"),
+        ("Theme pulses", "Signals roll up into theme pulses with closed state labels (Warming, "
+                         "Crowded, Exhausting, and so on). Contradictions keep BOTH sides "
+                         "visible; nothing is averaged away.", "Company Research", "/research"),
+        ("Opportunities", "Where a theme and a company line up with enough evidence, a capital "
+                          "candidate is published as an opportunity worth diligence &mdash; "
+                          "eligible ONLY with full lineage; otherwise blocked and shown with its "
+                          "exact reason.", "Opportunities", "/opportunities"),
+        ("Capital recommendation", "The accepted diligence engines run on your recorded inputs "
+                                   "to produce a plain-language verdict and a suggested position "
+                                   "RANGE (never an exact amount, never a hidden number). It is a "
+                                   "Manual-Review recommendation, gated &mdash; a starting point "
+                                   "for your own judgement, not an instruction.",
+         "Opportunities", "/opportunities"),
+        ("YOU act", "You decide, and if you choose to act you do it yourself in your OWN "
+                    "brokerage account. Everything in this cockpit is Manual Review Only: it "
+                    "inspects and explains, it never connects to a market, and it never acts on "
+                    "your behalf.", "", ""),
+        ("You log the fill", "Afterwards you record the fill you already made into the Portfolio "
+                             "ledger. It is RECORD-ONLY bookkeeping &mdash; a journal entry of "
+                             "your own recorded fact, with no market connection of any kind; "
+                             "nothing here places or changes a position.",
+         "Portfolio", "/portfolio"),
+        ("Portfolio intelligence", "From your recorded holdings statement, the portfolio surface "
+                                   "measures fit, exposure, and concentration as plain labels and "
+                                   "bands &mdash; read-only, never fetched, never valued.",
+         "Portfolio", "/portfolio"),
+        ("Learning", "Your recorded actions close the loop against the recommendations that "
+                     "preceded them: the feedback core rolls outcomes up as plain LABELS over "
+                     "VOLUME COUNTS (never a track-record number), so calibration grows from what "
+                     "actually happened.", "Journal & Learning", "/journal"),
     )
-    chain = " &rarr; ".join(name for name, _desc in steps)
-    intro = ('<p class="note">The whole pipeline in one line: <strong>{0}</strong>. Each stage '
-             "below explains, in plain English, what it does and what it deliberately does "
-             "NOT do.</p>").format(chain)
-    cards = "".join(
-        '<div class="panel"><h3>{n}. {name}</h3><p class="note">{desc}</p></div>'.format(
-            n=index + 1, name=_esc(name), desc=_esc(desc))
-        for index, (name, desc) in enumerate(steps))
-    return _page(store_dir, "How It Works", "/how-it-works", intro + cards)
+    chain = " &rarr; ".join(name for name, *_rest in steps)
+    intro = ('<p class="note">The whole loop in one line: <strong>{0}</strong>. Each stage below '
+             "explains, in plain English, what it does, what it deliberately does NOT do, and "
+             "which tab shows it.</p>").format(chain)
+    cards = ""
+    for index, (name, desc, link_label, href) in enumerate(steps):
+        see = ('<p class="note">See: <a href="{0}">{1}</a></p>'.format(_esc(href),
+                                                                       _esc(link_label))
+               if href else '<p class="note">This step happens OUTSIDE the app &mdash; it is '
+                            "your own decision, in your own account.</p>")
+        cards += ('<div class="panel"><h3>{n}. {name}</h3><p class="note">{desc}</p>{see}'
+                  "</div>").format(n=index + 1, name=_esc(name), desc=_esc(desc), see=see)
+
+    guardrails = (
+        '<h2>The guardrails, plainly</h2><div class="panel"><div class="legend">'
+        '<div class="cell"><b>Manual Review Only</b><span>the cockpit inspects and explains; '
+        "you make and take every decision yourself</span></div>"
+        '<div class="cell"><b>No brokerage connection</b><span>no market connection, no '
+        "automated trading, nothing here can place or change a position</span></div>"
+        '<div class="cell"><b>Plain labels, not hidden numbers</b><span>labels, ranges and '
+        "volume counts only &mdash; never a hidden metric and never a hidden number</span></div>"
+        '<div class="cell"><b>Evidence-cited</b><span>every claim carries its source authority '
+        "and lineage; a rumor is never promoted to a fact</span></div>"
+        "</div></div>")
+    return _page(store_dir, "How It Works", "/how-it-works", intro + cards + guardrails)
 
 
 # --------------------------------------------------------------------------- #
 # /map -- the Universe Canvas surface (link / anchor to the star-field)          #
 # --------------------------------------------------------------------------- #
+# The Universe Canvas celestial mapping, in the operator's plain language (the canonical
+# mapping is docs/product/BRAND_NOMENCLATURE.md). One compact legend makes the immersive map
+# self-explanatory: each celestial body is a real intelligence object, never decoration.
+_CELESTIAL_LEGEND: Tuple[Tuple[str, str, str], ...] = (
+    ("Galaxy", "Mega Theme", "a durable structural shift the whole map orbits"),
+    ("Planet", "Company", "a company / capital candidate you can inspect"),
+    ("Star", "Bottleneck", "the constraint a value chain bends around"),
+    ("Comet", "Catalyst", "a dated event that could move the thesis"),
+    ("Black Hole", "Risk", "a major risk / red-team hazard that can swallow the case"),
+)
+
+
+def _celestial_legend_html() -> str:
+    """The compact celestial legend (Galaxy = Mega Theme &hellip; Black Hole = Risk)."""
+    cells = "".join(
+        '<div class="cell"><b>{body} = {meaning}</b><span>{gloss}</span></div>'.format(
+            body=_esc(body), meaning=_esc(meaning), gloss=_esc(gloss))
+        for body, meaning, gloss in _CELESTIAL_LEGEND)
+    return (
+        '<h2>What the celestial bodies mean</h2><div class="panel">'
+        '<p class="note">The Map is a picture, not a metaphor: every celestial body is a real '
+        "intelligence object from the same persisted pulse data.</p>"
+        '<div class="legend">' + cells + "</div></div>")
+
+
 def render_map_page(store_dir: str) -> str:
-    """Map: the entry to the generated Universe Canvas star-field. Links the present canvas
-    artifacts read-only, or an honest note (never a dead link) when none are generated."""
-    intro = ('<p class="note">The Map is the Universe Canvas &mdash; a generated star-field view '
-             "of the same persisted pulse data. It is served read-only from artifacts generated "
-             "into this store; nothing is fetched and nothing here can act on a position.</p>")
+    """Map: the immersive Universe Canvas framed as a first-class VIEW. When a canvas has been
+    generated it is framed READ-ONLY (an <iframe> filling the width + a direct link to
+    ``/map/canvas``) with a compact celestial legend; when none exists yet, an honest empty
+    state carrying the exact build command -- never a fabricated star-field, never a dead link."""
+    intro = ('<p class="note">The Map is the Universe Canvas &mdash; an immersive star-field view '
+             "of the same persisted pulse data, served READ-ONLY as a generated artifact. Nothing "
+             "here is fetched and nothing here can act on a position; it is a read-only "
+             "intelligence map you look through, like a telescope.</p>")
+    legend = _celestial_legend_html()
+
+    if generated_canvas_present():
+        framed = (
+            '<h2>Universe Canvas</h2><div class="panel">'
+            '<p class="note">Framed below read-only from the generated artifact &mdash; served '
+            "verbatim, never rewritten or duplicated. If the frame is cramped, open it as its "
+            "own full document:</p>"
+            '<a class="canvas-open" href="/map/canvas">Open the Universe Canvas &rarr;</a>'
+            '<iframe class="canvas-frame" src="/map/canvas" loading="lazy" '
+            'title="Universe Canvas &mdash; read-only intelligence map"></iframe>'
+            '<p class="note">The frame is the generated <span class="mono">'
+            "universe.html</span>, shown as-is; the Map adds only this legend around it.</p>"
+            "</div>")
+        body = intro + framed + legend
+    else:
+        empty = (
+            '<h2>Universe Canvas</h2><div class="panel">'
+            '<p class="note">No Universe Canvas has been generated yet, so there is nothing to '
+            "frame (never a fabricated star-field, never a dead link). The canvas is a read-only "
+            "intelligence map; generate it once with the Universe UI and reload this tab:</p>"
+            '<code class="cmd">{cmd}</code>'
+            '<p class="note">The command writes the canvas to <span class="mono">'
+            "generated/universe_ui/</span>; the Map picks it up automatically and frames it "
+            "here.</p></div>").format(cmd=_esc(GENERATE_CANVAS_COMMAND))
+        body = intro + empty + legend
+
+    # A quiet secondary panel keeps any per-store canvas artifacts reachable too (never a dead
+    # link) -- the primary Map above is the immersive generated canvas.
     present = canvas_artifacts(store_dir)
     if present:
         links = "".join(
             '<li><a href="/canvas/{0}">{1}</a></li>'.format(
                 _esc(name), _esc(name[:-len(".html")].replace("_", " ")))
             for name in present)
-        body = intro + ('<h2>Universe Canvas</h2><div class="panel"><ul>' + links
-                        + '</ul><p class="note">Generated artifacts found under this store '
-                        "&mdash; served read-only.</p></div>")
-    else:
-        body = intro + ('<h2>Universe Canvas</h2><div class="panel"><p class="note">No generated '
-                        "Universe Canvas artifacts in this store yet, so nothing is linked (never "
-                        "a dead link). Generate them with the pulse CLI into "
-                        "&lt;store&gt;/{0}/ and the Map will link them here.</p></div>".format(
-                            _esc(CANVAS_DIRNAME)))
+        body += ('<h2>Per-store canvas pages</h2><div class="panel"><ul>' + links
+                 + '</ul><p class="note">Static canvas pages generated into this store &mdash; '
+                 "served read-only.</p></div>")
     return _page(store_dir, "Map", "/map", body)
 
 

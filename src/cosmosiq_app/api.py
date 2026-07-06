@@ -827,6 +827,13 @@ def _dispatch_page(segments: List[str], raw: List[str],
         return _html(200, _pages.render_evidence_page(store_dir))
     if segments == ["how-it-works"]:
         return _html(200, _pages.render_how_it_works_page(store_dir))
+    if segments == ["map", "canvas"]:
+        # The immersive Universe Canvas served READ-ONLY as its own document -- the generated
+        # universe.html bytes verbatim (never rewritten). When it has not been generated yet,
+        # the honest 404 page (the /map tab itself carries the build command).
+        if _pages.generated_canvas_present():
+            return _html(200, _pages.read_generated_canvas())
+        return _html(404, _pages.render_not_found(store_dir, "/map/canvas"))
     if segments == ["map"]:
         return _html(200, _pages.render_map_page(store_dir))
     # 016C cockpits -- read/inspect surfaces over the persisted stores + the accepted engines
