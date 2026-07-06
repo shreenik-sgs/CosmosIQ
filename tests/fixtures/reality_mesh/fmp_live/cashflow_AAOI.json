@@ -1,0 +1,17 @@
+[
+  {
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
+    "capitalExpenditure": -15000000,
+    "date": "2026-06-30",
+    "freeCashFlow": -20000000,
+    "operatingCashFlow": -5000000,
+    "symbol": "AAOI"
+  },
+  {
+    "capitalExpenditure": -10000000,
+    "date": "2026-03-31",
+    "freeCashFlow": -8000000,
+    "operatingCashFlow": 2000000,
+    "symbol": "AAOI"
+  }
+]

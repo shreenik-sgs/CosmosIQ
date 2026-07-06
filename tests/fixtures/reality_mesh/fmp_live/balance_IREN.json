@@ -1,0 +1,17 @@
+[
+  {
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
+    "cashAndCashEquivalents": 40000000,
+    "date": "2026-06-30",
+    "symbol": "IREN",
+    "totalDebt": 100000000,
+    "totalStockholdersEquity": 900000000
+  },
+  {
+    "cashAndCashEquivalents": 20000000,
+    "date": "2026-03-31",
+    "symbol": "IREN",
+    "totalDebt": 90000000,
+    "totalStockholdersEquity": 850000000
+  }
+]

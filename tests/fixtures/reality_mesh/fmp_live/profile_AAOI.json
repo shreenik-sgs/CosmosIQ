@@ -1,0 +1,13 @@
+[
+  {
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
+    "companyName": "Applied Optoelectronics, Inc.",
+    "currency": "USD",
+    "exchange": "NASDAQ",
+    "industry": "Optical Networking",
+    "mktCap": 900000000,
+    "price": 18.5,
+    "sector": "Technology",
+    "symbol": "AAOI"
+  }
+]

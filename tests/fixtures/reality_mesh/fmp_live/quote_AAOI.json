@@ -1,0 +1,9 @@
+[
+  {
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
+    "marketCap": 900000000,
+    "price": 18.5,
+    "symbol": "AAOI",
+    "volume": 3100000
+  }
+]

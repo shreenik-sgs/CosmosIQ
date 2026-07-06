@@ -1,0 +1,29 @@
+[
+  {
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
+    "calendarYear": "2026",
+    "date": "2026-06-30",
+    "grossProfit": 150000000,
+    "grossProfitRatio": 0.5,
+    "netIncome": 40000000,
+    "netIncomeRatio": 0.1333,
+    "operatingIncome": 60000000,
+    "operatingIncomeRatio": 0.2,
+    "period": "Q2",
+    "revenue": 300000000,
+    "symbol": "IREN"
+  },
+  {
+    "calendarYear": "2026",
+    "date": "2026-03-31",
+    "grossProfit": 112000000,
+    "grossProfitRatio": 0.448,
+    "netIncome": 15000000,
+    "netIncomeRatio": 0.06,
+    "operatingIncome": 25000000,
+    "operatingIncomeRatio": 0.1,
+    "period": "Q1",
+    "revenue": 250000000,
+    "symbol": "IREN"
+  }
+]

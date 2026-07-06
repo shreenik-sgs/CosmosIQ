@@ -1,0 +1,10 @@
+[
+  {
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
+    "date": "2026-06-30",
+    "operatingIncome": 60000000,
+    "operatingIncomeRatio": 0.2,
+    "revenue": 300000000,
+    "symbol": "IREN"
+  }
+]

@@ -33,6 +33,20 @@ from typing import Any, Callable, Dict, Optional, Tuple
 _SEC_TICKER_MAP_URL = "https://www.sec.gov/files/company_tickers.json"
 # data.sec.gov per-company submissions (recent filings) document (public, no key).
 _SEC_SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
+# Financial Modeling Prep (FMP) live endpoints (COMMERCIAL provider -- requires an API key).
+# FMP is the CONVENIENCE tier of the authority ladder: financial / market CONTEXT, NEVER a
+# canonical regulatory truth, and it can never outrank SEC. The key is threaded through the
+# query string exactly once and is NEVER logged / printed / stored here.
+_FMP_BASE = "https://financialmodelingprep.com/api/v3"
+_FMP_ENDPOINT_PATHS = {
+    "profile": "profile/{symbol}",
+    "income_statement": "income-statement/{symbol}?limit=2",
+    "balance_sheet": "balance-sheet-statement/{symbol}?limit=2",
+    "cash_flow": "cash-flow-statement/{symbol}?limit=2",
+    "ratios": "ratios/{symbol}?limit=2",
+    "quote": "quote/{symbol}",
+}
+
 # Public Yahoo query endpoints (fallback / research-only OHLCV + quote; no key).
 _YF_QUOTE_URL = "https://query1.finance.yahoo.com/v7/finance/quote?symbols={symbol}"
 _YF_CHART_URL = (
@@ -108,6 +122,35 @@ def sec_live_transport(
         return json.loads(_http_get(url, headers=headers, timeout=timeout))
 
     return {"company_tickers": _company_tickers, "submissions": _submissions}
+
+
+def fmp_live_transport(
+    api_key: str, *, timeout: float = 20.0
+) -> Dict[str, Callable[..., Any]]:
+    """Build the FMP-only per-endpoint fetch bundle for the live financial adapter (021A).
+
+    Returns a dict of ``callable``s the :class:`FmpLiveAdapter` injects, one per endpoint
+    (``"profile"`` / ``"income_statement"`` / ``"balance_sheet"`` / ``"cash_flow"`` /
+    ``"ratios"`` / ``"quote"``), each ``fetch(symbol) -> decoded JSON``.
+
+    ``api_key`` is REQUIRED; a falsy value raises ``ValueError`` before any network is
+    possible. FMP is a COMMERCIAL provider (the CONVENIENCE tier) -- financial / market
+    CONTEXT, never a canonical regulatory truth. The key is threaded through the query string
+    exactly once and is NEVER logged / printed / stored. ``urllib`` is imported lazily inside
+    :func:`_http_get`, so importing this module remains network-free.
+    """
+    if not api_key:
+        raise ValueError(_MISSING_KEY_MSG)
+
+    def _make(path_template: str) -> Callable[[str], Any]:
+        def _fetch(symbol: str) -> Any:
+            path = path_template.format(symbol=str(symbol).strip().upper())
+            sep = "&" if "?" in path else "?"
+            url = "{0}/{1}{2}apikey={3}".format(_FMP_BASE, path, sep, api_key)
+            return json.loads(_http_get(url, timeout=timeout))
+        return _fetch
+
+    return {key: _make(tmpl) for key, tmpl in _FMP_ENDPOINT_PATHS.items()}
 
 
 def fmp_http_transport(api_key: str) -> Callable[[str, Dict[str, Any]], str]:

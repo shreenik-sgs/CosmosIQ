@@ -1,0 +1,13 @@
+[
+  {
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
+    "companyName": "IREN Limited",
+    "currency": "USD",
+    "exchange": "NASDAQ",
+    "industry": "Data Center / Bitcoin Mining",
+    "mktCap": 3200000000,
+    "price": 12.34,
+    "sector": "Technology",
+    "symbol": "IREN"
+  }
+]

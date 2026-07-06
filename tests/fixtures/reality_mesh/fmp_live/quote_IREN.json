@@ -1,0 +1,9 @@
+[
+  {
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
+    "marketCap": 3200000000,
+    "price": 12.34,
+    "symbol": "IREN",
+    "volume": 8500000
+  }
+]

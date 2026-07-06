@@ -60,6 +60,18 @@ from .evidence_sources import (
     SEC_TRANSPORT_KEYS,
     SecFmpEvidenceAdapter,
 )
+from .fmp_live import (
+    FMP_LIVE_ADAPTER_ID,
+    FMP_LIVE_CLAIM_STATUS,
+    FMP_LIVE_DESCRIPTOR,
+    FMP_LIVE_DISCIPLINES,
+    FMP_LIVE_EVENT_TYPES,
+    FMP_LIVE_QUOTE_EVENT_TYPE,
+    FMP_LIVE_SOURCE_AUTHORITY,
+    FMP_LIVE_TRANSPORT_KEYS,
+    FMP_NEVER_OUTRANKS_SEC_NOTE,
+    FmpLiveAdapter,
+)
 from .sec_edgar_live import (
     SEC_EDGAR_LIVE_ADAPTER_ID,
     SEC_EDGAR_LIVE_DESCRIPTOR,
@@ -149,6 +161,17 @@ __all__ = [
     "FMP_TRANSPORT_KEYS",
     "FINANCIAL_INFLECTION_CONSUMER_GAP",
     "SecFmpEvidenceAdapter",
+    # FMP live financial-data adapter -- second production LIVE source, first commercial provider (021A)
+    "FMP_LIVE_ADAPTER_ID",
+    "FMP_LIVE_DESCRIPTOR",
+    "FMP_LIVE_DISCIPLINES",
+    "FMP_LIVE_TRANSPORT_KEYS",
+    "FMP_LIVE_EVENT_TYPES",
+    "FMP_LIVE_QUOTE_EVENT_TYPE",
+    "FMP_LIVE_SOURCE_AUTHORITY",
+    "FMP_LIVE_CLAIM_STATUS",
+    "FMP_NEVER_OUTRANKS_SEC_NOTE",
+    "FmpLiveAdapter",
     # SEC EDGAR live filings adapter -- first production LIVE source (020B)
     "SEC_EDGAR_LIVE_ADAPTER_ID",
     "SEC_EDGAR_LIVE_DESCRIPTOR",

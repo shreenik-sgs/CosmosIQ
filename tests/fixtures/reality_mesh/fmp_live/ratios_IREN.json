@@ -1,0 +1,17 @@
+[
+  {
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
+    "currentRatio": 2.1,
+    "date": "2026-06-30",
+    "debtEquityRatio": 0.11,
+    "returnOnEquity": 0.044,
+    "symbol": "IREN"
+  },
+  {
+    "currentRatio": 1.9,
+    "date": "2026-03-31",
+    "debtEquityRatio": 0.106,
+    "returnOnEquity": 0.017,
+    "symbol": "IREN"
+  }
+]
