@@ -319,6 +319,13 @@ from .portfolio_fit import (
     portfolio_fit_acceptable,
     portfolio_fit_id_for,
 )
+from .capital_picks_report import (
+    ALLOWED_NEXT_ACTIONS,
+    REPORT_MODES,
+    REPORT_TITLE,
+    SECTION_TITLES,
+    render_capital_picks_report,
+)
 from .theme_graph import (
     DEPENDENCY_TYPES,
     GRAPH_MODELS,
@@ -887,6 +894,12 @@ __all__ = [
     "assess_portfolio_fit",
     "portfolio_fit_acceptable",
     "portfolio_fit_id_for",
+    # capital picks report renderer -- MANUAL REVIEW stock-pick report (022E)
+    "REPORT_TITLE",
+    "SECTION_TITLES",
+    "ALLOWED_NEXT_ACTIONS",
+    "REPORT_MODES",
+    "render_capital_picks_report",
     # theme / value-chain / chokepoint knowledge graph -- the MAP (021D-GRAPH)
     "DEPENDENCY_TYPES",
     "GRAPH_MODELS",
