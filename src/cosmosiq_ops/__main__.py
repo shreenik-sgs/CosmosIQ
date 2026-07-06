@@ -239,6 +239,30 @@ def _cmd_security_audit(args: argparse.Namespace) -> int:
     return 0 if report.passed else 1
 
 
+def _cmd_readiness(args: argparse.Namespace) -> int:
+    from cosmosiq_ops.deployment_readiness import (
+        render_deployment_readiness,
+        run_deployment_readiness,
+    )
+    report = run_deployment_readiness(
+        args.repo_root or _default_repo_root(), args.work_dir, now=args.now,
+        quick=bool(args.quick), commit_hash=args.commit)
+    text = render_deployment_readiness(report)
+    print(text)
+    if args.report_out:
+        parent = os.path.dirname(os.path.abspath(args.report_out))
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        with open(args.report_out, "w", encoding="utf-8") as fh:
+            fh.write(text if text.endswith("\n") else text + "\n")
+        print("  report written: {0}".format(args.report_out))
+    print("overall_verdict={0!r} production_mode_allowed={1} recommendation_mode_allowed={2}".format(
+        report.overall_verdict, str(report.production_mode_allowed).lower(),
+        str(report.recommendation_mode_allowed).lower()))
+    # Non-zero unless CosmosIQ is production deployment ready -- the safe default (today: shadow).
+    return 0 if report.production_deployment_ready else 1
+
+
 def _cmd_smoke(args: argparse.Namespace) -> int:
     report = run_production_smoke(args.work_dir, now=args.now)
     print(format_smoke_report(report))
@@ -438,6 +462,22 @@ def _build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--report-out", default=None,
                        help="path to write reports/SECURITY_AUDIT_023H.md")
     audit.set_defaults(func=_cmd_security_audit)
+
+    readiness = sub.add_parser(
+        "readiness",
+        help="the Phase-023J FINAL production deployment readiness gate: aggregate every gate into "
+             "one honest readiness report (refuses production by default -> shadow ready only)")
+    readiness.add_argument("--work-dir", required=True, help="fresh scratch work dir")
+    readiness.add_argument("--repo-root", default=None,
+                           help="repo root to sweep (default: this checkout)")
+    readiness.add_argument("--now", default=DEFAULT_NOW, help="injected instant (deterministic)")
+    readiness.add_argument("--quick", action="store_true",
+                           help="skip the CI-gate full-suite subprocess run; keep every sweep")
+    readiness.add_argument("--commit", default="<COMMIT_HASH>",
+                           help="commit hash placeholder recorded in the report")
+    readiness.add_argument("--report-out", default=None,
+                           help="path to write reports/PRODUCTION_DEPLOYMENT_READINESS_023J.md")
+    readiness.set_defaults(func=_cmd_readiness)
 
     smoke = sub.add_parser("smoke", help="run the full operator chain offline")
     smoke.add_argument("--work-dir", required=True, help="fresh scratch work dir")

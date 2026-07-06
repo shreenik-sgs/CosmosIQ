@@ -120,3 +120,11 @@ from cosmosiq_ops.security_audit import (  # noqa: F401
     run_security_audit,
     scan_text_for_secret_values,
 )
+from cosmosiq_ops.deployment_readiness import (  # noqa: F401
+    VERDICT_PRODUCTION_READY,
+    VERDICT_SHADOW_READY_ONLY,
+    DeploymentReadinessReport,
+    GateResult,
+    render_deployment_readiness,
+    run_deployment_readiness,
+)
