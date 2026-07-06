@@ -261,6 +261,16 @@ from .capital_candidate import (
     publish_candidates_for_run,
     published_candidates,
 )
+from .discovery import (
+    BLOCKED_DISCOVERY_STATES,
+    DISCOVERY_MODELS,
+    DISCOVERY_STATES,
+    FACTOR_FLAGS,
+    DiscoveryCandidate,
+    discover_candidates,
+    discovery_id_for,
+    trigger_diligence_input,
+)
 from .theme_graph import (
     DEPENDENCY_TYPES,
     GRAPH_MODELS,
@@ -776,6 +786,15 @@ __all__ = [
     "eligible_candidates",
     "publish_candidates_for_run",
     "published_candidates",
+    # candidate discovery engine -- flags "worth diligence", never a recommendation (021E)
+    "DISCOVERY_STATES",
+    "BLOCKED_DISCOVERY_STATES",
+    "FACTOR_FLAGS",
+    "DISCOVERY_MODELS",
+    "DiscoveryCandidate",
+    "discover_candidates",
+    "discovery_id_for",
+    "trigger_diligence_input",
     # theme / value-chain / chokepoint knowledge graph -- the MAP (021D-GRAPH)
     "DEPENDENCY_TYPES",
     "GRAPH_MODELS",
