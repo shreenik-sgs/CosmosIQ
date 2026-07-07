@@ -55,9 +55,12 @@ _GEMINI_URL = ("https://generativelanguage.googleapis.com/v1beta/models/"
                "{model}:generateContent")
 _ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 
+# Default models verified live (HTTP 200) against each provider's current API. Providers retire model
+# ids over time (gemini-1.5-flash / claude-3-5-sonnet-latest were retired -> 404), so each is
+# overridable per-client via `model=` and via an env var without a code change.
 _NVIDIA_MODEL = "meta/llama-3.1-70b-instruct"
-_GEMINI_MODEL = "gemini-1.5-flash"
-_ANTHROPIC_MODEL = "claude-3-5-sonnet-latest"
+_GEMINI_MODEL = "gemini-flash-latest"
+_ANTHROPIC_MODEL = "claude-opus-4-8"
 
 # Error-body / status tokens that classify a failure as a BILLING / credit-ceiling failure (which,
 # for a paid provider, trips the circuit breaker). Kept conservative and lowercase.
