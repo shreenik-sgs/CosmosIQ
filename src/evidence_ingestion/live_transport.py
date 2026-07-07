@@ -56,6 +56,16 @@ _YF_QUOTE_URL = "https://query1.finance.yahoo.com/v7/finance/quote?symbols={symb
 _YF_CHART_URL = (
     "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
     "?range=1mo&interval=1d")
+# The PRICE-HISTORY fallback chart endpoint used by the 021-series Yahoo price adapter
+# (PROD-LIVE-2). Public, NO key: a FALLBACK-tier research-only OHLCV source, always below
+# FMP convenience and SEC canonical. ``range`` / ``interval`` are query params.
+_YF_CHART_HISTORY_URL = (
+    "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+    "?range={range}&interval={interval}")
+# A descriptive (public) research User-Agent -- a courtesy identity, NOT a secret. Yahoo's
+# public chart endpoint needs no key; a UA merely avoids a bare/blocked request.
+_YF_CHART_USER_AGENT = (
+    "CosmosIQ-research/1.0 (price-history fallback; research-only; contact: operator-set)")
 
 _MISSING_UA_MSG = (
     "SEC requires a descriptive User-Agent (set SEC_USER_AGENT or pass "
@@ -155,6 +165,31 @@ def fmp_live_transport(
         return _fetch
 
     return {key: _make(tmpl) for key, tmpl in _FMP_ENDPOINT_PATHS.items()}
+
+
+def yahoo_chart_transport(
+    *, timeout: float = 20.0, chart_range: str = "6mo", interval: str = "1d"
+) -> Dict[str, Callable[..., Any]]:
+    """Build the Yahoo-only chart fetch bundle for the FALLBACK price-history adapter (PROD-LIVE-2).
+
+    Returns a dict with ONE callable the :class:`YahooPriceLiveAdapter` injects:
+
+    * ``"chart"`` -> ``fetch(symbol) -> decoded chart JSON`` (Yahoo's public
+      ``query1.finance.yahoo.com/v8/finance/chart/<SYMBOL>?range=6mo&interval=1d``; NO key).
+
+    Yahoo price data is the FALLBACK tier of the authority ladder -- research-only OHLCV for
+    technicals, strictly BELOW FMP convenience and SEC canonical, never a canonical/verified
+    fact. NO credential is required or read (there is no key to leak). ``urllib`` is imported
+    lazily inside :func:`_http_get`, so importing this module remains network-free.
+    """
+    headers = {"User-Agent": _YF_CHART_USER_AGENT}
+
+    def _chart(symbol: str) -> Any:
+        url = _YF_CHART_HISTORY_URL.format(
+            symbol=str(symbol).strip().upper(), range=chart_range, interval=interval)
+        return json.loads(_http_get(url, headers=headers, timeout=timeout))
+
+    return {"chart": _chart}
 
 
 def fmp_http_transport(api_key: str) -> Callable[[str, Dict[str, Any]], str]:

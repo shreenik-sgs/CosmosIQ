@@ -1,0 +1,18 @@
+{
+  "chart": {
+    "result": [
+      {
+        "meta": {
+          "symbol": "EMPTY"
+        },
+        "timestamp": [],
+        "indicators": {
+          "quote": [
+            {}
+          ]
+        }
+      }
+    ],
+    "error": null
+  }
+}

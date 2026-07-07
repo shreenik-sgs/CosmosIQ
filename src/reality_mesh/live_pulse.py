@@ -44,6 +44,7 @@ from typing import List, Mapping, Optional, Tuple
 
 from .adapters.fmp_live import FmpLiveAdapter
 from .adapters.sec_edgar_live import SecEdgarLiveAdapter
+from .adapters.yahoo_price_live import YahooPriceLiveAdapter
 from .pulse import PulseResult, run_pulse
 from .pulse_persistence import persist_and_summarize
 
@@ -89,7 +90,8 @@ def _resolve_env(env: Optional[Mapping[str, str]]) -> Mapping[str, str]:
     return env
 
 
-def build_live_adapters(*, env: Optional[Mapping[str, str]] = None):
+def build_live_adapters(*, env: Optional[Mapping[str, str]] = None,
+                        include_price_fallback: bool = False):
     """Build the live adapter set from credential PRESENCE. Returns ``(adapters, config_notes)``.
 
     Reads ``SEC_USER_AGENT`` / ``FMP_API_KEY`` PRESENCE from ``env`` (``os.environ`` when None)
@@ -99,6 +101,12 @@ def build_live_adapters(*, env: Optional[Mapping[str, str]] = None):
     honest one-line status per source ("SEC live: configured" / "SEC live: not configured
     (SEC_USER_AGENT missing)", same for FMP). Neither source configured -> ``()`` adapters + two
     "not configured" notes.
+
+    ``include_price_fallback`` (default False -> the DEFAULT set is byte-identical to before) is an
+    OPT-IN: when True the credential-free Yahoo price-history FALLBACK adapter (PROD-LIVE-2) is
+    ALWAYS appended (it needs no credential), so a live pulse keeps price technicals available when
+    FMP is missing / throttled. Yahoo is the FALLBACK tier -- research-only, always below FMP
+    convenience and SEC canonical.
     """
     mapping = _resolve_env(env)
     sec_present = SEC_LIVE_ENV_VAR in mapping        # membership ONLY -- value never read
@@ -120,6 +128,10 @@ def build_live_adapters(*, env: Optional[Mapping[str, str]] = None):
     else:
         notes.append(
             "FMP live: not configured ({0} missing)".format(FMP_LIVE_ENV_VAR))
+    if include_price_fallback:
+        # Credential-free FALLBACK tier: always joins when opted in (below FMP / SEC).
+        adapters.append(YahooPriceLiveAdapter(transport=None))
+        notes.append("Yahoo price fallback: configured (no credential; fallback tier)")
     return tuple(adapters), tuple(notes)
 
 
@@ -198,7 +210,7 @@ def _default_run_id(watch: Tuple[str, ...], themes: Tuple[str, ...], now: str) -
 
 def run_live_pulse(watchlist, themes, *, store_dir: str, now: str, run_id: str = "",
                    env: Optional[Mapping[str, str]] = None,
-                   adapters=None) -> LivePulseResult:
+                   adapters=None, include_price_fallback: bool = False) -> LivePulseResult:
     """Run ONE sanctioned, credential-gated LIVE pulse into ``store_dir``. Honest; shadow-marked.
 
     Builds the live adapters from credential PRESENCE (or uses injected ``adapters`` for OFFLINE
@@ -226,9 +238,11 @@ def run_live_pulse(watchlist, themes, *, store_dir: str, now: str, run_id: str =
     # test suite drives real code paths with mock transports, fully offline.
     if adapters is not None:
         adapter_list = tuple(adapters)
-        _, config_notes = build_live_adapters(env=env)
+        _, config_notes = build_live_adapters(
+            env=env, include_price_fallback=include_price_fallback)
     else:
-        adapter_list, config_notes = build_live_adapters(env=env)
+        adapter_list, config_notes = build_live_adapters(
+            env=env, include_price_fallback=include_price_fallback)
 
     watch = _norm_watch(watchlist)
     theme_list = _norm_themes(themes)
