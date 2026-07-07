@@ -215,6 +215,15 @@ from .pulse_persistence import (
     agent_results_from_pulse,
     persist_and_summarize,
 )
+from .live_pulse import (
+    FMP_LIVE_ENV_VAR,
+    NO_LIVE_SOURCES_NOTE,
+    SEC_LIVE_ENV_VAR,
+    LivePulseResult,
+    LiveSourceHealth,
+    build_live_adapters,
+    run_live_pulse,
+)
 from .ledger import (
     AgentRunLedger,
     PolicyBlock,
@@ -823,6 +832,14 @@ __all__ = [
     "PulseResult",
     "PulseAgentRun",
     "DEFAULT_PULSE_FIXTURE_DIR",
+    # credential-gated LIVE pulse wiring (PROD-LIVE-1)
+    "run_live_pulse",
+    "build_live_adapters",
+    "LivePulseResult",
+    "LiveSourceHealth",
+    "SEC_LIVE_ENV_VAR",
+    "FMP_LIVE_ENV_VAR",
+    "NO_LIVE_SOURCES_NOTE",
     # runtime objects (013A)
     "PulseRun",
     "AgentRunContext",

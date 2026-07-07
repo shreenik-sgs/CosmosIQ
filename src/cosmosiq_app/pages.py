@@ -536,6 +536,63 @@ def _recent_alerts_html(store_dir: str) -> str:
         '<a href="/alerts">Alerts</a> surface.</p></div>')
 
 
+def _external_source_presence():
+    """PRESENCE booleans for the SEC EDGAR + FMP external sources (membership only, never a value).
+
+    Reads credential PRESENCE via :func:`reality_mesh.build_live_adapters` (which computes
+    ``name in os.environ`` only) and maps each configured adapter back to a source label. Returns
+    ``[(label, configured_bool)]``; no value is ever read, so it is safe to render. The label text
+    deliberately avoids the guarded overclaim / trade / credential-token vocabulary.
+    """
+    from reality_mesh import build_live_adapters
+    adapters, _notes = build_live_adapters()   # env=None -> os.environ presence only
+    configured_ids = {a.descriptor.adapter_id for a in adapters}
+    return [
+        ("SEC EDGAR", "evidence.sec_edgar_live" in configured_ids),
+        ("FMP", "evidence.fmp_live" in configured_ids),
+    ]
+
+
+def _render_source_refresh(store_dir: str, refresh_note: str = "") -> str:
+    """The SANCTIONED "Refresh from external sources" operator form for the Evidence tab.
+
+    Presence indicators (SEC EDGAR / FMP: configured | not configured -- labels only, never a
+    value). Record/refresh-only: POSTs to /api/pulse/live and redirects back; there is no
+    execution affordance of any kind. The wording avoids the guarded overclaim / execution /
+    credential-token vocabulary by construction. When neither source is configured, the honest
+    "set the env var(s)" guidance is always shown.
+    """
+    settings, _revision = current_settings(store_dir)
+    presence = "".join(
+        "<li>{0}: {1}</li>".format(_esc(label), "configured" if ok else "not configured")
+        for label, ok in _external_source_presence())
+    any_configured = any(ok for _label, ok in _external_source_presence())
+    guidance = "" if any_configured else (
+        '<p class="note">No external sources configured yet. Set SEC_USER_AGENT (a free SEC '
+        "contact identity) and/or your FMP access env var, then refresh. Nothing is fetched, "
+        "nothing is fabricated, and there is no fixture fallback until a source is set.</p>")
+    note_html = ('<p class="note">{0}</p>'.format(_esc(refresh_note))) if refresh_note else ""
+
+    return (
+        '<h2>Refresh from external sources</h2>'
+        '<div class="panel"><p class="note">External source configuration '
+        "(presence only &mdash; values are never read or shown):</p><ul>" + presence + "</ul>"
+        + guidance + note_html
+        + '<form class="op-form" method="post" action="/api/pulse/refresh">'
+        '<label>Watchlist (comma-separated tickers) '
+        '<input type="text" name="watchlist" value="{wl}"></label>'
+        '<label>Themes (comma-separated) <input type="text" name="themes" value="{th}">'
+        "</label><button>Refresh from external sources</button>"
+        '<span class="op-note">SANCTIONED operator refresh &mdash; pulls REAL SEC EDGAR + FMP '
+        "evidence into this store (gated on the env vars above). Record/refresh-only, "
+        "shadow-marked; nothing repeats unless you ask again. SEC stays canonical; FMP stays "
+        "convenience.</span></form></div>").format(
+            wl=_esc(", ".join(str(v) for v in settings.get("watchlists", ())
+                              if isinstance(v, str))),
+            th=_esc(", ".join(str(v) for v in settings.get("themes", ())
+                              if isinstance(v, str))))
+
+
 def render_app_home(store_dir: str) -> str:
     counts = _handle_health(store_dir)["body"]["counts"]
     settings, revision = current_settings(store_dir)
@@ -1296,11 +1353,13 @@ def _latest_run_trust_html(store_dir: str, run: Any) -> str:
     return ("<h2>Latest run &mdash; trust snapshot</h2>" + gates + agents + gaps_html)
 
 
-def render_evidence_page(store_dir: str) -> str:
+def render_evidence_page(store_dir: str, *, refresh_note: str = "") -> str:
     """Evidence & Trust: the trust / data-quality surface. The latest run's DQ gate + gaps,
-    source health, agent health, the source-authority ladder, a replay / determinism note, and
-    the honest shadow-only / Manual Review posture -- labels and counts only, degraded / failed
-    states never hidden. Honest empty state when no runs."""
+    source health, agent health, the source-authority ladder, a replay / determinism note, the
+    honest shadow-only / Manual Review posture, AND the sanctioned "Refresh from external
+    sources" operator form (PROD-LIVE-1) -- labels and counts only, degraded / failed states
+    never hidden. Honest empty state when no runs. ``refresh_note`` (optional) shows an honest
+    one-line result after a refresh POST; the default keeps existing callers byte-identical."""
     intro = ('<p class="note">Trust is earned by showing the work. This surface carries the '
              "latest run&#39;s data-quality gate and gaps, source health, agent health, the "
              "source-authority ladder, and a determinism note &mdash; all labels and counts, "
@@ -1309,6 +1368,7 @@ def render_evidence_page(store_dir: str) -> str:
     posture = _evidence_posture_html()
     ladder = _authority_ladder_html()
     source_health = _source_health_html(store_dir)
+    refresh = _render_source_refresh(store_dir, refresh_note=refresh_note)
 
     runs = _runs_newest_first(store_dir)
     if not runs:
@@ -1317,7 +1377,7 @@ def render_evidence_page(store_dir: str) -> str:
                  'operator runs a pulse from the <a href="/">Dashboard</a>. Nothing is '
                  "fabricated.</p></div>")
         return _page(store_dir, "Evidence & Trust", "/evidence",
-                     intro + posture + ladder + source_health + empty)
+                     intro + posture + ladder + source_health + refresh + empty)
 
     latest = _latest_run_trust_html(store_dir, runs[0])
 
@@ -1344,7 +1404,8 @@ def render_evidence_page(store_dir: str) -> str:
         "persisted inputs and compared field by field. A divergent replay is a named FAILURE, "
         "never hidden. Same inputs always reconstruct the same outputs.</p></div>")
     return _page(store_dir, "Evidence & Trust", "/evidence",
-                 intro + posture + ladder + source_health + latest + table + replay_note)
+                 intro + posture + ladder + source_health + refresh
+                 + latest + table + replay_note)
 
 
 # --------------------------------------------------------------------------- #

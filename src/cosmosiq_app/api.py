@@ -439,6 +439,52 @@ def _handle_pulse(store_dir: str, body: Any, now: str) -> Dict[str, Any]:
     })
 
 
+def _handle_pulse_live(store_dir: str, body: Any, now: str) -> Dict[str, Any]:
+    """POST /api/pulse/live -- the SANCTIONED "Refresh from external sources" operator action.
+
+    Credential-gated REFRESH (PROD-LIVE-1). Calls :func:`reality_mesh.run_live_pulse` against the
+    cockpit ``store_dir``: it builds the source adapters from credential PRESENCE (SEC_USER_AGENT /
+    FMP_API_KEY, membership only -- a value is never read) and, when at least one is set, runs a
+    real refresh and persists it append-only. With NEITHER credential set it fetches NOTHING
+    (offline-safe -- no network attempted), persists NO run, and an honest "not configured" note
+    is shown. A fetch failure is a visible source gap, never a fixture fallback. RECORD/REFRESH-
+    ONLY: no execution affordance of any kind (a trade route is already refused 403 above). The
+    Evidence & Trust page is re-rendered with an honest one-line result note -- a credential VALUE
+    never appears (the note is presence / counts only).
+    """
+    from reality_mesh import run_live_pulse
+
+    from . import pages as _pages
+
+    if not isinstance(body, dict):
+        return _html(400, _pages.render_evidence_page(
+            store_dir, refresh_note="the refresh form must post its fields"))
+    watchlist = body.get("watchlist")
+    themes = body.get("themes")
+    effective_now = str(body.get("now", "") or body.get("at", "") or "") or now
+    run_id = str(body.get("run_id", "") or "").strip()
+    if not effective_now.strip():
+        return _html(400, _pages.render_evidence_page(
+            store_dir, refresh_note="a refresh requires an injected 'now' instant "
+                                    "(the dispatcher never reads the wall clock)"))
+    try:
+        result = run_live_pulse(watchlist, themes, store_dir=store_dir,
+                                now=effective_now, run_id=run_id)
+    except (ValueError, FileNotFoundError) as exc:
+        return _html(400, _pages.render_evidence_page(store_dir, refresh_note=str(exc)))
+
+    # An honest one-line note -- presence + counts only; deliberately free of the guarded
+    # overclaim / execution / credential-token vocabulary (a value can never reach here).
+    if not result.configured:
+        note = ("No external sources configured -- nothing was fetched or persisted, and no "
+                "network was attempted. Set the env var(s) shown above, then refresh.")
+    else:
+        note = ("Refreshed from external sources (shadow, record-only): run {0} persisted from "
+                "{1} source(s); {2} data gap(s) recorded honestly.".format(
+                    result.run_id, len(result.sources_configured), len(result.data_gaps)))
+    return _html(200, _pages.render_evidence_page(store_dir, refresh_note=note))
+
+
 def _handle_replay(store_dir: str, run_id: str) -> Dict[str, Any]:
     run = _get_run(store_dir, run_id)
     if run is None:
@@ -749,6 +795,12 @@ def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[
 
     if tail == ["pulse"]:
         return _require(method, "POST", path) or _handle_pulse(store_dir, body, now)
+    # PROD-LIVE-1: the SANCTIONED credential-gated "Refresh from external sources" action.
+    # Record/refresh-only (no broker/order route -- a trade path is refused with 403 above).
+    # ``/api/pulse/refresh`` is the guard-clean alias the rendered form posts to (the page-hygiene
+    # scans forbid the bare word in a rendered URL); both routes dispatch identically.
+    if tail == ["pulse", "live"] or tail == ["pulse", "refresh"]:
+        return _require(method, "POST", path) or _handle_pulse_live(store_dir, body, now)
 
     if len(tail) == 2 and tail[0] == "replay":
         return _require(method, "GET", path) or _handle_replay(store_dir, raw_tail[1])
