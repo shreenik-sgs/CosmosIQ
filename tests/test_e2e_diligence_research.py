@@ -623,10 +623,21 @@ class GlobalGuardrailTests(unittest.TestCase):
                 self.assertNotIn("apikey", html.lower())
 
     def test_no_env_dotfile_or_secret_committed(self):
-        for root, _dirs, files in os.walk(_ROOT):
-            if os.sep + ".git" in root:
-                continue
-            self.assertNotIn(".env", files, "a .env file is committed at {0}".format(root))
+        # A real, gitignored .env in the working tree is EXPECTED once live sources
+        # (SEC_USER_AGENT / FMP_API_KEY / ...) are configured; it cannot be committed.
+        # The invariant is that no .env is COMMITTED (tracked by git) -- not that no
+        # .env exists on disk.
+        import subprocess
+        try:
+            out = subprocess.run(["git", "ls-files"], cwd=_ROOT,
+                                  capture_output=True, text=True, timeout=30).stdout
+        except Exception:  # pragma: no cover - git is present in this repo
+            self.skipTest("git not available")
+            return
+        env_tracked = [p for p in out.splitlines()
+                       if os.path.basename(p.strip()) == ".env"]
+        self.assertEqual(env_tracked, [],
+                         "a .env file is tracked by git: {0}".format(env_tracked))
 
     def test_no_buy_sell_order_submit_affordance_in_either_path(self):
         for enrich in (False, True):
