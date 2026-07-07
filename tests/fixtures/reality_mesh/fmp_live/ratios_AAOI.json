@@ -1,17 +1,23 @@
 [
   {
-    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
-    "currentRatio": 1.2,
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP /stable ratios payload (debtToEquityRatio / netProfitMargin field names); no live data.",
+    "symbol": "AAOI",
     "date": "2026-06-30",
-    "debtEquityRatio": 0.5,
-    "returnOnEquity": 0.0067,
-    "symbol": "AAOI"
+    "fiscalYear": "2026",
+    "period": "Q2",
+    "reportedCurrency": "USD",
+    "currentRatio": 1.2,
+    "debtToEquityRatio": 0.5,
+    "netProfitMargin": 0.02
   },
   {
-    "currentRatio": 1.4,
+    "symbol": "AAOI",
     "date": "2026-03-31",
-    "debtEquityRatio": 0.375,
-    "returnOnEquity": 0.025,
-    "symbol": "AAOI"
+    "fiscalYear": "2026",
+    "period": "Q1",
+    "reportedCurrency": "USD",
+    "currentRatio": 1.4,
+    "debtToEquityRatio": 0.375,
+    "netProfitMargin": 0.0842
   }
 ]

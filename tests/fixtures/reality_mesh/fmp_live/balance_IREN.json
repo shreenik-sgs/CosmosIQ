@@ -1,17 +1,25 @@
 [
   {
-    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
-    "cashAndCashEquivalents": 40000000,
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP /stable balance-sheet payload; no live data; injected via the mock transport in tests.",
     "date": "2026-06-30",
     "symbol": "IREN",
+    "reportedCurrency": "USD",
+    "fiscalYear": "2026",
+    "period": "Q2",
+    "cashAndCashEquivalents": 40000000,
     "totalDebt": 100000000,
+    "netDebt": 60000000,
     "totalStockholdersEquity": 900000000
   },
   {
-    "cashAndCashEquivalents": 20000000,
     "date": "2026-03-31",
     "symbol": "IREN",
+    "reportedCurrency": "USD",
+    "fiscalYear": "2026",
+    "period": "Q1",
+    "cashAndCashEquivalents": 20000000,
     "totalDebt": 90000000,
+    "netDebt": 70000000,
     "totalStockholdersEquity": 850000000
   }
 ]

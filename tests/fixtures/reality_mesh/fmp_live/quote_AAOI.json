@@ -1,9 +1,13 @@
 [
   {
-    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
-    "marketCap": 900000000,
-    "price": 18.5,
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP /stable quote payload; no live data; injected via the mock transport in tests.",
     "symbol": "AAOI",
-    "volume": 3100000
+    "name": "Applied Optoelectronics, Inc.",
+    "price": 18.5,
+    "changePercentage": -0.8,
+    "change": -0.15,
+    "volume": 3100000,
+    "marketCap": 900000000,
+    "exchange": "NASDAQ"
   }
 ]

@@ -37,14 +37,18 @@ _SEC_SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
 # FMP is the CONVENIENCE tier of the authority ladder: financial / market CONTEXT, NEVER a
 # canonical regulatory truth, and it can never outrank SEC. The key is threaded through the
 # query string exactly once and is NEVER logged / printed / stored here.
-_FMP_BASE = "https://financialmodelingprep.com/api/v3"
+#
+# FMP retired the legacy ``/api/v3/`` endpoints ("Legacy Endpoint : no longer supported",
+# HTTP 403); the CURRENT surface is ``/stable`` with the symbol passed as the ``symbol``
+# QUERY parameter (not a path segment). Every endpoint returns a JSON array of records.
+_FMP_BASE = "https://financialmodelingprep.com/stable"
 _FMP_ENDPOINT_PATHS = {
-    "profile": "profile/{symbol}",
-    "income_statement": "income-statement/{symbol}?limit=2",
-    "balance_sheet": "balance-sheet-statement/{symbol}?limit=2",
-    "cash_flow": "cash-flow-statement/{symbol}?limit=2",
-    "ratios": "ratios/{symbol}?limit=2",
-    "quote": "quote/{symbol}",
+    "profile": "profile?symbol={symbol}",
+    "income_statement": "income-statement?symbol={symbol}&limit=2",
+    "balance_sheet": "balance-sheet-statement?symbol={symbol}&limit=2",
+    "cash_flow": "cash-flow-statement?symbol={symbol}&limit=2",
+    "ratios": "ratios?symbol={symbol}&limit=2",
+    "quote": "quote?symbol={symbol}",
 }
 
 # Public Yahoo query endpoints (fallback / research-only OHLCV + quote; no key).

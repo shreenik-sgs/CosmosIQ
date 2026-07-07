@@ -1,13 +1,16 @@
 [
   {
-    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP /stable payload; no live data; injected via the mock transport in tests.",
+    "symbol": "IREN",
     "companyName": "IREN Limited",
+    "price": 12.34,
+    "marketCap": 3200000000,
+    "beta": 1.8,
     "currency": "USD",
+    "cik": "0001878848",
+    "exchangeFullName": "NASDAQ Global Select",
     "exchange": "NASDAQ",
     "industry": "Data Center / Bitcoin Mining",
-    "mktCap": 3200000000,
-    "price": 12.34,
-    "sector": "Technology",
-    "symbol": "IREN"
+    "sector": "Technology"
   }
 ]

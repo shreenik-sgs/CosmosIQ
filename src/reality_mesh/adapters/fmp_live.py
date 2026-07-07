@@ -634,7 +634,7 @@ class FmpLiveAdapter(SourceAdapter):
         sector = str(row.get("sector") or "").strip()
         industry = str(row.get("industry") or "").strip()
         nums: List[Tuple[str, object, str]] = []
-        for key, metric, unit in (("mktCap", "market_cap_usd", "usd"),
+        for key, metric, unit in (("marketCap", "market_cap_usd", "usd"),
                                    ("price", "price_usd", "usd")):
             value = _num(row, key)
             if value is not None:
@@ -656,7 +656,7 @@ class FmpLiveAdapter(SourceAdapter):
             return None, None, ""
         latest = rows[0]
         prior = rows[1] if len(rows) > 1 else None
-        as_of = str(latest.get("date") or latest.get("fillingDate") or "")[:10]
+        as_of = str(latest.get("date") or latest.get("filingDate") or "")[:10]
         return latest, prior, as_of
 
     def _income_event(self, ticker: str, payload: Any, ref: str, now: str,
@@ -672,9 +672,21 @@ class FmpLiveAdapter(SourceAdapter):
             value = _num(latest, key)
             if value is not None:
                 nums.append((metric, value, unit))
-        # FMP-returned ratios (fractions) -> percent context figures.
-        gm_l, gm_p = _num(latest, "grossProfitRatio"), _num(prior or {}, "grossProfitRatio")
-        om_l, om_p = _num(latest, "operatingIncomeRatio"), _num(prior or {}, "operatingIncomeRatio")
+        # /stable income statements no longer carry margin RATIOS -- derive margins
+        # transparently from FMP-reported figures (grossProfit / revenue, operatingIncome /
+        # revenue) as fractions -> percent context figures (never fabricated: a margin is
+        # emitted only where both numerator and revenue were provided and revenue is non-zero).
+        def _margin(numerator_key: str, row: Optional[Dict[str, Any]]) -> Optional[float]:
+            if row is None:
+                return None
+            numerator = _num(row, numerator_key)
+            revenue = _num(row, "revenue")
+            if numerator is None or revenue is None or revenue == 0.0:
+                return None
+            return numerator / revenue
+
+        gm_l, gm_p = _margin("grossProfit", latest), _margin("grossProfit", prior)
+        om_l, om_p = _margin("operatingIncome", latest), _margin("operatingIncome", prior)
         if gm_l is not None:
             nums.append(("gross_margin_pct", round(gm_l * 100.0, 4), "pct"))
         if om_l is not None:
@@ -777,8 +789,8 @@ class FmpLiveAdapter(SourceAdapter):
             return None
         nums: List[Tuple[str, object, str]] = []
         for key, metric, unit in (("currentRatio", "current_ratio", "ratio"),
-                                   ("debtEquityRatio", "debt_equity_ratio", "ratio"),
-                                   ("returnOnEquity", "return_on_equity_ratio", "ratio")):
+                                   ("debtToEquityRatio", "debt_equity_ratio", "ratio"),
+                                   ("netProfitMargin", "net_profit_margin_ratio", "ratio")):
             value = _num(latest, key)
             if value is not None:
                 nums.append((metric, value, unit))

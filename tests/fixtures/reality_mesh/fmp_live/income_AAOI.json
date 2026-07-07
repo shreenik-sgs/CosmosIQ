@@ -1,29 +1,27 @@
 [
   {
-    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
-    "calendarYear": "2026",
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP /stable income-statement payload; margins derived by the adapter (no margin RATIOS in the /stable shape); no live data.",
     "date": "2026-06-30",
-    "grossProfit": 24000000,
-    "grossProfitRatio": 0.24,
-    "netIncome": 2000000,
-    "netIncomeRatio": 0.02,
-    "operatingIncome": 5000000,
-    "operatingIncomeRatio": 0.05,
+    "symbol": "AAOI",
+    "reportedCurrency": "USD",
+    "fiscalYear": "2026",
     "period": "Q2",
+    "filingDate": "2026-07-30",
     "revenue": 100000000,
-    "symbol": "AAOI"
+    "grossProfit": 24000000,
+    "operatingIncome": 5000000,
+    "netIncome": 2000000
   },
   {
-    "calendarYear": "2026",
     "date": "2026-03-31",
-    "grossProfit": 30000000,
-    "grossProfitRatio": 0.3158,
-    "netIncome": 8000000,
-    "netIncomeRatio": 0.0842,
-    "operatingIncome": 11400000,
-    "operatingIncomeRatio": 0.12,
+    "symbol": "AAOI",
+    "reportedCurrency": "USD",
+    "fiscalYear": "2026",
     "period": "Q1",
+    "filingDate": "2026-04-30",
     "revenue": 95000000,
-    "symbol": "AAOI"
+    "grossProfit": 30000000,
+    "operatingIncome": 11400000,
+    "netIncome": 8000000
   }
 ]

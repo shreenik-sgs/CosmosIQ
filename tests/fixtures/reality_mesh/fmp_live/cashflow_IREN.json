@@ -1,17 +1,23 @@
 [
   {
-    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
-    "capitalExpenditure": -20000000,
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP /stable cash-flow payload; no live data; injected via the mock transport in tests.",
     "date": "2026-06-30",
-    "freeCashFlow": 50000000,
+    "symbol": "IREN",
+    "reportedCurrency": "USD",
+    "fiscalYear": "2026",
+    "period": "Q2",
     "operatingCashFlow": 70000000,
-    "symbol": "IREN"
+    "capitalExpenditure": -20000000,
+    "freeCashFlow": 50000000
   },
   {
-    "capitalExpenditure": -15000000,
     "date": "2026-03-31",
-    "freeCashFlow": 30000000,
+    "symbol": "IREN",
+    "reportedCurrency": "USD",
+    "fiscalYear": "2026",
+    "period": "Q1",
     "operatingCashFlow": 45000000,
-    "symbol": "IREN"
+    "capitalExpenditure": -15000000,
+    "freeCashFlow": 30000000
   }
 ]

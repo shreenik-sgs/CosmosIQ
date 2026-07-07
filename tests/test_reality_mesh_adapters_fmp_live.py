@@ -446,6 +446,69 @@ class NoAmbientNetworkTests(unittest.TestCase):
 
 
 # --------------------------------------------------------------------------- #
+# 6b. Transport migration: /stable endpoints (v3 is RETIRED, HTTP 403)           #
+# --------------------------------------------------------------------------- #
+class StableEndpointMigrationTests(unittest.TestCase):
+    """The live transport must build FMP's CURRENT /stable URLs (symbol as a QUERY param,
+    apikey as a query param) -- never the RETIRED /api/v3/ path endpoints. This asserts the
+    URL shape WITHOUT ever touching the wire (urllib stays inside _http_get, which we patch
+    to a pure string collector; import is network-free)."""
+
+    def _captured_urls(self):
+        import evidence_ingestion.live_transport as lt
+        seen = []
+
+        def _fake_http_get(url, headers=None, timeout=20.0):
+            seen.append(url)
+            return "[]"
+
+        orig = lt._http_get
+        lt._http_get = _fake_http_get
+        try:
+            bundle = lt.fmp_live_transport("MOCK-KEY-never-logged", timeout=5.0)
+            for key in ("profile", "income_statement", "balance_sheet",
+                        "cash_flow", "ratios", "quote"):
+                bundle[key]("iren")   # lowercase -> normalised to IREN in the URL
+        finally:
+            lt._http_get = orig
+        return seen
+
+    def test_urls_are_stable_not_v3_with_symbol_and_apikey_as_query(self):
+        urls = self._captured_urls()
+        self.assertEqual(len(urls), 6)
+        for url in urls:
+            self.assertIn("https://financialmodelingprep.com/stable/", url)
+            self.assertNotIn("/api/v3/", url)         # the RETIRED (HTTP 403) surface
+            self.assertIn("symbol=IREN", url)         # symbol is a QUERY param now
+            self.assertNotIn("/IREN", url)            # never a path segment
+            self.assertIn("apikey=MOCK-KEY-never-logged", url)
+        joined = " ".join(urls)
+        self.assertIn("/stable/profile?symbol=IREN", joined)
+        self.assertIn("/stable/income-statement?symbol=IREN&limit=2", joined)
+        self.assertIn("/stable/balance-sheet-statement?symbol=IREN&limit=2", joined)
+        self.assertIn("/stable/cash-flow-statement?symbol=IREN&limit=2", joined)
+        self.assertIn("/stable/ratios?symbol=IREN&limit=2", joined)
+        self.assertIn("/stable/quote?symbol=IREN", joined)
+
+    def test_transport_module_imports_no_network_at_top_level(self):
+        path = os.path.join(_HERE, "..", "src", "evidence_ingestion", "live_transport.py")
+        with open(path, encoding="utf-8") as fh:
+            tree = ast.parse(fh.read())
+        banned = ("socket", "urllib", "http", "requests", "aiohttp", "httpx")
+        for node in tree.body:          # MODULE top level only -- lazy fn-local urllib is fine
+            names = []
+            if isinstance(node, ast.Import):
+                names = [a.name for a in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.level == 0:
+                names = [node.module or ""]
+            for name in names:
+                for root in banned:
+                    self.assertFalse(
+                        name == root or name.startswith(root + "."),
+                        "top-level network import {0!r} in live_transport.py".format(name))
+
+
+# --------------------------------------------------------------------------- #
 # 7. Quote endpoint is only CALLED when enable_quote=True                        #
 # --------------------------------------------------------------------------- #
 class QuoteGatingTests(unittest.TestCase):

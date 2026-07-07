@@ -1,9 +1,13 @@
 [
   {
-    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
-    "marketCap": 3200000000,
-    "price": 12.34,
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP /stable quote payload; no live data; injected via the mock transport in tests.",
     "symbol": "IREN",
-    "volume": 8500000
+    "name": "IREN Limited",
+    "price": 12.34,
+    "changePercentage": 1.2,
+    "change": 0.15,
+    "volume": 8500000,
+    "marketCap": 3200000000,
+    "exchange": "NASDAQ"
   }
 ]

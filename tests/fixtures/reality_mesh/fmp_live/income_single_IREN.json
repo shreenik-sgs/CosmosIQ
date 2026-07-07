@@ -1,10 +1,12 @@
 [
   {
-    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
+    "_comment": "FIXTURE/MOCK ONLY -- a SINGLE FMP /stable income period (no prior) -> the period-over-period margin delta is NOT computable and must stay a gap, never fabricated.",
     "date": "2026-06-30",
-    "operatingIncome": 60000000,
-    "operatingIncomeRatio": 0.2,
+    "symbol": "IREN",
+    "reportedCurrency": "USD",
+    "fiscalYear": "2026",
+    "period": "Q2",
     "revenue": 300000000,
-    "symbol": "IREN"
+    "operatingIncome": 60000000
   }
 ]

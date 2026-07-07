@@ -1,29 +1,27 @@
 [
   {
-    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
-    "calendarYear": "2026",
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP /stable income-statement payload; no margin RATIOS (the /stable shape omits them -- the adapter derives margins from grossProfit/operatingIncome over revenue); no live data.",
     "date": "2026-06-30",
-    "grossProfit": 150000000,
-    "grossProfitRatio": 0.5,
-    "netIncome": 40000000,
-    "netIncomeRatio": 0.1333,
-    "operatingIncome": 60000000,
-    "operatingIncomeRatio": 0.2,
+    "symbol": "IREN",
+    "reportedCurrency": "USD",
+    "fiscalYear": "2026",
     "period": "Q2",
+    "filingDate": "2026-07-30",
     "revenue": 300000000,
-    "symbol": "IREN"
+    "grossProfit": 150000000,
+    "operatingIncome": 60000000,
+    "netIncome": 40000000
   },
   {
-    "calendarYear": "2026",
     "date": "2026-03-31",
-    "grossProfit": 112000000,
-    "grossProfitRatio": 0.448,
-    "netIncome": 15000000,
-    "netIncomeRatio": 0.06,
-    "operatingIncome": 25000000,
-    "operatingIncomeRatio": 0.1,
+    "symbol": "IREN",
+    "reportedCurrency": "USD",
+    "fiscalYear": "2026",
     "period": "Q1",
+    "filingDate": "2026-04-30",
     "revenue": 250000000,
-    "symbol": "IREN"
+    "grossProfit": 112000000,
+    "operatingIncome": 25000000,
+    "netIncome": 15000000
   }
 ]

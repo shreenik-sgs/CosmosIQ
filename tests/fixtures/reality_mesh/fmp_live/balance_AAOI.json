@@ -1,17 +1,25 @@
 [
   {
-    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP payload; no live data; injected via the mock transport in tests.",
-    "cashAndCashEquivalents": 30000000,
+    "_comment": "FIXTURE/MOCK ONLY -- trimmed FMP /stable balance-sheet payload; no live data; injected via the mock transport in tests.",
     "date": "2026-06-30",
     "symbol": "AAOI",
+    "reportedCurrency": "USD",
+    "fiscalYear": "2026",
+    "period": "Q2",
+    "cashAndCashEquivalents": 30000000,
     "totalDebt": 150000000,
+    "netDebt": 120000000,
     "totalStockholdersEquity": 300000000
   },
   {
-    "cashAndCashEquivalents": 40000000,
     "date": "2026-03-31",
     "symbol": "AAOI",
+    "reportedCurrency": "USD",
+    "fiscalYear": "2026",
+    "period": "Q1",
+    "cashAndCashEquivalents": 40000000,
     "totalDebt": 120000000,
+    "netDebt": 80000000,
     "totalStockholdersEquity": 320000000
   }
 ]
