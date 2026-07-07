@@ -219,10 +219,16 @@ class RunLivePulseTests(unittest.TestCase):
         by_id = {h.adapter_id: h for h in result.source_health}
         self.assertEqual(by_id["evidence.sec_edgar_live"].authority, "canonical")
         self.assertEqual(by_id["evidence.fmp_live"].authority, "convenience")
-        # the produced signals preserve the ladder: canonical + convenience both present.
+        # The SOURCE ladder is preserved by the adapter descriptors (SEC canonical, FMP
+        # convenience) and never re-ranked. The produced signals are backed by the REAL adapter
+        # evidence only: the canonical (SEC) tier is present. (PROD-LIVE-4: the convenience-tier
+        # signals a live run USED to show came SOLELY from leaked fixture market/sector/theme
+        # events -- demo data, not real live evidence -- and are now correctly absent.)
         authorities = set(result.pulse_result.authority_by_signal.values())
         self.assertIn("canonical", authorities)
-        self.assertIn("convenience", authorities)
+        # zero signal is backed by a bundled fixture event -- a live run is real-evidence-only.
+        self.assertTrue(all(e.source_id and not str(e.source_id).startswith("fixture")
+                            for e in result.pulse_result.events))
 
     def test_fetch_failure_is_a_visible_gap_not_a_fixture_fallback(self):
         # SEC 429 -> rate_limited gap; FMP still delivers. No news_filings fixture backfill.
@@ -362,6 +368,81 @@ class LiveCliTests(unittest.TestCase):
         from cosmosiq_pulse.__main__ import main
         with self.assertRaises(SystemExit):
             main(["--live", "--watchlist", "IREN", "--themes", "physical-ai"])
+
+
+# --------------------------------------------------------------------------- #
+# 6. PROD-LIVE-4 -- no fixture-in-production leak; real evidence persisted        #
+# --------------------------------------------------------------------------- #
+class ProdLive4FixtureLeakTests(unittest.TestCase):
+    """A LIVE run persists ONLY real adapter evidence (provenance resolves); the DEFAULT fixture
+    pulse stays byte-identical; an uncovered discipline is an honest data gap, never a fixture."""
+
+    def _read_stores(self, store_dir):
+        from reality_mesh.stores import EventStore, FindingStore
+        return (list(EventStore(store_dir).read_all()),
+                list(FindingStore(store_dir).read_all()))
+
+    # -- (a) the DEFAULT fixture/demo pulse is byte-identical (events field + persistence) ------ #
+    def test_default_pulse_events_field_matches_loaded_fixtures_byte_for_byte(self):
+        from reality_mesh import run_pulse
+        from reality_mesh.pulse import DEFAULT_PULSE_FIXTURE_DIR, _load_pulse_events
+        pr = run_pulse(["IREN", "NVDA"], ["physical_ai", "robotics"], now=_NOW)
+        # suppress_fixture_evidence defaults OFF -> the new events field is EXACTLY the bundled
+        # fixtures the pulse always ran over (nothing added, nothing dropped, same order).
+        self.assertEqual(pr.events, _load_pulse_events(DEFAULT_PULSE_FIXTURE_DIR))
+        # and two default runs persist byte-identical event stores (determinism preserved).
+        d1, d2 = tempfile.mkdtemp(), tempfile.mkdtemp()
+        from reality_mesh.pulse_persistence import persist_and_summarize
+        persist_and_summarize(pr, store_dir=d1, run_id="DEF1", now=_NOW)
+        pr2 = run_pulse(["IREN", "NVDA"], ["physical_ai", "robotics"], now=_NOW)
+        persist_and_summarize(pr2, store_dir=d2, run_id="DEF1", now=_NOW)
+        with open(os.path.join(d1, "event_store.jsonl"), "rb") as fh:
+            b1 = fh.read()
+        with open(os.path.join(d2, "event_store.jsonl"), "rb") as fh:
+            b2 = fh.read()
+        self.assertEqual(b1, b2)
+        self.assertGreater(len(b1), 0)
+
+    # -- (b) a LIVE run persists the REAL adapter events; ZERO fixture; provenance resolves ------ #
+    def test_live_run_persists_real_events_zero_fixture_provenance_resolves(self):
+        store_dir = tempfile.mkdtemp()
+        result = run_live_pulse(_WATCHLIST, _THEMES, store_dir=store_dir, now=_NOW,
+                                adapters=[_sec_adapter(), _fmp_adapter()])
+        events, findings = self._read_stores(store_dir)
+        self.assertTrue(events, "a live run must persist its real adapter events")
+        # ZERO fixture / demo events landed in the evidence store.
+        self.assertTrue(all(not str(e.source_id).startswith("fixture") for e in events))
+        self.assertTrue(all(str(e.source_id) in ("sec.edgar", "fmp.live") for e in events))
+        # the real refs are present (SEC accessions + FMP symbols) -- not fixture markers.
+        refs = " ".join(r for e in events for r in e.source_refs)
+        self.assertIn("sec:", refs)
+        self.assertIn("fmp:", refs)
+        self.assertNotIn("fixture", refs)
+        # PROVENANCE: every finding's cited input event is PRESENT in the event store (the drop is
+        # fixed -- findings no longer cite accessions absent from the evidence store).
+        event_ids = {e.event_id for e in events}
+        self.assertTrue(findings)
+        for finding in findings:
+            for ref in finding.input_events:
+                self.assertIn(ref, event_ids,
+                              "finding {0} cites event {1!r} absent from the event_store "
+                              "(provenance break)".format(finding.finding_id, ref))
+        # replay stays deterministic over the persisted REAL records.
+        self.assertTrue(result.replay_deterministic_match)
+
+    # -- (c) an uncovered discipline is an honest gap, never a fixture backfill ------------------ #
+    def test_uncovered_discipline_is_an_honest_gap_not_a_fixture(self):
+        store_dir = tempfile.mkdtemp()
+        result = run_live_pulse(_WATCHLIST, _THEMES, store_dir=store_dir, now=_NOW,
+                                adapters=[_sec_adapter(), _fmp_adapter()])
+        gap_blob = "\n".join(result.data_gaps)
+        # market_regime / sector_rotation have NO live adapter here -> explicit "no live source"
+        # gaps, NOT fixture-backfilled demo events.
+        self.assertIn("no live source for discipline market_regime", gap_blob)
+        self.assertIn("gap, not fixture-backfilled", gap_blob)
+        events, _ = self._read_stores(store_dir)
+        # and the store carries NO market_regime fixture event for that discipline.
+        self.assertFalse(any(e.discipline == "market_regime" for e in events))
 
 
 if __name__ == "__main__":

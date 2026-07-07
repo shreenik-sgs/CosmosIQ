@@ -258,8 +258,12 @@ def run_live_pulse(watchlist, themes, *, store_dir: str, now: str, run_id: str =
 
     effective_run_id = str(run_id).strip() or _default_run_id(watch, theme_list, now)
 
-    # -- run the pulse with the live adapters, then persist it into the cockpit store. ---------- #
-    pulse = run_pulse(watch, theme_list, now=now, adapters=adapter_list)
+    # -- run the pulse with the live adapters, then persist it into the cockpit store. A LIVE run
+    # suppresses ALL bundled fixture evidence (PROD-LIVE-4): it records ONLY the real adapter
+    # events (+ honest "no live source" gaps for uncovered disciplines), never a fixture backfill,
+    # so the persisted event_store holds the real refs the findings cite (provenance resolves). --- #
+    pulse = run_pulse(watch, theme_list, now=now, adapters=adapter_list,
+                      suppress_fixture_evidence=True)
     _pulse_run, replay_result, _panel = persist_and_summarize(
         pulse, store_dir=store_dir, run_id=effective_run_id, now=now)
 

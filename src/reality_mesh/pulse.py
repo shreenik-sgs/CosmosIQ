@@ -166,6 +166,12 @@ class PulseResult:
     # the default fixture-only path -- byte-identical). Each feeds a real SourceHealthRecord
     # via reality_mesh.adapters.source_health_from_result (013F consumes these).
     adapter_results: Tuple["SourceAdapterResult", ...] = field(default_factory=tuple)
+    # PROD-LIVE-4: the ACTUAL merged event stream this pulse ran over -- the fixtures-after-
+    # adapter-replacement + real adapter events, or (under suppress_fixture_evidence) the real
+    # adapter events ONLY. Default empty tuple for back-compat. Persistence writes THESE events
+    # to the event_store, so a LIVE run's evidence store holds the real refs the findings cite
+    # (provenance resolves) rather than a re-loaded fixture set.
+    events: Tuple[RealityEvent, ...] = field(default_factory=tuple)
 
 
 # --------------------------------------------------------------------------- #
@@ -200,6 +206,7 @@ def run_pulse(
     now: str = "",
     data_dir: Optional[str] = None,
     adapters=None,
+    suppress_fixture_evidence: bool = False,
 ) -> PulseResult:
     """Run ONE manual, on-demand pulse over the bundled fixtures. Deterministic + OFFLINE.
 
@@ -218,6 +225,13 @@ def run_pulse(
     through its boundary-enforcing ``fetch_checked``); their :class:`SourceAdapterResult`s are
     returned on :attr:`PulseResult.adapter_results`. Still LOCAL FILES ONLY -- no network.
 
+    LIVE evidence-only mode (PROD-LIVE-4): ``suppress_fixture_evidence`` (default False -> the
+    fixture/demo path stays byte-identical) makes a LIVE run refuse ALL bundled fixture events --
+    it runs over the real adapter events ONLY. Every fixture discipline with no live adapter
+    coverage becomes an EXPLICIT data gap ("no live source for discipline <d> in this run -- gap,
+    not fixture-backfilled"), never a silent fixture backfill. A live run therefore persists ONLY
+    real adapter evidence (+ honest gaps) and ZERO ``fixture:`` / demo events.
+
     The chain is: fixtures -> sensor agents (``run_checked``) -> Buddhi routing -> Tattva signal
     fusion -> Sphurana theme pulses -> Data-Quality roll-up. ``now`` is injected (no wall-clock).
     """
@@ -233,7 +247,8 @@ def run_pulse(
             "needs explicit themes, nothing is produced)")
 
     fx_dir = fixture_dir or DEFAULT_PULSE_FIXTURE_DIR
-    events = _load_pulse_events(fx_dir)
+    fixture_events = _load_pulse_events(fx_dir)
+    events = fixture_events
 
     # -- OPT-IN source adapters (014A). Default None/None -> the branch is skipped entirely and
     # the fixture path stays byte-identical. ------------------------------------------------- #
@@ -244,9 +259,10 @@ def run_pulse(
 
     adapter_results: List = []
     adapter_gaps: List[str] = []
+    suppression_gaps: List[str] = []
+    covered_disciplines = set()
     if adapter_list:
         adapter_events: List[RealityEvent] = []
-        covered_disciplines = set()
         for adapter in adapter_list:
             a_events, a_result = adapter.fetch_checked(
                 watchlist=watch, themes=theme_list, now=now)
@@ -254,10 +270,28 @@ def run_pulse(
             adapter_results.append(a_result)
             adapter_gaps.extend(a_result.data_gaps)
             covered_disciplines.update(adapter.covered_disciplines)
-        # Covered disciplines come from the adapter ONLY: a missing/failed source file stays a
-        # VISIBLE gap (recorded above), never a silent fall-back to the bundled fixtures.
-        events = tuple(e for e in events if e.discipline not in covered_disciplines)
-        events = tuple(sorted(events + tuple(adapter_events), key=lambda e: e.event_id))
+        if suppress_fixture_evidence:
+            # PROD-LIVE-4 LIVE run: NO fixture backfill anywhere. Run over the REAL adapter events
+            # ONLY -- uncovered fixture disciplines become honest gaps below, never demo events.
+            events = tuple(sorted(tuple(adapter_events), key=lambda e: e.event_id))
+        else:
+            # Covered disciplines come from the adapter ONLY: a missing/failed source file stays a
+            # VISIBLE gap (recorded above), never a silent fall-back to the bundled fixtures.
+            events = tuple(e for e in events if e.discipline not in covered_disciplines)
+            events = tuple(sorted(events + tuple(adapter_events), key=lambda e: e.event_id))
+    elif suppress_fixture_evidence:
+        # Suppression with no live source at all -> nothing real to run; refuse every fixture event
+        # (each discipline is surfaced as an honest gap below) rather than emit demo evidence.
+        events = ()
+
+    if suppress_fixture_evidence:
+        # Each bundled fixture discipline with NO live adapter coverage is an explicit gap -- an
+        # honest "no live source" statement, never a fixture-backfilled value.
+        for disc in sorted({e.discipline for e in fixture_events}):
+            if disc not in covered_disciplines:
+                suppression_gaps.append(
+                    "no live source for discipline {0} in this run -- gap, not "
+                    "fixture-backfilled".format(disc))
 
     # -- run the five sensor agents through their boundary-enforcing wrapper ----------------- #
     registry = build_default_registry()
@@ -341,6 +375,11 @@ def run_pulse(
         # roll-up -- a source failure is a VISIBLE gap on the pulse itself.
         data_gaps = tuple(sorted(dict.fromkeys(list(data_gaps) + adapter_gaps)))
 
+    # PROD-LIVE-4: fold the LIVE "no live source for discipline <d>" gaps into the roll-up -- an
+    # uncovered discipline is an honest gap on a live run, never a silent fixture backfill.
+    if suppression_gaps:
+        data_gaps = tuple(sorted(dict.fromkeys(list(data_gaps) + suppression_gaps)))
+
     return PulseResult(
         watchlist=watch,
         themes=theme_list,
@@ -362,6 +401,7 @@ def run_pulse(
         fusion_envelope=fusion.envelope,
         sphurana_envelope=sphurana.envelope,
         adapter_results=tuple(adapter_results),
+        events=tuple(events),
     )
 
 

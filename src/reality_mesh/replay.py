@@ -157,7 +157,20 @@ class ReplayHarness:
         if not str(run_id).strip():
             raise ValueError("persist_pulse requires a non-empty run_id")
         run_now = now or pulse_result.now
-        events = _load_pulse_events(pulse_result.fixture_dir) if pulse_result.fixture_dir else ()
+        # PROD-LIVE-4: persist the pulse's ACTUAL merged events -- the fixtures-after-adapter-
+        # replacement + REAL adapter events (or, under suppression, the real adapter events only)
+        # that the pulse ran over. A LIVE run therefore writes its real ``sec:accession/...`` /
+        # ``fmp:...`` events to the event_store, so the findings' cited event ids resolve there
+        # (provenance holds). Fall back to re-loading the offline fixtures only for a legacy
+        # PulseResult that carries no ``events`` (back-compat); the default fixture pulse now
+        # carries events == the same loaded fixtures, so the persisted bytes are unchanged.
+        pulse_events = tuple(getattr(pulse_result, "events", ()) or ())
+        if pulse_events:
+            events = pulse_events
+        elif pulse_result.fixture_dir:
+            events = _load_pulse_events(pulse_result.fixture_dir)
+        else:
+            events = ()
 
         run = PulseRun(
             run_id=run_id,
