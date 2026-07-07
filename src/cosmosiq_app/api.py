@@ -725,6 +725,60 @@ def _handle_portfolio_record_fill(store_dir: str, body: Any, now: str) -> Dict[s
 
 
 # --------------------------------------------------------------------------- #
+# The ISOLATED AI Research Assistant (PROD-LIVE-3) -- EDGE-only, display-only     #
+# --------------------------------------------------------------------------- #
+def _assistant_mode(body: Dict[str, Any]) -> str:
+    """'full_api' when the operator opted into the paid (Claude) chain, else 'free'."""
+    token = str(body.get("mode", "") or "").strip().lower()
+    return "full_api" if token in ("full_api", "paid", "on", "true", "claude") else "free"
+
+
+def _handle_assistant_summarize(store_dir: str, body: Any, now: str) -> Dict[str, Any]:
+    """POST /api/assistant/summarize -- run the ISOLATED assistant to summarise a filing.
+
+    Display-only: it calls the ``cosmosiq_assistant`` package (OUTSIDE reality_mesh) and re-renders
+    the Company Research page with the labelled, POST-FILTERED result. The output is NEVER persisted
+    as evidence, never fed to a gate / candidate / recommendation / DQ, never part of replay. There
+    is NO trade affordance. With no LLM key configured the panel shows the honest not-configured
+    state. Providers are lazy + injectable (offline test seam); no network is attempted otherwise.
+    """
+    from cosmosiq_assistant.router import current_test_clients
+    from cosmosiq_assistant.tasks import summarize_filing
+
+    from . import cockpits as _cockpits
+
+    if not isinstance(body, dict):
+        body = {}
+    effective_now = str(body.get("now", "") or body.get("at", "") or "") or now
+    result = summarize_filing(
+        body.get("filing_text", ""), ticker=str(body.get("ticker", "") or ""),
+        mode=_assistant_mode(body), clients=current_test_clients(), now=effective_now)
+    return _html(200, _cockpits.render_research_page(
+        store_dir, assistant_result=result, assistant_form=body))
+
+
+def _handle_assistant_thesis(store_dir: str, body: Any, now: str) -> Dict[str, Any]:
+    """POST /api/assistant/thesis -- run the ISOLATED assistant to draft a thesis REVIEW note.
+
+    Same isolation as :func:`_handle_assistant_summarize`: display-only, labelled, post-filtered,
+    never evidence / gated / replayed, no trade affordance, honest no-key state.
+    """
+    from cosmosiq_assistant.router import current_test_clients
+    from cosmosiq_assistant.tasks import draft_thesis_note
+
+    from . import cockpits as _cockpits
+
+    if not isinstance(body, dict):
+        body = {}
+    effective_now = str(body.get("now", "") or body.get("at", "") or "") or now
+    result = draft_thesis_note(
+        str(body.get("ticker", "") or ""), body.get("evidence_context", ""),
+        mode=_assistant_mode(body), clients=current_test_clients(), now=effective_now)
+    return _html(200, _cockpits.render_research_page(
+        store_dir, assistant_result=result, assistant_form=body))
+
+
+# --------------------------------------------------------------------------- #
 # dispatch -- the pure router                                                   #
 # --------------------------------------------------------------------------- #
 def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[str, Any]:
@@ -829,6 +883,15 @@ def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[
     if tail == ["portfolio", "record-fill"]:
         return _require(method, "POST", path) or _handle_portfolio_record_fill(
             store_dir, body, now)
+
+    # PROD-LIVE-3: the ISOLATED AI Research Assistant (display-only; no trade route -- a trade path
+    # is refused 403 above). Runs the cosmosiq_assistant package OUTSIDE reality_mesh; the labelled,
+    # post-filtered result is rendered on the Company Research page and never persisted as evidence.
+    if tail == ["assistant", "summarize"]:
+        return _require(method, "POST", path) or _handle_assistant_summarize(
+            store_dir, body, now)
+    if tail == ["assistant", "thesis"]:
+        return _require(method, "POST", path) or _handle_assistant_thesis(store_dir, body, now)
 
     return _error(404, "unknown route {0!r}".format(path))
 

@@ -440,10 +440,122 @@ def render_theme_cockpit(store_dir: str, theme_id: str) -> str:
 # --------------------------------------------------------------------------- #
 # /research -- the COMPANY RESEARCH landing (every ticker with persisted records) #
 # --------------------------------------------------------------------------- #
-def render_research_page(store_dir: str) -> str:
+# --------------------------------------------------------------------------- #
+# The AI Research Assistant panel (PROD-LIVE-3) -- ISOLATED, EDGE-only, labelled  #
+# --------------------------------------------------------------------------- #
+# The verbatim disclaimer the panel always carries. It NEVER uses a bare buy/sell/order
+# affordance word, so the rendered panel is clean for the trade-affordance sweep.
+_ASSISTANT_DISCLAIMER = (
+    "This assistant SUMMARISES filings and DRAFTS review notes using an LLM. Its output is "
+    "AI-generated, may be wrong or incomplete, is NOT evidence and NOT a recommendation, and "
+    "issues no action directives of any kind. It never touches the deterministic engine and is "
+    "never persisted as evidence. Always verify against the cited sources.")
+
+_ASSISTANT_NOT_CONFIGURED = (
+    "AI assistant not configured &mdash; set NVIDIA_API_KEY and/or GOOGLE_API_KEY (free chain) "
+    "or ANTHROPIC_API_KEY (full API) in the shell environment, then reload this page. Nothing is "
+    "fetched and no network is attempted until a provider key is present.")
+
+
+def _assistant_result_html(result: Any) -> str:
+    """Render one AssistantResult in a clearly-labelled AI panel (label + provider + filtered text).
+
+    The text is already POST-FILTERED by the router (no buy/sell/order directive can survive); it
+    is HTML-escaped here. The mandatory AI-generated label and the provider used are always shown.
+    """
+    if result is None:
+        return ""
+    label = _esc(getattr(result, "label", ""))
+    provider = str(getattr(result, "provider_used", "") or "")
+    mode = str(getattr(result, "mode", "") or "free")
+    text = str(getattr(result, "text", "") or "")
+    task = str(getattr(result, "task", "") or "")
+    heading = ("AI summary" if task == "summarize_filing"
+               else "AI thesis note" if task == "draft_thesis_note" else "AI output")
+    if provider:
+        provenance = ("Provider used: <span class=\"mono\">{0}</span> &middot; chain: {1} "
+                      "&middot; circuit: {2}").format(
+                          _esc(provider), _esc(mode), _esc(getattr(result, "circuit_state", "")))
+    else:
+        provenance = "No provider was available &mdash; see the honest note below."
+    body_html = "<pre class=\"ai-out\">{0}</pre>".format(_esc(text)) if text else (
+        "<p class=\"note\">no output</p>")
+    return (
+        '<div class="panel ai-panel"><div class="ai-tag">{label}</div>'
+        "<h3>{heading}</h3><p class=\"note\">{prov}</p>{body}"
+        '<p class="op-note">AI-generated &middot; not evidence &middot; not a recommendation '
+        "&middot; verify against the cited sources.</p></div>").format(
+            label=label, heading=_esc(heading), prov=provenance, body=body_html)
+
+
+def _assistant_section(store_dir: str, *, result: Any = None,
+                       form_values: Optional[Dict[str, Any]] = None) -> str:
+    """The 'AI Research Assistant' panel: disclaimer + the two AI actions (or the honest no-key state).
+
+    ISOLATION: the buttons POST to /api/assistant/summarize | /api/assistant/thesis, which run the
+    isolated cosmosiq_assistant package (free chain by default; a 'Use full API (Claude)' opt-in for
+    the paid chain) and render the labelled, post-filtered result HERE. There is NO trade affordance.
+    """
+    from cosmosiq_assistant.providers import assistant_configured
+
+    vals = form_values or {}
+    ticker_val = _esc(str(vals.get("ticker", "") or ""))
+    filing_val = _esc(str(vals.get("filing_text", "") or ""))
+    context_val = _esc(str(vals.get("evidence_context", "") or ""))
+    full_api = str(vals.get("mode", "") or "").lower() in ("full_api", "paid", "on", "true")
+    full_checked = " checked" if full_api else ""
+
+    header = ("<h2>AI Research Assistant</h2>"
+              '<div class="panel"><div class="ai-tag">' + _esc(
+                  "AI-generated — not evidence, not a recommendation. "
+                  "Verify against cited sources.") + "</div>"
+              '<p class="note">' + _ASSISTANT_DISCLAIMER + "</p>")
+
+    if not assistant_configured():
+        return header + '<p class="note">' + _ASSISTANT_NOT_CONFIGURED + "</p></div>"
+
+    full_api_field = (
+        '<label class="radio"><input type="checkbox" name="mode" value="full_api"{chk}> '
+        "Use full API (Claude) &mdash; otherwise the free chain (NVIDIA / Gemini) is used"
+        "</label>").format(chk=full_checked)
+
+    summarize_form = (
+        '<h3>Summarise a filing</h3>'
+        '<form class="op-form" method="post" action="/api/assistant/summarize">'
+        '<label>Ticker (optional) <input type="text" name="ticker" value="{tk}"></label>'
+        '<label>Filing text or filing-event to summarise '
+        '<textarea name="filing_text" rows="6">{ft}</textarea></label>'
+        + full_api_field +
+        '<button>Summarise this filing (AI)</button>'
+        '<span class="op-note">Runs the isolated AI assistant on the text you paste &mdash; '
+        "display-only, labelled, post-filtered; nothing is persisted as evidence.</span>"
+        "</form>").format(tk=ticker_val, ft=filing_val)
+
+    thesis_form = (
+        '<h3>Draft a thesis note</h3>'
+        '<form class="op-form" method="post" action="/api/assistant/thesis">'
+        '<label>Ticker <input type="text" name="ticker" value="{tk}"></label>'
+        '<label>Evidence context (paste the evidence the note should be anchored to) '
+        '<textarea name="evidence_context" rows="6">{ctx}</textarea></label>'
+        + full_api_field +
+        '<button>Draft a thesis note (AI)</button>'
+        '<span class="op-note">Drafts a neutral, evidence-anchored REVIEW note &mdash; '
+        "AI-generated, not evidence, not a recommendation; verify against the cited sources.</span>"
+        "</form>").format(tk=ticker_val, ctx=context_val)
+
+    result_html = _assistant_result_html(result)
+    return header + result_html + summarize_form + thesis_form + "</div>"
+
+
+def render_research_page(store_dir: str, *, assistant_result: Any = None,
+                         assistant_form: Optional[Dict[str, Any]] = None) -> str:
     """Company Research landing: every ticker that any pulse run names or requested, each
     linking to its company cockpit. Watchlisted tickers with no persisted record are shown as
-    an honest coverage gap, never hidden. Read-only; labels and counts only."""
+    an honest coverage gap, never hidden. Read-only; labels and counts only.
+
+    Carries the isolated AI Research Assistant panel (PROD-LIVE-3): summarise a filing / draft a
+    thesis note for REVIEW. ``assistant_result`` / ``assistant_form`` are set only when an assistant
+    POST re-renders this page with a labelled, post-filtered result; a plain GET passes neither."""
     runs = _run_sequence(store_dir)
     watch: Dict[str, int] = {}
     covered: Dict[str, int] = {}
@@ -462,12 +574,14 @@ def render_research_page(store_dir: str) -> str:
              "run by run, with claim statuses (a company claim or rumor is shown UNVERIFIED, "
              "never as a fact). A watchlisted ticker with no persisted record is an honest "
              "coverage gap, shown as such.</p>")
+    assistant = _assistant_section(store_dir, result=assistant_result,
+                                   form_values=assistant_form)
     if not tickers:
         body = intro + ('<div class="panel"><p class="note">No companies are covered yet '
                         "&mdash; run a pulse with tickers on the watchlist from the "
                         '<a href="/">Dashboard</a>. Nothing is fabricated to fill this '
                         "list.</p></div>")
-        return _page(store_dir, "Company Research", "/research", body)
+        return _page(store_dir, "Company Research", "/research", body + assistant)
     rows = ""
     for ticker in tickers:
         runs_with_records = covered.get(ticker, 0)
@@ -482,7 +596,7 @@ def render_research_page(store_dir: str) -> str:
                 t=_esc(ticker), cov=coverage, wl=_esc(watch.get(ticker, 0)))
     table = ('<div class="panel"><table class="kv"><tr><th>Ticker</th><td>Coverage</td>'
              "<td>Requested</td><td>Candidate</td></tr>" + rows + "</table></div>")
-    return _page(store_dir, "Company Research", "/research", intro + table)
+    return _page(store_dir, "Company Research", "/research", intro + table + assistant)
 
 
 # --------------------------------------------------------------------------- #

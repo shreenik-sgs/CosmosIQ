@@ -153,4 +153,16 @@ ul.diffs li{color:#ff9db4;font-family:var(--mono);font-size:11.5px}
   border:1px solid var(--line);border-radius:8px;padding:.45rem .7rem;display:block;
   margin:.5rem 0;white-space:pre-wrap;word-break:break-word}
 .steps{display:flex;flex-direction:column;gap:.55rem;margin:.6rem 0}
+/* the AI Research Assistant panel: a clearly-labelled, distinct-tinted surface so the
+   AI-generated output is never mistaken for evidence. Textarea + the mandatory label tag. */
+.op-form textarea{background:var(--bg2);border:1px solid var(--line);color:var(--ink);
+  border-radius:8px;padding:.4rem .5rem;width:100%;max-width:640px;font-family:var(--mono);
+  font-size:12px;line-height:1.45;resize:vertical}
+.ai-panel{border-color:var(--accent);background:rgba(139,123,255,.07)}
+.ai-tag{display:block;font-weight:800;font-size:12px;color:#d9d0ff;background:rgba(139,123,255,.16);
+  border:1px solid var(--accent);border-radius:8px;padding:.4rem .7rem;margin:.1rem 0 .5rem;
+  letter-spacing:.2px}
+pre.ai-out{white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12px;
+  color:#e7ecff;background:var(--bg2);border:1px solid var(--line);border-radius:10px;
+  padding:.7rem .85rem;margin:.5rem 0;line-height:1.5}
 """
