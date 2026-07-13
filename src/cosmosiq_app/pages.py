@@ -513,6 +513,128 @@ def _portfolio_snapshot_html(store_dir: str) -> str:
             tickers=_esc(tickers), asof=_esc(getattr(loaded, "as_of", "") or "&mdash;"))
 
 
+# Recent-evidence panel (UX-6). A source ref beginning with this marks a bundled fixture/demo
+# datum -- rendered as "demo", NEVER as real canonical evidence (this panel exists BECAUSE of a
+# fixture-leak bug; do not reintroduce the appearance of one).
+_FIXTURE_REF_PREFIX = "fixture:"
+
+# source_id leading token -> the honest BARE host shown as the evidence origin. A host token
+# only -- never a full URL, never a value bearing a key.
+_SOURCE_HOSTS: Tuple[Tuple[str, str], ...] = (
+    ("sec", "sec.gov"),
+    ("fmp", "financialmodelingprep"),
+)
+
+
+def _authority_chip(value: Any) -> str:
+    """A VISIBLE, honest source-authority chip (canonical / convenience / fallback / ...).
+
+    A LABEL, never a score. ``canonical`` / ``primary`` read as trustworthy (ok), ``rumor`` as
+    weak (bad), everything else (``convenience`` / ``fallback`` / ``manual``) as a caution label
+    (warn) -- a lower tier is NEVER laundered as canonical.
+    """
+    text = str(value or "").strip()
+    if not text:
+        return "&mdash;"
+    kind = "ok" if text in ("canonical", "primary") else \
+        ("bad" if text == "rumor" else "warn")
+    return _badge(text, kind)
+
+
+def _is_fixture_event(event: Any) -> bool:
+    """True iff ANY ref on the event is a bundled fixture/demo pointer (never real evidence)."""
+    refs = (tuple(getattr(event, "source_refs", ()) or ())
+            + tuple(getattr(event, "evidence_refs", ()) or ())
+            + (str(getattr(event, "raw_payload_ref", "") or ""),))
+    return any(str(ref).startswith(_FIXTURE_REF_PREFIX) for ref in refs)
+
+
+def _evidence_label(event: Any) -> str:
+    """A plain-English evidence label from the event kind (escaped HTML; no score / rank word)."""
+    etype = str(getattr(event, "event_type", "") or "")
+    if etype.startswith("sec_"):
+        form, _sep, desc = etype[len("sec_"):].partition("_")
+        head = "SEC {0}".format(_esc(form.upper())) if form else "SEC filing"
+        return head + (" &mdash; {0}".format(_esc(desc.replace("_", " "))) if desc else "")
+    if etype.startswith("fmp_"):
+        rest = etype[len("fmp_"):].replace("_", " ").strip()
+        return "FMP financials" + (" &mdash; {0}".format(_esc(rest)) if rest else "")
+    if etype:
+        return _esc(etype.replace("_", " "))
+    return _esc(str(getattr(event, "source_id", "") or "evidence event"))
+
+
+def _evidence_host(event: Any) -> str:
+    """The honest BARE source host for an event (host token only -- never a URL, never a key)."""
+    source_id = str(getattr(event, "source_id", "") or "").lower()
+    for prefix, host in _SOURCE_HOSTS:
+        if source_id.startswith(prefix):
+            return _esc(host)
+    token = source_id.split(".", 1)[0].split(":", 1)[0]   # leading token only; never a URL
+    return _esc(token) if token else "&mdash;"
+
+
+def _recent_evidence_html(store_dir: str) -> str:
+    """The newest persisted evidence on the Dashboard -- real filings + financial events.
+
+    Reuses the SAME append-only stores the company pages read (:func:`_runs_newest_first` over
+    ``RunStore`` + :class:`EventStore`); no new store logic, no network. Rows are ordered
+    newest-first by the event's filing / as-of date and capped. Each carries a VISIBLE
+    source-authority chip (canonical / convenience / fallback -- the real label, never hidden or
+    laundered) and the bare source host (never a URL, never a key). A bundled fixture/demo datum
+    is labelled ``demo`` and is NEVER shown as real canonical evidence. Honest empty state when
+    the store holds no evidence yet -- rows are never fabricated. No score, rank or trade
+    affordance anywhere: labels + dates only.
+    """
+    collected: List[Tuple[Any, Any]] = []
+    for run in _runs_newest_first(store_dir):
+        for event in EventStore(store_dir).query(run_id=run.run_id):
+            collected.append((event, run))
+        if len(collected) >= 48:      # enough of the latest run(s) to order + cap; bounded work
+            break
+    collected.sort(key=lambda pair: str(getattr(pair[0], "timestamp", "") or ""), reverse=True)
+    collected = collected[:12]
+
+    if not collected:
+        return ('<h2>Recent evidence</h2><div class="panel"><p class="note">No pulses yet '
+                "&mdash; run a refresh from "
+                '<a href="/evidence">Evidence &amp; Trust</a>. Real filings and financial '
+                "events appear here after a pulse persists them; nothing is fabricated."
+                "</p></div>")
+
+    rows = ""
+    for event, _run in collected:
+        companies = tuple(getattr(event, "affected_companies", ()) or ())
+        if companies:
+            ticker = str(companies[0])
+            company_cell = '<a href="/companies/{0}">{0}</a>'.format(_esc(ticker))
+        else:
+            company_cell = "&mdash;"
+        is_fixture = _is_fixture_event(event)
+        # A fixture datum: its authority chip is ALWAYS "demo" -- never the stored authority,
+        # so a fixture can never appear as real canonical evidence.
+        authority_cell = (_badge("demo", "warn") if is_fixture
+                          else _authority_chip(getattr(event, "source_authority", "")))
+        label = _evidence_label(event)
+        if is_fixture:
+            label += " " + _badge("demo data", "warn")
+        rows += (
+            "<tr><th>{company}</th><td>{label}</td><td>{date}</td><td>{auth}</td>"
+            "<td>{host}</td></tr>").format(
+                company=company_cell, label=label,
+                date=_esc(str(getattr(event, "timestamp", "") or "") or "&mdash;"),
+                auth=authority_cell, host=_evidence_host(event))
+    return (
+        '<h2>Recent evidence</h2><div class="panel">'
+        '<p class="note">The newest persisted evidence &mdash; real SEC filings and financial '
+        "events from the latest pulse(s), newest first by filing / as-of date. Source authority "
+        "is shown honestly (canonical / convenience / fallback); a demo datum is marked and never "
+        "presented as real. Open a ticker for its full "
+        '<a href="/research">Company Research</a>.</p>'
+        '<table class="kv"><tr><th>Company</th><td>Evidence</td><td>Filed / as of</td>'
+        "<td>Source authority</td><td>Source</td></tr>" + rows + "</table></div>")
+
+
 def _recent_alerts_html(store_dir: str) -> str:
     """The most recent shadow / inbox alerts on the Dashboard (read-only, honest empty)."""
     alerts = list(alerts_with_status(store_dir))
@@ -679,11 +801,12 @@ def render_app_home(store_dir: str) -> str:
                   "&lt;store&gt;/{0}/ and they will appear here and in the nav."
                   "</p></div>".format(_esc(CANVAS_DIRNAME)))
 
+    recent_evidence = _recent_evidence_html(store_dir)
     portfolio = _portfolio_snapshot_html(store_dir)
     recent_alerts = _recent_alerts_html(store_dir)
 
     return _page(store_dir, "Dashboard", "/",
-                 intro + overview + latest + portfolio + recent_alerts
+                 intro + overview + recent_evidence + latest + portfolio + recent_alerts
                  + store_html + pulse_form + canvas)
 
 
