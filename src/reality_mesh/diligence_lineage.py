@@ -35,6 +35,7 @@ fixture event).
 
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
@@ -43,7 +44,13 @@ from .capital_candidate import (
     CapitalCandidateStore,
     assess_candidate_eligibility,
 )
-from .discovery import DiscoveryCandidate, discover_candidates, trigger_diligence_input
+from .discovery import (
+    DiscoveryCandidate,
+    _theme_refs_for,
+    discover_candidates,
+    trigger_diligence_input,
+)
+from .models import RealitySignal
 from .sphurana import ThemePulseSynthesizer
 from .stores import (
     DataQualityStore,
@@ -184,6 +191,56 @@ def _why(disc: DiscoveryCandidate, cand: Optional[CapitalCandidate]) -> str:
 
 
 # --------------------------------------------------------------------------- #
+# Graph-derived theme enrichment (in-memory, for hypothesis formation only)     #
+# --------------------------------------------------------------------------- #
+def _enrich_signal_themes(
+    signals: Tuple[RealitySignal, ...],
+    graph: ThemeGraph,
+) -> Tuple[RealitySignal, ...]:
+    """A theme-enriched IN-MEMORY COPY of the run's signals, for hypothesis linking only.
+
+    Company-level fused signals (financial_inflection / news_filings) carry no
+    ``affected_themes``, so Sphurana groups them under no theme and forms no hypothesis. This
+    closes that gap using ONLY the REAL graph relationship: for each signal, the graph themes its
+    ``affected_companies`` resolve to -- company -> ``linked_bottleneck_refs`` -> value chain ->
+    theme, via the SAME graph used for discovery and the shared :func:`_theme_refs_for` walk -- are
+    UNIONED onto the themes the signal already carries (order-stable, deduplicated).
+
+    Honesty invariants:
+
+    * a company NOT in the graph contributes NO theme -- never fabricated;
+    * ONLY ``affected_themes`` is added; ``direction_label`` / polarity / ``affected_companies`` are
+      LEFT EXACTLY AS FUSED, so a ``mixed`` / negative-direction signal still names NO beneficiary;
+    * the persisted signals in the store are NOT rewritten -- this is a derived read-only view; the
+      candidate's ``reality_signal_refs`` stay the real, unchanged signal ids.
+
+    A signal whose union equals its existing themes (nothing to add) is returned unchanged.
+    Deterministic + order-stable (the signal's own company order + the graph's node order).
+    """
+    node_by_ticker = {c.ticker: c for c in graph.companies}
+    known_bn = {b.bottleneck_id for b in graph.bottlenecks}
+    out: List[RealitySignal] = []
+    for s in signals:
+        graph_themes: List[str] = []
+        for company in tuple(s.affected_companies or ()):
+            node = node_by_ticker.get(company)
+            if node is None:
+                continue                       # off-graph company -> no theme (never fabricated)
+            bottleneck_refs = tuple(
+                b for b in node.linked_bottleneck_refs if b in known_bn)
+            for theme in _theme_refs_for(graph, bottleneck_refs):
+                if theme not in graph_themes:
+                    graph_themes.append(theme)
+        existing = tuple(s.affected_themes or ())
+        union = existing + tuple(t for t in graph_themes if t not in existing)
+        if union and union != existing:
+            out.append(dataclasses.replace(s, affected_themes=union))
+        else:
+            out.append(s)
+    return tuple(out)
+
+
+# --------------------------------------------------------------------------- #
 # The orchestration                                                             #
 # --------------------------------------------------------------------------- #
 def run_diligence_lineage(
@@ -243,7 +300,13 @@ def run_diligence_lineage(
         dq_state=dq_state, watchlist=universe)
 
     # -- 012F Sphurana: fused signals -> opportunity-hypothesis packets -- #
-    sphurana = ThemePulseSynthesizer().synthesize(signals=signals, now=now)
+    # Theme-enrich the signals from the SAME graph used for discovery (company -> bottleneck ->
+    # value chain -> theme) so company-level signals can group into a theme and form a hypothesis.
+    # This is an in-memory, graph-derived view for hypothesis linking ONLY: the persisted signals
+    # and the candidate's reality_signal_refs are the real, unchanged ids. Polarity is untouched,
+    # so a mixed / negative signal still names NO beneficiary.
+    enriched_signals = _enrich_signal_themes(signals, the_graph)
+    sphurana = ThemePulseSynthesizer().synthesize(signals=enriched_signals, now=now)
     # Map ticker -> the FIRST hypothesis that names it as a beneficiary candidate (a real, existing
     # packet id -- we only LINK, never fabricate).
     hyp_by_ticker: Dict[str, str] = {}

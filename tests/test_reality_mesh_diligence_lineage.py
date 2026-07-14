@@ -259,5 +259,138 @@ class DeterminismTests(unittest.TestCase):
         self.assertFalse(os.path.isdir(os.path.join(store, "diligence_inputs")))
 
 
+# =========================================================================== #
+# E. Slice 1b -- graph theme-enrichment closes the hypothesis gap (honestly)     #
+# =========================================================================== #
+# A company-level fused signal (financial_inflection / news_filings) carries NO affected_themes,
+# so before slice 1b Sphurana grouped it under no theme and formed no hypothesis -> every ticker
+# stuck at ineligible_missing_provenance. Slice 1b theme-enriches the signals from the REAL graph
+# relationship (company -> bottleneck -> value chain -> theme) so a real hypothesis can form --
+# WITHOUT touching direction / polarity, so mixed evidence still yields NO beneficiary.
+
+# OKLO is a graph-connected nuclear-fuel ticker. This POSITIVE signal carries NO affected_themes:
+# the enrichment must supply 'nuclear-fuel' from the graph so a hypothesis names OKLO.
+_OKLO_POS_SIGNAL = RealitySignal(
+    signal_id="sig-oklo-1", signal_type="fused", discipline="financial_inflection",
+    affected_companies=("OKLO",),                       # NOTE: no affected_themes -- graph supplies it
+    direction_label="accelerating", magnitude_label="major", confidence_label="high",
+    corroboration_status="corroborated", evidence_refs=("ev-oklo-1",),
+    source_refs=("sec:oklo:0001",))
+
+# Same OKLO signal but MIXED direction -- the enrichment must NOT force positivity.
+_OKLO_MIXED_SIGNAL = RealitySignal(
+    signal_id="sig-oklo-1", signal_type="fused", discipline="financial_inflection",
+    affected_companies=("OKLO",),
+    direction_label="mixed", magnitude_label="major", confidence_label="high",
+    corroboration_status="corroborated", evidence_refs=("ev-oklo-1",),
+    source_refs=("sec:oklo:0001",))
+
+_OKLO_EVENT = RealityEvent(
+    event_id="E-oklo-1", timestamp=_NOW, source_id="src.sec", source_type="sec_filing",
+    source_authority="canonical", claim_status="verified_fact", discipline="news_filings",
+    event_type="sec_8-k_results_of_operations", affected_companies=("OKLO",),
+    source_refs=("sec:oklo:0001",), evidence_refs=("ev-oklo-1",))
+
+
+class ThemeEnrichmentTests(unittest.TestCase):
+    def test_positive_untagged_graph_signal_forms_a_real_hypothesis_and_reaches_missing_diligence(self):
+        # The signal carries NO affected_themes; the graph supplies 'nuclear-fuel'. With a POSITIVE
+        # direction, Sphurana names OKLO a beneficiary -> a REAL hypothesis ref -> the candidate
+        # advances to the slice-1 ceiling (ineligible_missing_diligence), NOT eligible.
+        store = tempfile.mkdtemp(prefix="lineage_enrich_pos_")
+        run_id = _seed(store, watchlist=("OKLO",),
+                       signals=(_OKLO_POS_SIGNAL,), events=(_OKLO_EVENT,))
+        result = run_diligence_lineage(
+            store, run_id=run_id, watchlist=("OKLO",), now=_NOW)
+        out = _outcome(result, "OKLO")
+        self.assertEqual(out.discovery_state, "diligence_candidate")
+        self.assertEqual(out.candidate_state, "ineligible_missing_diligence")
+        self.assertTrue(out.opportunity_hypothesis_ref)          # a REAL packet id, not ""
+        # the ceiling still holds: never eligible, diligence ref honestly empty.
+        cand = next(c for c in result.capital_candidates if c.ticker == "OKLO")
+        self.assertFalse(cand.is_eligible)
+        self.assertEqual(cand.investment_diligence_ref, "")
+
+    def test_the_linked_hypothesis_resolves_to_a_real_packet_naming_the_ticker(self):
+        store = tempfile.mkdtemp(prefix="lineage_enrich_resolve_")
+        run_id = _seed(store, watchlist=("OKLO",),
+                       signals=(_OKLO_POS_SIGNAL,), events=(_OKLO_EVENT,))
+        result = run_diligence_lineage(
+            store, run_id=run_id, watchlist=("OKLO",), now=_NOW)
+        cand = next(c for c in result.capital_candidates if c.ticker == "OKLO")
+        # the packet must exist among the ENRICHED synthesis and name OKLO as a beneficiary --
+        # replicate the module's own enrichment view to resolve it.
+        from reality_mesh.diligence_lineage import _enrich_signal_themes
+        from reality_mesh.theme_graph import build_seed_theme_graph
+        enriched = _enrich_signal_themes(
+            tuple(SignalStore(store).query(run_id=run_id)), build_seed_theme_graph())
+        sph = ThemePulseSynthesizer().synthesize(signals=enriched, now=_NOW)
+        packet = next(h for h in sph.hypotheses
+                      if h.hypothesis_id == cand.opportunity_hypothesis_ref)
+        self.assertIn("OKLO", packet.beneficiary_candidates)
+
+    def test_mixed_direction_enriched_signal_still_names_no_beneficiary(self):
+        # Enrichment adds ONLY the theme; direction stays 'mixed', so Sphurana names NO
+        # beneficiary -> no hypothesis links OKLO -> the honest ineligible_missing_provenance.
+        store = tempfile.mkdtemp(prefix="lineage_enrich_mixed_")
+        run_id = _seed(store, watchlist=("OKLO",),
+                       signals=(_OKLO_MIXED_SIGNAL,), events=(_OKLO_EVENT,))
+        result = run_diligence_lineage(
+            store, run_id=run_id, watchlist=("OKLO",), now=_NOW)
+        out = _outcome(result, "OKLO")
+        self.assertEqual(out.discovery_state, "diligence_candidate")
+        self.assertEqual(out.candidate_state, "ineligible_missing_provenance")
+        self.assertEqual(out.opportunity_hypothesis_ref, "")     # NO forced beneficiary
+        for o in result.outcomes:
+            self.assertNotEqual(o.candidate_state, "eligible")
+
+    def test_off_graph_ticker_gets_no_theme_and_no_hypothesis(self):
+        # IREN is not in the seed graph, so enrichment supplies NO theme (never fabricated) and
+        # no hypothesis can name it -- even with a POSITIVE direction.
+        pos_iren = RealitySignal(
+            signal_id="sig-iren-1", signal_type="fused", discipline="financial_inflection",
+            affected_companies=("IREN",), direction_label="accelerating",
+            magnitude_label="major", confidence_label="high",
+            corroboration_status="corroborated", evidence_refs=("ev-iren-1",),
+            source_refs=("sec:iren:0001",))
+        from reality_mesh.diligence_lineage import _enrich_signal_themes
+        from reality_mesh.theme_graph import build_seed_theme_graph
+        enriched = _enrich_signal_themes((pos_iren,), build_seed_theme_graph())
+        self.assertEqual(enriched[0].affected_themes, ())        # no theme fabricated
+        sph = ThemePulseSynthesizer().synthesize(signals=enriched, now=_NOW)
+        self.assertEqual(sph.hypotheses, ())
+
+    def test_enrichment_does_not_rewrite_the_persisted_signals(self):
+        # The persisted signal must stay theme-less; enrichment is an in-memory view only, and the
+        # candidate's reality_signal_refs stay the real, unchanged ids.
+        store = tempfile.mkdtemp(prefix="lineage_enrich_nostore_")
+        run_id = _seed(store, watchlist=("OKLO",),
+                       signals=(_OKLO_POS_SIGNAL,), events=(_OKLO_EVENT,))
+        run_diligence_lineage(store, run_id=run_id, watchlist=("OKLO",), now=_NOW)
+        stored = SignalStore(store).query(run_id=run_id)
+        self.assertEqual(stored[0].affected_themes, ())          # store not rewritten
+
+    def test_enrichment_is_deterministic(self):
+        from reality_mesh.diligence_lineage import _enrich_signal_themes
+        from reality_mesh.theme_graph import build_seed_theme_graph
+        g = build_seed_theme_graph()
+        e1 = _enrich_signal_themes((_OKLO_POS_SIGNAL,), g)
+        e2 = _enrich_signal_themes((_OKLO_POS_SIGNAL,), g)
+        self.assertEqual(e1, e2)
+        self.assertEqual(e1[0].affected_themes, ("nuclear-fuel",))
+        # two full runs on identical inputs produce identical outcomes.
+        s1 = tempfile.mkdtemp(prefix="lineage_enrich_det1_")
+        s2 = tempfile.mkdtemp(prefix="lineage_enrich_det2_")
+        r1 = run_diligence_lineage(
+            s1, run_id=_seed(s1, watchlist=("OKLO",), signals=(_OKLO_POS_SIGNAL,),
+                             events=(_OKLO_EVENT,)),
+            watchlist=("OKLO",), now=_NOW)
+        r2 = run_diligence_lineage(
+            s2, run_id=_seed(s2, watchlist=("OKLO",), signals=(_OKLO_POS_SIGNAL,),
+                             events=(_OKLO_EVENT,)),
+            watchlist=("OKLO",), now=_NOW)
+        self.assertEqual(r1.outcomes, r2.outcomes)
+
+
 if __name__ == "__main__":
     unittest.main()
