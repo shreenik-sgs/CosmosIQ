@@ -280,6 +280,11 @@ from .discovery import (
     discovery_id_for,
     trigger_diligence_input,
 )
+from .diligence_lineage import (
+    DiligenceLineageResult,
+    LineageOutcome,
+    run_diligence_lineage,
+)
 from .recommendation import (
     CAPITAL_RECOMMENDATION_MODELS,
     FORBIDDEN_RECOMMENDATION_LABELS,
@@ -949,6 +954,10 @@ __all__ = [
     "discover_candidates",
     "discovery_id_for",
     "trigger_diligence_input",
+    # diligence-lineage orchestration -- discovery -> hypothesis -> candidate (DILIGENCE-LINEAGE)
+    "run_diligence_lineage",
+    "DiligenceLineageResult",
+    "LineageOutcome",
     # typed CapitalRecommendation contract -- the model ABOVE CapitalCandidate (022A)
     "RECOMMENDATION_STATES",
     "RECOMMENDATION_LABELS",

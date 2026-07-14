@@ -93,6 +93,7 @@ __all__ = [
     "render_candidate_cockpit",
     "render_candidate_list",
     "render_company_cockpit",
+    "render_opportunities_page",
     "render_portfolio_page",
     "render_research_page",
     "render_theme_cockpit",
@@ -720,14 +721,11 @@ def _candidate_state_badge(state: str) -> str:
                   _CANDIDATE_STATE_KINDS.get(str(state), "warn"))
 
 
-def render_candidate_list(store_dir: str) -> str:
-    """The published Capital Candidates list: eligible cards + blocked rows (exact reasons).
+def _candidate_list_body(store_dir: str) -> str:
+    """The inner HTML of the published-candidate list (intro + eligible cards + blocked rows).
 
-    Reads ONLY the append-only :class:`~reality_mesh.CapitalCandidateStore` -- it never
-    publishes here (publication is the explicit ``POST /api/candidates/publish`` step). Eligible
-    candidates link to their cockpit; blocked candidates render their state + the EXACT
-    ineligibility reason (nothing is hidden). When no candidate is ELIGIBLE, the verbatim empty
-    state renders. Labels and references only; no sizing / score / order anywhere.
+    Factored out so both ``/candidates`` (:func:`render_candidate_list`) and ``/opportunities``
+    (:func:`render_opportunities_page`) render the identical, append-only-store view.
     """
     eligible = eligible_candidates(store_dir)
     blocked = blocked_candidates(store_dir)
@@ -785,8 +783,117 @@ def render_candidate_list(store_dir: str) -> str:
         blocked_html = ('<h2>Blocked candidates</h2><div class="panel"><p class="note">No '
                         "blocked candidates published in this store.</p></div>")
 
+    return intro + eligible_html + blocked_html
+
+
+def render_candidate_list(store_dir: str) -> str:
+    """The published Capital Candidates list: eligible cards + blocked rows (exact reasons).
+
+    Reads ONLY the append-only :class:`~reality_mesh.CapitalCandidateStore` -- it never
+    publishes here (publication is the explicit ``POST /api/candidates/publish`` step). Eligible
+    candidates link to their cockpit; blocked candidates render their state + the EXACT
+    ineligibility reason (nothing is hidden). When no candidate is ELIGIBLE, the verbatim empty
+    state renders. Labels and references only; no sizing / score / order anywhere.
+    """
     return _page(store_dir, "Capital Candidates", "/candidates",
-                 intro + eligible_html + blocked_html)
+                 _candidate_list_body(store_dir))
+
+
+# --------------------------------------------------------------------------- #
+# /opportunities -- the CAPITAL CANDIDATES surface + the DILIGENCE-LINEAGE view  #
+# --------------------------------------------------------------------------- #
+# Discovery-state -> (display text, badge kind). A LABEL of diligence-worthiness, never a score;
+# ``diligence_candidate`` is the ONLY "worth diligence" state -- and it is still NOT a
+# recommendation (publication requires the full 020A gate + an accepted diligence thesis).
+_DISCOVERY_STATE_TEXT = {
+    "diligence_candidate": "diligence_candidate -- worth diligence (graph-connected & corroborated)",
+    "monitor_only": "monitor_only -- kept on watch (thin or off the theme graph)",
+    "blocked_insufficient_evidence": "blocked_insufficient_evidence",
+    "blocked_dq_failed": "blocked_dq_failed -- data quality failed",
+    "blocked_risk_too_high": "blocked_risk_too_high -- red-team hazard dominates",
+}
+_DISCOVERY_STATE_KINDS = {
+    "diligence_candidate": "ok",
+    "monitor_only": "warn",
+    "blocked_insufficient_evidence": "bad",
+    "blocked_dq_failed": "bad",
+    "blocked_risk_too_high": "bad",
+}
+
+
+def _discovery_state_badge(state: str) -> str:
+    return _badge(_DISCOVERY_STATE_TEXT.get(str(state), str(state)),
+                  _DISCOVERY_STATE_KINDS.get(str(state), "warn"))
+
+
+def _lineage_section(store_dir: str) -> str:
+    """The honest discovery -> hypothesis -> candidate lineage for the NEWEST run (READ-ONLY).
+
+    Recomputes the DILIGENCE-LINEAGE pass deterministically from the newest persisted run's
+    evidence (``now`` = that run's timestamp; ``persist=False`` so the page writes NOTHING), and
+    renders each watchlist ticker's honest ``discovery_state`` + typed ``candidate_state`` + the
+    EXACT missing link + which real fused signals / hypothesis back it. A graph-unconnected ticker
+    shows ``blocked_insufficient_evidence`` honestly; the honest ceiling in slice 1 is
+    ``ineligible_missing_diligence`` (a diligence candidate with real refs but no accepted thesis)
+    -- NEVER ``eligible``. Labels + references only; no ranking / sizing / trade affordance.
+    """
+    runs = _runs_newest_first(store_dir)
+    if not runs:
+        return ""                                          # empty store -> no lineage, no tickers
+    run = runs[0]
+    watchlist = tuple(getattr(run, "watchlist", ()) or ())
+    now = str(getattr(run, "completed_at", "") or getattr(run, "started_at", "") or "")
+    from reality_mesh import run_diligence_lineage
+    result = run_diligence_lineage(
+        store_dir, run_id=run.run_id, watchlist=watchlist, now=now, persist=False)
+
+    intro = ('<p class="note">The honest discovery &rarr; hypothesis &rarr; capital-candidate '
+             "lineage for the newest run <span class=\"mono\">{run}</span>, recomputed "
+             "deterministically from its persisted evidence (nothing is written by opening this "
+             "page). Each ticker shows its discovery state, its typed eligibility state, and the "
+             "EXACT next link required. A ticker not on the theme graph is "
+             "<span class=\"mono\">blocked_insufficient_evidence</span>, shown honestly; a "
+             "graph-connected, well-evidenced ticker reaches at most "
+             "<span class=\"mono\">ineligible_missing_diligence</span> until an accepted "
+             "diligence thesis exists &mdash; nothing here is eligible without the full "
+             "lineage.</p>").format(run=_esc(run.run_id))
+
+    if not result.outcomes:
+        body = ('<div class="panel"><p class="note">The newest run named no watchlist ticker to '
+                "assess &mdash; nothing is fabricated to fill this view.</p></div>")
+        return "<h2>Diligence lineage (newest run)</h2>" + intro + body
+
+    rows = ""
+    for out in result.outcomes:
+        cand_cell = (_candidate_state_badge(out.candidate_state) if out.candidate_state
+                     else '<span class="note">not assembled &mdash; no capital standing yet</span>')
+        signals_cell = _esc(", ".join(out.reality_signal_refs) or "none")
+        hyp_cell = _esc(out.opportunity_hypothesis_ref or "&mdash;")
+        rows += (
+            '<tr><th><a href="/candidates/{t}">{t}</a></th><td>{disc}</td><td>{cand}</td>'
+            "<td>{missing}</td>"
+            "<td>signals: <span class=\"mono\">{sig}</span><br>hypothesis: "
+            "<span class=\"mono\">{hyp}</span></td></tr>").format(
+                t=_esc(out.ticker), disc=_discovery_state_badge(out.discovery_state),
+                cand=cand_cell, missing=_esc(out.missing_link),
+                sig=signals_cell, hyp=hyp_cell)
+    table = ('<div class="panel"><table class="kv"><tr><th>Ticker</th><td>Discovery state</td>'
+             "<td>Candidate eligibility</td><td>What&#39;s missing (exact link)</td>"
+             "<td>Backed by (real refs)</td></tr>" + rows + "</table></div>")
+    return "<h2>Diligence lineage (newest run)</h2>" + intro + table
+
+
+def render_opportunities_page(store_dir: str) -> str:
+    """The Opportunities tab: the honest DILIGENCE-LINEAGE view + the published-candidate list.
+
+    Surfaces each ticker's HONEST state -- the 021E ``discovery_state``, the 020A typed
+    ``candidate_state``, and the EXACT missing link (needs an accepted diligence thesis / not on
+    the theme graph / data-quality degraded / ...), plus the real signals + hypothesis that back
+    it -- then the append-only published-candidate list below. NO ranking, NO sizing, NO trade
+    affordance, NO fabricated pick; read-only and deterministic (offline).
+    """
+    return _page(store_dir, "Capital Candidates", "/opportunities",
+                 _lineage_section(store_dir) + _candidate_list_body(store_dir))
 
 
 def diligence_refs_from_store(store_dir: str, tickers: Tuple[str, ...]) -> Dict[str, Any]:

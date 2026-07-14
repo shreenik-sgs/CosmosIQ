@@ -932,7 +932,7 @@ def _dispatch_page(segments: List[str], raw: List[str],
     # list; `Company Research` is the ticker landing.
     if segments == ["opportunities"]:
         from . import cockpits as _cockpits
-        return _html(200, _cockpits.render_candidate_list(store_dir))
+        return _html(200, _cockpits.render_opportunities_page(store_dir))
     if segments == ["research"]:
         from . import cockpits as _cockpits
         return _html(200, _cockpits.render_research_page(store_dir))
