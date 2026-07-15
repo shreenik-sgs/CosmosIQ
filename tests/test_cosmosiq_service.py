@@ -52,6 +52,7 @@ from cosmosiq_service import (
     ServiceMode,
     acquire_lock,
     continuous_activation_gate,
+    continuous_shadow_allowed,
     load_health,
     pause,
     read_lock,
@@ -567,6 +568,127 @@ class CliShellTests(unittest.TestCase):
             self.assertEqual((rc1, rc2), (0, 0))
             self.assertIn("paused", t1.lower())
             self.assertIn("resumed", t2.lower())
+
+
+# =========================================================================== #
+# 11. GO-LIVE PL-5 -- continuous SHADOW on an explicit operator opt-in         #
+#     (default still refused; production always refused)                       #
+# =========================================================================== #
+class ContinuousShadowOptInPolicyTests(unittest.TestCase):
+    def test_shadow_with_opt_in_is_allowed(self):
+        self.assertTrue(
+            continuous_shadow_allowed(ServiceMode.SHADOW_24X7, operator_opt_in=True))
+
+    def test_shadow_without_opt_in_is_refused(self):
+        self.assertFalse(
+            continuous_shadow_allowed(ServiceMode.SHADOW_24X7, operator_opt_in=False))
+
+    def test_production_is_never_allowed_even_with_opt_in(self):
+        self.assertFalse(
+            continuous_shadow_allowed(ServiceMode.PRODUCTION_24X7, operator_opt_in=True))
+        self.assertFalse(
+            continuous_shadow_allowed(ServiceMode.PRODUCTION_24X7, operator_opt_in=False))
+
+    def test_off_and_manual_are_not_the_continuous_shadow_path(self):
+        for mode in (ServiceMode.OFF, ServiceMode.MANUAL):
+            for opt_in in (True, False):
+                self.assertFalse(
+                    continuous_shadow_allowed(mode, operator_opt_in=opt_in),
+                    "{0} opt_in={1} must not be the continuous-shadow path".format(mode, opt_in))
+
+    def test_helper_does_not_change_requires_activation_gate_for_production(self):
+        # The PL-5 opt-in policy is orthogonal to the PRODUCTION activation gate.
+        self.assertTrue(requires_activation_gate(ServiceMode.PRODUCTION_24X7))
+        self.assertEqual(continuous_activation_gate(ServiceMode.PRODUCTION_24X7), "Phase-020F")
+
+
+class SuperviseOptInGateTests(unittest.TestCase):
+    """Exercise the loop-free pre-loop decision (NOT the while-loop)."""
+
+    def _decision(self, mode, *, opt_in):
+        from cosmosiq_service.__main__ import _pre_loop_decision
+        with tempfile.TemporaryDirectory() as d:
+            config = ServiceConfig(mode=mode, store_dir=os.path.join(d, "s"))
+            return _pre_loop_decision(config, operator_opt_in_continuous_shadow=opt_in)
+
+    def test_shadow_with_opt_in_does_not_early_refuse(self):
+        # None => the guard permits entering the supervised loop (loop itself is not run here).
+        self.assertIsNone(self._decision(ServiceMode.SHADOW_24X7, opt_in=True))
+
+    def test_shadow_without_opt_in_is_refused_and_names_the_flag(self):
+        decision = self._decision(ServiceMode.SHADOW_24X7, opt_in=False)
+        self.assertIsNotNone(decision)
+        code, message = decision
+        self.assertEqual(code, 2)
+        self.assertIn("--confirm-continuous-shadow", message)
+        self.assertIn("REFUSED", message)
+        # inbox-only posture is stated; no external delivery / broker / orders.
+        for token in ("inbox-only", "external delivery", "broker", "orders"):
+            self.assertIn(token, message)
+
+    def test_production_with_opt_in_is_still_refused(self):
+        decision = self._decision(ServiceMode.PRODUCTION_24X7, opt_in=True)
+        self.assertIsNotNone(decision)
+        code, message = decision
+        self.assertEqual(code, 2)
+        self.assertIn("Phase-020F", message)
+        self.assertIn("REFUSED", message)
+
+    def test_off_is_a_no_op_not_a_refusal(self):
+        decision = self._decision(ServiceMode.OFF, opt_in=True)
+        self.assertIsNotNone(decision)
+        code, _message = decision
+        self.assertEqual(code, 0)
+
+    def test_manual_enters_the_loop_unchanged(self):
+        self.assertIsNone(self._decision(ServiceMode.MANUAL, opt_in=False))
+
+
+class SuperviseCliOptInTests(unittest.TestCase):
+    def _main(self, argv):
+        from cosmosiq_service.__main__ import main
+        out = io.StringIO()
+        with redirect_stdout(out):
+            rc = main(argv)
+        return rc, out.getvalue()
+
+    def test_start_shadow_without_opt_in_is_refused(self):
+        # The SAFE DEFAULT: `start --mode shadow_24x7` (no opt-in) refuses with exit 2 -- it never
+        # enters the loop, so this call returns.
+        with tempfile.TemporaryDirectory() as d:
+            rc, text = self._main(["start", "--store-dir", os.path.join(d, "s"),
+                                   "--mode", "shadow_24x7"])
+            self.assertEqual(rc, 2)
+            self.assertIn("REFUSED", text)
+            self.assertIn("--confirm-continuous-shadow", text)
+
+    def test_start_production_with_confirm_flag_is_still_refused(self):
+        # No flag can start continuous production.
+        with tempfile.TemporaryDirectory() as d:
+            rc, text = self._main(["start", "--store-dir", os.path.join(d, "s"),
+                                   "--mode", "production_24x7",
+                                   "--confirm-continuous-shadow"])
+            self.assertEqual(rc, 2)
+            self.assertIn("REFUSED", text)
+            self.assertIn("Phase-020F", text)
+
+    def test_confirm_flag_exists_only_on_start(self):
+        # The opt-in flag is a start-only concern; run-once does not accept it (argparse rejects it).
+        from contextlib import redirect_stderr
+        from cosmosiq_service.__main__ import main
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaises(SystemExit), redirect_stdout(io.StringIO()), \
+                    redirect_stderr(io.StringIO()):
+                main(["run-once", "--store-dir", os.path.join(d, "s"),
+                      "--mode", "manual", "--now", _NOW, "--confirm-continuous-shadow"])
+
+    def test_no_trade_or_order_affordance_introduced(self):
+        # PL-5 introduces NO broker / order / trade path anywhere in the shell.
+        src = _read(_MAIN_PY).lower()
+        for token in ("broker", "place_order", "submit_order", "send_order", "execute_trade"):
+            self.assertNotIn("import " + token, src)
+        # the loop-free gate must not touch a broker/order symbol
+        self.assertNotIn("order(", src)
 
 
 if __name__ == "__main__":

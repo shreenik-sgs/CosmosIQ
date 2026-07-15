@@ -8,10 +8,12 @@ thin shell around it: argparse, the wall-clock boundary, the supervised loop, an
 
 Commands:
 
-* ``start``    -- acquire the single-instance lock and run the supervised loop (MANUAL, or
-                  continuous SHADOW_24X7 which Phase-020D activated -- shadow alerts land in the
-                  in-app inbox only, never escalated). Continuous PRODUCTION_24X7 stays gated to
-                  Phase-020F and is REFUSED here. ``OFF`` runs nothing.
+* ``start``    -- acquire the single-instance lock and run the supervised loop. MANUAL is the
+                  attended loop; continuous SHADOW_24X7 runs ONLY on the explicit operator opt-in
+                  (``--confirm-continuous-shadow``) -- inbox-only alerts, NO external delivery, NO
+                  broker, NO orders. Without the opt-in ``start --mode shadow_24x7`` is REFUSED (safe
+                  default). Continuous PRODUCTION_24X7 stays gated to Phase-020F and is ALWAYS REFUSED
+                  here (never a launchd job). ``OFF`` runs nothing.
 * ``stop``     -- release the single-instance lockfile (recover a crashed loop's lock).
 * ``status``   -- print the sanitized health snapshot.
 * ``pause``    -- journal ``paused_all`` (a paused service's ticks run nothing).
@@ -42,6 +44,7 @@ from .service import (
     ServiceMode,
     acquire_lock,
     continuous_activation_gate,
+    continuous_shadow_allowed,
     pause,
     read_lock,
     release_lock,
@@ -114,18 +117,54 @@ def _now_for(args: argparse.Namespace) -> str:
 # --------------------------------------------------------------------------- #
 # start -- the supervised loop (the ONLY while + time.sleep in the service)      #
 # --------------------------------------------------------------------------- #
-def _supervise(config: ServiceConfig) -> int:
-    """Run the supervised loop (MANUAL only). SHADOW_24X7 / PRODUCTION_24X7 continuous are gated."""
+def _pre_loop_decision(config: ServiceConfig, *,
+                       operator_opt_in_continuous_shadow: bool):
+    """The loop-free ``start`` policy gate. ``None`` => enter the supervised loop; ``(code, message)``
+    => print ``message`` and return ``code`` (never entering the loop).
+
+    Pure and while-loop-free so it is unit-testable WITHOUT the supervised loop. The policy:
+
+    * ``OFF`` -> ``(0, no-op message)`` -- nothing runs continuously (safe default, unchanged).
+    * continuous ``PRODUCTION_24X7`` -> ALWAYS ``(2, gate refusal)`` regardless of any opt-in flag;
+      continuous production is never launched here -- it is the explicit ``cosmosiq_ops activate`` +
+      operator sign-off path (Phase-020F). :func:`requires_activation_gate` semantics are unchanged.
+    * continuous ``SHADOW_24X7`` -> permitted (``None``) ONLY on the EXPLICIT operator opt-in
+      (``--confirm-continuous-shadow``); without it ``(2, opt-in-required refusal)`` -- the safe
+      default still refuses. Shadow stays inbox-only: no external delivery, no broker, no orders.
+    * ``MANUAL`` -> ``None`` (the attended supervised loop, unchanged).
+    """
     if config.mode is ServiceMode.OFF:
-        print("Service mode is OFF -- nothing to run continuously. Set --mode manual for the "
-              "attended supervised loop, or use `run-once` for a single tick.")
-        return 0
+        return 0, ("Service mode is OFF -- nothing to run continuously. Set --mode manual for the "
+                   "attended supervised loop, or use `run-once` for a single tick.")
+    # Continuous PRODUCTION stays gated + refused -- NO flag can start it here.
     if requires_activation_gate(config.mode):
         gate = continuous_activation_gate(config.mode)
-        print("REFUSED: continuous {0} operation requires the {1} activation gate, which is not "
-              "part of Phase-020C. This slice provides the machinery + safe defaults only. Use "
-              "`run-once` to exercise a single tick.".format(config.mode.value, gate))
-        return 2
+        return 2, ("REFUSED: continuous {0} operation requires the {1} activation gate and is never "
+                   "launched here -- continuous production is the explicit `cosmosiq_ops activate` + "
+                   "operator sign-off path, never a launchd job. Use `run-once` to exercise a "
+                   "single tick.".format(config.mode.value, gate))
+    # Continuous SHADOW is safe (inbox-only) but requires the EXPLICIT operator opt-in.
+    if config.mode is ServiceMode.SHADOW_24X7 and not continuous_shadow_allowed(
+            config.mode, operator_opt_in=operator_opt_in_continuous_shadow):
+        return 2, ("REFUSED: continuous shadow_24x7 operation requires the EXPLICIT operator opt-in "
+                   "--confirm-continuous-shadow (the safe default refuses). Continuous SHADOW is "
+                   "inbox-only -- NO external delivery, NO broker, NO orders; production is never "
+                   "launched here. Pass --confirm-continuous-shadow to start the paper/observation "
+                   "window, or use `run-once` for a single tick.")
+    return None
+
+
+def _supervise(config: ServiceConfig, *,
+               operator_opt_in_continuous_shadow: bool = False) -> int:
+    """Run the supervised loop. MANUAL is the attended loop; continuous SHADOW_24X7 runs ONLY on the
+    explicit operator opt-in (inbox-only, no external delivery/broker/orders); continuous
+    PRODUCTION_24X7 is always refused (the promotion-gated path, never launched here)."""
+    decision = _pre_loop_decision(
+        config, operator_opt_in_continuous_shadow=operator_opt_in_continuous_shadow)
+    if decision is not None:
+        code, message = decision
+        print(message)
+        return code
 
     pid = os.getpid()
     try:
@@ -136,8 +175,15 @@ def _supervise(config: ServiceConfig) -> int:
         return 2
 
     print(BANNER)
-    print("  supervised loop: MANUAL (attended) · poll every {0}s · Ctrl-C to stop · lock {1}"
-          .format(config.poll_interval_seconds, config.lock_path))
+    if config.mode is ServiceMode.SHADOW_24X7:
+        print("  supervised loop: SHADOW_24X7 (operator opt-in --confirm-continuous-shadow) -- "
+              "inbox-only alerts, NO external delivery, NO broker, NO orders; production is never "
+              "launched here.")
+        print("  · poll every {0}s · Ctrl-C to stop · lock {1}"
+              .format(config.poll_interval_seconds, config.lock_path))
+    else:
+        print("  supervised loop: MANUAL (attended) · poll every {0}s · Ctrl-C to stop · lock {1}"
+              .format(config.poll_interval_seconds, config.lock_path))
     try:
         while True:                     # the ONE supervised loop -- __main__ only, never the CORE
             now = wall_clock_now()
@@ -157,7 +203,10 @@ def _supervise(config: ServiceConfig) -> int:
 # command handlers                                                              #
 # --------------------------------------------------------------------------- #
 def _cmd_start(args: argparse.Namespace) -> int:
-    return _supervise(_build_config(args))
+    return _supervise(
+        _build_config(args),
+        operator_opt_in_continuous_shadow=bool(
+            getattr(args, "confirm_continuous_shadow", False)))
 
 
 def _cmd_stop(args: argparse.Namespace) -> int:
@@ -249,8 +298,20 @@ def _build_parser() -> argparse.ArgumentParser:
                     "PRODUCTION_24X7 requires the Phase-020F gate.")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    start = sub.add_parser("start", help="run the supervised loop (MANUAL only; SHADOW/PROD gated)")
+    start = sub.add_parser(
+        "start",
+        help="run the supervised loop (MANUAL; continuous SHADOW_24X7 with the explicit opt-in; "
+             "PRODUCTION_24X7 always refused)")
     _add_common(start)
+    # GO-LIVE PL-5: the EXPLICIT operator opt-in for CONTINUOUS SHADOW_24X7. Default False -> the
+    # safe default still REFUSES `start --mode shadow_24x7`. It is inbox-only (no external delivery,
+    # no broker, no orders); no flag can start continuous production.
+    start.add_argument("--confirm-continuous-shadow", action="store_true",
+                       dest="confirm_continuous_shadow",
+                       help="explicit operator opt-in to run CONTINUOUS SHADOW_24X7 (paper/"
+                            "observation window): inbox-only alerts, no external delivery, no "
+                            "broker, no orders. Without this flag `start --mode shadow_24x7` is "
+                            "refused (safe default). Never starts production.")
     start.set_defaults(func=_cmd_start)
 
     stop = sub.add_parser("stop", help="release the single-instance lockfile")

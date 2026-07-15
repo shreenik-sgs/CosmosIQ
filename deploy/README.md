@@ -72,11 +72,43 @@ There is no supported command that starts production.
 
 ```sh
 cp deploy/launchd/com.cosmosiq.shadow.plist.template ~/Library/LaunchAgents/com.cosmosiq.shadow.plist
-# edit the file: replace __REPO_ROOT__, __STORE_DIR__, __LOG_DIR__ with real paths
+# edit the file: replace __REPO_ROOT__, __STORE_DIR__, __LOG_DIR__,
+#                        __LIVE_WATCHLIST__, __LIVE_THEMES__ with real values
 launchctl load ~/Library/LaunchAgents/com.cosmosiq.shadow.plist
 ```
 
 The template runs `--mode shadow_24x7` only. There is no production launchd template.
+
+### The continuous-shadow opt-in and the live paper window (GO-LIVE PL-5)
+
+Continuous `SHADOW_24X7` is **safe** — inbox-only alerts, **no** external delivery, **no** broker,
+**no** orders — but it does not run on a bare `start --mode shadow_24x7`. That still **refuses**
+(safe default). To run the continuous paper/observation window you must pass the **explicit
+operator opt-in** `--confirm-continuous-shadow`, and to source real evidence you add
+`--live-sources`:
+
+```sh
+PYTHONPATH=src python3 -m cosmosiq_service start \
+  --mode shadow_24x7 --confirm-continuous-shadow --live-sources \
+  --store-dir ./_cosmosiq_store \
+  --live-watchlist IREN,NBIS --live-themes physical_ai,robotics
+```
+
+Continuous `PRODUCTION_24X7` is **always** refused here regardless of any flag — production
+activation stays the explicit `cosmosiq_ops activate` + operator sign-off path; there is no launchd
+job and no flag that starts it.
+
+**Credentials via the wrapper — never in the plist.** launchd does **not** inherit your login-shell
+environment, and secrets are **never** written into the plist. The template's `ProgramArguments`
+run a small `zsh -lc` wrapper that sources your gitignored `.env` (`. __REPO_ROOT__/.env`) at
+**runtime**, then `exec`s the service — so `SEC_USER_AGENT` / `FMP_API_KEY` load from your `.env`
+(presence-only; the plist references only the `.env` **path**, never a value). If `.env` is absent,
+the live pulse takes an **honest** credential gap (no fixture fallback, nothing fabricated). Create
+your `.env` from the committed template first (`cp .env.example .env`).
+
+Running this window accumulates the **PL-2 shadow-validation window** (`>= 3` runs / `>= 2` days of
+continuous shadow) that the operator then **attests** before any production activation is even
+eligible.
 
 ## Invocation
 

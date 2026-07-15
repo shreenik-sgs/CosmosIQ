@@ -318,6 +318,39 @@ class NoProductionAutoEnableTests(unittest.TestCase):
         # No directive in the template enables production.
         self.assertEqual(_production_enable_findings(text), ())
 
+    def test_launchd_template_carries_the_continuous_shadow_opt_in(self):
+        # GO-LIVE PL-5: the launchd job must pass the EXPLICIT operator opt-in + live sourcing.
+        args = _launchd_program_arguments(_read(_LAUNCHD))
+        self.assertIn("--confirm-continuous-shadow", args)
+        self.assertIn("--live-sources", args)
+        # The live scope placeholders are present (never renamed away from the convention).
+        self.assertIn("__LIVE_WATCHLIST__", args)
+        self.assertIn("__LIVE_THEMES__", args)
+
+    def test_launchd_template_sources_env_via_wrapper_not_a_baked_secret(self):
+        text = _read(_LAUNCHD)
+        # The wrapper sources the operator's gitignored .env at runtime (presence-only path ref).
+        self.assertRegex(text, r"\.\s+[\"']?__REPO_ROOT__/\.env")
+        self.assertIn("/bin/zsh", _launchd_program_arguments(text))
+        # ...and carries NO secret value.
+        self.assertTrue(is_secret_free(text))
+
+    def test_launchd_template_starts_no_production_job(self):
+        # No flag or arg could start continuous production from the launchd job.
+        args = _launchd_program_arguments(_read(_LAUNCHD))
+        self.assertNotIn("production_24x7", args)
+        self.assertNotIn("production_manual_review", args)
+
+    def test_deploy_readme_documents_the_opt_in_and_env_wrapper(self):
+        text = _read(_DEPLOY_README)
+        self.assertIn("--confirm-continuous-shadow", text)
+        self.assertIn("--live-sources", text)
+        # The .env is sourced by the wrapper (presence-only), never written into the plist.
+        self.assertRegex(text, r"(?i)\.env")
+        self.assertRegex(text, r"(?i)never written into the plist|references only the `?\.env")
+        # The PL-2 shadow-validation window the operator later attests.
+        self.assertRegex(text, r"(?i)shadow-validation|>= ?3 runs|>= ?2 days")
+
 
 class NoSecretInPackagingTests(unittest.TestCase):
     def test_no_secret_value_in_any_packaging_file(self):

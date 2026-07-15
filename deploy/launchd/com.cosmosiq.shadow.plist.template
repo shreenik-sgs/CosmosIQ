@@ -3,13 +3,24 @@
   CosmosIQ supervised service — SHADOW_24X7 launchd template (IMPLEMENTATION-023C).
 
   SAFE: this template runs the supervised operator service in SHADOW_24X7 ONLY (inbox-only
-  alerts, no external delivery, no broker). It NEVER runs production. Continuous
+  alerts, no external delivery, no broker, no orders). It NEVER runs production. Continuous
   PRODUCTION_24X7 is the explicit `cosmosiq_ops activate` + operator sign-off path — it is
   never launched by a launchd job.
 
+  GO-LIVE PL-5: the service is started with the EXPLICIT operator opt-in
+  --confirm-continuous-shadow (continuous SHADOW is refused without it) and --live-sources
+  (the credential-gated LIVE paper/observation window). This accumulates the PL-2
+  shadow-validation window (>=3 runs / >=2 days) that the operator then attests.
+
+  CREDENTIALS: launchd does NOT inherit your login-shell environment, and secrets must NEVER
+  be written into this plist. The ProgramArguments therefore run a small zsh wrapper that
+  sources your gitignored .env at RUNTIME (`. __REPO_ROOT__/.env`) so SEC_USER_AGENT /
+  FMP_API_KEY load from the operator's .env — the plist references only the .env PATH, never a
+  secret value. If .env is absent the live pulse takes an HONEST credential gap (no fixture
+  fallback).
+
   Fill in every __PLACEHOLDER__ (they are NOT real paths / values), copy the result to
   ~/Library/LaunchAgents/com.cosmosiq.shadow.plist, then:  launchctl load <that path>.
-  Secrets (if any) are injected via your login environment / a wrapper — never written here.
 -->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -29,17 +40,32 @@
         <string>shadow_local</string>
     </dict>
 
-    <!-- SAFE: --mode shadow_24x7 only. There is deliberately no production_24x7 job. -->
+    <!--
+      SAFE: --mode shadow_24x7 + the explicit --confirm-continuous-shadow opt-in only. There is
+      deliberately NO production_24x7 job and no flag that could start continuous production.
+
+      A zsh wrapper (-lc) sources the operator's gitignored .env at RUNTIME, then execs the
+      service with the real arg vector via "$@". The service arguments stay listed as their own
+      <string> elements (they become the wrapper's positional parameters) so they are auditable
+      here; the plist carries only the .env PATH, never a secret value.
+    -->
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/python3</string>
-        <string>-m</string>
+        <string>/bin/zsh</string>
+        <string>-lc</string>
+        <string>set -a; [ -f "__REPO_ROOT__/.env" ] &amp;&amp; . "__REPO_ROOT__/.env"; set +a; exec /usr/bin/python3 -m cosmosiq_service "$@"</string>
         <string>cosmosiq_service</string>
         <string>start</string>
         <string>--mode</string>
         <string>shadow_24x7</string>
+        <string>--confirm-continuous-shadow</string>
+        <string>--live-sources</string>
         <string>--store-dir</string>
         <string>__STORE_DIR__</string>
+        <string>--live-watchlist</string>
+        <string>__LIVE_WATCHLIST__</string>
+        <string>--live-themes</string>
+        <string>__LIVE_THEMES__</string>
     </array>
 
     <key>RunAtLoad</key>

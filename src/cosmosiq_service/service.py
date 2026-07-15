@@ -75,6 +75,7 @@ __all__ = [
     "DEFAULT_MODE",
     "continuous_activation_gate",
     "requires_activation_gate",
+    "continuous_shadow_allowed",
     "can_enter_production_continuous",
     "ServiceConfig",
     "ServiceHealth",
@@ -153,6 +154,22 @@ def continuous_activation_gate(mode: ServiceMode) -> str:
     return "" (OFF runs nothing; MANUAL is the attended supervised loop this slice permits).
     """
     return _CONTINUOUS_ACTIVATION_GATE.get(ServiceMode.parse(mode), "")
+
+
+def continuous_shadow_allowed(mode: ServiceMode, *, operator_opt_in: bool) -> bool:
+    """May the CONTINUOUS supervised loop run in ``mode`` (the GO-LIVE PL-5 opt-in policy)?
+
+    Continuous ``SHADOW_24X7`` operation is SAFE -- inbox-only alerts, NO external delivery, NO
+    broker, NO orders -- so it MAY run continuously, but ONLY on an EXPLICIT operator opt-in
+    (``operator_opt_in=True``). WITHOUT the opt-in the safe default still REFUSES (unchanged): this
+    function returns False. Continuous ``PRODUCTION_24X7`` is NEVER allowed here regardless of the
+    opt-in -- it stays the promotion-gated ``activate`` + operator sign-off path (Phase-020F), never
+    a launchd job -- so this returns False for it. ``OFF`` / ``MANUAL`` are not the continuous-shadow
+    path (``OFF`` runs nothing; ``MANUAL`` is the attended loop handled separately), so both return
+    False. This helper is a pure policy predicate; it does NOT alter
+    :func:`requires_activation_gate`'s PRODUCTION semantics.
+    """
+    return ServiceMode.parse(mode) is ServiceMode.SHADOW_24X7 and bool(operator_opt_in)
 
 
 def can_enter_production_continuous(config: "ServiceConfig", *, operator_approval=None, now: str,
