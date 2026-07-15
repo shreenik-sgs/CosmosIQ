@@ -280,6 +280,19 @@ from .discovery import (
     discovery_id_for,
     trigger_diligence_input,
 )
+from .universe_discovery import (
+    DISCOVERY_METHODS,
+    DISCOVERY_METHOD_AUTHORITY,
+    DISCOVERY_SOURCE_HEALTH_LABELS,
+    UNIVERSE_DISCOVERY_MODELS,
+    UNIVERSE_DISCOVERY_SCHEMA_VERSION,
+    DiscoveredUniverseCandidate,
+    UniverseDiscoveryResult,
+    candidate_id_for as universe_candidate_id_for,
+    discover_via_fmp_screener,
+    discover_via_sec_fulltext,
+    merge_universe_discovery,
+)
 from .diligence_lineage import (
     DiligenceLineageResult,
     LineageOutcome,
@@ -964,6 +977,19 @@ __all__ = [
     "discover_candidates",
     "discovery_id_for",
     "trigger_diligence_input",
+    # evidence-driven universe DISCOVERY -- provenanced candidates from FMP screener + SEC FTS,
+    # never accepted / never in the graph / never drives the engine (UNIVERSE-DISCOVERY UD-1)
+    "DISCOVERY_METHODS",
+    "DISCOVERY_METHOD_AUTHORITY",
+    "DISCOVERY_SOURCE_HEALTH_LABELS",
+    "UNIVERSE_DISCOVERY_MODELS",
+    "UNIVERSE_DISCOVERY_SCHEMA_VERSION",
+    "DiscoveredUniverseCandidate",
+    "UniverseDiscoveryResult",
+    "universe_candidate_id_for",
+    "discover_via_fmp_screener",
+    "discover_via_sec_fulltext",
+    "merge_universe_discovery",
     # diligence-lineage orchestration -- discovery -> hypothesis -> candidate (DILIGENCE-LINEAGE)
     "run_diligence_lineage",
     "DiligenceLineageResult",

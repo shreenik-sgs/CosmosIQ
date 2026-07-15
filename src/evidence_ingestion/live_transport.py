@@ -192,6 +192,96 @@ def yahoo_chart_transport(
     return {"chart": _chart}
 
 
+# --------------------------------------------------------------------------- #
+# UNIVERSE-DISCOVERY (UD-1) transports -- evidence-driven ticker DISCOVERY.      #
+#                                                                               #
+# These two factories power the reality_mesh.universe_discovery producers. They #
+# only DISCOVER provenanced candidates (companies that really appear in a sector #
+# screener / really file about a phrase); they do NOT accept, rank, or trade    #
+# anything. Both are lazy (urllib is function-local), credential-safe (a falsy  #
+# credential raises before any network is possible), and never log a key.       #
+# --------------------------------------------------------------------------- #
+# FMP company screener (CONVENIENCE tier). Returns a JSON array of company rows
+# ({symbol, companyName, marketCap, sector, industry, beta, ...}). The key is
+# threaded through the query string exactly once and NEVER logged / printed / stored.
+_FMP_SCREENER_URL = "https://financialmodelingprep.com/stable/company-screener"
+# SEC EDGAR full-text search (CANONICAL basis: the company really files about the
+# phrase). Public, no key; a descriptive User-Agent (a contact identity, not a
+# secret) is REQUIRED for SEC fair access. Returns the FTS hits document.
+_SEC_FTS_URL = "https://efts.sec.gov/LATEST/search-index"
+
+
+def fmp_screener_transport(
+    api_key: str, *, timeout: float = 20.0
+) -> Callable[..., Any]:
+    """Return a ``screen(*, sector, industry, market_cap_min, limit) -> decoded JSON`` callable
+    for the UD-1 FMP screener producer.
+
+    ``api_key`` is REQUIRED; a falsy value raises ``ValueError`` before any network is possible.
+    FMP is the CONVENIENCE tier -- a screener row means the company is really in that sector, NOT
+    an investment claim. The key is threaded through the query string exactly once and is NEVER
+    logged / printed / stored. ``urllib`` is imported lazily inside the returned closure, so
+    importing this module remains network-free.
+    """
+    if not api_key:
+        raise ValueError(_MISSING_KEY_MSG)
+
+    def _screen(*, sector: str = "", industry: str = "",
+                market_cap_min: Optional[float] = None, limit: int = 50) -> Any:
+        import urllib.parse  # LAZY -- import-time is network-free by construction.
+
+        params: Dict[str, Any] = {}
+        if sector:
+            params["sector"] = sector
+        if industry:
+            params["industry"] = industry
+        if market_cap_min is not None:
+            params["marketCapMoreThan"] = int(market_cap_min)
+        params["limit"] = int(limit)
+        params["apikey"] = api_key
+        url = "{0}?{1}".format(_FMP_SCREENER_URL, urllib.parse.urlencode(params))
+        return json.loads(_http_get(url, timeout=timeout))
+
+    return _screen
+
+
+def sec_fts_transport(
+    user_agent: str, *, timeout: float = 20.0
+) -> Dict[str, Callable[..., Any]]:
+    """Build the SEC full-text-search fetch bundle for the UD-1 EDGAR discovery producer.
+
+    Returns a dict of two ``callable``s:
+
+    * ``"search"`` -> ``fetch(query, forms=()) -> decoded FTS hits`` (the public
+      ``efts.sec.gov/LATEST/search-index``; the phrase is quoted for an exact-phrase match);
+    * ``"company_tickers"`` -> ``fetch() -> decoded ticker->CIK map`` (the public
+      ``company_tickers.json``; reused verbatim from :func:`sec_live_transport` so CIK->ticker
+      mapping lives in one place).
+
+    ``user_agent`` (a contact identity, NOT a secret) is REQUIRED; a falsy value raises
+    ``ValueError`` before any network is possible. ``urllib`` is imported lazily inside the
+    closures, so importing this module remains network-free. An FTS hit is CANONICAL evidence
+    that the company files about the phrase -- it is DISCOVERY provenance, never an investment claim.
+    """
+    if not user_agent:
+        raise ValueError(_MISSING_UA_MSG)
+    headers = {"User-Agent": user_agent}
+
+    def _search(query: str, forms: Tuple[str, ...] = ()) -> Any:
+        import urllib.parse  # LAZY
+
+        params: Dict[str, Any] = {"q": '"{0}"'.format(str(query).strip())}
+        if forms:
+            params["forms"] = ",".join(str(f).strip() for f in forms if str(f).strip())
+        url = "{0}?{1}".format(_SEC_FTS_URL, urllib.parse.urlencode(params))
+        return json.loads(_http_get(url, headers=headers, timeout=timeout))
+
+    def _company_tickers() -> Any:
+        return json.loads(_http_get(_SEC_TICKER_MAP_URL, headers=headers, timeout=timeout))
+
+    return {"search": _search, "company_tickers": _company_tickers}
+
+
 def fmp_http_transport(api_key: str) -> Callable[[str, Dict[str, Any]], str]:
     """Return a ``transport(url, params) -> body`` for :class:`FmpClient`.
 
