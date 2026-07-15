@@ -327,6 +327,17 @@ class NoProductionAutoEnableTests(unittest.TestCase):
         self.assertIn("__LIVE_WATCHLIST__", args)
         self.assertIn("__LIVE_THEMES__", args)
 
+    def test_launchd_template_sets_a_sane_live_poll_interval(self):
+        # GO-LIVE PL-5b: a LIVE shadow job MUST set an explicit gentle poll interval. The service's
+        # 60s default, with --live-sources, would abuse SEC fair-access + burn FMP quota (~1440
+        # runs/day). Require an explicit --poll-interval of at least one hour (never near 60s).
+        args = _launchd_program_arguments(_read(_LAUNCHD))
+        self.assertIn("--poll-interval", args)
+        interval = int(args[args.index("--poll-interval") + 1])
+        self.assertGreaterEqual(
+            interval, 3600,
+            "a live shadow job must poll no faster than hourly, never near the 60s default")
+
     def test_launchd_template_sources_env_via_wrapper_not_a_baked_secret(self):
         text = _read(_LAUNCHD)
         # The wrapper sources the operator's gitignored .env at runtime (presence-only path ref).

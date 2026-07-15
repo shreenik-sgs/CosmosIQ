@@ -66,6 +66,15 @@
         <string>__LIVE_WATCHLIST__</string>
         <string>--live-themes</string>
         <string>__LIVE_THEMES__</string>
+        <!--
+          SANE LIVE CADENCE: 21600s = 6h between real SEC/FMP shadow pulses (~4 runs/day). The
+          service's default poll interval is 60s, which for a LIVE (credential-gated) pulse would
+          abuse SEC fair-access and burn FMP quota (~1440 runs/day) -- so a live shadow job MUST set
+          an explicit, gentle interval. Raise this for an even lighter cadence; never drop it toward
+          60s with --live-sources. A few runs across >=2 calendar days is all the PL-2 window needs.
+        -->
+        <string>--poll-interval</string>
+        <string>21600</string>
     </array>
 
     <key>RunAtLoad</key>
