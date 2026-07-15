@@ -285,6 +285,16 @@ from .diligence_lineage import (
     LineageOutcome,
     run_diligence_lineage,
 )
+from .investment_diligence import (
+    DILIGENCE_VERDICTS,
+    ELIGIBILITY_VALID_VERDICT,
+    INVESTMENT_DILIGENCE_MODELS,
+    InvestmentDiligence,
+    InvestmentDiligenceStore,
+    accept_diligence_thesis,
+    diligence_id_for,
+    latest_diligence_for,
+)
 from .recommendation import (
     CAPITAL_RECOMMENDATION_MODELS,
     FORBIDDEN_RECOMMENDATION_LABELS,
@@ -958,6 +968,15 @@ __all__ = [
     "run_diligence_lineage",
     "DiligenceLineageResult",
     "LineageOutcome",
+    # operator-accepted investment-diligence theses -- the ONLY path to an eligible ref (slice 2)
+    "DILIGENCE_VERDICTS",
+    "ELIGIBILITY_VALID_VERDICT",
+    "INVESTMENT_DILIGENCE_MODELS",
+    "InvestmentDiligence",
+    "InvestmentDiligenceStore",
+    "accept_diligence_thesis",
+    "diligence_id_for",
+    "latest_diligence_for",
     # typed CapitalRecommendation contract -- the model ABOVE CapitalCandidate (022A)
     "RECOMMENDATION_STATES",
     "RECOMMENDATION_LABELS",

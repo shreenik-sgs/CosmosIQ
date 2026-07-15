@@ -131,10 +131,19 @@ class SeededStoreTests(unittest.TestCase):
         self.assertFalse(os.path.isdir(os.path.join(self.store, "diligence_inputs")))
 
     def test_no_trade_affordance(self):
-        low = self.html.lower()
-        self.assertNotIn("<button", low)
-        self.assertNotIn("<form", low)
+        # Slice 2 adds ONE sanctioned operator form (Record your diligence review). It is NOT a
+        # trade control: no trade verb, no order/broker wording -- only a research-conclusion form
+        # posting to the diligence-acceptance endpoint.
         self.assertEqual(_TRADE_WORD.findall(self.html), [])
+        self.assertIn('action="/api/diligence/accept"', self.html)
+        self.assertIn("Record diligence review", self.html)
+        self.assertNotIn('action="/api/orders"', self.html)
+
+    def test_diligence_form_is_operator_authored_never_generated(self):
+        # The honest copy makes clear the OPERATOR authors + accepts; CosmosIQ only records it.
+        self.assertIn("YOU author and accept", self.html)
+        self.assertIn("never generates", self.html)
+        self.assertIn("research conclusion", self.html)
 
     def test_no_score_rank_rating_token(self):
         low = self.html.lower()

@@ -826,7 +826,83 @@ def _discovery_state_badge(state: str) -> str:
                   _DISCOVERY_STATE_KINDS.get(str(state), "warn"))
 
 
-def _lineage_section(store_dir: str) -> str:
+# The plain-English honesty note under the diligence-review form. A diligence thesis is the
+# OPERATOR'S written research conclusion, layered on canonical evidence -- CosmosIQ RECORDS it,
+# never generates or accepts it. It is a research conclusion, never a market action; nothing here
+# places any orders. (Deliberately avoids every trade-verb the page-hygiene scans forbid.)
+_DILIGENCE_REVIEW_DISCLAIMER = (
+    "OPERATOR action &mdash; YOU author and accept this diligence review; CosmosIQ records it "
+    "and never generates or accepts it for you. A diligence thesis is a research conclusion, "
+    "never a market action; nothing here places any orders. Only a "
+    "<span class=\"mono\">thesis_supported</span> review, grounded in evidence you reviewed, can "
+    "advance a candidate toward eligible.")
+
+# The closed verdict options for the operator's diligence review (display text -> value). Only
+# ``thesis_supported`` can advance a candidate; the others are recorded honestly, never eligible.
+_DILIGENCE_VERDICT_OPTIONS = (
+    ("thesis_supported", "Thesis supported (evidence backs the hypothesis)"),
+    ("thesis_rejected", "Thesis rejected (evidence does not back it)"),
+    ("insufficient", "Insufficient (not enough to conclude)"),
+)
+
+
+def _diligence_review_form(out: Any, run_id: str, form_error: str = "",
+                           form_values: Optional[Dict[str, Any]] = None) -> str:
+    """The SANCTIONED per-candidate 'Record your diligence review' operator form.
+
+    Rendered ONLY for a ticker at ``ineligible_missing_diligence`` that already carries a REAL
+    opportunity-hypothesis ref (the honest slice-1 ceiling). The operator authors the verdict,
+    written conclusion, key risks, the evidence ids they reviewed, and their name; POSTing to
+    ``/api/diligence/accept`` calls :func:`~reality_mesh.accept_diligence_thesis`, the ONLY path
+    that creates an eligibility-valid diligence ref. CosmosIQ never fills any field. There is NO
+    trade / order / broker control or wording anywhere in the form.
+    """
+    values = dict(form_values or {})
+    mine = str(values.get("ticker", "") or "").strip().upper() == out.ticker
+    err_html = ""
+    if mine and form_error:
+        err_html = ('<p class="form-error">Could not record that diligence review: {0}. Nothing '
+                    "was written; correct it and record it again.</p>".format(_esc(form_error)))
+    verdict_prev = str(values.get("verdict", "") or "").strip() if mine else ""
+    thesis_prev = _esc(str(values.get("thesis", "") or "")) if mine else ""
+    risks_prev = _esc(str(values.get("key_risks", "") or "")) if mine else ""
+    evid_prev = _esc(str(values.get("evidence_refs", "") or "")) if mine else ""
+    by_prev = _esc(str(values.get("accepted_by", "") or "")) if mine else ""
+    # A hint listing the real refs the operator may cite (the candidate's own fused-signal ids).
+    evid_hint = ", ".join(out.reality_signal_refs) if out.reality_signal_refs else "none on file"
+
+    options = ""
+    for value, label in _DILIGENCE_VERDICT_OPTIONS:
+        sel = " selected" if verdict_prev == value else ""
+        options += '<option value="{0}"{1}>{2}</option>'.format(_esc(value), sel, _esc(label))
+
+    return (
+        '<details class="op-form-wrap"><summary>Record your diligence review for {t}</summary>'
+        + '<form class="op-form" method="post" action="/api/diligence/accept">'
+        + err_html
+        + '<input type="hidden" name="ticker" value="{t}">'
+        '<input type="hidden" name="run_id" value="{run}">'
+        '<input type="hidden" name="opportunity_hypothesis_ref" value="{hyp}">'
+        '<label>Your verdict <select name="verdict">{options}</select></label>'
+        '<label>Your written conclusion (the thesis) '
+        '<textarea name="thesis" rows="3">{thesis}</textarea></label>'
+        '<label>Key risks you see (comma-separated, optional) '
+        '<input type="text" name="key_risks" value="{risks}"></label>'
+        '<label>Evidence you reviewed (comma-separated ids &mdash; e.g. {hint}) '
+        '<input type="text" name="evidence_refs" value="{evid}"></label>'
+        '<label>Your name (who is accepting this) '
+        '<input type="text" name="accepted_by" value="{by}"></label>'
+        "<button>Record diligence review</button>"
+        '<span class="op-note">{disc}</span>'
+        "</form></details>").format(
+            t=_esc(out.ticker), run=_esc(run_id),
+            hyp=_esc(out.opportunity_hypothesis_ref), options=options,
+            thesis=thesis_prev, risks=risks_prev, evid=evid_prev, by=by_prev,
+            hint=_esc(evid_hint), disc=_DILIGENCE_REVIEW_DISCLAIMER)
+
+
+def _lineage_section(store_dir: str, form_error: str = "",
+                     form_values: Optional[Dict[str, Any]] = None) -> str:
     """The honest discovery -> hypothesis -> candidate lineage for the NEWEST run (READ-ONLY).
 
     Recomputes the DILIGENCE-LINEAGE pass deterministically from the newest persisted run's
@@ -869,31 +945,50 @@ def _lineage_section(store_dir: str) -> str:
                      else '<span class="note">not assembled &mdash; no capital standing yet</span>')
         signals_cell = _esc(", ".join(out.reality_signal_refs) or "none")
         hyp_cell = _esc(out.opportunity_hypothesis_ref or "&mdash;")
+        # A real supporting-thesis ref (only ever the operator-accepted diligence_id) is surfaced
+        # so an eligible candidate always shows WHICH accepted thesis backs it -- never a free string.
+        diligence_line = ""
+        if out.investment_diligence_ref:
+            diligence_line = ('<br>accepted diligence: <span class="mono">{0}</span>'.format(
+                _esc(out.investment_diligence_ref)))
+        # A candidate stuck ONLY on a missing diligence thesis (real hypothesis present) gets the
+        # SANCTIONED operator review form -- the honest path to advance it. Nothing else does.
+        review_cell = "&mdash;"
+        if (out.candidate_state == "ineligible_missing_diligence"
+                and out.opportunity_hypothesis_ref):
+            review_cell = _diligence_review_form(out, run.run_id, form_error, form_values)
         rows += (
             '<tr><th><a href="/candidates/{t}">{t}</a></th><td>{disc}</td><td>{cand}</td>'
             "<td>{missing}</td>"
             "<td>signals: <span class=\"mono\">{sig}</span><br>hypothesis: "
-            "<span class=\"mono\">{hyp}</span></td></tr>").format(
+            "<span class=\"mono\">{hyp}</span>{dil}</td><td>{review}</td></tr>").format(
                 t=_esc(out.ticker), disc=_discovery_state_badge(out.discovery_state),
                 cand=cand_cell, missing=_esc(out.missing_link),
-                sig=signals_cell, hyp=hyp_cell)
+                sig=signals_cell, hyp=hyp_cell, dil=diligence_line, review=review_cell)
     table = ('<div class="panel"><table class="kv"><tr><th>Ticker</th><td>Discovery state</td>'
              "<td>Candidate eligibility</td><td>What&#39;s missing (exact link)</td>"
-             "<td>Backed by (real refs)</td></tr>" + rows + "</table></div>")
+             "<td>Backed by (real refs)</td><td>Record your diligence review</td></tr>"
+             + rows + "</table></div>")
     return "<h2>Diligence lineage (newest run)</h2>" + intro + table
 
 
-def render_opportunities_page(store_dir: str) -> str:
+def render_opportunities_page(store_dir: str, form_error: str = "",
+                              form_values: Optional[Dict[str, Any]] = None) -> str:
     """The Opportunities tab: the honest DILIGENCE-LINEAGE view + the published-candidate list.
 
     Surfaces each ticker's HONEST state -- the 021E ``discovery_state``, the 020A typed
     ``candidate_state``, and the EXACT missing link (needs an accepted diligence thesis / not on
     the theme graph / data-quality degraded / ...), plus the real signals + hypothesis that back
-    it -- then the append-only published-candidate list below. NO ranking, NO sizing, NO trade
-    affordance, NO fabricated pick; read-only and deterministic (offline).
+    it -- then the append-only published-candidate list below. A candidate at
+    ``ineligible_missing_diligence`` (real hypothesis, no accepted thesis) carries the SANCTIONED
+    operator 'Record your diligence review' form -- the ONLY path that advances it toward eligible,
+    always operator-authored, never generated. ``form_error`` / ``form_values`` are set only when a
+    bad POST re-renders the page. NO ranking, NO sizing, NO trade affordance, NO fabricated pick;
+    read-only on GET and deterministic (offline).
     """
     return _page(store_dir, "Capital Candidates", "/opportunities",
-                 _lineage_section(store_dir) + _candidate_list_body(store_dir))
+                 _lineage_section(store_dir, form_error, form_values)
+                 + _candidate_list_body(store_dir))
 
 
 def diligence_refs_from_store(store_dir: str, tickers: Tuple[str, ...]) -> Dict[str, Any]:

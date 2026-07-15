@@ -50,6 +50,7 @@ from .discovery import (
     discover_candidates,
     trigger_diligence_input,
 )
+from .investment_diligence import ELIGIBILITY_VALID_VERDICT, latest_diligence_for
 from .models import RealitySignal
 from .sphurana import ThemePulseSynthesizer
 from .stores import (
@@ -149,8 +150,8 @@ def _missing_link(disc: DiscoveryCandidate, cand: Optional[CapitalCandidate]) ->
             return "worth diligence -- capital-candidate not yet assembled"
         cs = cand.candidate_state
         if cs == "ineligible_missing_diligence":
-            return ("needs an accepted diligence thesis (no investment_diligence_ref yet) -- "
-                    "this is the honest ceiling in slice 1")
+            return ("needs an accepted diligence thesis (no supporting investment_diligence_ref "
+                    "yet) -- record an operator diligence review to advance it")
         if cs == "ineligible_missing_provenance":
             return ("no opportunity-hypothesis packet links this ticker yet -- missing current-"
                     "run provenance")
@@ -263,8 +264,12 @@ def run_diligence_lineage(
       signals -> OpportunityHypothesis packets; a ``diligence_candidate`` is LINKED to the packet
       that already names it as a beneficiary candidate (a real packet id, never fabricated);
     * :func:`~reality_mesh.capital_candidate.assess_candidate_eligibility` (020A) per diligence
-      candidate, with the refs that actually exist -- ``investment_diligence_ref`` stays EMPTY in
-      slice 1, so the honest ceiling is ``ineligible_missing_diligence`` (NEVER ``eligible``).
+      candidate, with the refs that actually exist. Slice 2 links ``investment_diligence_ref`` ONLY
+      from a REAL, persisted, operator-accepted ``thesis_supported`` :class:`InvestmentDiligence`
+      (via :func:`~reality_mesh.investment_diligence.latest_diligence_for`) -- so with a supporting
+      thesis + healthy DQ the candidate is ``eligible``; with a rejected / insufficient / absent
+      thesis it stays ``ineligible_missing_diligence`` (the honest ceiling). The ref is never a
+      fabricated free string.
 
     When ``persist`` is True the assembled candidates are written append-only to the 020A
     :class:`~reality_mesh.capital_candidate.CapitalCandidateStore` (idempotent by content-derived
@@ -326,14 +331,28 @@ def run_diligence_lineage(
 
         if disc.is_diligence_candidate:
             hyp_ref = hyp_by_ticker.get(ticker, "")
-            # Assemble the typed candidate with the refs that ACTUALLY exist. The diligence ref
-            # stays EMPTY in slice 1 -- assess() therefore returns the honest ceiling
-            # (ineligible_missing_diligence), and the eligible-construction invariant is never hit.
+            # Slice 2: link the diligence ref ONLY from a REAL, persisted, operator-accepted
+            # supporting thesis. For a candidate with a real hypothesis, look up the newest
+            # non-superseded accepted thesis for this run / ticker / hypothesis; ONLY a
+            # ``thesis_supported`` verdict yields the diligence ref (a rejected / insufficient /
+            # absent thesis leaves it EMPTY -> the honest ineligible_missing_diligence ceiling).
+            # The ref is the real persisted diligence_id, NEVER a fabricated free string.
+            dil_ref = ""
+            if hyp_ref:
+                accepted = latest_diligence_for(
+                    store_dir, run_id=run_id, ticker=ticker,
+                    opportunity_hypothesis_ref=hyp_ref)
+                if accepted is not None and accepted.verdict == ELIGIBILITY_VALID_VERDICT:
+                    dil_ref = accepted.diligence_id
+            # Assemble the typed candidate with the refs that ACTUALLY exist. assess() computes the
+            # honest state: with a supporting thesis + healthy DQ it is ``eligible``; otherwise it
+            # stays ineligible_missing_diligence (or an honest DQ block). The eligible-construction
+            # invariant only holds because dil_ref is a real persisted supporting-thesis id.
             cand = assess_candidate_eligibility(
                 ticker=ticker, run_id=run_id,
                 reality_signal_refs=signal_refs,
                 opportunity_hypothesis_ref=hyp_ref,
-                investment_diligence_ref="",           # no accepted thesis yet (slice 1)
+                investment_diligence_ref=dil_ref,
                 forward_scenario_state="absent",
                 trust_data_quality_state=dq_state,
                 mode=mode, now=now)

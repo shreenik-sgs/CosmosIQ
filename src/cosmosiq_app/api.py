@@ -643,6 +643,55 @@ def _handle_candidates_list(store_dir: str, query: Dict[str, Any]) -> Dict[str, 
     })
 
 
+def _diligence_list_field(body: Dict[str, Any], key: str) -> Tuple[str, ...]:
+    """A form/JSON list field -> a tuple of trimmed strings (accepts a list OR comma text)."""
+    raw = body.get(key)
+    if isinstance(raw, (list, tuple)):
+        items = [str(v) for v in raw]
+    else:
+        items = str(raw or "").split(",")
+    return tuple(s.strip() for s in items if str(s).strip())
+
+
+def _handle_diligence_accept(store_dir: str, body: Any, now: str) -> Dict[str, Any]:
+    """POST /api/diligence/accept -- RECORD one OPERATOR-accepted diligence thesis. Never auto.
+
+    The SANCTIONED operator action behind the Opportunities 'Record your diligence review' form.
+    It calls :func:`reality_mesh.accept_diligence_thesis` -- the ONLY path that creates an
+    eligibility-valid diligence ref -- with the operator's own verdict / written thesis / key
+    risks / reviewed evidence ids / name; it NEVER auto-generates or auto-fills a field. On success
+    it redirects (303) back to ``/opportunities`` (where the candidate now reads eligible); a bad
+    input RE-RENDERS the page with an honest error and writes NOTHING. No network / broker / order.
+    """
+    from reality_mesh import accept_diligence_thesis
+
+    from . import cockpits as _cockpits
+
+    if not isinstance(body, dict):
+        return _html(400, _cockpits.render_opportunities_page(
+            store_dir, form_error="the diligence-review form must post its fields"))
+    effective_now = str(body.get("now", "") or body.get("at", "") or "") or now
+    try:
+        if not effective_now.strip():
+            raise ValueError("an injected 'now' instant is required to record the review")
+        accept_diligence_thesis(
+            store_dir,
+            ticker=str(body.get("ticker", "") or ""),
+            run_id=str(body.get("run_id", "") or ""),
+            opportunity_hypothesis_ref=str(body.get("opportunity_hypothesis_ref", "") or ""),
+            verdict=str(body.get("verdict", "") or ""),
+            thesis=str(body.get("thesis", "") or ""),
+            key_risks=_diligence_list_field(body, "key_risks"),
+            evidence_refs=_diligence_list_field(body, "evidence_refs"),
+            accepted_by=str(body.get("accepted_by", "") or ""),
+            now=effective_now,
+            correction_of=str(body.get("correction_of", "") or ""))
+    except (ValueError, TypeError) as exc:
+        return _html(400, _cockpits.render_opportunities_page(
+            store_dir, form_error=str(exc), form_values=body))
+    return _redirect("/opportunities")
+
+
 def _handle_coverage() -> Dict[str, Any]:
     implemented_ids = frozenset(
         factory().descriptor.agent_id for factory in _IMPLEMENTED_AGENT_FACTORIES)
@@ -872,6 +921,12 @@ def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[
     if tail == ["candidates", "publish"]:
         return _require(method, "POST", path) or _handle_candidates_publish(
             store_dir, body, now)
+
+    # DILIGENCE-LINEAGE slice 2: the SANCTIONED operator diligence-acceptance action. Records ONE
+    # operator-authored thesis (the only path to an eligible ref); never auto-accepts. No trade
+    # route -- a trade path is refused 403 above.
+    if tail == ["diligence", "accept"]:
+        return _require(method, "POST", path) or _handle_diligence_accept(store_dir, body, now)
 
     if tail == ["coverage"]:
         return _require(method, "GET", path) or _handle_coverage()
