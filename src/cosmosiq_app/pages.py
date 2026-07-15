@@ -332,8 +332,8 @@ _PRIMARY_TABS: Tuple[Tuple[str, str], ...] = (
 # A quiet secondary row of operator surfaces that stay reachable (append-only history,
 # the alert inbox, settings, the theme browser) without cluttering the primary tabs.
 _UTILITY_LINKS: Tuple[Tuple[str, str], ...] = (
-    ("Runs", "/runs"), ("Themes", "/themes"), ("Alerts", "/alerts"),
-    ("Settings", "/settings"),
+    ("Runs", "/runs"), ("Universe", "/universe"), ("Themes", "/themes"),
+    ("Alerts", "/alerts"), ("Settings", "/settings"),
 )
 
 # Which primary tab "owns" a given active route, so deep pages and the old routes still
@@ -342,6 +342,7 @@ _UTILITY_LINKS: Tuple[Tuple[str, str], ...] = (
 _ACTIVE_TAB: Dict[str, str] = {
     "/": "/",
     "/opportunities": "/opportunities", "/candidates": "/opportunities",
+    "/universe": "/opportunities",
     "/research": "/research", "/companies": "/research", "/themes": "/research",
     "/portfolio": "/portfolio",
     "/journal": "/journal",

@@ -692,6 +692,46 @@ def _handle_diligence_accept(store_dir: str, body: Any, now: str) -> Dict[str, A
     return _redirect("/opportunities")
 
 
+def _handle_universe_accept(store_dir: str, body: Any, now: str) -> Dict[str, Any]:
+    """POST /api/universe/accept -- ACCEPT one ticker into the operator's universe (UD-3). Never auto.
+
+    The SANCTIONED operator action behind the Universe 'Accept into universe' form. It calls
+    :func:`reality_mesh.accept_universe_entry` -- the ONLY producer of an accepted entry -- with the
+    operator's own theme / name / grounding reference(s) / note. That function GROUNDS + VALIDATES:
+    an ungrounded AI suggestion is REFUSED, the authority is derived honestly from the grounding
+    (SEC -> canonical, screener -> convenience, operator -> manual), and nothing is auto-filled. On
+    success it redirects (303) back to ``/universe``; a bad / ungrounded input RE-RENDERS the page
+    with an honest error and writes NOTHING. No network / broker / order route (a trade path is
+    refused 403 upstream). Does NOT touch the theme graph / pulse / lineage (UD-4).
+    """
+    from reality_mesh import accept_universe_entry
+    from . import cockpits as _cockpits
+
+    if not isinstance(body, dict):
+        return _html(400, _cockpits.render_universe_page(
+            store_dir, form_error="the accept-into-universe form must post its fields"))
+    effective_now = str(body.get("now", "") or body.get("at", "") or "") or now
+    try:
+        if not effective_now.strip():
+            raise ValueError("an injected 'now' instant is required to record the acceptance")
+        accept_universe_entry(
+            store_dir,
+            ticker=str(body.get("ticker", "") or ""),
+            theme_id=str(body.get("theme_id", "") or ""),
+            theme_label=str(body.get("theme_label", "") or ""),
+            accepted_by=str(body.get("accepted_by", "") or ""),
+            now=effective_now,
+            grounding_refs=_diligence_list_field(body, "grounding_refs"),
+            origin=str(body.get("origin", "") or "evidence_discovery"),
+            verdict=str(body.get("verdict", "") or "accepted"),
+            note=str(body.get("note", "") or ""),
+            correction_of=str(body.get("correction_of", "") or ""))
+    except (ValueError, TypeError) as exc:
+        return _html(400, _cockpits.render_universe_page(
+            store_dir, form_error=str(exc), form_values=body))
+    return _redirect("/universe")
+
+
 def _handle_coverage() -> Dict[str, Any]:
     implemented_ids = frozenset(
         factory().descriptor.agent_id for factory in _IMPLEMENTED_AGENT_FACTORIES)
@@ -928,6 +968,12 @@ def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[
     if tail == ["diligence", "accept"]:
         return _require(method, "POST", path) or _handle_diligence_accept(store_dir, body, now)
 
+    # UNIVERSE-DISCOVERY UD-3: the SANCTIONED operator universe-acceptance action. Grounds +
+    # validates + records ONE operator-accepted entry (the only producer); refuses an ungrounded AI
+    # suggestion; never auto-accepts. No trade route -- a trade path is refused 403 above.
+    if tail == ["universe", "accept"]:
+        return _require(method, "POST", path) or _handle_universe_accept(store_dir, body, now)
+
     if tail == ["coverage"]:
         return _require(method, "GET", path) or _handle_coverage()
 
@@ -991,6 +1037,9 @@ def _dispatch_page(segments: List[str], raw: List[str],
     if segments == ["research"]:
         from . import cockpits as _cockpits
         return _html(200, _cockpits.render_research_page(store_dir))
+    if segments == ["universe"]:
+        from . import cockpits as _cockpits
+        return _html(200, _cockpits.render_universe_page(store_dir))
     if segments == ["journal"]:
         return _html(200, _pages.render_journal_page(store_dir))
     if segments == ["evidence"]:

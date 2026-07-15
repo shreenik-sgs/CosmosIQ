@@ -29,6 +29,8 @@ def main(argv=None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if args and args[0] == "accept-diligence":
         return _accept_diligence(args[1:])
+    if args and args[0] == "accept-universe":
+        return _accept_universe(args[1:])
     if "--live" in args:
         return _run_live(args)
     from tattva_pulse.__main__ import main as _main
@@ -116,6 +118,89 @@ def _accept_diligence(argv) -> int:
     else:
         print("  verdict is not thesis_supported -- recorded honestly; the candidate stays "
               "ineligible_missing_diligence (never eligible).")
+    return 0
+
+
+def _accept_universe(argv) -> int:
+    """ACCEPT one ticker into the operator's universe (headless, UD-3). Never auto-accepts.
+
+    The command-line twin of the Universe 'Accept into universe' form: it calls
+    :func:`reality_mesh.accept_universe_entry` -- the ONLY producer of an accepted entry -- with the
+    OPERATOR's own theme / name / grounding reference(s) / note. Acceptance is REFUSED (non-zero
+    exit, nothing written) unless the entry is GROUNDED: real UD-1 provenance
+    (``sec:fts/`` / ``sec:cik/`` / ``fmp:screener/``) in ``--grounding-refs``, OR
+    ``--origin operator_manual`` with an explicit operator evidence ref, OR (when no refs are given)
+    a live UD-1 grounding call. The derived authority is HONEST (SEC -> canonical, screener ->
+    convenience, operator -> manual) -- never ai_suggestion, never canonical unless SEC-grounded.
+    Append-only, no broker, no orders; the theme graph / pulse / lineage are not touched.
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog="cosmosiq_pulse accept-universe",
+        description=("ACCEPT one ticker into the operator's investment universe. Only a GROUNDED "
+                     "entry can be accepted; an unverified AI suggestion is refused. The engine "
+                     "never accepts on its own. Append-only, offline, no broker, no orders."))
+    parser.add_argument("--store-dir", required=True,
+                        help="the local append-only store the universe log lives in.")
+    parser.add_argument("--ticker", required=True, help="the ticker to accept into the universe.")
+    parser.add_argument("--theme-id", required=True,
+                        help="the theme id you are filing the ticker under.")
+    parser.add_argument("--theme-label", required=True, help="the human-facing theme name.")
+    parser.add_argument("--accepted-by", required=True,
+                        help="who is accepting this (your operator label).")
+    parser.add_argument("--grounding-refs", default="",
+                        help="comma-separated REAL grounding reference(s): sec:fts/... / sec:cik/... "
+                             "/ fmp:screener/... (or, with --origin operator_manual, your own "
+                             "evidence ref). Empty triggers a live UD-1 grounding call.")
+    parser.add_argument("--origin", default="evidence_discovery",
+                        choices=("evidence_discovery", "ai_suggestion_grounded", "operator_manual"),
+                        help="how the lead reached you; ai_suggestion_grounded records that an AI "
+                             "lead was GROUNDED, not taken on faith.")
+    parser.add_argument("--verdict", default="accepted", choices=("accepted", "rejected"),
+                        help="your closed decision; only 'accepted' enters the working universe.")
+    parser.add_argument("--note", default="", help="an optional operator note.")
+    parser.add_argument("--correction-of", default="",
+                        help="id of a prior entry this record supersedes (a correction, never a "
+                             "mutation; optional).")
+    parser.add_argument("--now", default=None,
+                        help="injected ISO-8601 instant (default: the wall clock, read ONCE here "
+                             "at the shell boundary).")
+    args = parser.parse_args(argv)
+
+    now = args.now
+    if not now:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    from reality_mesh import accept_universe_entry
+
+    def _split(text):
+        return tuple(s.strip() for s in str(text or "").split(",") if s.strip())
+
+    print("ACCEPT one ticker into your universe · manual review only · CosmosIQ records it, never "
+          "accepts it for you · grounded against SEC / FMP first · no broker, no orders.")
+    try:
+        entry = accept_universe_entry(
+            args.store_dir,
+            ticker=args.ticker, theme_id=args.theme_id, theme_label=args.theme_label,
+            accepted_by=args.accepted_by, now=now,
+            grounding_refs=_split(args.grounding_refs),
+            origin=args.origin, verdict=args.verdict, note=args.note,
+            correction_of=args.correction_of)
+    except (ValueError, TypeError) as exc:
+        print("  REFUSED (nothing written): {0}".format(exc))
+        return 1
+
+    print("  accepted entry_id={0} · ticker={1} · theme={2} · authority={3} · origin={4} · "
+          "accepted_by={5}".format(entry.entry_id, entry.ticker, entry.theme_id,
+                                    entry.source_authority, entry.origin, entry.accepted_by))
+    print("  grounded by: {0} · provenance: {1}".format(
+        entry.grounded_by, ", ".join(entry.source_refs)))
+    if entry.verdict == "accepted":
+        print("  the ticker is now in your working universe (a grounded, operator-accepted entry).")
+    else:
+        print("  recorded honestly as rejected -- the ticker is NOT in your working universe.")
     return 0
 
 

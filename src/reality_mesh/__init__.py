@@ -298,6 +298,21 @@ from .diligence_lineage import (
     LineageOutcome,
     run_diligence_lineage,
 )
+from .accepted_universe import (
+    ACCEPTED_UNIVERSE_MODELS,
+    ACCEPTED_UNIVERSE_SCHEMA_VERSION,
+    AI_SUGGESTION_AUTHORITY,
+    UNIVERSE_AUTHORITIES,
+    UNIVERSE_ORIGINS,
+    UNIVERSE_VERDICTS,
+    AcceptedUniverseEntry,
+    AcceptedUniverseStore,
+    UniverseGrounding,
+    accept_universe_entry,
+    accepted_universe,
+    entry_id_for as universe_entry_id_for,
+    ground_universe_candidate,
+)
 from .investment_diligence import (
     DILIGENCE_VERDICTS,
     ELIGIBILITY_VALID_VERDICT,
@@ -1003,6 +1018,21 @@ __all__ = [
     "accept_diligence_thesis",
     "diligence_id_for",
     "latest_diligence_for",
+    # operator-accepted universe entries -- grounded (SEC/FMP) acceptance; ungrounded AI suggestion
+    # REFUSED; honest authority; append-only; no auto-accept; no graph/pulse/lineage yet (UD-3)
+    "ACCEPTED_UNIVERSE_MODELS",
+    "ACCEPTED_UNIVERSE_SCHEMA_VERSION",
+    "AI_SUGGESTION_AUTHORITY",
+    "UNIVERSE_AUTHORITIES",
+    "UNIVERSE_ORIGINS",
+    "UNIVERSE_VERDICTS",
+    "AcceptedUniverseEntry",
+    "AcceptedUniverseStore",
+    "UniverseGrounding",
+    "accept_universe_entry",
+    "accepted_universe",
+    "universe_entry_id_for",
+    "ground_universe_candidate",
     # typed CapitalRecommendation contract -- the model ABOVE CapitalCandidate (022A)
     "RECOMMENDATION_STATES",
     "RECOMMENDATION_LABELS",

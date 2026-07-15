@@ -98,6 +98,7 @@ __all__ = [
     "render_research_page",
     "render_theme_cockpit",
     "render_theme_list",
+    "render_universe_page",
 ]
 
 # The VERBATIM empty state for /candidates when NO eligible candidate is published (asserted
@@ -1026,6 +1027,193 @@ def diligence_refs_from_store(store_dir: str, tickers: Tuple[str, ...]) -> Dict[
             "forward_scenario_state": forward,
         }
     return out
+
+
+# --------------------------------------------------------------------------- #
+# /universe -- the UD-3 operator universe-acceptance review surface             #
+# --------------------------------------------------------------------------- #
+_UNIVERSE_ACCEPT_DISCLAIMER = (
+    "OPERATOR action &mdash; YOU accept a ticker into your working universe; CosmosIQ records it "
+    "and never accepts on its own. Only a GROUNDED entry can be accepted: an AI suggestion is "
+    "grounded against SEC / FMP first (its real filing / screener provenance), so an unverified "
+    "lead can never enter the universe on faith. This is a research universe, never a market "
+    "action; no market action is taken here.")
+
+# Grounding authority -> badge kind (colour == meaning; a LABEL, never a metric). canonical is the
+# strongest DISCOVERY provenance (a real SEC filing), convenience a provider screener row, manual an
+# operator attestation. ``ai_suggestion`` can never be an accepted authority (it is refused upstream).
+_UNIVERSE_AUTHORITY_KINDS = {"canonical": "ok", "convenience": "warn", "manual": "warn"}
+
+_UNIVERSE_ORIGIN_DISPLAY = {
+    "evidence_discovery": "discovered from real evidence (SEC / FMP)",
+    "ai_suggestion_grounded": "AI lead, then GROUNDED against SEC / FMP",
+    "operator_manual": "operator-attested (your own evidence reference)",
+}
+
+
+def _universe_accept_form(*, key: str, ticker: str = "", theme_id: str = "", theme_label: str = "",
+                          origin: str = "evidence_discovery", summary: str = "",
+                          grounding_hint: str = "", form_error: str = "",
+                          form_values: Optional[Dict[str, Any]] = None) -> str:
+    """The SANCTIONED 'Accept into universe' operator form (posts to /api/universe/accept).
+
+    The operator supplies the theme, their name, an honest grounding reference (SEC / FMP real
+    provenance -- or, for an operator-attested entry, their own evidence reference), and an optional
+    note; CosmosIQ GROUNDS + VALIDATES and refuses anything ungrounded. There is NO market / order /
+    broker control or wording anywhere in the form. ``key`` disambiguates which form a bad POST
+    re-renders its error into (so only the matching form shows the error).
+    """
+    values = dict(form_values or {})
+    posted_ticker = str(values.get("ticker", "") or "").strip().upper()
+    posted_key = str(values.get("form_key", "") or "")
+    mine = bool(posted_key) and posted_key == key
+    err_html = ""
+    if mine and form_error:
+        err_html = ('<p class="form-error">Could not accept that entry: {0}. Nothing was written; '
+                    "correct it and accept it again.</p>".format(_esc(form_error)))
+    tk_prev = _esc(posted_ticker) if mine and posted_ticker else _esc(str(ticker or "").upper())
+    theme_prev = _esc(str(values.get("theme_id", "") or "")) if mine else _esc(theme_id)
+    label_prev = _esc(str(values.get("theme_label", "") or "")) if mine else _esc(theme_label)
+    refs_prev = _esc(str(values.get("grounding_refs", "") or "")) if mine else ""
+    note_prev = _esc(str(values.get("note", "") or "")) if mine else ""
+    by_prev = _esc(str(values.get("accepted_by", "") or "")) if mine else ""
+    hint = grounding_hint or ("a real SEC / FMP reference the ticker resolves to, e.g. "
+                              "sec:cik/&lt;cik&gt; or fmp:screener/&lt;sector&gt;/&lt;industry&gt;")
+    ticker_field = ('<input type="hidden" name="ticker" value="{0}">'.format(tk_prev) if ticker
+                    else '<label>Ticker <input type="text" name="ticker" value="{0}"></label>'
+                    .format(tk_prev))
+    return (
+        '<details class="op-form-wrap"><summary>{sub}</summary>'
+        '<form class="op-form" method="post" action="/api/universe/accept">'
+        + err_html
+        + '<input type="hidden" name="form_key" value="{key}">'
+        '<input type="hidden" name="origin" value="{origin}">'
+        + ticker_field
+        + '<label>Theme id <input type="text" name="theme_id" value="{theme}"></label>'
+        '<label>Theme name <input type="text" name="theme_label" value="{label}"></label>'
+        '<label>Grounding reference(s) &mdash; {hint} '
+        '<input type="text" name="grounding_refs" value="{refs}"></label>'
+        '<label>Your name (who is accepting this) '
+        '<input type="text" name="accepted_by" value="{by}"></label>'
+        '<label>Note (optional) <input type="text" name="note" value="{note}"></label>'
+        "<button>Accept into universe</button>"
+        '<span class="op-note">{disc}</span>'
+        "</form></details>").format(
+            sub=_esc(summary or "Accept into universe"), key=_esc(key), origin=_esc(origin),
+            theme=theme_prev, label=label_prev, hint=hint, refs=refs_prev, by=by_prev,
+            note=note_prev, disc=_UNIVERSE_ACCEPT_DISCLAIMER)
+
+
+def _accepted_universe_section(store_dir: str) -> str:
+    """The current WORKING UNIVERSE: the newest non-superseded accepted entries (READ-ONLY)."""
+    from reality_mesh import accepted_universe
+    entries = accepted_universe(store_dir)
+    if not entries:
+        return ('<h2>Your universe</h2><div class="panel"><p class="note">No tickers accepted into '
+                "your universe yet. A ticker enters only when YOU accept it and it is grounded "
+                "against a real source &mdash; nothing is added on your behalf.</p></div>")
+    rows = ""
+    for e in entries:
+        auth = _badge(e.source_authority, _UNIVERSE_AUTHORITY_KINDS.get(e.source_authority, "warn"))
+        origin = _esc(_UNIVERSE_ORIGIN_DISPLAY.get(e.origin, e.origin))
+        provenance = _esc(", ".join(e.source_refs) or "&mdash;")
+        rows += (
+            '<tr><th>{t}</th><td>{theme}</td><td>{auth}</td><td>{origin}</td>'
+            "<td><span class=\"mono\">{prov}</span></td><td>{by}</td></tr>").format(
+                t=_esc(e.ticker), theme=_esc(e.theme_label or e.theme_id), auth=auth,
+                origin=origin, prov=provenance, by=_esc(e.accepted_by))
+    return ('<h2>Your universe</h2><div class="panel"><table class="kv">'
+            "<tr><th>Ticker</th><td>Theme</td><td>Grounding authority</td><td>How it was grounded"
+            "</td><td>Provenance (real refs)</td><td>Accepted by</td></tr>" + rows
+            + '</table><p class="note">Every entry is GROUNDED and operator-accepted &mdash; a '
+            "label + provenance, never a recommendation. canonical = a real SEC filing; convenience "
+            "= a provider screener row; manual = your own attested evidence.</p></div>")
+
+
+def _ai_leads_section(store_dir: str, form_error: str = "",
+                      form_values: Optional[Dict[str, Any]] = None) -> str:
+    """The UD-2 AI research leads -- clearly labelled UNVERIFIED, each with a grounded-accept form.
+
+    Reads the assistant-OWNED suggestions store (display-only; the engine never reads it). Each AI
+    theme + candidate ticker is shown as an UNVERIFIED lead that MUST be grounded against SEC / FMP
+    before acceptance; the per-ticker form makes that explicit (origin ai_suggestion_grounded, and a
+    real grounding reference is required or the acceptance is refused).
+    """
+    try:
+        from cosmosiq_assistant.universe_suggestions import read_universe_suggestions
+    except Exception:                       # noqa: BLE001 -- the assistant is an optional edge
+        return ""
+    suggestions = read_universe_suggestions(store_dir)
+    heading = "<h2>AI research leads (UNVERIFIED &mdash; must be grounded before acceptance)</h2>"
+    if not suggestions:
+        return (heading + '<div class="panel"><p class="note">No AI research leads recorded. AI '
+                "suggestions are edge-only, unverified, and outside the evidence ladder &mdash; "
+                "they appear here only as leads to investigate, never as evidence.</p></div>")
+    blocks = ""
+    for idx, s in enumerate(suggestions):
+        theme = str(s.get("theme", "") or "")
+        rationale = str(s.get("rationale", "") or "")
+        tickers = [str(t or "").strip().upper() for t in (s.get("candidate_tickers") or [])
+                   if str(t or "").strip()]
+        label = str(s.get("label", "") or "")
+        ticker_html = ""
+        for tk in tickers:
+            key = "ai-{0}-{1}".format(idx, tk)
+            ticker_html += (
+                '<li><span class="mono">{t}</span> '
+                + _universe_accept_form(
+                    key=key, ticker=tk, theme_id=theme, theme_label=theme,
+                    origin="ai_suggestion_grounded",
+                    summary="Ground & accept {0} into universe".format(tk),
+                    form_error=form_error, form_values=form_values)
+                + "</li>").format(t=_esc(tk))
+        if not ticker_html:
+            ticker_html = '<li class="note">no candidate tickers proposed for this lead</li>'
+        blocks += (
+            '<div class="panel"><p><strong>{theme}</strong> '
+            '<span class="badge bad">{label}</span></p>'
+            '<p class="note">{rat}</p><ul class="op-list">{tickers}</ul></div>').format(
+                theme=_esc(theme or "(untitled lead)"),
+                label=_esc(label or "AI-generated -- unverified"),
+                rat=_esc(rationale or "no rationale recorded"), tickers=ticker_html)
+    return heading + blocks
+
+
+def render_universe_page(store_dir: str, form_error: str = "",
+                         form_values: Optional[Dict[str, Any]] = None) -> str:
+    """The Universe review surface (UNIVERSE-DISCOVERY UD-3): the operator universe-acceptance page.
+
+    Three honest sections: (1) YOUR UNIVERSE -- the grounded, operator-accepted entries with their
+    authority + provenance; (2) AI RESEARCH LEADS -- the UD-2 suggestions, clearly labelled
+    UNVERIFIED / ai_suggestion and 'must be grounded before acceptance', each with a
+    grounded-accept form; (3) an ACCEPT-A-TICKER form for a discovered / known ticker. Every accept
+    posts to /api/universe/accept, which GROUNDS + VALIDATES and refuses anything ungrounded. The
+    OPERATOR accepts; CosmosIQ records it; an AI suggestion is grounded against SEC / FMP first. NO
+    ranking, NO sizing, NO market / order / broker control or wording; read-only on GET; offline.
+    ``form_error`` / ``form_values`` are set only when a bad POST re-renders the page.
+    """
+    banner = ""
+    if form_error:
+        banner = ('<div class="panel"><p class="form-error">Could not accept that entry: {0}. '
+                  "Nothing was written; correct it and accept it again.</p></div>".format(
+                      _esc(form_error)))
+    intro = ('<p class="note">Your working investment UNIVERSE and how a ticker enters it. A ticker '
+             "is added ONLY when you accept it AND it is grounded against a real source (a SEC "
+             "filing or an FMP screener row) &mdash; or, for a niche name, your own attested "
+             "evidence. AI suggestions appear as UNVERIFIED leads to investigate; they are grounded "
+             "against SEC / FMP before they can enter. CosmosIQ records your decision and never "
+             "accepts on its own.</p>")
+    accept_form = ("<h2>Accept a ticker into your universe</h2>"
+                   '<div class="panel">'
+                   + _universe_accept_form(
+                       key="manual-accept", origin="evidence_discovery",
+                       summary="Accept a discovered or known ticker",
+                       form_error=form_error, form_values=form_values)
+                   + "</div>")
+    return _page(store_dir, "Universe", "/universe",
+                 intro + banner + _accepted_universe_section(store_dir)
+                 + _ai_leads_section(store_dir, form_error, form_values)
+                 + accept_form)
 
 
 def _published_candidate_state_section(store_dir: str, ticker: str) -> str:
