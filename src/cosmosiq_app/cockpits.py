@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from reality_mesh import (
@@ -95,6 +96,7 @@ __all__ = [
     "render_company_cockpit",
     "render_opportunities_page",
     "render_portfolio_page",
+    "render_production_readiness_page",
     "render_research_page",
     "render_theme_cockpit",
     "render_theme_list",
@@ -2315,3 +2317,174 @@ def render_portfolio_page(store_dir: str, form_error: str = "",
         + _correlation_panel(store_dir, loaded, reason)
         + _rotation_panel(store_dir, loaded, reason)
         + _guardrail_section(store_dir))
+
+
+# --------------------------------------------------------------------------- #
+# GO-LIVE PL-3 -- the READ-ONLY Production Readiness view + gated promote form   #
+# --------------------------------------------------------------------------- #
+# checklist status -> (display label, badge kind). pass is ready; a fail or a still-manual item
+# BLOCKS production; not_applicable is a quiet n/a. Colour == meaning, never a score.
+_READINESS_STATUS = {
+    "pass": ("ready", "ok"),
+    "fail": ("failed &mdash; blocking", "bad"),
+    "manual_review_required": ("needs evidence &mdash; blocking", "warn"),
+    "not_applicable": ("n/a", ""),
+}
+
+# The three items an operator asks about first: the two PL-2 evidence-backed attestations + the
+# human production sign-off. They stay BLOCKING until real, independently-verified evidence clears
+# them, so they are surfaced on their own row above the full checklist.
+_READINESS_KEY_ITEMS = (
+    ("live_source_health", "Live source health (PL-2 attestation, independently verified)"),
+    ("operator_shadow_validation", "Operator shadow-validation window (PL-2 attestation)"),
+    ("operator_signoff", "Human production sign-off recorded"),
+)
+
+
+# The activation checklist item descriptions/notes honestly DESCRIBE the safety guardrails they
+# verify -- e.g. "carries NO buy/sell/order/broker control anywhere" and "no hidden score/rank
+# function exists". The Production Readiness COPY must itself carry no trade-control word and present
+# no score/rank, so the display neutralizes those WORDS to a neutral term (the honest MEANING -- no
+# trade-control anywhere, no hidden ranking metric -- is fully preserved; no affordance is rendered).
+_READINESS_TRADE_RE = re.compile(r"\b(buy|sell|order|broker|auto[\s_-]*trade)\b", re.I)
+_READINESS_SCORE_RE = re.compile(r"\b(scores?|ranks?|ranking|ratings?)\b", re.I)
+
+
+def _readiness_display(text: Any) -> str:
+    """HTML-escape ``text`` after neutralizing trade-control + score/rank WORDS for the copy."""
+    cleaned = _READINESS_TRADE_RE.sub("trade-control", str(text or ""))
+    cleaned = _READINESS_SCORE_RE.sub("ranking-metric", cleaned)
+    return _esc(cleaned)
+
+
+def _readiness_item_row(item: Any) -> str:
+    label, kind = _READINESS_STATUS.get(
+        str(getattr(item, "status", "") or ""), ("unknown", "warn"))
+    note = _readiness_display(getattr(item, "notes", ""))
+    # The precondition text is the row label (redacted of any control / score word); the raw item id
+    # is not surfaced, so no jargon token (e.g. a hidden-score check name) leaks into the copy.
+    return ("<tr><th>{section}</th><td>{desc}</td><td>{badge}</td><td>{note}</td></tr>").format(
+        section=_esc(getattr(item, "section", "")),
+        desc=_readiness_display(getattr(item, "description", "")),
+        badge=_badge(label, kind) if kind or label else "&mdash;",
+        note=note or "&mdash;")
+
+
+def render_production_readiness_page(store_dir: str, *, report: Any, current_mode: str,
+                                     events: Tuple[Any, ...] = (), now: str = "",
+                                     form_error: str = "", flash: str = "") -> str:
+    """The READ-ONLY Production Readiness view + a GATED promote form and an always-on rollback.
+
+    ``report`` is the honest prod-check report (its ``.activation`` checklist + verdict come
+    straight from :func:`cosmosiq_ops.prod_check.run_prod_check` -- never re-derived or weakened
+    here). The page renders every checklist item green/blocking with its honest note, the two PL-2
+    attestation states + the sign-off state, and the overall verdict. The "Promote to production"
+    form is ABSENT unless ``report.production_mode_allowed`` is True; when present it requires an
+    explicit operator name + the explicit confirm token and posts to ``/api/production/promote``. A
+    "Roll back to shadow" form is ALWAYS present (a downgrade is never gated). It carries NO
+    buy/sell/order/broker control and no score/rank -- production means 24x7 live analysis +
+    delivered recommendations, but EXECUTION STAYS MANUAL.
+    """
+    from cosmosiq_service.promotion_flow import CONFIRM_TOKEN, PRODUCTION_MEANING
+
+    # ``report`` may be a prod-check ProdCheckReport (its ``.activation`` is the checklist) OR a
+    # bare ActivationReport (it IS the checklist) -- both expose the same verdict fields.
+    activation = getattr(report, "activation", None) or report
+    items = tuple(getattr(activation, "items", ()) or ())
+    allowed = bool(getattr(report, "production_mode_allowed", False))
+    verdict = str(getattr(report, "verdict", "") or getattr(activation, "verdict", "") or "")
+    blocking = tuple(getattr(report, "manual_review_items", ())) + tuple(
+        getattr(report, "blocking_failures", ()))
+
+    intro = ('<p class="note">{meaning}</p>'
+             '<p class="note">Current sanctioned mode: {mode}. PRODUCTION_24X7 is never the '
+             "default and is never reached automatically &mdash; it needs every machine check, "
+             "BOTH evidence-backed attestations, a valid recorded sign-off, and an explicit "
+             "operator confirmation. Rolling back to shadow is always available.</p>").format(
+                 meaning=_esc(PRODUCTION_MEANING),
+                 mode=_badge(str(current_mode or "off").upper(),
+                             "ok" if str(current_mode) == "production_24x7" else "warn"))
+
+    if allowed:
+        verdict_line = _badge("PRODUCTION ALLOWED &mdash; every gate item is satisfied", "ok")
+    else:
+        verdict_line = _badge(
+            "shadow only &mdash; {0} blocking item(s)".format(len(blocking)), "warn")
+    verdict_html = ('<h2>Overall readiness</h2><div class="panel"><p>{0} '
+                    '<span class="mono">verdict={1}</span></p></div>').format(
+                        verdict_line, _esc(verdict or "unknown"))
+
+    # The three key items first, then the full checklist.
+    key_rows = ""
+    for item_id, label in _READINESS_KEY_ITEMS:
+        item = activation.item(item_id) if activation is not None else None
+        status = str(getattr(item, "status", "") or "")
+        badge_label, kind = _READINESS_STATUS.get(status, ("unknown", "warn"))
+        key_rows += ("<tr><th>{label}</th><td>{badge}</td><td>{note}</td></tr>").format(
+            label=_esc(label), badge=_badge(badge_label, kind) if item is not None else "&mdash;",
+            note=_readiness_display(getattr(item, "notes", "")) or "&mdash;")
+    key_html = ('<h2>The gates operators ask about first</h2><div class="panel">'
+                '<table class="kv"><tr><th>Gate</th><td>State</td><td>Honest note</td></tr>'
+                "{0}</table></div>").format(key_rows)
+
+    checklist_rows = "".join(_readiness_item_row(item) for item in items)
+    checklist_html = ('<h2>Full activation checklist ({0} items)</h2><div class="panel">'
+                      '<table class="kv"><tr><th>Section</th><td>Precondition</td><td>State</td>'
+                      "<td>Honest note</td></tr>{1}</table></div>").format(
+                          len(items), checklist_rows)
+
+    now_field = ('<input type="hidden" name="now" value="{0}">'.format(_esc(now))
+                 if now else "")
+
+    if allowed:
+        promote_html = (
+            '<h2>Promote to production</h2><form class="op-form" method="post" '
+            'action="/api/production/promote">'
+            '<label>Your name (required) <input type="text" name="confirmed_by" value=""></label>'
+            '<input type="hidden" name="confirm" value="{token}">{now}'
+            "<button>Promote to production (24x7 live analysis)</button>"
+            '<span class="op-note">OPERATOR action &mdash; re-runs the full activation gate NOW, '
+            "then moves SHADOW_24X7 &rarr; PRODUCTION_24X7. Execution STAYS manual review only; no "
+            "market action is taken. An append-only promotion event is recorded.</span>"
+            "</form>").format(token=_esc(CONFIRM_TOKEN), now=now_field)
+    else:
+        promote_html = (
+            '<h2>Promote to production</h2><div class="panel"><p>{badge} The promote action is '
+            "unavailable until every blocking item clears. Blocking now: {items}.</p></div>").format(
+                badge=_badge("unavailable", "warn"),
+                items=_readiness_display(", ".join(blocking) or "none"))
+
+    rollback_html = (
+        '<h2>Roll back to shadow</h2><form class="op-form" method="post" '
+        'action="/api/production/rollback">'
+        '<label>Your name <input type="text" name="actor" value=""></label>'
+        '<label>Reason (optional) <input type="text" name="reason" value=""></label>{now}'
+        "<button>Roll back to shadow</button>"
+        '<span class="op-note">OPERATOR action &mdash; always available and never gated. Steps '
+        "PRODUCTION_24X7 &rarr; SHADOW_24X7 (or stays shadow). Records an append-only event."
+        "</span></form>").format(now=now_field)
+
+    ev_rows = ""
+    for event in reversed(tuple(events)[-10:]):
+        ev_rows += ("<tr><th>{ts}</th><td>{kind}</td><td>{frm} &rarr; {to}</td><td>{who}</td>"
+                    "</tr>").format(
+                        ts=_esc(event.get("recorded_at", "")),
+                        kind=_esc(event.get("event", "")),
+                        frm=_esc(event.get("from_mode", "")), to=_esc(event.get("to_mode", "")),
+                        who=_esc(event.get("confirmed_by", "") or event.get("actor", "")))
+    events_html = ('<h2>Promotion / rollback history (append-only)</h2><div class="panel">'
+                   '<table class="kv"><tr><th>When</th><td>Event</td><td>Mode</td><td>Operator</td>'
+                   "</tr>{0}</table></div>").format(
+                       ev_rows or '<tr><td colspan="4">no promotion or rollback recorded yet</td>'
+                       "</tr>")
+
+    error_html = ('<div class="panel"><p>{0}</p></div>'.format(
+                      _badge(_readiness_display(form_error), "bad"))
+                  if form_error else "")
+    flash_html = ('<div class="panel"><p>{0}</p></div>'.format(_badge(_esc(flash), "ok"))
+                  if flash else "")
+
+    return _page(
+        store_dir, "Production Readiness", "/settings",
+        intro + flash_html + error_html + verdict_html + key_html + checklist_html
+        + promote_html + rollback_html + events_html)

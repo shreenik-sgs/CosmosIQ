@@ -221,6 +221,80 @@ def _cmd_rollback(args: argparse.Namespace) -> int:
     return 0 if outcome.allowed else 1
 
 
+def _pl3_signoff(args: argparse.Namespace, repo_root: str) -> Optional[str]:
+    """The operator sign-off path for the PL-3 flow (explicit --signoff, else the default if present)."""
+    from cosmosiq_ops.activate import DEFAULT_SIGNOFF_REL
+    path = args.signoff or os.path.join(repo_root, DEFAULT_SIGNOFF_REL)
+    return path if os.path.isfile(path) else None
+
+
+def _cmd_promote(args: argparse.Namespace) -> int:
+    """GO-LIVE PL-3: attempt SHADOW_24X7 -> PRODUCTION_24X7. Refuses (non-zero) unless the full gate
+    allows it AND an explicit operator + confirm token AND the current mode is SHADOW_24X7."""
+    from cosmosiq_service.promotion_flow import CONFIRM_TOKEN, request_production_promotion
+    repo_root = args.repo_root or _default_repo_root()
+    result = request_production_promotion(
+        args.store_dir, args.work_dir, repo_root, now=args.now,
+        confirmed_by=args.confirmed_by, confirm=args.confirm,
+        signoff_path=_pl3_signoff(args, repo_root), quick=bool(args.quick))
+    print("CosmosIQ production promotion (GO-LIVE PL-3) -- {0}".format(
+        "PROMOTED" if result.promoted else "REFUSED"))
+    print("  {0} -> {1} (verdict: {2})".format(
+        result.from_mode, result.to_mode, result.verdict))
+    print("  production_mode_allowed={0} confirmed_by={1!r}".format(
+        str(result.production_mode_allowed).lower(), result.confirmed_by))
+    if result.promoted:
+        print("  " + result.banner)
+        print("  promotion event recorded: {0}".format(result.event_path))
+        print("  Execution stays MANUAL review only -- no market action was taken.")
+    else:
+        print("  REFUSED -- nothing changed. Reasons:")
+        for reason in result.refusal_reasons:
+            print("    - " + reason)
+        if result.blocking_items:
+            print("  blocking items: {0}".format(", ".join(result.blocking_items)))
+        print("  (to promote, resubmit with confirm={0!r} once every gate item clears)".format(
+            CONFIRM_TOKEN))
+    return 0 if result.promoted else 1
+
+
+def _cmd_rollback_shadow(args: argparse.Namespace) -> int:
+    """GO-LIVE PL-3: roll the sanctioned mode back to SHADOW_24X7. Always available, never gated."""
+    from cosmosiq_service.promotion_flow import rollback_to_shadow
+    result = rollback_to_shadow(args.store_dir, now=args.now, actor=args.actor,
+                                reason=args.reason or "")
+    print("CosmosIQ rollback to shadow (GO-LIVE PL-3) -- {0}".format(
+        "APPLIED" if result.applied else "NO-OP (already at/below shadow)"))
+    print("  {0} -> {1}".format(result.from_mode, result.to_mode))
+    print("  {0}".format(result.reason))
+    print("  rollback event recorded: {0}".format(result.event_path))
+    return 0
+
+
+def _cmd_promotion_readiness(args: argparse.Namespace) -> int:
+    """GO-LIVE PL-3: the READ-ONLY production readiness gate over the REAL store (refuses by default)."""
+    from cosmosiq_ops.activate import read_current_mode
+    from cosmosiq_service.promotion_flow import production_readiness_report
+    repo_root = args.repo_root or _default_repo_root()
+    report = production_readiness_report(
+        args.store_dir, args.work_dir, repo_root, now=args.now,
+        signoff_path=_pl3_signoff(args, repo_root), quick=bool(args.quick))
+    activation = report.activation
+    allowed = bool(report.production_mode_allowed)
+    print("CosmosIQ production readiness (GO-LIVE PL-3) -- {0}".format(
+        "PRODUCTION ALLOWED" if allowed else "SHADOW ONLY"))
+    print("  current sanctioned mode: {0}".format(read_current_mode(args.store_dir).value))
+    print("  verdict: {0}".format(report.verdict))
+    for item in activation.items:
+        flag = "OK  " if item.status == "pass" else "BLOCK"
+        print("  [{0}] {1}: {2}".format(flag, item.id, item.status))
+    print("  blocking items: {0}".format(
+        ", ".join(tuple(report.manual_review_items) + tuple(report.blocking_failures)) or "none"))
+    print("  Production means 24x7 live analysis + delivered recommendations; execution stays "
+          "MANUAL review only.")
+    return 0 if allowed else 1
+
+
 def _cmd_security_audit(args: argparse.Namespace) -> int:
     from cosmosiq_ops.security_audit import render_security_audit, run_security_audit
     report = run_security_audit(args.repo_root or _default_repo_root(), now=args.now)
@@ -451,6 +525,54 @@ def _build_parser() -> argparse.ArgumentParser:
                           help="the named rollback trigger (default: operator_manual)")
     rollback.add_argument("--now", default=DEFAULT_NOW, help="injected instant (deterministic)")
     rollback.set_defaults(func=_cmd_rollback)
+
+    promote = sub.add_parser(
+        "promote",
+        help="GO-LIVE PL-3: attempt SHADOW_24X7 -> PRODUCTION_24X7; refuses unless the full gate "
+             "(re-run NOW) allows it + an explicit operator + confirm token (safe default: REFUSED)")
+    promote.add_argument("--store-dir", required=True,
+                         help="the operator store (evidence + sanctioned mode + event journal)")
+    promote.add_argument("--work-dir", required=True, help="fresh scratch dir for the gate sweep")
+    promote.add_argument("--repo-root", default=None,
+                         help="repo root to sweep (default: this checkout)")
+    promote.add_argument("--now", default=DEFAULT_NOW, help="injected instant (deterministic)")
+    promote.add_argument("--confirmed-by", required=True, dest="confirmed_by",
+                         help="the operator explicitly confirming the promotion")
+    promote.add_argument("--confirm", default="",
+                         help="the explicit confirm token (PROMOTE_TO_PRODUCTION_24X7)")
+    promote.add_argument("--signoff", default=None,
+                         help="path to the filled operator sign-off (default: the repo default)")
+    promote.add_argument("--quick", action="store_true",
+                         help="skip the CI-gate full-suite subprocess run; keep every sweep")
+    promote.set_defaults(func=_cmd_promote)
+
+    rollback_shadow = sub.add_parser(
+        "rollback-shadow",
+        help="GO-LIVE PL-3: roll the sanctioned mode back to SHADOW_24X7 (always available)")
+    rollback_shadow.add_argument("--store-dir", required=True, help="the operator store")
+    rollback_shadow.add_argument("--now", default=DEFAULT_NOW,
+                                 help="injected instant (deterministic)")
+    rollback_shadow.add_argument("--actor", default="operator",
+                                 help="the operator initiating the rollback")
+    rollback_shadow.add_argument("--reason", default=None, help="an optional rollback reason")
+    rollback_shadow.set_defaults(func=_cmd_rollback_shadow)
+
+    promotion_readiness = sub.add_parser(
+        "promotion-readiness",
+        help="GO-LIVE PL-3: the READ-ONLY production readiness gate over the real store "
+             "(refuses production by default -> shadow only)")
+    promotion_readiness.add_argument("--store-dir", required=True, help="the operator store")
+    promotion_readiness.add_argument("--work-dir", required=True,
+                                     help="fresh scratch dir for the gate sweep")
+    promotion_readiness.add_argument("--repo-root", default=None,
+                                     help="repo root to sweep (default: this checkout)")
+    promotion_readiness.add_argument("--now", default=DEFAULT_NOW,
+                                     help="injected instant (deterministic)")
+    promotion_readiness.add_argument("--signoff", default=None,
+                                     help="path to the filled operator sign-off (default: repo)")
+    promotion_readiness.add_argument("--quick", action="store_true",
+                                     help="skip the CI-gate full-suite subprocess run")
+    promotion_readiness.set_defaults(func=_cmd_promotion_readiness)
 
     audit = sub.add_parser(
         "security-audit",

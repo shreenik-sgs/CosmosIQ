@@ -876,6 +876,122 @@ def _handle_portfolio_record_fill(store_dir: str, body: Any, now: str) -> Dict[s
 
 
 # --------------------------------------------------------------------------- #
+# GO-LIVE PL-3 -- the Production Readiness view + the gated promote / rollback    #
+# --------------------------------------------------------------------------- #
+def _repo_root_default() -> str:
+    # src/cosmosiq_app/api.py -> repo root is three levels up.
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def _default_signoff_path() -> Optional[str]:
+    """The default operator sign-off path under the repo, if a filled one is actually present.
+
+    Returns the path only when the file exists (an operator filled it); otherwise None so the
+    gate stays honestly unmet. This module NEVER creates or fills the sign-off.
+    """
+    from cosmosiq_ops.activate import DEFAULT_SIGNOFF_REL
+    path = os.path.join(_repo_root_default(), DEFAULT_SIGNOFF_REL)
+    return path if os.path.isfile(path) else None
+
+
+def _production_readiness(store_dir: str, now: str) -> Any:
+    """Run the honest prod-check gate over the REAL store (fresh scratch work dir; quick sweep)."""
+    import tempfile
+
+    from cosmosiq_service.promotion_flow import production_readiness_report
+    effective_now = str(now).strip() or "1970-01-01T00:00:00Z"
+    with tempfile.TemporaryDirectory() as work:
+        return production_readiness_report(
+            store_dir, work, _repo_root_default(), now=effective_now,
+            signoff_path=_default_signoff_path(), quick=True)
+
+
+def _render_production_page(store_dir: str, now: str, *, report: Any = None,
+                            form_error: str = "", flash: str = "", status: int = 200
+                            ) -> Dict[str, Any]:
+    from cosmosiq_ops.activate import read_current_mode
+    from cosmosiq_service.promotion_flow import read_promotion_events
+
+    from . import cockpits as _cockpits
+    if report is None:
+        report = _production_readiness(store_dir, now)
+    body = _cockpits.render_production_readiness_page(
+        store_dir, report=report, current_mode=read_current_mode(store_dir).value,
+        events=read_promotion_events(store_dir), now=str(now).strip(),
+        form_error=form_error, flash=flash)
+    return _html(status, body)
+
+
+def _handle_production_readiness_get(store_dir: str, now: str) -> Dict[str, Any]:
+    """GET /production -- the READ-ONLY Production Readiness view (runs the honest gate NOW)."""
+    return _render_production_page(store_dir, now)
+
+
+def _production_readiness_json(store_dir: str, now: str) -> Dict[str, Any]:
+    """GET /api/production/readiness -- the honest gate verdict as JSON (labels only, no score)."""
+    from cosmosiq_ops.activate import read_current_mode
+
+    report = _production_readiness(store_dir, now)
+    activation = getattr(report, "activation", None) or report
+    items = tuple(getattr(activation, "items", ()) or ())
+    return {
+        "current_mode": read_current_mode(store_dir).value,
+        "production_mode_allowed": bool(report.production_mode_allowed),
+        "verdict": report.verdict,
+        "items_total": len(items),
+        "items_ready": sum(1 for i in items if i.status == "pass"),
+        "blocking_items": list(tuple(report.manual_review_items)
+                               + tuple(report.blocking_failures)),
+        "execution": "manual_review_only",
+    }
+
+
+def _handle_production_promote(store_dir: str, body: Any, now: str) -> Dict[str, Any]:
+    """POST /api/production/promote -- attempt SHADOW_24X7 -> PRODUCTION_24X7 (refuses unless allowed).
+
+    Composes :func:`cosmosiq_service.promotion_flow.request_production_promotion`, which RE-RUNS the
+    honest gate NOW and refuses unless production_mode_allowed AND an explicit operator + confirm
+    token AND the SHADOW-only ladder rule hold. On refusal NOTHING changes and the page re-renders
+    with the exact reason (400); on promotion it redirects (303) back to /production. No broker, no
+    order, no trade affordance -- execution stays manual review only.
+    """
+    import tempfile
+
+    from cosmosiq_service.promotion_flow import request_production_promotion
+    if not isinstance(body, dict):
+        body = {}
+    effective_now = str(body.get("now", "") or body.get("at", "") or "") or now
+    confirmed_by = str(body.get("confirmed_by", "") or "").strip()
+    confirm = str(body.get("confirm", "") or "")
+    with tempfile.TemporaryDirectory() as work:
+        result = request_production_promotion(
+            store_dir, work, _repo_root_default(), now=effective_now,
+            confirmed_by=confirmed_by, confirm=confirm,
+            signoff_path=_default_signoff_path(), quick=True)
+    if result.promoted:
+        return _redirect("/production")
+    reason = "; ".join(result.refusal_reasons) or "promotion refused -- nothing changed"
+    return _render_production_page(store_dir, effective_now, report=result.report,
+                                   form_error="Promotion refused -- " + reason, status=400)
+
+
+def _handle_production_rollback(store_dir: str, body: Any, now: str) -> Dict[str, Any]:
+    """POST /api/production/rollback -- roll the sanctioned mode back to SHADOW_24X7 (always allowed).
+
+    Composes :func:`cosmosiq_service.promotion_flow.rollback_to_shadow`; a downgrade is never gated.
+    Redirects (303) back to /production. No broker / order / trade affordance.
+    """
+    from cosmosiq_service.promotion_flow import rollback_to_shadow
+    if not isinstance(body, dict):
+        body = {}
+    effective_now = str(body.get("now", "") or body.get("at", "") or "") or now
+    rollback_to_shadow(store_dir, now=effective_now,
+                       actor=str(body.get("actor", "") or ""),
+                       reason=str(body.get("reason", "") or ""))
+    return _redirect("/production")
+
+
+# --------------------------------------------------------------------------- #
 # The ISOLATED AI Research Assistant (PROD-LIVE-3) -- EDGE-only, display-only     #
 # --------------------------------------------------------------------------- #
 def _assistant_mode(body: Dict[str, Any]) -> str:
@@ -957,6 +1073,11 @@ def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[
         for token in TRADE_PATH_TOKENS:
             if token in segment:
                 return _error(403, EXECUTION_REFUSAL)
+
+    # GO-LIVE PL-3: the READ-ONLY Production Readiness page (handled here, not in _dispatch_page,
+    # because it runs the honest activation gate at the injected ``now``).
+    if segments == ["production"] and method == "GET":
+        return _handle_production_readiness_get(store_dir, now)
 
     if not segments or segments[0] != "api":
         # 016B: the server-rendered app pages live OUTSIDE /api (GET-only, text/html).
@@ -1054,6 +1175,18 @@ def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[
     if tail == ["portfolio", "record-fill"]:
         return _require(method, "POST", path) or _handle_portfolio_record_fill(
             store_dir, body, now)
+
+    # GO-LIVE PL-3: the gated production promote / rollback actions. Promotion refuses unless the
+    # honest gate (re-run NOW) allows it + an explicit operator + confirm token; rollback is always
+    # available. A trade-like path (/api/production/order, /buy, /sell, /trade) is already refused
+    # 403 above by the execution guard.
+    if tail == ["production", "promote"]:
+        return _require(method, "POST", path) or _handle_production_promote(store_dir, body, now)
+    if tail == ["production", "rollback"]:
+        return _require(method, "POST", path) or _handle_production_rollback(store_dir, body, now)
+    if tail == ["production", "readiness"]:
+        return _require(method, "GET", path) or _json(
+            200, _production_readiness_json(store_dir, now))
 
     # PROD-LIVE-3: the ISOLATED AI Research Assistant (display-only; no trade route -- a trade path
     # is refused 403 above). Runs the cosmosiq_assistant package OUTSIDE reality_mesh; the labelled,
