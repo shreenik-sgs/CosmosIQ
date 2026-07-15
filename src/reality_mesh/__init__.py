@@ -313,6 +313,15 @@ from .accepted_universe import (
     entry_id_for as universe_entry_id_for,
     ground_universe_candidate,
 )
+from .dynamic_universe import (
+    OPERATOR_MEGA_THEME_ID,
+    OPERATOR_MEMBERSHIP_LABEL,
+    OPERATOR_MEMBERSHIP_NOTE,
+    accepted_graph_provenance,
+    accepted_watchlist,
+    build_accepted_theme_graph,
+    run_lineage_on_accepted_universe,
+)
 from .investment_diligence import (
     DILIGENCE_VERDICTS,
     ELIGIBILITY_VALID_VERDICT,
@@ -1033,6 +1042,16 @@ __all__ = [
     "accepted_universe",
     "universe_entry_id_for",
     "ground_universe_candidate",
+    # DYNAMIC theme graph from the operator-accepted universe -- ends hand-curation; ADDITIVE;
+    # only accepted tickers under accepted themes; new theme -> NEUTRAL operator scaffold; empty ->
+    # 0 monitored tickers (never a seed fallback); lineage honesty preserved end-to-end (UD-4)
+    "OPERATOR_MEGA_THEME_ID",
+    "OPERATOR_MEMBERSHIP_LABEL",
+    "OPERATOR_MEMBERSHIP_NOTE",
+    "accepted_graph_provenance",
+    "accepted_watchlist",
+    "build_accepted_theme_graph",
+    "run_lineage_on_accepted_universe",
     # typed CapitalRecommendation contract -- the model ABOVE CapitalCandidate (022A)
     "RECOMMENDATION_STATES",
     "RECOMMENDATION_LABELS",

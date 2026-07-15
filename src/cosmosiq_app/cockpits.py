@@ -1179,8 +1179,73 @@ def _ai_leads_section(store_dir: str, form_error: str = "",
     return heading + blocks
 
 
+# The plain-English honesty note under the 'Run analysis on my accepted universe' action. It runs
+# a credential-gated refresh over the accepted watchlist, then the honest diligence lineage over the
+# DYNAMIC graph built from the accepted universe -- deliberately free of every trade verb and the
+# bare word the default-UI over-claim sweep forbids.
+_UNIVERSE_RUN_DISCLAIMER = (
+    "OPERATOR action &mdash; YOU choose to analyse your accepted universe. CosmosIQ refreshes "
+    "evidence from the external sources YOU configured (credential-gated &mdash; honest gaps if "
+    "none are set; nothing is fetched otherwise), then recomputes each accepted ticker&#39;s HONEST "
+    "state over the theme graph built from your accepted universe. It is a research analysis, never "
+    "a market action; nothing here is a recommendation and no market action is taken. A ticker with "
+    "no real corroboration in the evidence stays blocked / on watch &mdash; nothing is forced "
+    "through.")
+
+
+def _universe_run_section(store_dir: str, run_note: str = "",
+                          run_outcomes: Optional[Tuple[Any, ...]] = None) -> str:
+    """The SANCTIONED 'Run analysis on my accepted universe' action + its honest results (READ-ONLY).
+
+    The button POSTs to ``/api/universe/run``, which refreshes evidence over the accepted watchlist
+    (credential-gated; honest gaps if unconfigured) and recomputes the diligence lineage over the
+    DYNAMIC graph built from the accepted universe. This function renders the always-present action
+    form and, after a POST, an honest one-line note plus a per-ticker state table (discovery state +
+    typed candidate state + the exact missing link). Labels + references only; NO ranking, NO
+    sizing, NO market / order affordance; deterministic; offline on GET.
+    """
+    action_form = (
+        '<div class="panel">'
+        '<form class="op-form" method="post" action="/api/universe/run">'
+        "<button>Run analysis on my accepted universe</button>"
+        '<span class="op-note">{disc}</span>'
+        "</form></div>").format(disc=_UNIVERSE_RUN_DISCLAIMER)
+
+    note_html = ""
+    if run_note:
+        note_html = '<div class="panel"><p class="note">{0}</p></div>'.format(_esc(run_note))
+
+    results_html = ""
+    if run_outcomes:
+        rows = ""
+        for out in run_outcomes:
+            cand_cell = (_candidate_state_badge(out.candidate_state) if out.candidate_state
+                         else '<span class="note">not assembled &mdash; no capital standing yet'
+                              "</span>")
+            rows += (
+                '<tr><th><a href="/candidates/{t}">{t}</a></th><td>{disc}</td><td>{cand}</td>'
+                "<td>{missing}</td></tr>").format(
+                    t=_esc(out.ticker), disc=_discovery_state_badge(out.discovery_state),
+                    cand=cand_cell, missing=_esc(out.missing_link))
+        results_html = (
+            '<div class="panel"><p class="note">Each accepted ticker&#39;s HONEST state from the '
+            "analysis, recomputed from the refreshed evidence over the theme graph built from your "
+            "accepted universe. A graph-connected ticker with no real corroboration stays "
+            "<span class=\"mono\">blocked_insufficient_evidence</span> / "
+            "<span class=\"mono\">monitor_only</span>; nothing is forced to eligible. Labels and "
+            "references only.</p>"
+            '<table class="kv"><tr><th>Ticker</th><td>Discovery state</td>'
+            "<td>Candidate eligibility</td><td>What&#39;s missing (exact link)</td></tr>"
+            + rows + "</table></div>")
+
+    return ("<h2>Run analysis on my accepted universe</h2>"
+            + action_form + note_html + results_html)
+
+
 def render_universe_page(store_dir: str, form_error: str = "",
-                         form_values: Optional[Dict[str, Any]] = None) -> str:
+                         form_values: Optional[Dict[str, Any]] = None,
+                         run_note: str = "",
+                         run_outcomes: Optional[Tuple[Any, ...]] = None) -> str:
     """The Universe review surface (UNIVERSE-DISCOVERY UD-3): the operator universe-acceptance page.
 
     Three honest sections: (1) YOUR UNIVERSE -- the grounded, operator-accepted entries with their
@@ -1212,6 +1277,7 @@ def render_universe_page(store_dir: str, form_error: str = "",
                    + "</div>")
     return _page(store_dir, "Universe", "/universe",
                  intro + banner + _accepted_universe_section(store_dir)
+                 + _universe_run_section(store_dir, run_note, run_outcomes)
                  + _ai_leads_section(store_dir, form_error, form_values)
                  + accept_form)
 

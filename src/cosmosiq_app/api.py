@@ -732,6 +732,68 @@ def _handle_universe_accept(store_dir: str, body: Any, now: str) -> Dict[str, An
     return _redirect("/universe")
 
 
+def _handle_universe_run(store_dir: str, body: Any, now: str) -> Dict[str, Any]:
+    """POST /api/universe/run -- RUN the honest analysis over the operator-accepted universe (UD-4).
+
+    The SANCTIONED operator action behind the Universe 'Run analysis on my accepted universe'
+    button. It ends hand-curation: the accepted universe (grounded + operator-accepted, UD-3)
+    becomes the watchlist AND the theme graph. It (1) runs a credential-gated LIVE refresh
+    (:func:`reality_mesh.run_live_pulse`) over :func:`reality_mesh.accepted_watchlist` -- honest
+    gaps if no source is configured, NOTHING fetched / persisted otherwise, no fixture fallback --
+    then (2) recomputes :func:`reality_mesh.run_lineage_on_accepted_universe` over the DYNAMIC graph
+    built from the accepted universe (``persist=False`` -- READ-ONLY display), and re-renders
+    ``/universe`` with each ticker's HONEST discovery + candidate state. Discovery still needs REAL
+    corroborating evidence: an accepted ticker with none stays blocked / on watch; nothing is forced
+    to eligible. No auto-run, no trade / order / broker route (a trade path is refused 403 above),
+    no ranking, no sizing. An empty accepted universe is an honest no-op.
+    """
+    from reality_mesh import (
+        accepted_universe,
+        accepted_watchlist,
+        run_lineage_on_accepted_universe,
+        run_live_pulse,
+    )
+    from . import cockpits as _cockpits
+
+    if not isinstance(body, dict):
+        return _html(400, _cockpits.render_universe_page(
+            store_dir, run_note="the analysis form must post its fields"))
+    watch = accepted_watchlist(store_dir)
+    if not watch:
+        return _html(200, _cockpits.render_universe_page(
+            store_dir, run_note=("Your accepted universe is empty -- accept a grounded ticker "
+                                 "first, then run the analysis. Nothing was fetched or computed.")))
+    effective_now = str(body.get("now", "") or body.get("at", "") or "") or now
+    if not effective_now.strip():
+        return _html(400, _cockpits.render_universe_page(
+            store_dir, run_note="an injected 'now' instant is required to run the analysis "
+                                "(the dispatcher never reads the wall clock)"))
+    themes = tuple(dict.fromkeys(
+        str(e.theme_id or "").strip() for e in accepted_universe(store_dir)
+        if str(e.theme_id or "").strip()))
+    try:
+        result = run_live_pulse(watch, themes, store_dir=store_dir, now=effective_now)
+    except (ValueError, FileNotFoundError) as exc:
+        return _html(400, _cockpits.render_universe_page(store_dir, run_note=str(exc)))
+
+    if not (result.configured and result.persisted and result.run_id):
+        note = ("No external sources configured -- nothing was fetched or persisted, and no "
+                "network was attempted. Set the credential env var(s) shown on the Evidence page, "
+                "then run the analysis again. Your accepted universe ({0} ticker(s)) is ready to "
+                "analyse once a source is configured.".format(len(watch)))
+        return _html(200, _cockpits.render_universe_page(store_dir, run_note=note))
+
+    lineage = run_lineage_on_accepted_universe(
+        store_dir, run_id=result.run_id, now=effective_now, persist=False)
+    note = ("Analysed your accepted universe over run {0} (record-only refresh): {1} source(s), "
+            "{2} ticker(s) assessed, {3} data gap(s) recorded honestly. Each ticker's honest state "
+            "is shown below.".format(
+                result.run_id, len(result.sources_configured), len(lineage.outcomes),
+                len(result.data_gaps)))
+    return _html(200, _cockpits.render_universe_page(
+        store_dir, run_note=note, run_outcomes=lineage.outcomes))
+
+
 def _handle_coverage() -> Dict[str, Any]:
     implemented_ids = frozenset(
         factory().descriptor.agent_id for factory in _IMPLEMENTED_AGENT_FACTORIES)
@@ -973,6 +1035,14 @@ def dispatch(request: Dict[str, Any], *, store_dir: str, now: str = "") -> Dict[
     # suggestion; never auto-accepts. No trade route -- a trade path is refused 403 above.
     if tail == ["universe", "accept"]:
         return _require(method, "POST", path) or _handle_universe_accept(store_dir, body, now)
+
+    # UNIVERSE-DISCOVERY UD-4: the SANCTIONED "Run analysis on my accepted universe" action. The
+    # accepted universe becomes the watchlist + DYNAMIC theme graph: it refreshes evidence
+    # (credential-gated) then recomputes the honest diligence lineage over the dynamic graph, and
+    # shows each ticker's state. Record/analysis-only -- no trade route (a trade path is refused 403
+    # above); nothing is forced to eligible.
+    if tail == ["universe", "run"]:
+        return _require(method, "POST", path) or _handle_universe_run(store_dir, body, now)
 
     if tail == ["coverage"]:
         return _require(method, "GET", path) or _handle_coverage()
