@@ -43,6 +43,12 @@ from cosmosiq_ops.ci_gate import (
     format_ci_gate_report,
     run_ci_gate,
 )
+from cosmosiq_ops.operator_attestation import (
+    latest_live_source_health_attestation,
+    latest_shadow_validation_attestation,
+    verify_live_source_health,
+    verify_shadow_validation,
+)
 from cosmosiq_service.activation import (
     CheckResult,
     OperatorApproval,
@@ -653,6 +659,19 @@ def run_prod_check(work_dir: str, repo_root: str, *, now: str, quick: bool = Fal
     for c in checks:
         item_id = "no_hidden_score" if c.name == "no_score_rank_functions" else c.name
         by_id[item_id] = CheckResult(item_id, c.status, c.details)
+
+    # GO-LIVE PL-2: the two manual items (live_source_health / operator_shadow_validation) can be
+    # CLEARED only by an evidence-backed operator attestation that an INDEPENDENT verifier confirms
+    # against the REAL persisted store. We inject a verifier result ONLY when the corresponding
+    # attestation EXISTS; with NO attestations (the default OFFLINE posture) neither key is supplied
+    # and both fall through to evaluate_activation's manual_review_required default -- byte-identical
+    # to the pre-PL-2 refusal (production still refused; lands shadow). A false / unbacked / stale /
+    # short-window attestation yields a manual_review_required verifier result and STAYS blocking.
+    if latest_live_source_health_attestation(store_dir) is not None:
+        by_id["live_source_health"] = verify_live_source_health(store_dir, now=now)
+    if latest_shadow_validation_attestation(store_dir) is not None:
+        by_id["operator_shadow_validation"] = verify_shadow_validation(store_dir, now=now)
+
     if extra_checks:
         for item_id, result in extra_checks.items():
             by_id[item_id] = result

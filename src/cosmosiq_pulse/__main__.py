@@ -31,6 +31,10 @@ def main(argv=None) -> int:
         return _accept_diligence(args[1:])
     if args and args[0] == "accept-universe":
         return _accept_universe(args[1:])
+    if args and args[0] == "attest-live-source":
+        return _attest_live_source(args[1:])
+    if args and args[0] == "attest-shadow-validation":
+        return _attest_shadow_validation(args[1:])
     if "--live" in args:
         return _run_live(args)
     from tattva_pulse.__main__ import main as _main
@@ -201,6 +205,144 @@ def _accept_universe(argv) -> int:
         print("  the ticker is now in your working universe (a grounded, operator-accepted entry).")
     else:
         print("  recorded honestly as rejected -- the ticker is NOT in your working universe.")
+    return 0
+
+
+def _attest_live_source(argv) -> int:
+    """RECORD one OPERATOR live-source-health attestation (GO-LIVE PL-2). Never auto-attests.
+
+    The headless twin of the operator reviewing a REAL live run's source health and attesting it.
+    It calls :func:`cosmosiq_ops.operator_attestation.record_live_source_health_attestation`, which
+    REFUSES (non-zero exit, nothing written) unless the named ``--run-id`` is a REAL persisted run.
+    Recording an attestation does NOT clear the 020F item on its own: an independent verifier
+    re-reads the persisted run/events and confirms the sources actually reported healthy + fresh;
+    a false / unbacked / stale attestation leaves live_source_health BLOCKING. No broker / orders.
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog="cosmosiq_pulse attest-live-source",
+        description=("RECORD one operator attestation that a REAL live run's sources are healthy. "
+                     "The engine never attests on its own; an attestation clears the 020F "
+                     "live_source_health item only if an independent verifier confirms the real "
+                     "persisted evidence backs it. Append-only, offline, no broker, no orders."))
+    parser.add_argument("--store-dir", required=True,
+                        help="the local append-only store the live run + attestation live in.")
+    parser.add_argument("--run-id", required=True,
+                        help="the REAL persisted live run you reviewed (must exist in the store).")
+    parser.add_argument("--sources", required=True,
+                        help="comma-separated live adapter ids you confirm healthy, e.g. "
+                             "evidence.sec_edgar_live,evidence.fmp_live.")
+    parser.add_argument("--reviewed-by", required=True,
+                        help="who reviewed this (your operator label).")
+    parser.add_argument("--statement", default="", help="an optional operator note.")
+    parser.add_argument("--correction-of", default="",
+                        help="id of a prior attestation this record supersedes (a correction, "
+                             "never a mutation; optional).")
+    parser.add_argument("--now", default=None,
+                        help="injected ISO-8601 instant (default: the wall clock, read ONCE here "
+                             "at the shell boundary).")
+    args = parser.parse_args(argv)
+
+    now = args.now
+    if not now:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    from cosmosiq_ops.operator_attestation import record_live_source_health_attestation
+
+    def _split(text):
+        return tuple(s.strip() for s in str(text or "").split(",") if s.strip())
+
+    print("RECORD one operator live-source-health attestation · manual review only · CosmosIQ "
+          "records it, never attests for you · an independent verifier confirms it · no broker, "
+          "no orders.")
+    try:
+        attestation = record_live_source_health_attestation(
+            args.store_dir, run_id=args.run_id, sources_reviewed=_split(args.sources),
+            reviewed_by=args.reviewed_by, reviewed_at=now, statement=args.statement,
+            correction_of=args.correction_of)
+    except (ValueError, TypeError) as exc:
+        print("  REFUSED (nothing written): {0}".format(exc))
+        return 1
+
+    print("  recorded attestation_id={0} · run_id={1} · sources={2} · reviewed_by={3}".format(
+        attestation.attestation_id, attestation.run_id,
+        ", ".join(attestation.sources_reviewed), attestation.reviewed_by))
+    print("  the attestation is RECORDED; live_source_health clears ONLY if an independent verifier "
+          "confirms the real persisted run/events back it (healthy + fresh).")
+    return 0
+
+
+def _attest_shadow_validation(argv) -> int:
+    """RECORD one OPERATOR shadow-validation attestation (GO-LIVE PL-2). Never auto-attests.
+
+    The headless twin of the operator reviewing a REAL shadow / paper observation window (several
+    persisted runs over real calendar days) and attesting it. It calls
+    :func:`cosmosiq_ops.operator_attestation.record_shadow_validation_attestation`, which REFUSES
+    (non-zero exit, nothing written) unless every named ``--run-ids`` is a REAL persisted run (or a
+    non-empty window is given). Recording does NOT clear the 020F item on its own: an independent
+    verifier confirms the runs form a genuine window (enough distinct runs over enough distinct
+    days); too few / too short leaves operator_shadow_validation BLOCKING. No broker / orders.
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog="cosmosiq_pulse attest-shadow-validation",
+        description=("RECORD one operator attestation that a REAL shadow / paper observation "
+                     "window was reviewed. The engine never attests on its own; it clears the "
+                     "020F operator_shadow_validation item only if an independent verifier confirms "
+                     "a genuine window of real persisted runs. Append-only, offline, no orders."))
+    parser.add_argument("--store-dir", required=True,
+                        help="the local append-only store the runs + attestation live in.")
+    parser.add_argument("--run-ids", default="",
+                        help="comma-separated REAL persisted run ids forming the reviewed window "
+                             "(each must exist). Omit to use --window-start/--window-end instead.")
+    parser.add_argument("--window-start", default="",
+                        help="window start instant (used when --run-ids is omitted).")
+    parser.add_argument("--window-end", default="",
+                        help="window end instant (used when --run-ids is omitted).")
+    parser.add_argument("--reviewed-by", required=True,
+                        help="who reviewed this (your operator label).")
+    parser.add_argument("--statement", default="", help="an optional operator note.")
+    parser.add_argument("--correction-of", default="",
+                        help="id of a prior attestation this record supersedes (a correction, "
+                             "never a mutation; optional).")
+    parser.add_argument("--now", default=None,
+                        help="injected ISO-8601 instant (default: the wall clock, read ONCE here "
+                             "at the shell boundary).")
+    args = parser.parse_args(argv)
+
+    now = args.now
+    if not now:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    from cosmosiq_ops.operator_attestation import record_shadow_validation_attestation
+
+    def _split(text):
+        return tuple(s.strip() for s in str(text or "").split(",") if s.strip())
+
+    print("RECORD one operator shadow-validation attestation · manual review only · CosmosIQ "
+          "records it, never attests for you · an independent verifier confirms the window · no "
+          "broker, no orders.")
+    try:
+        attestation = record_shadow_validation_attestation(
+            args.store_dir, window_run_ids=_split(args.run_ids),
+            window_start=args.window_start, window_end=args.window_end,
+            reviewed_by=args.reviewed_by, reviewed_at=now, statement=args.statement,
+            correction_of=args.correction_of)
+    except (ValueError, TypeError) as exc:
+        print("  REFUSED (nothing written): {0}".format(exc))
+        return 1
+
+    window = (", ".join(attestation.window_run_ids)
+              or "{0}..{1}".format(attestation.window_start, attestation.window_end))
+    print("  recorded attestation_id={0} · window={1} · reviewed_by={2}".format(
+        attestation.attestation_id, window, attestation.reviewed_by))
+    print("  the attestation is RECORDED; operator_shadow_validation clears ONLY if an independent "
+          "verifier confirms the runs form a genuine window (enough distinct runs over enough "
+          "distinct days).")
     return 0
 
 

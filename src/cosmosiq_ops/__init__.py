@@ -128,3 +128,20 @@ from cosmosiq_ops.deployment_readiness import (  # noqa: F401
     render_deployment_readiness,
     run_deployment_readiness,
 )
+from cosmosiq_ops.operator_attestation import (  # noqa: F401
+    LIVE_SOURCE_HEALTH_ITEM,
+    SHADOW_MIN_DAYS,
+    SHADOW_MIN_RUNS,
+    SHADOW_VALIDATION_ITEM,
+    AttestationCheckResult,
+    LiveSourceHealthAttestation,
+    OperatorAttestationStore,
+    ShadowValidationAttestation,
+    attestation_activation_status,
+    latest_live_source_health_attestation,
+    latest_shadow_validation_attestation,
+    record_live_source_health_attestation,
+    record_shadow_validation_attestation,
+    verify_live_source_health,
+    verify_shadow_validation,
+)
