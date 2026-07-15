@@ -65,6 +65,10 @@ from reality_mesh.orchestrator import append_schedule_state
 from reality_mesh.scheduler import ALL_POLICIES
 from reality_mesh.stores import DataQualityStore
 from reality_mesh.alerts import generate_shadow_alerts_for_run
+# GO-LIVE PL-4: the credential-gated, fixture-free LIVE pulse (PROD-LIVE-4). Imported at top --
+# live_pulse touches NO network at import (the adapters build their real transports lazily), so
+# importing this module still starts nothing and reads no environment.
+from reality_mesh.live_pulse import run_live_pulse
 
 __all__ = [
     "ServiceMode",
@@ -244,12 +248,30 @@ class ServiceConfig:
     max_consecutive_failures: int = 5
     lock_stale_seconds: int = 3600
     poll_interval_seconds: int = 60
+    # -- GO-LIVE PL-4: opt-in LIVE sourcing (default OFF -> the fixture path is byte-identical) -- #
+    # When ``live_sources`` is True AND the mode permits it (SHADOW_24X7 / MANUAL), a tick runs the
+    # credential-gated LIVE pulse (real SEC/FMP evidence, ``suppress_fixture_evidence``, honest gaps,
+    # NO fixture fallback) instead of the fixture orchestrator. ``live_watchlist`` / ``live_themes``
+    # are the scope to pulse; set ``live_use_accepted_watchlist`` to pull the accepted-universe
+    # watchlist from the store instead. These are config LABELS only -- never a credential/secret.
+    live_sources: bool = False
+    live_watchlist: Tuple[str, ...] = field(default_factory=tuple)
+    live_themes: Tuple[str, ...] = field(default_factory=tuple)
+    live_use_accepted_watchlist: bool = False
+    live_include_price_fallback: bool = False
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "mode", ServiceMode.parse(self.mode))
         if not str(self.store_dir).strip():
             raise ValueError("ServiceConfig.store_dir is required and must be non-empty")
         object.__setattr__(self, "subscriptions", tuple(self.subscriptions))
+        object.__setattr__(self, "live_sources", bool(self.live_sources))
+        object.__setattr__(self, "live_watchlist", tuple(self.live_watchlist))
+        object.__setattr__(self, "live_themes", tuple(self.live_themes))
+        object.__setattr__(self, "live_use_accepted_watchlist",
+                           bool(self.live_use_accepted_watchlist))
+        object.__setattr__(self, "live_include_price_fallback",
+                           bool(self.live_include_price_fallback))
         for name in ("max_runs_per_hour", "max_pulses", "base_backoff_seconds",
                      "backoff_multiplier", "max_backoff_seconds", "max_consecutive_failures",
                      "lock_stale_seconds", "poll_interval_seconds"):
@@ -598,8 +620,17 @@ def service_status(config: ServiceConfig) -> ServiceHealth:
 # 9. run_once -- ONE supervised tick that CALLS run_due_pulses (never bypasses   #
 #    it)                                                                         #
 # --------------------------------------------------------------------------- #
+def _live_mode_allowed(mode: ServiceMode) -> bool:
+    """True iff ``mode`` may opt into LIVE sourcing: SHADOW_24X7 (paper window) or MANUAL.
+
+    OFF runs nothing (it returns earlier); PRODUCTION_24X7 is deliberately excluded so this slice
+    never changes production behavior -- a production tick keeps its existing fixture path.
+    """
+    return ServiceMode.parse(mode) in (ServiceMode.SHADOW_24X7, ServiceMode.MANUAL)
+
+
 def run_once(config: ServiceConfig, *, now: str, is_running: bool = False,
-             pid: int = 0) -> ServiceHealth:
+             pid: int = 0, live_adapters=None, live_env=None) -> ServiceHealth:
     """Run ONE supervised tick at the injected ``now``; persist health + a structured log line.
 
     Flow: OFF / paused / active-backoff -> a recorded no-op (nothing runs, the reason is logged).
@@ -611,6 +642,14 @@ def run_once(config: ServiceConfig, *, now: str, is_running: bool = False,
     ``last_error_class`` / ``last_error_message_sanitized`` / ``last_tick_failed_at``, and applies
     deterministic backoff (``next_retry_at``) -- WITHOUT corrupting the append-only stores, WITHOUT
     a fixture fall-back, and WITHOUT any production alert (mode-gated). Returns the new health.
+
+    GO-LIVE PL-4: when ``config.live_sources`` is True AND the mode permits it (SHADOW_24X7 /
+    MANUAL), the tick runs the credential-gated LIVE pulse (:func:`reality_mesh.live_pulse.
+    run_live_pulse`) instead of the fixture orchestrator -- REAL SEC/FMP evidence, honest
+    credential gaps, ZERO fixture fallback. ``live_adapters`` / ``live_env`` are OFFLINE-test seams
+    threaded straight to ``run_live_pulse`` (mock transports / a presence-only env mapping); in
+    production they default None so the adapters are built from real env credential PRESENCE. When
+    ``live_sources`` is False (the default) NONE of this runs and the fixture path is byte-identical.
     """
     stamped = _format_utc(_parse_utc(now, name="now"))
     prev = load_health(config)
@@ -659,6 +698,13 @@ def run_once(config: ServiceConfig, *, now: str, is_running: bool = False,
 
     lock_status = "stale_reclaimed" if handle.reclaimed_stale else "held"
     try:
+        # -- GO-LIVE PL-4: opt-in LIVE sourcing (SHADOW_24X7 / MANUAL only) ------------------- #
+        # This ADDITIVE branch replaces the fixture orchestrator with the credential-gated LIVE
+        # pulse. The default (live_sources=False) never reaches here -- the fixture path below is
+        # untouched. The lock is still released by the shared finally.
+        if config.live_sources and _live_mode_allowed(config.mode):
+            return _run_live_tick(config, base, now=stamped, lock_status=lock_status,
+                                  adapters=live_adapters, env=live_env)
         try:
             result = run_due_pulses(
                 schedule, now=stamped, store_dir=config.store_dir,
@@ -751,3 +797,118 @@ def _record_failure(config: ServiceConfig, base: ServiceHealth, *, now: str, run
         "error_class": error_class, "consecutive_failures": failures,
         "backoff_seconds": backoff, "next_retry_at": next_retry,
         "circuit_open": circuit_open, "message": safe_message})
+
+
+# --------------------------------------------------------------------------- #
+# 10. GO-LIVE PL-4 -- the credential-gated LIVE shadow tick (REAL evidence,      #
+#     honest gaps, NO fixture fallback -- PROD-LIVE-4)                           #
+# --------------------------------------------------------------------------- #
+def _live_scope(config: ServiceConfig) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    """Resolve the LIVE pulse scope ``(watchlist, themes)`` from the config (labels only).
+
+    ``live_use_accepted_watchlist`` reads the accepted-universe watchlist from the store
+    (:func:`reality_mesh.dynamic_universe.accepted_watchlist`); otherwise ``live_watchlist`` is
+    used verbatim. ``live_themes`` is always the theme scope. Imported lazily so importing this
+    module pulls in nothing extra.
+    """
+    if config.live_use_accepted_watchlist:
+        from reality_mesh.dynamic_universe import accepted_watchlist  # lazy
+        watchlist = tuple(accepted_watchlist(config.store_dir))
+    else:
+        watchlist = tuple(config.live_watchlist)
+    return watchlist, tuple(config.live_themes)
+
+
+def _run_live_tick(config: ServiceConfig, base: ServiceHealth, *, now: str, lock_status: str,
+                   adapters=None, env=None) -> ServiceHealth:
+    """Run ONE credential-gated LIVE pulse for this tick; persist health + a structured log line.
+
+    Composes :func:`reality_mesh.live_pulse.run_live_pulse` (real SEC/FMP adapters from credential
+    PRESENCE, ``suppress_fixture_evidence=True``, honest gaps, no fixture fallback). Outcomes:
+
+    * no live scope configured -> an HONEST no-op (nothing fetched / fabricated), not a failure;
+    * live credentials absent (``configured`` False) -> an HONEST credential gap: NO run persisted,
+      NO fixture fallback, NO fabricated evidence -- and NOT a failure (no backoff);
+    * a run persisted -> success accounting (like :func:`_record_success`) over the REAL run, plus
+      the SHADOW alert hook when the mode is SHADOW_24X7;
+    * ``run_live_pulse`` raising (e.g. a bad scope) -> the shared failure/backoff path.
+    """
+    watchlist, themes = _live_scope(config)
+    if not watchlist and not themes:
+        health = replace(
+            base, lock_status="free", is_paused=False, last_tick_started_at=now,
+            next_scheduled_tick_at=_next_boundary(_resolved_schedule(config), now),
+            source_health_summary={"live_sources": True, "live_scope_configured": False})
+        return _commit(config, health, {
+            "ts": now, "level": "warning", "event": "tick.live_no_scope",
+            "service_mode": config.mode.value, "live_sources": True,
+            "message": "live_sources enabled but no live watchlist/themes configured -- honest "
+                       "no-op (nothing fetched, nothing fabricated, no fixture fallback)"})
+
+    try:
+        result = run_live_pulse(
+            watchlist, themes, store_dir=config.store_dir, now=now,
+            env=env, adapters=adapters,
+            include_price_fallback=config.live_include_price_fallback)
+    except Exception as exc:            # a hard live-tick failure (bad scope etc.)
+        return _record_failure(
+            config, base, now=now, run_id="",
+            error_class=type(exc).__name__,
+            message=" ".join("{0}: {1}".format(type(exc).__name__, exc).split())[:300],
+            lock_status=lock_status)
+
+    # -- honest credential gap: no live source configured -> NO run, NO fixture, NOT a failure -- #
+    if not result.configured:
+        health = replace(
+            base, lock_status="free", is_paused=False, last_tick_started_at=now,
+            next_scheduled_tick_at=_next_boundary(_resolved_schedule(config), now),
+            source_health_summary={
+                "live_sources": True, "live_sources_configured": False,
+                "config_notes": list(result.config_notes)})
+        return _commit(config, health, {
+            "ts": now, "level": "warning", "event": "tick.live_gap",
+            "service_mode": config.mode.value, "live_sources": True,
+            "config_notes": list(result.config_notes),
+            "message": result.summary_line()})
+
+    return _record_live_success(config, base, result, now=now, lock_status=lock_status)
+
+
+def _record_live_success(config: ServiceConfig, base: ServiceHealth, result, *, now: str,
+                         lock_status: str) -> ServiceHealth:
+    """Roll a persisted LIVE run into health + a structured log line (mirrors :func:`_record_success`).
+
+    The REAL run persisted by ``run_live_pulse`` went through the FULL 013 chain, so the same DQ /
+    ledger / health summaries apply. SHADOW_24X7 also gets the inbox-only shadow-alert hook (no
+    external delivery, no production escalation) -- a shadow-alert failure never fails the tick.
+    """
+    run_id = result.run_id
+    source_summary, agent_summary, dq_summary = _run_summaries(config.store_dir, run_id)
+    health = replace(
+        base, lock_status="free", is_paused=False,
+        last_tick_started_at=now, last_tick_completed_at=now,
+        last_successful_run_id=run_id, consecutive_failures=0,
+        last_error_class="", last_error_message_sanitized="", next_retry_at="",
+        next_scheduled_tick_at=_next_boundary(_resolved_schedule(config), now),
+        source_health_summary=source_summary, agent_health_summary=agent_summary,
+        dq_status_summary=dq_summary)
+    log: Dict[str, object] = {
+        "ts": now, "level": "info", "event": "tick.live_success",
+        "service_mode": config.mode.value, "run_id": run_id, "live_sources": True,
+        "sources_configured": list(result.sources_configured),
+        "events_loaded": result.events_loaded, "findings": result.findings,
+        "signals": result.signals, "dq_gate_ran": dq_summary.get("gate_ran", False),
+        "replay_deterministic_match": result.replay_deterministic_match,
+        "message": "LIVE shadow tick persisted REAL evidence through the 013 chain (run {0}) -- "
+                   "no fixture fallback".format(run_id)}
+    if config.mode is ServiceMode.SHADOW_24X7:
+        log["external_delivery"] = False
+        log["production_escalation"] = False
+        try:
+            observed = generate_shadow_alerts_for_run(config.store_dir, run_id, now=now)
+            log["shadow_alerts"] = len(observed.alerts)
+            log["alerts_channel"] = "in_app_inbox_only"
+        except Exception as exc:            # surfaced, never hidden; the pulse still succeeded
+            log["shadow_alerts_error"] = sanitize(
+                " ".join("{0}: {1}".format(type(exc).__name__, exc).split())[:200])
+    return _commit(config, health, log)

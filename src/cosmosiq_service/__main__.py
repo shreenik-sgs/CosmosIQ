@@ -82,6 +82,13 @@ def _load_subscriptions(path: Optional[str]):
     return subscriptions, calendar, int(config.get("max_runs_per_hour", 60))
 
 
+def _split_csv(value: Optional[str]):
+    """Split a comma-separated CLI scope into a tuple of non-blank tokens ("" -> ())."""
+    if not value:
+        return ()
+    return tuple(tok.strip() for tok in str(value).split(",") if tok.strip())
+
+
 def _build_config(args: argparse.Namespace) -> ServiceConfig:
     subscriptions, calendar, max_runs = _load_subscriptions(getattr(args, "subscriptions", None))
     return ServiceConfig(
@@ -91,7 +98,12 @@ def _build_config(args: argparse.Namespace) -> ServiceConfig:
         calendar=calendar,
         max_runs_per_hour=max_runs,
         max_pulses=args.max_pulses,
-        poll_interval_seconds=args.poll_interval)
+        poll_interval_seconds=args.poll_interval,
+        live_sources=bool(getattr(args, "live_sources", False)),
+        live_watchlist=_split_csv(getattr(args, "live_watchlist", None)),
+        live_themes=_split_csv(getattr(args, "live_themes", None)),
+        live_use_accepted_watchlist=bool(getattr(args, "live_accepted_watchlist", False)),
+        live_include_price_fallback=bool(getattr(args, "live_price_fallback", False)))
 
 
 def _now_for(args: argparse.Namespace) -> str:
@@ -207,6 +219,23 @@ def _add_common(parser: argparse.ArgumentParser, *, needs_now: bool = False) -> 
                         help="at most this many pulse attempts per tick (default 1)")
     parser.add_argument("--poll-interval", type=int, default=60, dest="poll_interval",
                         help="supervised-loop poll cadence in seconds (start only; default 60)")
+    # -- GO-LIVE PL-4: opt-in LIVE sourcing (default OFF -> the fixture path is byte-identical). --
+    # Shadow-with-live-sources is what accumulates the HONEST paper window: a SHADOW_24X7 tick runs
+    # the credential-gated LIVE pulse (real SEC/FMP evidence from SEC_USER_AGENT / FMP_API_KEY
+    # PRESENCE, no fixture fallback, honest gap when creds are absent) instead of the fixture pulse.
+    parser.add_argument("--live-sources", action="store_true", dest="live_sources",
+                        help="opt in to REAL live sourcing (SHADOW_24X7 / MANUAL only): each tick "
+                             "runs the credential-gated LIVE pulse (real SEC/FMP evidence, no "
+                             "fixture fallback; honest gap if no credentials). Default OFF.")
+    parser.add_argument("--live-watchlist", default=None, dest="live_watchlist",
+                        help="comma-separated tickers for the live pulse scope (with --live-sources)")
+    parser.add_argument("--live-themes", default=None, dest="live_themes",
+                        help="comma-separated themes for the live pulse scope (with --live-sources)")
+    parser.add_argument("--live-accepted-watchlist", action="store_true",
+                        dest="live_accepted_watchlist",
+                        help="use the accepted-universe watchlist from the store as the live scope")
+    parser.add_argument("--live-price-fallback", action="store_true", dest="live_price_fallback",
+                        help="also append the credential-free Yahoo price-history fallback adapter")
     if needs_now:
         parser.add_argument("--now", default=None,
                             help="injected ISO-8601 instant (default: the wall clock at start)")
