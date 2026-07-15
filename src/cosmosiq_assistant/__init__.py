@@ -51,6 +51,20 @@ from .tasks import (
     draft_thesis_note,
     summarize_filing,
 )
+from .universe_suggestions import (
+    AI_SUGGESTION_AUTHORITY,
+    SUGGEST_UNIVERSE_TASK,
+    SUGGESTION_DISCLAIMER,
+    SUGGESTION_SYSTEM_PROMPT,
+    UNIVERSE_SUGGESTIONS_FILENAME,
+    UNVERIFIED_STATUS,
+    UniverseSuggestion,
+    UniverseSuggestionResult,
+    append_universe_suggestions,
+    read_universe_suggestions,
+    suggest_universe,
+    universe_suggestions_path,
+)
 
 __all__ = [
     "AI_LABEL",
@@ -78,4 +92,16 @@ __all__ = [
     "ASSISTANT_NOTES_FILENAME",
     "append_assistant_note",
     "read_assistant_notes",
+    "SUGGEST_UNIVERSE_TASK",
+    "SUGGESTION_SYSTEM_PROMPT",
+    "SUGGESTION_DISCLAIMER",
+    "UNVERIFIED_STATUS",
+    "AI_SUGGESTION_AUTHORITY",
+    "UNIVERSE_SUGGESTIONS_FILENAME",
+    "UniverseSuggestion",
+    "UniverseSuggestionResult",
+    "suggest_universe",
+    "universe_suggestions_path",
+    "append_universe_suggestions",
+    "read_universe_suggestions",
 ]
