@@ -207,6 +207,7 @@ def run_pulse(
     data_dir: Optional[str] = None,
     adapters=None,
     suppress_fixture_evidence: bool = False,
+    theme_graph=None,
 ) -> PulseResult:
     """Run ONE manual, on-demand pulse over the bundled fixtures. Deterministic + OFFLINE.
 
@@ -335,9 +336,28 @@ def run_pulse(
     # -- Tattva signal fusion ---------------------------------------------------------------- #
     fusion = TattvaSignalFusionSynthesizer().fuse(events, findings, now=now)
 
+    # -- Theme enrichment: give Sphurana something to group by ------------------------------- #
+    # Company-level fused signals (financial_inflection / news_filings) carry NO affected_themes,
+    # so Sphurana grouped them under no theme and formed no pulse -- which is why theme_pulses was
+    # 0 on every run this system has ever done, and why every stage downstream of theme pulses
+    # (opportunities, candidates, portfolio, learning) rendered empty forever.
+    #
+    # The fix uses ONLY the real graph relationship, and only when a map is supplied: for each
+    # signal, the themes its affected_companies resolve to (company -> linked bottleneck -> value
+    # chain -> theme) are unioned onto whatever the signal already carries. A company NOT in the
+    # map contributes NO theme -- never fabricated. Only affected_themes is touched; direction and
+    # polarity are left exactly as fused, so a negative signal still names no beneficiary.
+    #
+    # theme_graph=None keeps the default path byte-identical (no enrichment, no map) -- the demo
+    # build's byte-identical gate proves it.
+    signals = fusion.signals
+    if theme_graph is not None:
+        from .diligence_lineage import _enrich_signal_themes    # lazy: avoids a heavy import cycle
+        signals = _enrich_signal_themes(fusion.signals, theme_graph)
+
     # -- Sphurana theme pulses --------------------------------------------------------------- #
     sphurana = ThemePulseSynthesizer().synthesize(
-        fusion.clusters, fusion.signals, now=now)
+        fusion.clusters, signals, now=now, graph=theme_graph)
 
     # -- Data-Quality roll-up: preserved gaps + explicit coverage gaps ----------------------- #
     covered_companies = tuple(sorted({c for e in events for c in e.affected_companies}))

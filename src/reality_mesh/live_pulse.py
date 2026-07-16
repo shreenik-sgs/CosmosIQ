@@ -262,8 +262,24 @@ def run_live_pulse(watchlist, themes, *, store_dir: str, now: str, run_id: str =
     # suppresses ALL bundled fixture evidence (PROD-LIVE-4): it records ONLY the real adapter
     # events (+ honest "no live source" gaps for uncovered disciplines), never a fixture backfill,
     # so the persisted event_store holds the real refs the findings cite (provenance resolves). --- #
+    # -- the map a live pulse reasons against ---------------------------------------------------- #
+    # Built from the engine-composed universe (UD-4/UD-5), so it holds exactly the companies this
+    # store actually admitted, mapped under the theme of the chokepoint that admitted each one, and
+    # linked to the REAL bottlenecks where the seed map has them. Without it the fused signals carry
+    # no themes, Sphurana forms no pulses, and every stage downstream stays empty forever.
+    # An empty/unavailable universe yields no map -> no enrichment -> the previous behaviour
+    # exactly: an honest nothing, never an invented theme.
+    live_graph = None
+    try:
+        from .dynamic_universe import build_accepted_theme_graph      # lazy
+        candidate_graph = build_accepted_theme_graph(store_dir, now=now)
+        if getattr(candidate_graph, "companies", ()):
+            live_graph = candidate_graph
+    except Exception:
+        live_graph = None      # a map we cannot build is a gap, never a fabricated one
+
     pulse = run_pulse(watch, theme_list, now=now, adapters=adapter_list,
-                      suppress_fixture_evidence=True)
+                      suppress_fixture_evidence=True, theme_graph=live_graph)
     _pulse_run, replay_result, _panel = persist_and_summarize(
         pulse, store_dir=store_dir, run_id=effective_run_id, now=now)
 
