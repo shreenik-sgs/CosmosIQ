@@ -10,8 +10,11 @@ ticker into the working universe -- but ONLY when it is GROUNDED against a REAL 
 HONESTY IS THE INVARIANT. This module mirrors the diligence-acceptance discipline
 (:mod:`reality_mesh.investment_diligence`) one layer up:
 
-* an :class:`AcceptedUniverseEntry` is the OPERATOR's decision, never a data claim -- the engine
-  NEVER auto-accepts and NEVER auto-fills a field;
+* an :class:`AcceptedUniverseEntry` is a DECISION, never a data claim. Since ADR-0011 the engine
+  MAY make that decision itself -- universe composition is cognition, and admitting a company is a
+  reversible belief that places no capital -- but it SIGNS as itself (``accepted_by_kind="engine"``,
+  naming its policy) and never auto-fills the SIGNATURE with a person's name. Automating the
+  decision is safe; automating the signature is not;
 * it CANNOT exist ungrounded: an unverified AI suggestion (``ai_suggestion`` / unverified) with NO
   real grounding is REFUSED at construction AND at acceptance -- a lead may enter the universe only
   once it is GROUNDED against SEC / FMP (or, for a purely operator-attested entry, an explicit
@@ -56,6 +59,8 @@ __all__ = [
     "UNIVERSE_VERDICTS",
     "UNIVERSE_ORIGINS",
     "UNIVERSE_AUTHORITIES",
+    "UNIVERSE_PRINCIPALS",
+    "ENGINE_PRINCIPAL_PREFIX",
     "AI_SUGGESTION_AUTHORITY",
     "AcceptedUniverseEntry",
     "AcceptedUniverseStore",
@@ -80,6 +85,17 @@ UNIVERSE_ORIGINS: Tuple[str, ...] = (
     "ai_suggestion_grounded",  # started as a UD-2 AI lead, then GROUNDED against SEC / FMP
     "operator_manual",        # operator-attested with an explicit operator-supplied evidence ref
 )
+
+# WHO decided (ADR-0011). Attribution must be TRUTHFUL: the record names the principal that
+# ACTUALLY decided. Automating the decision is safe; automating the SIGNATURE is not -- the engine
+# accepts on its own authority and never writes a person's name onto a judgment they never made.
+# Machine and human acceptances stay distinguishable for all time.
+UNIVERSE_PRINCIPALS: Tuple[str, ...] = ("operator", "engine")
+
+# The reserved mark of an ENGINE principal. An engine acceptance names the engine AND the policy
+# under which it acted (e.g. "cosmosiq-engine/ud5-chokepoint") -- never a bare person's name. An
+# operator acceptance may not claim this prefix, so neither principal can masquerade as the other.
+ENGINE_PRINCIPAL_PREFIX = "cosmosiq-engine/"
 
 # The ONLY honest authorities an accepted entry may carry. It INHERITS the grounding authority:
 # canonical (SEC-grounded) / convenience (screener-grounded) / manual (operator-attested). It is
@@ -120,7 +136,8 @@ class AcceptedUniverseEntry:
     source_authority: str = ""         # canonical / convenience / manual -- NEVER ai_suggestion
     grounded_by: str = ""              # REQUIRED -- the UD-1 method+candidate id or operator ref
     origin: str = ""                   # closed: UNIVERSE_ORIGINS
-    accepted_by: str = ""              # REQUIRED -- the operator who accepted it
+    accepted_by: str = ""              # REQUIRED -- the principal that accepted it
+    accepted_by_kind: str = "operator"  # closed: UNIVERSE_PRINCIPALS -- WHO decided (ADR-0011)
     accepted_at: str = ""              # REQUIRED -- injected timestamp (no wall-clock)
     verdict: str = "accepted"          # closed: UNIVERSE_VERDICTS
     note: str = ""                     # operator note (optional)
@@ -143,6 +160,22 @@ class AcceptedUniverseEntry:
             raise ValueError(
                 "AcceptedUniverseEntry.origin {0!r} invalid (allowed: {1})".format(
                     self.origin, list(UNIVERSE_ORIGINS)))
+        # ADR-0011: the signature must match the signer. Neither principal may wear the other's.
+        if self.accepted_by_kind not in UNIVERSE_PRINCIPALS:
+            raise ValueError(
+                "AcceptedUniverseEntry.accepted_by_kind {0!r} invalid (allowed: {1}) -- the record "
+                "must say WHO decided".format(self.accepted_by_kind, list(UNIVERSE_PRINCIPALS)))
+        claims_engine = self.accepted_by.strip().startswith(ENGINE_PRINCIPAL_PREFIX)
+        if self.accepted_by_kind == "engine" and not claims_engine:
+            raise ValueError(
+                "an engine acceptance must name the engine AND its policy in accepted_by (prefix "
+                "{0!r}, e.g. '{0}ud5-chokepoint') -- the engine accepts on its OWN authority and "
+                "never signs a judgment with a person's name".format(ENGINE_PRINCIPAL_PREFIX))
+        if self.accepted_by_kind == "operator" and claims_engine:
+            raise ValueError(
+                "an operator acceptance may not claim the reserved engine principal {0!r} -- "
+                "machine and human acceptances stay distinguishable".format(
+                    ENGINE_PRINCIPAL_PREFIX))
         if self.source_authority == AI_SUGGESTION_AUTHORITY:
             raise ValueError(
                 "AcceptedUniverseEntry.source_authority may never be 'ai_suggestion' -- an "
@@ -357,13 +390,21 @@ def accept_universe_entry(store_dir: str, *, ticker: str, theme_id: str, theme_l
                           accepted_by: str, now: str, grounding_refs: Tuple[str, ...] = (),
                           origin: str = "evidence_discovery", verdict: str = "accepted",
                           note: str = "", correction_of: str = "",
+                          accepted_by_kind: str = "operator",
                           env: Optional[Dict[str, str]] = None,
                           transport: Optional[Dict[str, Any]] = None) -> AcceptedUniverseEntry:
-    """Record ONE operator-accepted universe entry append-only. The ONLY path to an accepted entry.
+    """Record ONE accepted universe entry append-only. The ONLY path to an accepted entry.
 
-    NEVER auto-generates or auto-fills anything -- the operator supplies the theme, their name, and
-    the note. VALIDATES the grounding before persisting (raising ``ValueError`` -- honestly refusing
-    -- on any gap):
+    ADR-0011: universe composition is COGNITION, not actuation -- admitting a company places no
+    capital and is superseded by an append-only correction, so the ENGINE may accept on its own
+    (``accepted_by_kind="engine"``, naming itself and its policy in ``accepted_by``). What autonomy
+    does NOT touch is the evidence: the grounding validation below is identical for both principals.
+    What could not be accepted by a person on the evidence is not accepted by the engine on it.
+
+    NEVER auto-fills the SIGNATURE: ``accepted_by`` must name the principal that actually decided,
+    and an engine acceptance may never carry a person's name (nor an operator the engine's prefix).
+    VALIDATES the grounding before persisting (raising ``ValueError`` -- honestly refusing -- on any
+    gap):
 
     * ``accepted_by`` and an injected ``now`` are non-empty; ``ticker`` / ``theme_id`` /
       ``theme_label`` are non-empty; ``origin`` / ``verdict`` are closed members;
@@ -478,6 +519,7 @@ def accept_universe_entry(store_dir: str, *, ticker: str, theme_id: str, theme_l
         grounded_by=grounded_by,
         origin=origin_clean,
         accepted_by=accepted,
+        accepted_by_kind=str(accepted_by_kind or "").strip() or "operator",
         accepted_at=accepted_at,
         verdict=verdict_clean,
         note=note_clean,
