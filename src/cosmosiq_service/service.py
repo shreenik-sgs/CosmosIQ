@@ -275,6 +275,10 @@ class ServiceConfig:
     live_watchlist: Tuple[str, ...] = field(default_factory=tuple)
     live_themes: Tuple[str, ...] = field(default_factory=tuple)
     live_use_accepted_watchlist: bool = False
+    # ADR-0011 / UD-5: compose the universe from evidence BEFORE resolving scope, so the tick
+    # watches what the engine found rather than what a human typed. Off by default -- composition
+    # reaches live sources, so it is opt-in exactly like ``live_sources`` itself.
+    live_compose_universe: bool = False
     live_include_price_fallback: bool = False
 
     def __post_init__(self) -> None:
@@ -863,6 +867,26 @@ def _run_live_tick(config: ServiceConfig, base: ServiceHealth, *, now: str, lock
       the SHADOW alert hook when the mode is SHADOW_24X7;
     * ``run_live_pulse`` raising (e.g. a bad scope) -> the shared failure/backoff path.
     """
+    # -- UD-5: let the engine compose its own universe first (ADR-0011) --------------------- #
+    # Composition must precede scope resolution, or the tick would pulse the universe as it stood
+    # BEFORE this sweep and always run one tick behind its own discovery. A composition failure is
+    # a GAP, never a tick failure: the pulse then runs whatever the universe already holds, which
+    # is honest -- an empty universe pulses nothing rather than falling back to a typed list.
+    compose_note = {}
+    if config.live_compose_universe:
+        try:
+            from reality_mesh.universe_composer import compose_universe   # lazy
+            composed = compose_universe(config.store_dir, now=now, env=env)
+            compose_note = {
+                "universe_admitted": len(composed.accepted),
+                "universe_already_present": len(composed.already_present),
+                "universe_declined_not_occupant": len(composed.occupancy_not_established),
+                "universe_refused_by_gate": len(composed.refused),
+                "chokepoints_swept": len(composed.chokepoints_swept)}
+        except Exception as exc:
+            compose_note = {"universe_compose_gap": " ".join(
+                "{0}: {1}".format(type(exc).__name__, exc).split())[:200]}
+
     watchlist, themes = _live_scope(config)
     if not watchlist and not themes:
         health = replace(
@@ -901,11 +925,13 @@ def _run_live_tick(config: ServiceConfig, base: ServiceHealth, *, now: str, lock
             "config_notes": list(result.config_notes),
             "message": result.summary_line()})
 
-    return _record_live_success(config, base, result, now=now, lock_status=lock_status)
+    return _record_live_success(config, base, result, now=now, lock_status=lock_status,
+                                watchlist=watchlist, compose_note=compose_note)
 
 
 def _record_live_success(config: ServiceConfig, base: ServiceHealth, result, *, now: str,
-                         lock_status: str) -> ServiceHealth:
+                         lock_status: str, watchlist: Tuple[str, ...] = (),
+                         compose_note: Optional[Dict[str, object]] = None) -> ServiceHealth:
     """Roll a persisted LIVE run into health + a structured log line (mirrors :func:`_record_success`).
 
     The REAL run persisted by ``run_live_pulse`` went through the FULL 013 chain, so the same DQ /
@@ -929,6 +955,11 @@ def _record_live_success(config: ServiceConfig, base: ServiceHealth, result, *, 
         "events_loaded": result.events_loaded, "findings": result.findings,
         "signals": result.signals, "dq_gate_ran": dq_summary.get("gate_ran", False),
         "replay_deterministic_match": result.replay_deterministic_match,
+        "watchlist_size": len(watchlist), "watchlist_source": (
+            "engine_composed" if config.live_compose_universe
+            else "accepted_universe" if config.live_use_accepted_watchlist
+            else "operator_configured"),
+        **(compose_note or {}),
         "message": "LIVE shadow tick persisted REAL evidence through the 013 chain (run {0}) -- "
                    "no fixture fallback".format(run_id)}
     if config.mode is ServiceMode.SHADOW_24X7:

@@ -107,6 +107,7 @@ def _build_config(args: argparse.Namespace) -> ServiceConfig:
         live_watchlist=_split_csv(getattr(args, "live_watchlist", None)),
         live_themes=_split_csv(getattr(args, "live_themes", None)),
         live_use_accepted_watchlist=bool(getattr(args, "live_accepted_watchlist", False)),
+        live_compose_universe=bool(getattr(args, "live_compose_universe", False)),
         live_include_price_fallback=bool(getattr(args, "live_price_fallback", False)))
 
 
@@ -297,6 +298,12 @@ def _add_common(parser: argparse.ArgumentParser, *, needs_now: bool = False) -> 
     parser.add_argument("--live-accepted-watchlist", action="store_true",
                         dest="live_accepted_watchlist",
                         help="use the accepted-universe watchlist from the store as the live scope")
+    parser.add_argument("--live-compose-universe", action="store_true",
+                        dest="live_compose_universe",
+                        help="ADR-0011/UD-5: let the ENGINE compose the universe from evidence "
+                             "each tick (sweeps the real chokepoints, admits companies their own "
+                             "filings place there) before resolving scope. Pair with "
+                             "--live-accepted-watchlist to pulse what it composed")
     parser.add_argument("--live-price-fallback", action="store_true", dest="live_price_fallback",
                         help="also append the credential-free Yahoo price-history fallback adapter")
     if needs_now:
