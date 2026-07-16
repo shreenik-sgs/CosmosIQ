@@ -323,9 +323,20 @@ class NoProductionAutoEnableTests(unittest.TestCase):
         args = _launchd_program_arguments(_read(_LAUNCHD))
         self.assertIn("--confirm-continuous-shadow", args)
         self.assertIn("--live-sources", args)
-        # The live scope placeholders are present (never renamed away from the convention).
-        self.assertIn("__LIVE_WATCHLIST__", args)
-        self.assertIn("__LIVE_THEMES__", args)
+
+    def test_launchd_template_carries_no_hand_curated_universe(self):
+        # ADR-0011: "a hardcoded ticker list SHALL NOT be a supported means of setting the
+        # universe." This test previously REQUIRED __LIVE_WATCHLIST__ / __LIVE_THEMES__ in the
+        # template -- it encoded the practice the ADR ended. The job must now carry neither: the
+        # engine sweeps the real chokepoints and composes its own scope, and the theme scope is
+        # derived from what it composed.
+        args = _launchd_program_arguments(_read(_LAUNCHD))
+        self.assertNotIn("--live-watchlist", args)
+        self.assertNotIn("--live-themes", args)
+        self.assertNotIn("__LIVE_WATCHLIST__", args)
+        self.assertNotIn("__LIVE_THEMES__", args)
+        self.assertIn("--live-compose-universe", args)
+        self.assertIn("--live-accepted-watchlist", args)
 
     def test_launchd_template_sets_a_sane_live_poll_interval(self):
         # GO-LIVE PL-5b: a LIVE shadow job MUST set an explicit gentle poll interval. The service's

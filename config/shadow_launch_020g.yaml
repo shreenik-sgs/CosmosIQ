@@ -27,5 +27,12 @@ alerts: shadow_only             # shadow alerts land in the in-app inbox, marked
 candidate_publication: enabled_operator_controlled   # 020A publish path, operator-invoked
 production_delivery: disabled   # no external alert delivery (gated to 020F/020J)
 
-watchlist_config: config/watchlists/shadow_watchlist.yaml
-themes_config: config/themes/shadow_themes.yaml
+# ADR-0011: the universe is COMPOSED BY THE ENGINE, not declared here. The hand-curated
+# watchlist/themes files this used to point at (config/watchlists/shadow_watchlist.yaml,
+# config/themes/shadow_themes.yaml) are gone: "a hardcoded ticker list SHALL NOT be a supported
+# means of setting the universe". Each tick sweeps the real chokepoints in the value-chain map,
+# admits the companies whose own SEC filings place them there, and derives the theme scope from
+# what it composed. The direction lives in reality_mesh/universe_mandate.py -- phrases and
+# occupant industries per chokepoint, never symbols.
+universe: engine_composed        # UD-5: --live-compose-universe + --live-accepted-watchlist
+universe_mandate: src/reality_mesh/universe_mandate.py

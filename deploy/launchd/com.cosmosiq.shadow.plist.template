@@ -62,10 +62,20 @@
         <string>--live-sources</string>
         <string>--store-dir</string>
         <string>__STORE_DIR__</string>
-        <string>--live-watchlist</string>
-        <string>__LIVE_WATCHLIST__</string>
-        <string>--live-themes</string>
-        <string>__LIVE_THEMES__</string>
+        <!--
+          ADR-0011: the ENGINE composes the universe; a hardcoded ticker list "SHALL NOT be a
+          supported means of setting the universe". There is deliberately NO --live-watchlist and
+          NO --live-themes here. Each tick sweeps the real chokepoints in the value-chain map and
+          admits the companies whose OWN filings place them there; the theme scope is then derived
+          from what it composed, because every entry is filed under the theme of the chokepoint
+          that admitted it. Nothing to retype, nothing to keep in sync, nothing to curate.
+
+          If the universe is empty this job pulses NOTHING -- accepted_watchlist() returns () and
+          never seeds itself. That silence is the honest failure and is intended: it is how you
+          learn discovery broke, instead of quietly watching a stale list forever.
+        -->
+        <string>--live-compose-universe</string>
+        <string>--live-accepted-watchlist</string>
         <!--
           SANE LIVE CADENCE: 21600s = 6h between real SEC/FMP shadow pulses (~4 runs/day). The
           service's default poll interval is 60s, which for a LIVE (credential-gated) pulse would

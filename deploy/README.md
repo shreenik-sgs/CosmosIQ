@@ -72,8 +72,8 @@ There is no supported command that starts production.
 
 ```sh
 cp deploy/launchd/com.cosmosiq.shadow.plist.template ~/Library/LaunchAgents/com.cosmosiq.shadow.plist
-# edit the file: replace __REPO_ROOT__, __STORE_DIR__, __LOG_DIR__,
-#                        __LIVE_WATCHLIST__, __LIVE_THEMES__ with real values
+# edit the file: replace __REPO_ROOT__, __STORE_DIR__, __LOG_DIR__ with real values.
+# There is no watchlist to fill in: ADR-0011 -- the engine composes its own universe.
 launchctl load ~/Library/LaunchAgents/com.cosmosiq.shadow.plist
 ```
 
@@ -91,8 +91,19 @@ operator opt-in** `--confirm-continuous-shadow`, and to source real evidence you
 PYTHONPATH=src python3 -m cosmosiq_service start \
   --mode shadow_24x7 --confirm-continuous-shadow --live-sources \
   --store-dir ./_cosmosiq_store \
-  --live-watchlist IREN,NBIS --live-themes physical_ai,robotics
+  --live-compose-universe --live-accepted-watchlist
 ```
+
+**There is no watchlist to pass.** Under ADR-0011 the engine composes its own universe:
+`--live-compose-universe` sweeps the real chokepoints in the value-chain map and admits the
+companies whose **own SEC filings** place them there (bounded by occupancy — being in an industry
+that *supplies* the scarce capacity, not merely mentioning it); `--live-accepted-watchlist` then
+pulses what it composed, deriving the theme scope from the themes of the chokepoints that admitted
+each company. A hardcoded ticker list is no longer a supported means of setting the universe.
+
+If discovery yields nothing, the job pulses **nothing** — the accepted watchlist never seeds
+itself. That silence is intentional: it is how you find out discovery broke, instead of quietly
+watching a stale list forever.
 
 Continuous `PRODUCTION_24X7` is **always** refused here regardless of any flag — production
 activation stays the explicit `cosmosiq_ops activate` + operator sign-off path; there is no launchd

@@ -850,7 +850,21 @@ def _live_scope(config: ServiceConfig) -> Tuple[Tuple[str, ...], Tuple[str, ...]
         watchlist = tuple(accepted_watchlist(config.store_dir))
     else:
         watchlist = tuple(config.live_watchlist)
-    return watchlist, tuple(config.live_themes)
+
+    themes = tuple(config.live_themes)
+    if not themes and config.live_use_accepted_watchlist:
+        # ADR-0011 §direction: a mandate is legitimate input but "SHALL be specified rather than
+        # passed as a deployment argument". The composed universe already knows its own themes --
+        # every entry was filed under the theme of the chokepoint that admitted it -- so derive
+        # them rather than make an operator retype them. Order-stable by accepted order; an empty
+        # universe yields no themes, which is the honest answer, not a seed.
+        from reality_mesh.accepted_universe import accepted_universe   # lazy
+        seen: List[str] = []
+        for entry in accepted_universe(config.store_dir):
+            if entry.theme_id and entry.theme_id not in seen:
+                seen.append(entry.theme_id)
+        themes = tuple(seen)
+    return watchlist, themes
 
 
 def _run_live_tick(config: ServiceConfig, base: ServiceHealth, *, now: str, lock_status: str,
