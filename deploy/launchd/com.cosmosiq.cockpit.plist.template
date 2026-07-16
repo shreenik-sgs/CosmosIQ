@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CosmosIQ local operator app (cockpit) — launchd template.
+
+  SAFE: this template runs the LOCALHOST-ONLY operator app: a read-only shell over the append-only
+  evidence stores plus explicit manual actions. There is NO scheduler daemon, NO broker, and NO
+  trading endpoint here — the app never fetches and never writes evidence; it renders what the
+  supervised service (com.cosmosiq.shadow) has already persisted.
+
+  BIND: 127.0.0.1 only. CosmosIQ has NO authentication, so the app deliberately refuses a
+  non-local host unless --allow-remote is passed. Do NOT add --allow-remote to this job.
+
+  STORE: --store-dir MUST point at the SAME store the supervised service writes, or the cockpit
+  will serve stale evidence while looking perfectly healthy (HTTP 200 over an old store).
+
+  CREDENTIALS: launchd does NOT inherit your login-shell environment, and secrets must NEVER be
+  written into this plist. The ProgramArguments therefore run a small zsh wrapper that sources your
+  gitignored .env at RUNTIME (`. __REPO_ROOT__/.env`) so the app reports adapter/credential status
+  from real env PRESENCE — the plist references only the .env PATH, never a secret value. The app
+  reads presence only; absent credentials degrade the display honestly, they never fabricate.
+
+  Fill in every __PLACEHOLDER__ (they are NOT real paths / values), copy the result to
+  ~/Library/LaunchAgents/com.cosmosiq.cockpit.plist, then:  launchctl load <that path>.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.cosmosiq.cockpit</string>
+
+    <key>WorkingDirectory</key>
+    <string>__REPO_ROOT__</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONPATH</key>
+        <string>__REPO_ROOT__/src</string>
+    </dict>
+
+    <!--
+      A zsh wrapper (-lc) sources the operator's gitignored .env at RUNTIME, then execs the app
+      with the real arg vector via "$@". The app arguments stay listed as their own <string>
+      elements (they become the wrapper's positional parameters) so they are auditable here; the
+      plist carries only the .env PATH, never a secret value.
+    -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>-lc</string>
+        <string>set -a; [ -f "__REPO_ROOT__/.env" ] &amp;&amp; . "__REPO_ROOT__/.env"; set +a; exec /usr/bin/python3 -m cosmosiq_app "$@"</string>
+        <string>cosmosiq_app</string>
+        <string>--store-dir</string>
+        <string>__STORE_DIR__</string>
+        <string>--port</string>
+        <string>8016</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>__LOG_DIR__/com.cosmosiq.cockpit.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>__LOG_DIR__/com.cosmosiq.cockpit.err.log</string>
+</dict>
+</plist>
