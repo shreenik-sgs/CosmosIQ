@@ -1,0 +1,71 @@
+# CosmosIQ — CI.
+#
+# The repository already had a genuinely thorough quality bar (`make ci` -> `cosmosiq_ops
+# ci-gate`: guardrail AST sweeps, the offline suite under a socket kill-switch, byte-identical
+# demo build, secret/trade-affordance page scans). What it did not have was anything that RAN it.
+# The bar was opt-in: it fired only when a human remembered to type `make ci` before merging, so a
+# regression, a leaked secret pattern, or a broken build could land with nothing catching it.
+#
+# This workflow makes the existing bar self-enforcing. It adds no new checks and weakens none --
+# it just guarantees the ones already written actually execute on every push and PR.
+#
+# SAFE: nothing here starts a service, touches a broker, or reaches production. The suite is
+# OFFLINE by construction (the gate runs it under a socket kill-switch), and no credential is
+# needed or referenced -- a live source is never contacted from CI.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Guardrail gate + offline suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # 3.9 is the repo's floor (pyproject: requires-python = ">=3.9") and the version the code
+      # is written against. Pinning the floor means CI fails on a 3.10+-only construct rather
+      # than letting it reach an operator still on 3.9.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      # No install step: the project is deliberately stdlib-only (pyproject declares zero
+      # dependencies). If that ever stops being true, this job fails loudly -- which is the
+      # correct outcome, since "stdlib-only" is a property worth noticing the loss of.
+      - name: Confirm the stdlib-only promise still holds
+        run: |
+          python -c "
+          import pathlib, re, sys
+          txt = pathlib.Path('pyproject.toml').read_text()
+          block = re.search(r'^dependencies\s*=\s*\[(.*?)\]', txt, re.S | re.M)
+          deps = [d for d in re.findall(r'\"([^\"]+)\"', block.group(1))] if block else []
+          print('declared dependencies:', deps or 'none (stdlib-only)')
+          sys.exit(1) if deps else None
+          "
+
+      # The full operator gate: guardrail sweeps + the offline suite in one command. This is the
+      # same thing `make ci` runs locally -- CI and a developer's machine cannot drift apart.
+      - name: make ci (cosmosiq_ops ci-gate)
+        run: make ci
+
+      # Belt and braces: run the suite through pytest too. Both entrypoints must agree, because
+      # they historically did not -- `pytest tests/` collected ZERO tests while `unittest
+      # discover` passed 3746, and nothing noticed. Running both here keeps that from recurring
+      # silently.
+      - name: Suite via pytest (the advertised entrypoint)
+        run: PYTHONPATH=src python -m pytest tests/ -q
