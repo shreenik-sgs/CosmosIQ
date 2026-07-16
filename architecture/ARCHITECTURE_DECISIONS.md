@@ -462,6 +462,109 @@ a kind of knowledge.
 
 ---
 
+## ADR-0011
+Title: Autonomous Universe Composition
+Status: Accepted
+
+Context:
+
+CosmosIQ was built to find what is worth watching. The slice that composes its universe says so
+without hedging: it is "the slice that ENDS hand-curation." Yet the universe the system actually
+watched was eight tickers and three themes, typed by a person into a deployment argument.
+
+The sight was never missing. Run against real credentials, the discovery producers return grounded
+candidates from a sector query or a theme phrase, each carrying a real filing or screener reference,
+each honestly reporting the hits it could not map rather than guessing a ticker. The engine could
+see. It had nowhere to put what it saw: discovery had no caller and no store, the accepted-universe
+record had never once existed, and acceptance refused to run unattended.
+
+That refusal is the reason this is a decision and not a repair. It held that the engine may never
+accept on its own. It was written in no specification, no contract, and no ADR — it lived in a
+docstring, which under ADR-0001 is not where architecture lives at all.
+
+Ask what kind of act it is to admit a company into the universe. It places no capital, sends no
+order, touches no venue. The record that holds it is append-only and correctable, so a later entry
+supersedes it and the reasoning stands corrected at no cost but the correcting. Admitting a company
+is a belief about what merits attention — and ADR-0010 has already ruled on beliefs: what can be
+undone may be done freely. The gate on acceptance was the discipline reserved for irreversible
+deeds, spent on a reversible thought. Nothing was protected, because no mark was ever at risk.
+
+But the old gate was right about one thing, and it is not the thing it appeared to be about. To
+accept unattended, the engine would have had to write a person's name onto a judgment that person
+never made. That is not caution about capital; it is a refusal to forge a signature. Automating the
+decision is safe. Automating the signature is not. That distinction is the whole of this decision.
+
+Decision:
+
+**Universe composition is cognition. The engine SHALL compose its own universe, and SHALL attribute
+its own judgments to itself.**
+
+**The engine MAY accept autonomously.** A grounded candidate MAY enter the universe with no human in
+the loop. Membership is a reversible belief and is governed as cognition, not as actuation.
+
+**The evidence gate is untouched.** Only a candidate grounded against a real source may be accepted.
+An ungrounded candidate, an unverified suggestion, or a hit with no ticker mapping is refused.
+Autonomy removes the human from the decision; it removes nothing from the evidence. What could not
+be accepted by a person on the evidence SHALL NOT be accepted by the engine on the same evidence.
+
+**Attribution SHALL be truthful.** The record SHALL name the principal that actually decided. An
+engine acceptance SHALL be attributed to the engine and the policy under which it acted, never to a
+person. Machine and human acceptances SHALL remain distinguishable for all time, so that any reader
+asking who judged this receives a true answer.
+
+**Reversibility is the operator's standing power.** Every engine acceptance remains correctable, and
+a human correction SHALL outrank an engine acceptance. The operator's authority moves from
+gatekeeper of every entry to editor of the whole — the authority appropriate to a reversible act at
+scale.
+
+**The universe is bounded by the real chokepoint structure, not by rank.** The engine SHALL admit a
+company where it occupies a chokepoint that genuinely exists in the value-chain map — the scarce
+capacity that gates a theme's advance. Occupancy is a structural label about the world, established
+by evidence; it is not a score, a rating, or an ordering, and this decision introduces none. The
+repository's standing prohibition holds without exception: there is no score, rank, or rating field
+anywhere. A bound is required because sight without discrimination is noise — a sector query returns
+fifty names, and fifty names is not a universe, it is a directory. Chokepoint occupancy is the
+discrimination the architecture already carries, and it is finite by construction: few companies gate
+a scarce capacity, which is what makes such a company worth watching at all.
+
+**A chokepoint SHALL NOT be invented to admit a company.** Where a candidate maps to a theme whose
+value-chain analysis does not really exist, the engine SHALL NOT assert a chokepoint in order to
+qualify it. Such a candidate is an honest gap: it may be surfaced and monitored, and it awaits a real
+analysis. The bound admits only companies standing at chokepoints that were mapped before them.
+
+**Membership is not a claim about return.** That a company holds a defensible position is a statement
+about the world. That it will multiply capital is a thesis about the future, formed downstream under
+the gates that govern theses, and reached by an operator. The two SHALL NOT be conflated: the
+universe records what merits attention, never what is expected to pay.
+
+**The actuation boundary is reaffirmed.** A company in the universe is not a position. Nothing here
+permits capital to move; every irreversible action passes the ADR-0010 gate in full. This decision
+widens what the system may think about and widens nothing about what it may do.
+
+**Direction is not curation.** Discovery is steered by a mandate — a sector, a theme, a phrase — and
+a mandate is not a watchlist. To name a domain worth investigating states an interest and leaves the
+engine to find who matters; to name the companies states the answer and leaves the engine nothing to
+find. The former is legitimate architectural input and belongs in the architecture. The latter is the
+practice this decision ends: a hardcoded ticker list SHALL NOT be a supported means of setting the
+universe.
+
+Consequences:
+- Deployment stops carrying a ticker list; the service resolves its scope from the composed universe.
+- Discovery gains a caller and a record, and may run unattended.
+- Acceptance gains a truthful machine principal; it does not lose its grounding validation.
+- The universe becomes mixed-provenance, and every reader must be able to show whether a company was
+  admitted by the engine or by a person, and under what policy.
+- Governing the universe becomes a matter of the mandate, the chokepoint map, and the correction
+  record, rather than of an argument vector.
+- A rule that lived only in a docstring becomes an architectural decision, closing an ADR-0001 drift.
+
+This decision fixes a principle, not its mechanism. How the deciding principal is spelled in a
+record, where the mandate is kept, and how often the engine sweeps are left to be settled where the
+universe is composed. The principle is this: the system may think for itself about what is worth
+watching, provided it never claims a human thought it.
+
+---
+
 ## Next ADR Number
 
-ADR-0011
+ADR-0012
