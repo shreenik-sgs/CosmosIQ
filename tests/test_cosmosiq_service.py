@@ -201,6 +201,24 @@ class LockTests(unittest.TestCase):
             self.assertEqual(health.last_successful_run_id, "")
             self.assertFalse(os.path.isfile(os.path.join(d, "run_store.jsonl")))
 
+    def test_tick_borrowing_the_loop_lock_is_not_refused_by_it(self):
+        """A tick handed the lock its caller already owns must RUN, not refuse itself.
+
+        Regression: the supervised loop (``__main__``) holds the lock for its whole lifetime and
+        then called ``run_once``, which re-acquired the SAME path -- so every tick was refused
+        against the loop's own lock and the service silently ran nothing while looking healthy.
+        """
+        with tempfile.TemporaryDirectory() as d:
+            config = _config(d)
+            handle = acquire_lock(config.lock_path, pid=1, now=_NOW)
+            health = run_once(config, now=_NOW, pid=1, lock_handle=handle)
+            events = [json.loads(line)["event"]
+                      for line in open(config.log_path, encoding="utf-8") if line.strip()]
+            self.assertNotIn("tick.lock_held", events)
+            self.assertEqual(health.consecutive_failures, 0)
+            # the borrowed lock stays owned by the caller -- the tick must not release it
+            self.assertEqual(read_lock(config.lock_path)["pid"], 1)
+
     def test_release_is_idempotent(self):
         with tempfile.TemporaryDirectory() as d:
             path = os.path.join(d, "service.lock")

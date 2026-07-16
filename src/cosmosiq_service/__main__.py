@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import signal
 import sys
 import time
 from datetime import datetime, timezone
@@ -154,6 +155,11 @@ def _pre_loop_decision(config: ServiceConfig, *,
     return None
 
 
+def _raise_keyboard_interrupt(signum, frame):
+    """SIGTERM -> KeyboardInterrupt, so a supervisor stop unwinds through the loop's `finally`."""
+    raise KeyboardInterrupt
+
+
 def _supervise(config: ServiceConfig, *,
                operator_opt_in_continuous_shadow: bool = False) -> int:
     """Run the supervised loop. MANUAL is the attended loop; continuous SHADOW_24X7 runs ONLY on the
@@ -184,16 +190,24 @@ def _supervise(config: ServiceConfig, *,
     else:
         print("  supervised loop: MANUAL (attended) · poll every {0}s · Ctrl-C to stop · lock {1}"
               .format(config.poll_interval_seconds, config.lock_path))
+    # A supervisor (launchd/systemd) STOPS this process with SIGTERM, which by default kills the
+    # interpreter WITHOUT unwinding -- the `finally` below would never run and the lockfile would
+    # be orphaned holding a dead pid. A restart inside `lock_stale_seconds` would then be REFUSED
+    # against that orphan and crash-loop under KeepAlive. Route SIGTERM into the same
+    # KeyboardInterrupt path Ctrl-C already uses so the lock is always released on the way out.
+    signal.signal(signal.SIGTERM, _raise_keyboard_interrupt)
+
     try:
         while True:                     # the ONE supervised loop -- __main__ only, never the CORE
             now = wall_clock_now()
-            health = run_once(config, now=now, is_running=True, pid=pid)
+            health = run_once(config, now=now, is_running=True, pid=pid,
+                              lock_handle=handle)
             print("  tick {0}: mode={1} failures={2} last_ok={3}".format(
                 now, health.service_mode, health.consecutive_failures,
                 health.last_successful_run_id or "-"))
             time.sleep(config.poll_interval_seconds)    # the ONE sleep -- __main__ only
     except KeyboardInterrupt:
-        print("\nCtrl-C received -- supervised service stopped.")
+        print("\nstop signal received (Ctrl-C / SIGTERM) -- supervised service stopped, lock released.")
     finally:
         release_lock(handle)
     return 0

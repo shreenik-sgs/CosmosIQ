@@ -647,11 +647,15 @@ def _live_mode_allowed(mode: ServiceMode) -> bool:
 
 
 def run_once(config: ServiceConfig, *, now: str, is_running: bool = False,
-             pid: int = 0, live_adapters=None, live_env=None) -> ServiceHealth:
+             pid: int = 0, live_adapters=None, live_env=None,
+             lock_handle: Optional[LockHandle] = None) -> ServiceHealth:
     """Run ONE supervised tick at the injected ``now``; persist health + a structured log line.
 
     Flow: OFF / paused / active-backoff -> a recorded no-op (nothing runs, the reason is logged).
-    Otherwise acquire the single-instance lock, call the accepted 015B
+    Otherwise acquire the single-instance lock -- unless the caller passes the ``lock_handle`` it
+    already owns, in which case the tick BORROWS it and neither re-acquires nor releases it (the
+    supervised loop holds the lock for its whole lifetime; re-acquiring would refuse the tick
+    against the loop's own lock) -- call the accepted 015B
     :func:`reality_mesh.orchestrator.run_due_pulses` for ONE tick through the FULL 013 chain
     (stores / ledger / health / DQ gates / verification replay -- never bypassed), then release
     the lock. A successful pulse updates ``last_successful_run_id`` / ``last_tick_completed_at``
@@ -703,15 +707,22 @@ def run_once(config: ServiceConfig, *, now: str, is_running: bool = False,
                 prev.next_retry_at)})
 
     # -- acquire the single-instance lock (a duplicate service is refused) ---- #
-    try:
-        handle = acquire_lock(config.lock_path, pid=pid, now=stamped,
-                              stale_after_seconds=config.lock_stale_seconds)
-    except LockError as exc:
-        health = replace(base, lock_status="held")
-        return _commit(config, health, {
-            "ts": stamped, "level": "warning", "event": "tick.lock_held",
-            "service_mode": config.mode.value,
-            "message": sanitize(str(exc))})
+    # A caller that ALREADY owns the lock (the supervised loop in __main__, which holds it for the
+    # loop's lifetime) passes its handle down. Re-acquiring the same path here would refuse the
+    # tick against the loop's OWN lock -- the tick would run nothing while looking healthy.
+    owns_lock = lock_handle is None
+    if owns_lock:
+        try:
+            handle = acquire_lock(config.lock_path, pid=pid, now=stamped,
+                                  stale_after_seconds=config.lock_stale_seconds)
+        except LockError as exc:
+            health = replace(base, lock_status="held")
+            return _commit(config, health, {
+                "ts": stamped, "level": "warning", "event": "tick.lock_held",
+                "service_mode": config.mode.value,
+                "message": sanitize(str(exc))})
+    else:
+        handle = lock_handle
 
     lock_status = "stale_reclaimed" if handle.reclaimed_stale else "held"
     try:
@@ -755,7 +766,9 @@ def run_once(config: ServiceConfig, *, now: str, is_running: bool = False,
             "skipped": len(result.skipped), "notes": len(result.notes),
             "message": "no policy was due this tick -- nothing ran"})
     finally:
-        release_lock(handle)
+        # Only release a lock this tick acquired -- a borrowed handle stays owned by the caller.
+        if owns_lock:
+            release_lock(handle)
 
 
 def _record_success(config: ServiceConfig, base: ServiceHealth, result, *, now: str,
