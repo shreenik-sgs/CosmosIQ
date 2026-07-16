@@ -59,6 +59,40 @@ _CONFIDENCE_ORDER: Tuple[str, ...] = (
 _FRESHNESS_REAL_ORDER: Tuple[str, ...] = (
     "expired", "stale", "aging", "recent", "fresh")
 
+def _bottleneck_label_for(graph, theme_id: str) -> str:
+    """How constrained this theme is, read off the REAL value-chain map (``unknown`` without one).
+
+    ``bottleneck_label`` was hardcoded ``"unknown"`` on every pulse ever produced, while
+    :mod:`reality_mesh.theme_graph` held exactly this data -- so the value-chain language on a
+    hypothesis packet was decorative rather than derived, and anything downstream reading the field
+    (an operator, or the REQ-GEN-019 prioritiser, which takes it as its magnitude factor) was
+    reading a constant.
+
+    The label reports what the graph STRUCTURALLY says and never more:
+
+    * the theme is gated by a real CHOKEPOINT (a critical bottleneck) -> ``major``;
+    * the theme has a real bottleneck that is not critical -> ``moderate``;
+    * the theme is not in the map, or maps to no bottleneck -> ``unknown`` -- an honest gap, the
+      same answer as before, because a theme with no value-chain analysis has no constraint to
+      report and one is never invented for it.
+
+    Deterministic; no network; ``graph=None`` reproduces the old constant exactly, so every caller
+    that has no map keeps its existing behaviour byte-for-byte.
+    """
+    if graph is None or not theme_id:
+        return "unknown"
+    try:
+        chains = {v.value_chain_id for v in graph.value_chains if v.theme_ref == theme_id}
+        if not chains:
+            return "unknown"
+        gating = [b for b in graph.bottlenecks if b.value_chain_ref in chains]
+        if not gating:
+            return "unknown"
+        return "major" if any(getattr(b, "is_chokepoint", False) for b in gating) else "moderate"
+    except Exception:
+        return "unknown"        # a malformed map is an honest gap, never a fabricated constraint
+
+
 _POSITIVE_DIRECTIONS = frozenset({"improving", "accelerating", "rising"})
 _NEGATIVE_DIRECTIONS = frozenset({"deteriorating", "decelerating", "falling", "reversing"})
 
@@ -196,6 +230,7 @@ class ThemePulseSynthesizer:
         signals: Tuple[RealitySignal, ...] = (),
         *,
         now: str = "",
+        graph=None,
     ) -> SphuranaResult:
         """Synthesize theme pulses + opportunity hypotheses from fused clusters/signals.
 
@@ -228,7 +263,7 @@ class ThemePulseSynthesizer:
         pulses: List[ThemePulse] = []
         hypotheses: List[OpportunityHypothesisPacket] = []
         for subject in sorted(views):
-            pulse = self._build_pulse(views[subject], tuple(context_signals))
+            pulse = self._build_pulse(views[subject], tuple(context_signals), graph=graph)
             pulses.append(pulse)
             if pulse.state != "Dormant":
                 hypotheses.append(self._build_hypothesis(pulse, views[subject]))
@@ -244,7 +279,8 @@ class ThemePulseSynthesizer:
         )
 
     # -- theme pulse construction ----------------------------------------- #
-    def _build_pulse(self, view: _ThemeView, context_signals: Tuple[RealitySignal, ...]) -> ThemePulse:
+    def _build_pulse(self, view: _ThemeView, context_signals: Tuple[RealitySignal, ...],
+                     *, graph=None) -> ThemePulse:
         subject = view.subject
         msigs = sorted(view.signals, key=lambda s: s.signal_id)
         mclusters = sorted(view.clusters, key=lambda c: c.cluster_id)
@@ -382,7 +418,7 @@ class ThemePulseSynthesizer:
             breadth_label=breadth_label,
             rotation_label=rotation_label,
             crowding_label=crowding_label,
-            bottleneck_label="unknown",
+            bottleneck_label=_bottleneck_label_for(graph, _slug(subject)),
             beneficiary_candidates=beneficiaries,
             risk_candidates=risks,
             confidence_label=confidence,
