@@ -63,6 +63,14 @@ jobs:
       - name: make ci (cosmosiq_ops ci-gate)
         run: make ci
 
+      # pytest is a CI-only TEST TOOL, never a project dependency: pyproject still declares
+      # `dependencies = []` and the step above still fails the build if that ever stops being true.
+      # Installing it here does not weaken the stdlib-only promise -- the shipped package needs
+      # nothing; only this checker does. (The first two CI runs failed exactly here: the workflow
+      # ran `python -m pytest` on a bare runner that had no pytest.)
+      - name: Install pytest (CI-only test tool, not a project dependency)
+        run: python -m pip install --quiet --disable-pip-version-check pytest
+
       # Belt and braces: run the suite through pytest too. Both entrypoints must agree, because
       # they historically did not -- `pytest tests/` collected ZERO tests while `unittest
       # discover` passed 3746, and nothing noticed. Running both here keeps that from recurring
